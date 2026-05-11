@@ -1,0 +1,24 @@
+# macOS
+.DS_Store
+
+# Claude Code (local)
+.claude/settings.local.json
+
+# Flutter / Dart (将来用)
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+build/
+.fvm/
+
+# IDE
+.idea/
+*.iml
+.vscode/*
+!.vscode/launch.json
+
+# Logs
+*.log
