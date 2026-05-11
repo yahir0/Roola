@@ -12,6 +12,7 @@
 | [0004](./0004-single-dart-define.md) | dart-define は単一環境（prod）のみ | Accepted |
 | [0005](./0005-no-external-skill-dependency.md) | 外部 Skill / プラグインに依存しない自己完結方針 | Accepted |
 | [0006](./0006-mvvm-over-clean-architecture.md) | Flutter 公式 MVVM を採用（Clean Architecture を採らない） | Accepted |
+| [0007](./0007-riverpod-lint-deferral.md) | `riverpod_lint` / `custom_lint` の採用を当面保留 | Accepted |
 
 ## フォーマット
 
