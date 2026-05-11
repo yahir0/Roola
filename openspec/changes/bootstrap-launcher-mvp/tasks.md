@@ -1,15 +1,15 @@
 ## 1. プロジェクト初期化と環境セットアップ
 
-- [ ] 1.1 リポジトリ直下に `flutter create --platforms=macos --org io.github.yahir0.claude_skills_launcher .` で Flutter プロジェクトを生成する
-- [ ] 1.2 `.fvmrc` を追加し、本プロジェクトで採用する Flutter バージョンを固定する
-- [ ] 1.3 `pubspec.yaml` に依存パッケージを追加する（`flutter_hooks` / `hooks_riverpod` / `riverpod_annotation` / `freezed_annotation` / `json_annotation` / `go_router` / `go_router_builder` / `dio` / `path_provider` / `file_picker` / `image` / `xterm` / `flutter_pty` / `window_manager`）
-- [ ] 1.4 `pubspec.yaml` の dev_dependencies に `build_runner` / `freezed` / `json_serializable` / `riverpod_generator` / `go_router_builder` / `custom_lint` / `riverpod_lint` / `mocktail` / `flutter_lints` を追加する
-- [ ] 1.5 `analysis_options.yaml` を本プロジェクトのコーディング規約（`docs/coding-standards.md` で定義）に沿って整備する
-- [ ] 1.6 `dart_defines/prod.json` を作成し、最低限のキー（`APP_NAME` 等）を設定する（Flavor 分離はしない）
-- [ ] 1.7 `.vscode/launch.json` に prod 用 1 種の起動コンフィグを追加する
-- [ ] 1.8 `macos/Runner/DebugProfile.entitlements` / `Release.entitlements` から App Sandbox を無効化し、PTY 経由を含む子プロセス起動を許可するキーを追加する
-- [ ] 1.9 `macos/Runner/MainFlutterWindow.swift` を編集し、`isOpaque = false` / `backgroundColor = .clear` を設定する
-- [ ] 1.10 `.gitignore` に `dart_defines/*.local.json` 等のローカル設定を追加する
+- [x] 1.1 リポジトリ直下に `flutter create --platforms=macos --org io.github.yahir0 --project-name claude_skills_launcher .` で Flutter プロジェクトを生成する（bundle ID は `io.github.yahir0.claude_skills_launcher` になる）
+- [x] 1.2 `.fvmrc` を追加し、本プロジェクトで採用する Flutter バージョンを固定する
+- [x] 1.3 `pubspec.yaml` に依存パッケージを追加する（`flutter_hooks` / `hooks_riverpod` / `riverpod_annotation` / `freezed_annotation` / `json_annotation` / `go_router` / `go_router_builder` / `dio` / `path_provider` / `file_picker` / `image` / `xterm` / `flutter_pty` / `window_manager`）
+- [x] 1.4 `pubspec.yaml` の dev_dependencies に `build_runner` / `freezed` / `json_serializable` / `riverpod_generator` / `go_router_builder` / `mocktail` / `flutter_lints` を追加する（`custom_lint` / `riverpod_lint` は現時点で riverpod 3.x との依存解決ができないため、エコシステム側が追従し次第別 change で追加）
+- [x] 1.5 `analysis_options.yaml` を本プロジェクトのコーディング規約（`docs/coding-standards.md` で定義）に沿って整備する
+- [x] 1.6 `dart_defines/prod.json` を作成し、最低限のキー（`APP_NAME` 等）を設定する（Flavor 分離はしない）
+- [x] 1.7 `.vscode/launch.json` に prod 用 1 種の起動コンフィグを追加する
+- [x] 1.8 `macos/Runner/DebugProfile.entitlements` / `Release.entitlements` から App Sandbox を無効化し、PTY 経由を含む子プロセス起動を許可するキーを追加する
+- [x] 1.9 `macos/Runner/MainFlutterWindow.swift` を編集し、`isOpaque = false` / `backgroundColor = .clear` を設定する
+- [x] 1.10 `.gitignore` に `dart_defines/*.local.json` 等のローカル設定を追加する
 
 ## 2. アーキテクチャ骨組み（MVVM 構成）
 

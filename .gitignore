@@ -4,7 +4,7 @@
 # Claude Code (local)
 .claude/settings.local.json
 
-# Flutter / Dart (将来用)
+# Flutter / Dart
 .dart_tool/
 .flutter-plugins
 .flutter-plugins-dependencies
@@ -13,12 +13,37 @@
 .pub/
 build/
 .fvm/
+flutter_*.png
+linked_*.ds
+unlinked.ds
+unlinked_spec.ds
+
+# pubspec.lock を commit する（アプリのため、再現性を最優先）
+# 何かを変えた覚えがあれば pubspec.lock を確認すること
+
+# Coverage
+coverage/
 
 # IDE
 .idea/
 *.iml
 .vscode/*
 !.vscode/launch.json
+!.vscode/settings.json
+!.vscode/extensions.json
+
+# Generated（build_runner で生成、commit する）
+# *.freezed.dart
+# *.g.dart
+
+# macOS / iOS native
+**/.symlinks/
+**/Flutter/ephemeral/
+**/Pods/
+**/Pods/Pods.xcodeproj/project.xcworkspace/
+
+# dart_defines: ローカル上書き分のみ無視
+dart_defines/*.local.json
 
 # Logs
 *.log
