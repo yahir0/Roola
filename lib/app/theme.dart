@@ -20,11 +20,11 @@ class AppTheme {
   static const Color _logoOnSurface = Color(0xFFFFFFFF);
   static const Color _logoOnSurfaceVariant = Color(0xFFA8B0BC);
 
-  /// 透過モード時の暗幕に使う中性スレート色。ロゴの deep gunmetal
+  /// 透過モード時の暗幕に使う無彩色グレー。ロゴの deep gunmetal
   /// (`_logoBackgroundBottom`) は青に寄っているため、透過設定下では
-  /// 色味が強く出すぎる。`#1C1D20` は B-R 差が 4 とほぼニュートラルで、
-  /// Arch Linux 系のミニマル dark に近い印象になる。
-  static const Color transparentBackdrop = Color(0xFF1C1D20);
+  /// 色味が強く出すぎる。`#1D1D1D` は R = G = B の完全無彩色で、
+  /// デスクトップ側の壁紙にもっとも干渉しないトーン。
+  static const Color transparentBackdrop = Color(0xFF1D1D1D);
 
   /// ロゴパレットを参照するための ThemeExtension のシングルトン。
   static const LogoTheme logoTheme = LogoTheme(
