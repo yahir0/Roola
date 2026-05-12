@@ -13,6 +13,7 @@
 | [0005](./0005-no-external-skill-dependency.md) | 外部 Skill / プラグインに依存しない自己完結方針 | Accepted |
 | [0006](./0006-mvvm-over-clean-architecture.md) | Flutter 公式 MVVM を採用（Clean Architecture を採らない） | Accepted |
 | [0007](./0007-riverpod-lint-deferral.md) | `riverpod_lint` / `custom_lint` の採用を当面保留 | Accepted |
+| [0008](./0008-keep-alive-skill-sessions.md) | スキル実行セッションを実行画面 widget から切り離して保持 | Accepted |
 
 ## フォーマット
 

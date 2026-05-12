@@ -68,6 +68,8 @@ Mac 向けの Claude Code Skills ランチャーアプリ（Flutter Desktop / ma
 - ADR-0004: dart-define は単一環境（prod）のみ
 - ADR-0005: 外部 Skill / プラグインに依存しない自己完結方針
 - ADR-0006: Flutter 公式 MVVM の採用（Clean Architecture を採らない理由）
+- ADR-0007: `riverpod_lint` / `custom_lint` の採用を当面保留
+- ADR-0008: スキル実行セッションを実行画面 widget から切り離して保持
 
 ## ディレクトリ構成
 
