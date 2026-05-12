@@ -28,21 +28,21 @@
 
 ### 3a. data 層
 
-- [ ] 3.1 `lib/data/launcher_entry/launcher_entry.dart` に Freezed モデル `LauncherEntry` を定義する（id / displayName / repositoryPath / skillName / iconPath / createdAt）
-- [ ] 3.2 `lib/data/launcher_entry/launcher_entry_dto.dart` に JsonSerializable な `LauncherEntryDto` を実装し、`LauncherEntry` ↔ DTO の変換ヘルパーを書く
-- [ ] 3.3 `lib/data/launcher_entry/launcher_entry_repository.dart` に interface を定義する（`loadAll` / `add` / `update` / `delete`）
-- [ ] 3.4 `lib/data/launcher_entry/launcher_entry_repository_impl.dart` に `<appSupport>/launcher_entries.json` 経由の実装を書く
-- [ ] 3.5 Riverpod Provider `launcherEntryRepositoryProvider` を定義し、`LauncherEntryRepositoryImpl` を返す
+- [x] 3.1 `lib/data/launcher_entry/launcher_entry.dart` に Freezed モデル `LauncherEntry` を定義する（id / displayName / repositoryPath / skillName / iconPath / createdAt）
+- [x] 3.2 `lib/data/launcher_entry/launcher_entry_dto.dart` に JsonSerializable な `LauncherEntryDto` を実装し、`LauncherEntry` ↔ DTO の変換ヘルパーを書く
+- [x] 3.3 `lib/data/launcher_entry/launcher_entry_repository.dart` に interface を定義する（`loadAll` / `add` / `update` / `delete`）
+- [x] 3.4 `lib/data/launcher_entry/launcher_entry_repository_impl.dart` に `<appSupport>/launcher_entries.json` 経由の実装を書く
+- [x] 3.5 Riverpod Provider `launcherEntryRepositoryProvider` を定義し、`LauncherEntryRepositoryImpl` を返す
 
 ### 3b. ui 層
 
-- [ ] 3.6 `lib/ui/settings/settings_view_model.dart` に `SettingsViewModel`（AsyncNotifier）を実装する。`loadEntries` / `addEntry` / `updateEntry` / `deleteEntry` を公開
-- [ ] 3.7 `lib/ui/settings/settings_page.dart` を実装する（エントリ一覧・追加ボタン・各エントリ行のタップで編集画面へ）
-- [ ] 3.8 `lib/ui/settings/entry_edit_view_model.dart` に `EntryEditViewModel`（family で `entryId?` を受け取る）を実装する。バリデーション・保存ロジックを保持
-- [ ] 3.9 `lib/ui/settings/entry_edit_page.dart` を実装する（表示名・リポジトリパス・Skill 名・アイコン選択フィールド + バリデーションエラー表示）
-- [ ] 3.10 リポジトリパス入力欄に `file_picker` でディレクトリ選択ダイアログを呼び出す機能を実装する
-- [ ] 3.11 アイコン選択で画像ファイルを選び、`image` パッケージで 512px に縮小して `<appSupport>/icons/<entryId>.png` に保存する処理を ViewModel に実装する
-- [ ] 3.12 削除確認ダイアログ + 削除処理を実装する
+- [x] 3.6 `lib/ui/settings/settings_view_model.dart` に `SettingsViewModel`（AsyncNotifier）を実装する。`loadEntries` / `addEntry` / `updateEntry` / `deleteEntry` を公開
+- [x] 3.7 `lib/ui/settings/settings_page.dart` を実装する（エントリ一覧・追加ボタン・各エントリ行のタップで編集画面へ）
+- [x] 3.8 `lib/ui/settings/entry_edit_view_model.dart` に `EntryEditViewModel`（family で `entryId?` を受け取る）を実装する。バリデーション・保存ロジックを保持
+- [x] 3.9 `lib/ui/settings/entry_edit_page.dart` を実装する（表示名・リポジトリパス・Skill 名・アイコン選択フィールド + バリデーションエラー表示）
+- [x] 3.10 リポジトリパス入力欄に `file_picker` でディレクトリ選択ダイアログを呼び出す機能を実装する
+- [x] 3.11 アイコン選択で画像ファイルを選び、`image` パッケージで 512px に縮小して `<appSupport>/icons/<entryId>.png` に保存する処理を ViewModel に実装する
+- [x] 3.12 削除確認ダイアログ + 削除処理を実装する
 
 ## 4. home フィーチャー（ui）
 
