@@ -33,7 +33,12 @@ Future<void> showExplorerContextMenu(
   bool showRename = true,
   bool showCopy = true,
 }) async {
-  final hasClipboard = ref.read(explorerClipboardProvider) != null;
+  // OS クリップボードの状態は非同期でしか取れないため、showMenu の前に
+  // 一度問い合わせて「ペースト」項目の表示可否を確定させる。
+  final hasClipboard = await ref.read(osClipboardServiceProvider).hasFile();
+  if (!context.mounted) {
+    return;
+  }
   final items = <PopupMenuEntry<ExplorerNodeAction>>[
     const PopupMenuItem(
       value: _ActionOpenClaude(),
@@ -222,7 +227,7 @@ Future<void> showFileContextMenu(
     case _FileAction.rename:
       await _renameAndRefresh(context, ref, node.path, node.name);
     case _FileAction.copy:
-      ref.read(explorerClipboardProvider.notifier).set(node.path);
+      await ref.read(osClipboardServiceProvider).writeFile(node.path);
       if (!context.mounted) {
         return;
       }
@@ -295,7 +300,7 @@ Future<void> _handleDirectoryAction(
     case _ActionRename():
       await _renameAndRefresh(context, ref, node.path, node.name);
     case _ActionCopy():
-      ref.read(explorerClipboardProvider.notifier).set(node.path);
+      await ref.read(osClipboardServiceProvider).writeFile(node.path);
       if (!context.mounted) {
         return;
       }
@@ -399,38 +404,45 @@ Future<void> _renameAndRefresh(
   }
 }
 
-/// クリップボードに保持しているパスを [targetDir] にコピーする。
+/// OS クリップボードに乗っているファイル URI を [targetDir] にコピーする。
+/// Finder で複数選択コピーした場合など複数 URI がある場合は順にコピーする。
 /// 失敗時は SnackBar でエラー、成功時は ViewModel を refresh。
-/// コピー後もクリップボードは維持する（連続ペースト可）。
+/// OS クリップボードの内容はこちらで消さない（連続ペースト可）。
 Future<void> _pasteInto(
   BuildContext context,
   WidgetRef ref,
   String targetDir,
 ) async {
-  final source = ref.read(explorerClipboardProvider);
-  if (source == null) {
-    return;
-  }
-  if (!File(source).existsSync() && !Directory(source).existsSync()) {
-    if (!context.mounted) {
-      return;
-    }
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text('コピー元が見つかりません: $source')));
+  final sources = await ref.read(osClipboardServiceProvider).readFilePaths();
+  if (sources.isEmpty) {
     return;
   }
   final ops = ref.read(explorerFileOpsProvider);
-  try {
-    await ops.copyInto(source, targetDir);
-    ref.read(explorerViewModelProvider.notifier).refresh();
-  } on FileSystemException catch (e) {
-    if (!context.mounted) {
-      return;
+  final missing = <String>[];
+  String? lastError;
+  for (final source in sources) {
+    if (!File(source).existsSync() && !Directory(source).existsSync()) {
+      missing.add(source);
+      continue;
     }
+    try {
+      await ops.copyInto(source, targetDir);
+    } on FileSystemException catch (e) {
+      lastError = e.message;
+    }
+  }
+  ref.read(explorerViewModelProvider.notifier).refresh();
+  if (!context.mounted) {
+    return;
+  }
+  if (lastError != null) {
     ScaffoldMessenger.of(
       context,
-    ).showSnackBar(SnackBar(content: Text('ペーストに失敗しました: ${e.message}')));
+    ).showSnackBar(SnackBar(content: Text('ペーストに失敗しました: $lastError')));
+  } else if (missing.isNotEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('コピー元が見つかりません: ${missing.join(', ')}')),
+    );
   }
 }
 
