@@ -2,6 +2,13 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'adhoc_run_args.freezed.dart';
 
+/// ad-hoc セッションの実行種別。
+///
+/// `claudeCode` は従来通り `claude` を起動する（Skill 指定の有無に関わらず）。
+/// `terminal` はリポジトリ配下でユーザーのログインシェルを PTY 起動する
+/// 「アプリ内ターミナル」。Skill は使わない。
+enum AdhocRunKind { claudeCode, terminal }
+
 /// ad-hoc セッション起動時に View 層と Notifier 層で取り回す引数。
 ///
 /// Freezed で `==` / hashCode が成立するため、Riverpod family の比較や
@@ -18,5 +25,8 @@ abstract class AdhocRunArgs with _$AdhocRunArgs {
 
     /// 空文字なら Skill 指定なし（`claude` 単独起動）。
     @Default('') String skillName,
+
+    /// 実行種別。既定は `claudeCode`（既存呼び出しの互換）。
+    @Default(AdhocRunKind.claudeCode) AdhocRunKind kind,
   }) = _AdhocRunArgs;
 }

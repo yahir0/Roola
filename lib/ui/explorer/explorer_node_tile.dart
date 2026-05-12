@@ -43,6 +43,13 @@ Future<void> showExplorerContextMenu(
       ),
     ),
     const PopupMenuItem(
+      value: _ActionOpenTerminal(),
+      child: ListTile(
+        leading: Icon(Icons.developer_mode),
+        title: Text('ここでターミナルを開く'),
+      ),
+    ),
+    const PopupMenuItem(
       value: _ActionRevealInFinder(),
       child: ListTile(
         leading: Icon(Icons.folder_open),
@@ -245,6 +252,17 @@ Future<void> _handleDirectoryAction(
         adhocId: adhocId,
         repositoryPath: node.path,
         displayName: '${node.name} (Claude)',
+      );
+      unawaited(
+        RunAdhocRoute(adhocId: adhocId, $extra: args).push<void>(context),
+      );
+    case _ActionOpenTerminal():
+      final adhocId = 'adhoc-${_uuid.v4()}';
+      final args = AdhocRunArgs(
+        adhocId: adhocId,
+        repositoryPath: node.path,
+        displayName: '${node.name} (Terminal)',
+        kind: AdhocRunKind.terminal,
       );
       unawaited(
         RunAdhocRoute(adhocId: adhocId, $extra: args).push<void>(context),
@@ -541,6 +559,10 @@ sealed class ExplorerNodeAction {
 
 class _ActionOpenClaude extends ExplorerNodeAction {
   const _ActionOpenClaude();
+}
+
+class _ActionOpenTerminal extends ExplorerNodeAction {
+  const _ActionOpenTerminal();
 }
 
 class _ActionRevealInFinder extends ExplorerNodeAction {

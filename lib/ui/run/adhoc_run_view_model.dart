@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:claude_skills_launcher/data/launcher_entry/launcher_entry.dart';
 import 'package:claude_skills_launcher/data/skill_runner/pty_skill_runner.dart';
@@ -23,10 +24,20 @@ part 'adhoc_run_view_model.g.dart';
 class AdhocRunViewModel extends _$AdhocRunViewModel {
   @override
   RunPageState build(AdhocRunArgs args) {
-    final runner = PtySkillRunner(
-      repositoryPath: args.repositoryPath,
-      skillName: args.skillName,
-    );
+    final runner = switch (args.kind) {
+      AdhocRunKind.claudeCode => PtySkillRunner(
+        repositoryPath: args.repositoryPath,
+        skillName: args.skillName,
+      ),
+      // ターミナルセッションはユーザーのログインシェルを起動する。
+      // 環境変数 SHELL が無いケースは macOS 既定の zsh にフォールバック。
+      // skillName は使わないため空文字を渡す（PtySkillRunner 側で引数なし起動）。
+      AdhocRunKind.terminal => PtySkillRunner(
+        repositoryPath: args.repositoryPath,
+        skillName: '',
+        executable: Platform.environment['SHELL'] ?? '/bin/zsh',
+      ),
+    };
     final entry = LauncherEntry(
       id: args.adhocId,
       displayName: args.displayName,

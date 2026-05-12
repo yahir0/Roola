@@ -13,6 +13,12 @@ part of 'explorer_view_model.dart';
 /// ルートディレクトリは `explorerSettingsProvider` を購読して取得する。
 /// `navigateTo` で任意の絶対パスに移動し、その都度直下を再ロードする。
 /// `changeRoot` ではルート自体を永続化したうえでカレントも合わせて更新する。
+///
+/// マウスのサイドボタン（戻る / 進む）でブラウザのような履歴ナビゲーション
+/// ができるよう、訪問パスを `_history` に保持し、`_historyCursor` で現在
+/// 位置を指す。`navigateTo` は cursor 以降の forward 履歴を破棄して新しい
+/// パスを末尾に積む。`goBack` / `goForward` は cursor を上下させるだけで
+/// 履歴自体は変更しない。
 
 @ProviderFor(ExplorerViewModel)
 final explorerViewModelProvider = ExplorerViewModelProvider._();
@@ -22,6 +28,12 @@ final explorerViewModelProvider = ExplorerViewModelProvider._();
 /// ルートディレクトリは `explorerSettingsProvider` を購読して取得する。
 /// `navigateTo` で任意の絶対パスに移動し、その都度直下を再ロードする。
 /// `changeRoot` ではルート自体を永続化したうえでカレントも合わせて更新する。
+///
+/// マウスのサイドボタン（戻る / 進む）でブラウザのような履歴ナビゲーション
+/// ができるよう、訪問パスを `_history` に保持し、`_historyCursor` で現在
+/// 位置を指す。`navigateTo` は cursor 以降の forward 履歴を破棄して新しい
+/// パスを末尾に積む。`goBack` / `goForward` は cursor を上下させるだけで
+/// 履歴自体は変更しない。
 final class ExplorerViewModelProvider
     extends $NotifierProvider<ExplorerViewModel, ExplorerState> {
   /// エクスプローラの ViewModel。
@@ -29,6 +41,12 @@ final class ExplorerViewModelProvider
   /// ルートディレクトリは `explorerSettingsProvider` を購読して取得する。
   /// `navigateTo` で任意の絶対パスに移動し、その都度直下を再ロードする。
   /// `changeRoot` ではルート自体を永続化したうえでカレントも合わせて更新する。
+  ///
+  /// マウスのサイドボタン（戻る / 進む）でブラウザのような履歴ナビゲーション
+  /// ができるよう、訪問パスを `_history` に保持し、`_historyCursor` で現在
+  /// 位置を指す。`navigateTo` は cursor 以降の forward 履歴を破棄して新しい
+  /// パスを末尾に積む。`goBack` / `goForward` は cursor を上下させるだけで
+  /// 履歴自体は変更しない。
   ExplorerViewModelProvider._()
     : super(
         from: null,
@@ -56,13 +74,19 @@ final class ExplorerViewModelProvider
   }
 }
 
-String _$explorerViewModelHash() => r'8a1eabc1a0f72231b18425001690dd49518c83a2';
+String _$explorerViewModelHash() => r'a49ab3062b18a8e2f5a91c1085b9890e9d4dac33';
 
 /// エクスプローラの ViewModel。
 ///
 /// ルートディレクトリは `explorerSettingsProvider` を購読して取得する。
 /// `navigateTo` で任意の絶対パスに移動し、その都度直下を再ロードする。
 /// `changeRoot` ではルート自体を永続化したうえでカレントも合わせて更新する。
+///
+/// マウスのサイドボタン（戻る / 進む）でブラウザのような履歴ナビゲーション
+/// ができるよう、訪問パスを `_history` に保持し、`_historyCursor` で現在
+/// 位置を指す。`navigateTo` は cursor 以降の forward 履歴を破棄して新しい
+/// パスを末尾に積む。`goBack` / `goForward` は cursor を上下させるだけで
+/// 履歴自体は変更しない。
 
 abstract class _$ExplorerViewModel extends $Notifier<ExplorerState> {
   ExplorerState build();
