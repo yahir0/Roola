@@ -96,6 +96,17 @@ class AppearanceSettingsNotifier extends AsyncNotifier<AppearanceSettings> {
       return next;
     });
   }
+
+  /// 透過モードの暗幕の不透明度を更新する。値は 0.0〜1.0 にクランプ。
+  Future<void> setTransparencyOpacity(double opacity) async {
+    final clamped = opacity.clamp(0.0, 1.0);
+    final current = state.value ?? AppearanceSettings.defaults();
+    final next = current.copyWith(transparencyOpacity: clamped);
+    state = await AsyncValue.guard(() async {
+      await _repository.save(next);
+      return next;
+    });
+  }
 }
 
 final appearanceSettingsProvider =

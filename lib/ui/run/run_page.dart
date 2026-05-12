@@ -8,6 +8,41 @@ import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:xterm/xterm.dart';
 
+/// xterm 用のロゴ準拠テーマ。`TerminalView` 側で `backgroundOpacity: 0`
+/// を指定して描画レイヤーの Container を透過させるため、ここでの
+/// `background` は cell 単位の塗りや IME composing 等のフォールバック
+/// 用途でのみ使われる。`Color(0x00000000)` を渡すと内部の
+/// `withOpacity(1.0)` で alpha が 255 に再付与され opaque black に
+/// なってしまうため、必ず非ゼロ alpha の色（ここでは LogoTheme の
+/// deep background）を渡すこと。cursor / selection はロゴアクセント
+/// ブルー。ANSI 16 色は xterm defaultTheme を継承（VS Code 系配色で
+/// Claude Code の出力が崩れない）。
+const TerminalTheme _terminalTheme = TerminalTheme(
+  cursor: Color(0xFF90C0F0), // LogoTheme.accentBlueLight
+  selection: Color(0x665080C0), // LogoTheme.accentBlue, alpha 40%
+  foreground: Color(0xFFE0E0E0),
+  background: Color(0xFF1E232A), // LogoTheme.deepBackground（フォールバック用）
+  black: Color(0xFF000000),
+  red: Color(0xFFCD3131),
+  green: Color(0xFF0DBC79),
+  yellow: Color(0xFFE5E510),
+  blue: Color(0xFF2472C8),
+  magenta: Color(0xFFBC3FBC),
+  cyan: Color(0xFF11A8CD),
+  white: Color(0xFFE5E5E5),
+  brightBlack: Color(0xFF666666),
+  brightRed: Color(0xFFF14C4C),
+  brightGreen: Color(0xFF23D18B),
+  brightYellow: Color(0xFFF5F543),
+  brightBlue: Color(0xFF3B8EEA),
+  brightMagenta: Color(0xFFD670D6),
+  brightCyan: Color(0xFF29B8DB),
+  brightWhite: Color(0xFFFFFFFF),
+  searchHitBackground: Color(0xFFFFFF2B),
+  searchHitBackgroundCurrent: Color(0xFF31FF26),
+  searchHitForeground: Color(0xFF000000),
+);
+
 /// 実行画面。PTY 上で起動した `claude` の出力を xterm に描画し、
 /// キー入力を PTY に書き戻すフルターミナル UI。Terminal インスタンスは
 /// `SkillRunner` 側で保有しているため、ホーム遷移などで widget が破棄
@@ -69,12 +104,14 @@ class RunPage extends ConsumerWidget {
           ),
         ],
       ),
-      body: Container(
-        color: Colors.black,
-        child: TerminalView(
-          pageState.runner.terminal,
-          padding: const EdgeInsets.all(8),
-        ),
+      body: TerminalView(
+        pageState.runner.terminal,
+        theme: _terminalTheme,
+        // 内部 Container を完全透過にし、`_AppearanceLayer` の暗幕を
+        // そのまま見せる。デフォルトの 1.0 のままだと theme.background の
+        // 色が opaque で塗られてターミナル領域だけ不透明になってしまう。
+        backgroundOpacity: 0,
+        padding: const EdgeInsets.all(8),
       ),
     );
   }

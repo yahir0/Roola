@@ -15,7 +15,10 @@ T _$identity<T>(T value) => value;
 mixin _$AppearanceSettings {
 
  AppearanceMode get mode;/// RGBA を 32bit int で保持（`Color.toARGB32()` 相当）。
- int? get solidColor; String? get imagePath;
+ int? get solidColor; String? get imagePath;/// `transparent` モードで背景にうっすら載せる暗幕の不透明度（0.0〜1.0）。
+/// 1.0 で完全不透明、0.0 で完全透過。色はロゴの deep background 固定。
+/// 既定値はウィンドウ枠が視認できる程度の 0.8。
+ double get transparencyOpacity;
 /// Create a copy of AppearanceSettings
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -26,16 +29,16 @@ $AppearanceSettingsCopyWith<AppearanceSettings> get copyWith => _$AppearanceSett
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AppearanceSettings&&(identical(other.mode, mode) || other.mode == mode)&&(identical(other.solidColor, solidColor) || other.solidColor == solidColor)&&(identical(other.imagePath, imagePath) || other.imagePath == imagePath));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AppearanceSettings&&(identical(other.mode, mode) || other.mode == mode)&&(identical(other.solidColor, solidColor) || other.solidColor == solidColor)&&(identical(other.imagePath, imagePath) || other.imagePath == imagePath)&&(identical(other.transparencyOpacity, transparencyOpacity) || other.transparencyOpacity == transparencyOpacity));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,mode,solidColor,imagePath);
+int get hashCode => Object.hash(runtimeType,mode,solidColor,imagePath,transparencyOpacity);
 
 @override
 String toString() {
-  return 'AppearanceSettings(mode: $mode, solidColor: $solidColor, imagePath: $imagePath)';
+  return 'AppearanceSettings(mode: $mode, solidColor: $solidColor, imagePath: $imagePath, transparencyOpacity: $transparencyOpacity)';
 }
 
 
@@ -46,7 +49,7 @@ abstract mixin class $AppearanceSettingsCopyWith<$Res>  {
   factory $AppearanceSettingsCopyWith(AppearanceSettings value, $Res Function(AppearanceSettings) _then) = _$AppearanceSettingsCopyWithImpl;
 @useResult
 $Res call({
- AppearanceMode mode, int? solidColor, String? imagePath
+ AppearanceMode mode, int? solidColor, String? imagePath, double transparencyOpacity
 });
 
 
@@ -63,12 +66,13 @@ class _$AppearanceSettingsCopyWithImpl<$Res>
 
 /// Create a copy of AppearanceSettings
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? mode = null,Object? solidColor = freezed,Object? imagePath = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? mode = null,Object? solidColor = freezed,Object? imagePath = freezed,Object? transparencyOpacity = null,}) {
   return _then(_self.copyWith(
 mode: null == mode ? _self.mode : mode // ignore: cast_nullable_to_non_nullable
 as AppearanceMode,solidColor: freezed == solidColor ? _self.solidColor : solidColor // ignore: cast_nullable_to_non_nullable
 as int?,imagePath: freezed == imagePath ? _self.imagePath : imagePath // ignore: cast_nullable_to_non_nullable
-as String?,
+as String?,transparencyOpacity: null == transparencyOpacity ? _self.transparencyOpacity : transparencyOpacity // ignore: cast_nullable_to_non_nullable
+as double,
   ));
 }
 
@@ -153,10 +157,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( AppearanceMode mode,  int? solidColor,  String? imagePath)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( AppearanceMode mode,  int? solidColor,  String? imagePath,  double transparencyOpacity)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _AppearanceSettings() when $default != null:
-return $default(_that.mode,_that.solidColor,_that.imagePath);case _:
+return $default(_that.mode,_that.solidColor,_that.imagePath,_that.transparencyOpacity);case _:
   return orElse();
 
 }
@@ -174,10 +178,10 @@ return $default(_that.mode,_that.solidColor,_that.imagePath);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( AppearanceMode mode,  int? solidColor,  String? imagePath)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( AppearanceMode mode,  int? solidColor,  String? imagePath,  double transparencyOpacity)  $default,) {final _that = this;
 switch (_that) {
 case _AppearanceSettings():
-return $default(_that.mode,_that.solidColor,_that.imagePath);case _:
+return $default(_that.mode,_that.solidColor,_that.imagePath,_that.transparencyOpacity);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -194,10 +198,10 @@ return $default(_that.mode,_that.solidColor,_that.imagePath);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( AppearanceMode mode,  int? solidColor,  String? imagePath)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( AppearanceMode mode,  int? solidColor,  String? imagePath,  double transparencyOpacity)?  $default,) {final _that = this;
 switch (_that) {
 case _AppearanceSettings() when $default != null:
-return $default(_that.mode,_that.solidColor,_that.imagePath);case _:
+return $default(_that.mode,_that.solidColor,_that.imagePath,_that.transparencyOpacity);case _:
   return null;
 
 }
@@ -209,13 +213,17 @@ return $default(_that.mode,_that.solidColor,_that.imagePath);case _:
 
 
 class _AppearanceSettings implements AppearanceSettings {
-  const _AppearanceSettings({this.mode = AppearanceMode.transparent, this.solidColor, this.imagePath});
+  const _AppearanceSettings({this.mode = AppearanceMode.transparent, this.solidColor, this.imagePath, this.transparencyOpacity = 0.8});
   
 
 @override@JsonKey() final  AppearanceMode mode;
 /// RGBA を 32bit int で保持（`Color.toARGB32()` 相当）。
 @override final  int? solidColor;
 @override final  String? imagePath;
+/// `transparent` モードで背景にうっすら載せる暗幕の不透明度（0.0〜1.0）。
+/// 1.0 で完全不透明、0.0 で完全透過。色はロゴの deep background 固定。
+/// 既定値はウィンドウ枠が視認できる程度の 0.8。
+@override@JsonKey() final  double transparencyOpacity;
 
 /// Create a copy of AppearanceSettings
 /// with the given fields replaced by the non-null parameter values.
@@ -227,16 +235,16 @@ _$AppearanceSettingsCopyWith<_AppearanceSettings> get copyWith => __$AppearanceS
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AppearanceSettings&&(identical(other.mode, mode) || other.mode == mode)&&(identical(other.solidColor, solidColor) || other.solidColor == solidColor)&&(identical(other.imagePath, imagePath) || other.imagePath == imagePath));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AppearanceSettings&&(identical(other.mode, mode) || other.mode == mode)&&(identical(other.solidColor, solidColor) || other.solidColor == solidColor)&&(identical(other.imagePath, imagePath) || other.imagePath == imagePath)&&(identical(other.transparencyOpacity, transparencyOpacity) || other.transparencyOpacity == transparencyOpacity));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,mode,solidColor,imagePath);
+int get hashCode => Object.hash(runtimeType,mode,solidColor,imagePath,transparencyOpacity);
 
 @override
 String toString() {
-  return 'AppearanceSettings(mode: $mode, solidColor: $solidColor, imagePath: $imagePath)';
+  return 'AppearanceSettings(mode: $mode, solidColor: $solidColor, imagePath: $imagePath, transparencyOpacity: $transparencyOpacity)';
 }
 
 
@@ -247,7 +255,7 @@ abstract mixin class _$AppearanceSettingsCopyWith<$Res> implements $AppearanceSe
   factory _$AppearanceSettingsCopyWith(_AppearanceSettings value, $Res Function(_AppearanceSettings) _then) = __$AppearanceSettingsCopyWithImpl;
 @override @useResult
 $Res call({
- AppearanceMode mode, int? solidColor, String? imagePath
+ AppearanceMode mode, int? solidColor, String? imagePath, double transparencyOpacity
 });
 
 
@@ -264,12 +272,13 @@ class __$AppearanceSettingsCopyWithImpl<$Res>
 
 /// Create a copy of AppearanceSettings
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? mode = null,Object? solidColor = freezed,Object? imagePath = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? mode = null,Object? solidColor = freezed,Object? imagePath = freezed,Object? transparencyOpacity = null,}) {
   return _then(_AppearanceSettings(
 mode: null == mode ? _self.mode : mode // ignore: cast_nullable_to_non_nullable
 as AppearanceMode,solidColor: freezed == solidColor ? _self.solidColor : solidColor // ignore: cast_nullable_to_non_nullable
 as int?,imagePath: freezed == imagePath ? _self.imagePath : imagePath // ignore: cast_nullable_to_non_nullable
-as String?,
+as String?,transparencyOpacity: null == transparencyOpacity ? _self.transparencyOpacity : transparencyOpacity // ignore: cast_nullable_to_non_nullable
+as double,
   ));
 }
 

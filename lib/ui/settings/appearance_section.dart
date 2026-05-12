@@ -14,13 +14,14 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 class AppearanceSection extends ConsumerWidget {
   const AppearanceSection({super.key});
 
+  // ロゴ（AppIcon）の配色に揃えたプリセット。
   static const _presetColors = <Color>[
-    Color(0xFFFFFFFF),
-    Color(0xFF1E1E1E),
-    Color(0xFF6750A4),
-    Color(0xFF1976D2),
-    Color(0xFF388E3C),
-    Color(0xFFD32F2F),
+    Color(0xFF1E232A), // ロゴ背景（deep gunmetal）
+    Color(0xFF2F353D), // ロゴ surface
+    Color(0xFF0A0A14), // pure midnight
+    Color(0xFF5080C0), // ロゴ primary blue
+    Color(0xFF90C0F0), // ロゴ accent light blue
+    Color(0xFFFFFFFF), // 白
   ];
 
   @override
@@ -63,6 +64,11 @@ class _Body extends ConsumerWidget {
                 icon: Icon(Icons.blur_on),
               ),
               ButtonSegment(
+                value: AppearanceMode.gradient,
+                label: Text('ロゴ'),
+                icon: Icon(Icons.gradient),
+              ),
+              ButtonSegment(
                 value: AppearanceMode.solid,
                 label: Text('単色'),
                 icon: Icon(Icons.format_color_fill),
@@ -81,6 +87,11 @@ class _Body extends ConsumerWidget {
             },
           ),
           const SizedBox(height: 16),
+          if (settings.mode == AppearanceMode.transparent)
+            _OpacitySlider(
+              value: settings.transparencyOpacity,
+              onChanged: notifier.setTransparencyOpacity,
+            ),
           if (settings.mode == AppearanceMode.solid)
             _ColorPicker(
               selectedColor: settings.solidColor,
@@ -110,6 +121,37 @@ class _Body extends ConsumerWidget {
     final dest = paths.backgroundImageFile;
     await File(src).copy(dest.path);
     await notifier.setImagePath(dest.path);
+  }
+}
+
+/// 透過モード時の暗幕の不透明度スライダー。値は 0.0〜1.0。
+class _OpacitySlider extends StatelessWidget {
+  const _OpacitySlider({required this.value, required this.onChanged});
+
+  final double value;
+  final ValueChanged<double> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final percent = (value * 100).round();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const Text('不透明度'),
+            const Spacer(),
+            Text('$percent%', style: Theme.of(context).textTheme.bodySmall),
+          ],
+        ),
+        Slider(
+          value: value.clamp(0.0, 1.0),
+          divisions: 20,
+          label: '$percent%',
+          onChanged: onChanged,
+        ),
+      ],
+    );
   }
 }
 

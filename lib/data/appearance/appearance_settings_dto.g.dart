@@ -12,6 +12,7 @@ AppearanceSettingsDto _$AppearanceSettingsDtoFromJson(
   mode: json['mode'] as String,
   solidColor: (json['solidColor'] as num?)?.toInt(),
   imagePath: json['imagePath'] as String?,
+  transparencyOpacity: (json['transparencyOpacity'] as num?)?.toDouble(),
 );
 
 Map<String, dynamic> _$AppearanceSettingsDtoToJson(
@@ -20,4 +21,5 @@ Map<String, dynamic> _$AppearanceSettingsDtoToJson(
   'mode': instance.mode,
   'solidColor': instance.solidColor,
   'imagePath': instance.imagePath,
+  'transparencyOpacity': instance.transparencyOpacity,
 };

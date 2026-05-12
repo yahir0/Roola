@@ -11,8 +11,9 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 /// アプリ最上位の Widget。
 ///
 /// `ProviderScope` の内側に置く前提で、`MaterialApp.router` を組み立てる。
-/// 背景は `appearanceSettingsProvider` の値に応じて単色 / 画像 / 透過を
-/// 切り替える。
+/// 背景は `appearanceSettingsProvider` の値に応じて 透過 / 単色 / 画像 /
+/// ロゴグラデーション を切り替える。テーマはロゴが dark トーン基調のため
+/// `ThemeMode.dark` に固定する。
 class App extends ConsumerWidget {
   const App({super.key});
 
@@ -26,6 +27,7 @@ class App extends ConsumerWidget {
       title: 'Claude Skills Launcher',
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),
+      themeMode: ThemeMode.dark,
       routerConfig: router,
       debugShowCheckedModeBanner: false,
       builder: (context, child) => WindowCloseGuard(
@@ -47,7 +49,18 @@ class _AppearanceLayer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return switch (appearance.mode) {
-      AppearanceMode.transparent => child,
+      // 完全透過だとウィンドウ枠が背景と同化してしまうため、ロゴの
+      // deep background を `transparencyOpacity` の濃さで薄く敷く。
+      // opacity = 0 のときは背景色を描かず純粋な透過にする。
+      AppearanceMode.transparent =>
+        appearance.transparencyOpacity <= 0
+            ? child
+            : ColoredBox(
+                color: AppTheme.logoTheme.deepBackground.withValues(
+                  alpha: appearance.transparencyOpacity,
+                ),
+                child: child,
+              ),
       AppearanceMode.solid => ColoredBox(
         color: appearance.solidColor != null
             ? Color(appearance.solidColor!)
@@ -62,6 +75,12 @@ class _AppearanceLayer extends StatelessWidget {
             Image.file(File(appearance.imagePath!), fit: BoxFit.cover),
           child,
         ],
+      ),
+      AppearanceMode.gradient => DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: AppTheme.logoTheme.backgroundGradient,
+        ),
+        child: child,
       ),
     };
   }
