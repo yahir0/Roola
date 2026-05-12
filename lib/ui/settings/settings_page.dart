@@ -4,6 +4,7 @@ import 'package:claude_skills_launcher/app/router.dart';
 import 'package:claude_skills_launcher/core/health/claude_health_check.dart';
 import 'package:claude_skills_launcher/data/launcher_entry/launcher_entries_provider.dart';
 import 'package:claude_skills_launcher/data/launcher_entry/launcher_entry.dart';
+import 'package:claude_skills_launcher/ui/common/macos_window_app_bar.dart';
 import 'package:claude_skills_launcher/ui/settings/appearance_section.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -17,7 +18,7 @@ class SettingsPage extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(launcherEntriesProvider);
     return Scaffold(
-      appBar: AppBar(
+      appBar: MacosWindowAppBar(
         title: const Text('設定'),
         actions: [
           IconButton(

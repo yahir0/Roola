@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:claude_skills_launcher/ui/common/macos_window_app_bar.dart';
 import 'package:claude_skills_launcher/ui/settings/entry_edit_view_model.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -49,7 +50,7 @@ class EntryEditPage extends HookConsumerWidget {
     }, [state.skillName]);
 
     return Scaffold(
-      appBar: AppBar(title: Text(isNew ? 'エントリ追加' : 'エントリ編集')),
+      appBar: MacosWindowAppBar(title: Text(isNew ? 'エントリ追加' : 'エントリ編集')),
       body: AbsorbPointer(
         absorbing: state.isSubmitting,
         child: ListView(

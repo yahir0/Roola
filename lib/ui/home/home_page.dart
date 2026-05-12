@@ -4,6 +4,7 @@ import 'package:claude_skills_launcher/app/router.dart';
 import 'package:claude_skills_launcher/data/launcher_entry/launcher_entry.dart';
 import 'package:claude_skills_launcher/data/skill_runner/skill_run_state.dart';
 import 'package:claude_skills_launcher/data/skill_session/active_sessions.dart';
+import 'package:claude_skills_launcher/ui/common/macos_window_app_bar.dart';
 import 'package:claude_skills_launcher/ui/common/session_state_icon.dart';
 import 'package:claude_skills_launcher/ui/home/active_sessions_strip.dart';
 import 'package:claude_skills_launcher/ui/home/home_view_model.dart';
@@ -21,7 +22,7 @@ class HomePage extends HookConsumerWidget {
     final state = ref.watch(homeViewModelProvider);
     final sessions = ref.watch(activeSessionsProvider);
     return Scaffold(
-      appBar: AppBar(
+      appBar: MacosWindowAppBar(
         title: const Text('Claude Skills Launcher'),
         actions: [
           IconButton(

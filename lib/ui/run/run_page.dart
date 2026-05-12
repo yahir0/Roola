@@ -1,4 +1,5 @@
 import 'package:claude_skills_launcher/data/skill_runner/skill_run_state.dart';
+import 'package:claude_skills_launcher/ui/common/macos_window_app_bar.dart';
 import 'package:claude_skills_launcher/ui/common/session_state_icon.dart';
 import 'package:claude_skills_launcher/ui/run/run_view_model.dart';
 import 'package:flutter/material.dart';
@@ -21,7 +22,7 @@ class RunPage extends HookConsumerWidget {
     final viewModel = ref.read(runViewModelProvider(entryId).notifier);
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: MacosWindowAppBar(
         title: Text(pageState.entry.displayName),
         actions: [
           _StateBadge(state: pageState.runState),
