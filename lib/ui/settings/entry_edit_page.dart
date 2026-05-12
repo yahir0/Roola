@@ -29,14 +29,24 @@ class EntryEditPage extends HookConsumerWidget {
     final skillNameController = useTextEditingController(text: state.skillName);
 
     // state の iconPath / errors / isSubmitting は ref.watch が自動追従するが、
-    // テキストコントローラは初期表示後の外部変更（例: file_picker 経由）を
-    // 反映するため明示的に同期する。
+    // テキストコントローラは初期表示後の外部変更（例: file_picker 経由・
+    // Skill 候補プルダウン選択）を反映するため明示的に同期する。
     useEffect(() {
       if (repositoryPathController.text != state.repositoryPath) {
         repositoryPathController.text = state.repositoryPath;
       }
       return null;
     }, [state.repositoryPath]);
+
+    useEffect(() {
+      if (skillNameController.text != state.skillName) {
+        skillNameController.value = TextEditingValue(
+          text: state.skillName,
+          selection: TextSelection.collapsed(offset: state.skillName.length),
+        );
+      }
+      return null;
+    }, [state.skillName]);
 
     return Scaffold(
       appBar: AppBar(title: Text(isNew ? 'エントリ追加' : 'エントリ編集')),
@@ -82,8 +92,26 @@ class EntryEditPage extends HookConsumerWidget {
               decoration: InputDecoration(
                 labelText: 'Skill 名',
                 hintText: 'my-skill',
+                helperText: state.availableSkills.isEmpty
+                    ? 'リポジトリ内の `.claude/skills/` から候補を取得します'
+                    : '候補: ${state.availableSkills.length} 件',
                 errorText: state.errors['skillName'],
                 border: const OutlineInputBorder(),
+                suffixIcon: state.availableSkills.isEmpty
+                    ? null
+                    : PopupMenuButton<String>(
+                        icon: const Icon(Icons.arrow_drop_down),
+                        tooltip: '候補から選択',
+                        itemBuilder: (context) => state.availableSkills
+                            .map(
+                              (s) => PopupMenuItem<String>(
+                                value: s,
+                                child: Text(s),
+                              ),
+                            )
+                            .toList(),
+                        onSelected: viewModel.setSkillName,
+                      ),
               ),
               onChanged: viewModel.setSkillName,
             ),

@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:claude_skills_launcher/core/image/icon_image_processor.dart';
+import 'package:claude_skills_launcher/core/skill/skill_scanner.dart';
 import 'package:claude_skills_launcher/data/launcher_entry/launcher_entries_provider.dart';
 import 'package:claude_skills_launcher/data/launcher_entry/launcher_entry.dart';
 import 'package:claude_skills_launcher/data/launcher_entry/launcher_entry_repository_impl.dart';
@@ -29,6 +30,10 @@ abstract class EntryEditState with _$EntryEditState {
     /// 「保存ボタンを押したらこのソース画像をリサイズして保存する」用の
     /// 一時的なソースパス。null なら既存 iconPath を維持する。
     String? pendingIconSource,
+
+    /// 現在のリポジトリパス配下で検出された Skill 名候補。
+    /// `<repo>/.claude/skills/<name>/SKILL.md` の `<name>` を集めたもの。
+    @Default(<String>[]) List<String> availableSkills,
     @Default(<String, String>{}) Map<String, String> errors,
     @Default(false) bool isSubmitting,
   }) = _EntryEditState;
@@ -38,6 +43,7 @@ abstract class EntryEditState with _$EntryEditState {
 @riverpod
 class EntryEditViewModel extends _$EntryEditViewModel {
   static const _uuid = Uuid();
+  static const _scanner = SkillScanner();
 
   @override
   EntryEditState build(String? entryId) {
@@ -58,6 +64,7 @@ class EntryEditViewModel extends _$EntryEditViewModel {
       repositoryPath: entry.repositoryPath,
       skillName: entry.skillName,
       iconPath: entry.iconPath,
+      availableSkills: _scanner.scan(entry.repositoryPath),
     );
   }
 
@@ -69,6 +76,7 @@ class EntryEditViewModel extends _$EntryEditViewModel {
   void setRepositoryPath(String value) => state = state.copyWith(
     repositoryPath: value,
     errors: _clearError('repositoryPath'),
+    availableSkills: _scanner.scan(value),
   );
 
   void setSkillName(String value) => state = state.copyWith(
