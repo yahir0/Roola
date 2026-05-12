@@ -85,4 +85,4 @@
 
 ## 9. アーカイブ
 
-- [ ] 9.1 全タスク完了後、本 change をアーカイブ済みとして `openspec/changes/archive/<date>-concurrent-skill-sessions/` に移す（または OpenSpec の archive コマンドに従う）
+- [x] 9.1 全タスク完了後、本 change をアーカイブ済みとして `openspec/changes/archive/2026-05-12-concurrent-skill-sessions/` に移す
