@@ -49,14 +49,16 @@ class _AppearanceLayer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return switch (appearance.mode) {
-      // 完全透過だとウィンドウ枠が背景と同化してしまうため、ロゴの
-      // deep background を `transparencyOpacity` の濃さで薄く敷く。
-      // opacity = 0 のときは背景色を描かず純粋な透過にする。
+      // 完全透過だとウィンドウ枠が背景と同化してしまうため、中性
+      // スレート（`transparentBackdrop`）を `transparencyOpacity` の濃さで
+      // 薄く敷く。ロゴ deep background だと青味が強く出すぎるため、
+      // 透過時専用のニュートラルカラーを使う。opacity = 0 のときは
+      // 背景色を描かず純粋な透過にする。
       AppearanceMode.transparent =>
         appearance.transparencyOpacity <= 0
             ? child
             : ColoredBox(
-                color: AppTheme.logoTheme.deepBackground.withValues(
+                color: AppTheme.transparentBackdrop.withValues(
                   alpha: appearance.transparencyOpacity,
                 ),
                 child: child,
