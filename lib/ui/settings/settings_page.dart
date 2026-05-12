@@ -24,7 +24,7 @@ class SettingsPage extends HookConsumerWidget {
           IconButton(
             icon: const Icon(Icons.add),
             tooltip: 'エントリ追加',
-            onPressed: () => const EntryNewRoute().go(context),
+            onPressed: () => const EntryNewRoute().push<void>(context),
           ),
         ],
       ),
@@ -68,7 +68,7 @@ class _EmptyPlaceholder extends StatelessWidget {
           FilledButton.icon(
             icon: const Icon(Icons.add),
             label: const Text('エントリを追加'),
-            onPressed: () => const EntryNewRoute().go(context),
+            onPressed: () => const EntryNewRoute().push<void>(context),
           ),
         ],
       ),
@@ -105,7 +105,7 @@ class _EntryList extends ConsumerWidget {
             tooltip: '削除',
             onPressed: () => _confirmDelete(context, ref, entry),
           ),
-          onTap: () => EntryEditRoute(entryId: entry.id).go(context),
+          onTap: () => EntryEditRoute(entryId: entry.id).push<void>(context),
         );
       },
     );

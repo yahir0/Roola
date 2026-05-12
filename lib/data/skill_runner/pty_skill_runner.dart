@@ -181,6 +181,12 @@ class PtySkillRunner implements SkillRunner {
   }
 
   List<String> _buildArguments() {
+    // skillName が空文字 = エクスプローラから「このディレクトリで Claude
+    // Code を開く」を選んだケース。引数なしで `claude` を起動して通常の
+    // 対話モードに入る。
+    if (skillName.isEmpty) {
+      return const [];
+    }
     // Claude Code Skills はスラッシュコマンド `/skill-name` として resolve
     // される（`claude --help` の `--bare` 説明: "Skills still resolve via
     // /skill-name"）。引数として `/<name>` を渡すと claude CLI が起動直後の

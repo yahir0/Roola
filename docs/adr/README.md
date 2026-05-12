@@ -14,6 +14,8 @@
 | [0006](./0006-mvvm-over-clean-architecture.md) | Flutter 公式 MVVM を採用（Clean Architecture を採らない） | Accepted |
 | [0007](./0007-riverpod-lint-deferral.md) | `riverpod_lint` / `custom_lint` の採用を当面保留 | Accepted |
 | [0008](./0008-keep-alive-skill-sessions.md) | スキル実行セッションを実行画面 widget から切り離して保持 | Accepted |
+| [0009](./0009-ad-hoc-skill-sessions.md) | ad-hoc セッションを別 provider で扱う | Accepted |
+| [0010](./0010-stateful-shell-tabbed-navigation.md) | Home / Explorer をタブ式 `StatefulShellRoute` で束ね、Run/Settings は root navigator に push | Accepted |
 
 ## フォーマット
 

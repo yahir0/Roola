@@ -1,6 +1,7 @@
 import 'package:claude_skills_launcher/data/skill_runner/skill_run_state.dart';
 import 'package:claude_skills_launcher/ui/common/macos_window_app_bar.dart';
 import 'package:claude_skills_launcher/ui/common/session_state_icon.dart';
+import 'package:claude_skills_launcher/ui/run/adhoc_run_view_model.dart';
 import 'package:claude_skills_launcher/ui/run/run_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -11,15 +12,35 @@ import 'package:xterm/xterm.dart';
 /// キー入力を PTY に書き戻すフルターミナル UI。Terminal インスタンスは
 /// `SkillRunner` 側で保有しているため、ホーム遷移などで widget が破棄
 /// されてもスクロールバックは保持される。
-class RunPage extends HookConsumerWidget {
-  const RunPage({required this.entryId, super.key});
+///
+/// 永続エントリと ad-hoc セッションのどちらも描画できるよう、
+/// `fromEntry` / `fromAdhoc` の 2 つの名前付きコンストラクタを持つ。
+/// View ツリーは共通、watch する Provider と破棄ヘルパーだけが切り替わる。
+class RunPage extends ConsumerWidget {
+  const RunPage.fromEntry(String entryId, {super.key})
+    : _entryId = entryId,
+      _adhocArgs = null;
 
-  final String entryId;
+  const RunPage.fromAdhoc(AdhocRunArgs args, {super.key})
+    : _entryId = null,
+      _adhocArgs = args;
+
+  final String? _entryId;
+  final AdhocRunArgs? _adhocArgs;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final pageState = ref.watch(runViewModelProvider(entryId));
-    final viewModel = ref.read(runViewModelProvider(entryId).notifier);
+    final isAdhoc = _entryId == null;
+    final pageState = isAdhoc
+        ? ref.watch(adhocRunViewModelProvider(_adhocArgs!))
+        : ref.watch(runViewModelProvider(_entryId));
+
+    final cancelRun = isAdhoc
+        ? ref.read(adhocRunViewModelProvider(_adhocArgs!).notifier).cancelRun
+        : ref.read(runViewModelProvider(_entryId).notifier).cancelRun;
+    final restart = isAdhoc
+        ? ref.read(adhocRunViewModelProvider(_adhocArgs!).notifier).restart
+        : ref.read(runViewModelProvider(_entryId).notifier).restart;
 
     return Scaffold(
       appBar: MacosWindowAppBar(
@@ -28,19 +49,22 @@ class RunPage extends HookConsumerWidget {
           _StateBadge(state: pageState.runState),
           _ActionButtons(
             state: pageState.runState,
-            onCancel: viewModel.cancelRun,
-            onRestart: viewModel.restart,
-            onBackHome: () {
-              // セッションは保持したまま、ホームへ戻るだけ
+            onCancel: cancelRun,
+            onRestart: restart,
+            onClose: () {
+              final adhocArgs = _adhocArgs;
+              final entryId = _entryId;
+              if (adhocArgs != null) {
+                terminateAdhocSession(ref, adhocArgs);
+              } else if (entryId != null) {
+                terminateSkillSession(ref, entryId);
+              }
+              // セッションを破棄したうえで、起動元タブ（home or explorer）へ戻る。
               if (context.canPop()) {
                 context.pop();
               } else {
                 context.go('/');
               }
-            },
-            onClose: () {
-              terminateSkillSession(ref, entryId);
-              context.go('/');
             },
           ),
         ],
@@ -89,14 +113,12 @@ class _ActionButtons extends StatelessWidget {
     required this.state,
     required this.onCancel,
     required this.onRestart,
-    required this.onBackHome,
     required this.onClose,
   });
 
   final SkillRunState state;
   final Future<void> Function() onCancel;
   final VoidCallback onRestart;
-  final VoidCallback onBackHome;
   final VoidCallback onClose;
 
   @override
@@ -125,11 +147,6 @@ class _ActionButtons extends StatelessWidget {
             tooltip: '再実行',
             onPressed: onRestart,
           ),
-        IconButton(
-          icon: const Icon(Icons.home),
-          tooltip: 'ホームへ戻る (セッションは保持されます)',
-          onPressed: onBackHome,
-        ),
         if (isTerminated)
           IconButton(
             icon: const Icon(Icons.close),

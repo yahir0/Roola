@@ -8,6 +8,7 @@ import 'package:claude_skills_launcher/ui/common/macos_window_app_bar.dart';
 import 'package:claude_skills_launcher/ui/common/session_state_icon.dart';
 import 'package:claude_skills_launcher/ui/home/active_sessions_strip.dart';
 import 'package:claude_skills_launcher/ui/home/home_view_model.dart';
+import 'package:claude_skills_launcher/ui/shell/app_tab_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
@@ -28,12 +29,13 @@ class HomePage extends HookConsumerWidget {
           IconButton(
             icon: const Icon(Icons.settings),
             tooltip: '設定',
-            onPressed: () => const SettingsRoute().go(context),
+            onPressed: () => const SettingsRoute().push<void>(context),
           ),
         ],
       ),
       body: Column(
         children: [
+          const AppTabBar(),
           const ActiveSessionsStrip(),
           Expanded(
             child: state.when(
@@ -73,7 +75,7 @@ class _EmptyPlaceholder extends StatelessWidget {
           FilledButton.icon(
             icon: const Icon(Icons.settings),
             label: const Text('設定画面を開く'),
-            onPressed: () => const SettingsRoute().go(context),
+            onPressed: () => const SettingsRoute().push<void>(context),
           ),
         ],
       ),
@@ -116,7 +118,7 @@ class _LauncherTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       borderRadius: BorderRadius.circular(16),
-      onTap: () => RunRoute(entryId: entry.id).go(context),
+      onTap: () => RunRoute(entryId: entry.id).push<void>(context),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [

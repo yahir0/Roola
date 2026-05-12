@@ -88,4 +88,15 @@ void main() {
       await runner.dispose();
     },
   );
+
+  test('accepts empty skillName for ad-hoc Claude launch', () async {
+    // skillName が空 = 「このディレクトリで Claude を開く」経路。
+    // インスタンス化と dispose が問題なく通ることだけを確認する
+    // （_buildArguments の検証は実機 / integration_test に委ねる）。
+    final dir = await Directory.systemTemp.createTemp('cskl_pty_adhoc_');
+    addTearDown(() => dir.delete(recursive: true));
+    final runner = PtySkillRunner(repositoryPath: dir.path, skillName: '');
+    expect(runner.skillName, '');
+    await runner.dispose();
+  });
 }

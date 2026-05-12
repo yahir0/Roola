@@ -1,5 +1,6 @@
 import 'package:claude_skills_launcher/data/skill_runner/skill_run_state.dart';
 import 'package:claude_skills_launcher/data/skill_session/active_sessions.dart';
+import 'package:claude_skills_launcher/data/skill_session/adhoc_run_args.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
@@ -92,6 +93,41 @@ void main() {
     await notifier.cancelAll();
     expect(called, isFalse);
   });
+
+  test('labelFor returns null for non-adhoc / unknown ids', () {
+    final notifier = container.read(activeSessionsProvider.notifier);
+    notifier.register(
+      entryId: 'a',
+      initialState: const SkillRunState.running(),
+      cancel: () async {},
+    );
+    expect(notifier.labelFor('a'), isNull);
+    expect(notifier.labelFor('ghost'), isNull);
+  });
+
+  test(
+    'register with adhocArgs populates label/args; unregister clears them',
+    () {
+      final notifier = container.read(activeSessionsProvider.notifier);
+      const args = AdhocRunArgs(
+        adhocId: 'adhoc-1',
+        repositoryPath: '/Users/foo/repos/demo',
+        displayName: 'demo (Claude)',
+      );
+      notifier.register(
+        entryId: 'adhoc-1',
+        initialState: const SkillRunState.running(),
+        cancel: () async {},
+        adhocArgs: args,
+      );
+      expect(notifier.labelFor('adhoc-1'), 'demo (Claude)');
+      expect(notifier.adhocArgsFor('adhoc-1'), args);
+
+      notifier.unregister('adhoc-1');
+      expect(notifier.labelFor('adhoc-1'), isNull);
+      expect(notifier.adhocArgsFor('adhoc-1'), isNull);
+    },
+  );
 
   test('state object identity changes on each mutation (reactive)', () {
     final notifier = container.read(activeSessionsProvider.notifier);

@@ -25,6 +25,10 @@ class AppPaths {
   /// 外観設定の永続化先。
   File get appearanceSettingsFile => File('${root.path}/appearance.json');
 
+  /// エクスプローラ画面の状態（最後に開いていたルートパス等）の永続化先。
+  File get repoExplorerSettingsFile =>
+      File('${root.path}/repo_explorer_settings.json');
+
   /// アイコン画像保存ディレクトリ。
   Directory get iconsDir => Directory('${root.path}/icons');
 

@@ -70,6 +70,7 @@ Mac 向けの Claude Code Skills ランチャーアプリ（Flutter Desktop / ma
 - ADR-0006: Flutter 公式 MVVM の採用（Clean Architecture を採らない理由）
 - ADR-0007: `riverpod_lint` / `custom_lint` の採用を当面保留
 - ADR-0008: スキル実行セッションを実行画面 widget から切り離して保持
+- ADR-0009: ad-hoc セッションを別 provider で扱う
 
 ## ディレクトリ構成
 

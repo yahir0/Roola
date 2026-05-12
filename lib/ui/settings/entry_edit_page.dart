@@ -10,16 +10,41 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 /// エントリ追加・編集画面。
 ///
 /// `entryId == null` の場合は新規作成、それ以外は既存編集。
+/// 新規作成時に `initialRepositoryPath` / `initialSkillName` が渡されている
+/// と、フォームの該当フィールドを事前入力する（エクスプローラからの
+/// 「Skill を登録」経路で利用）。
 class EntryEditPage extends HookConsumerWidget {
-  const EntryEditPage({required this.entryId, super.key});
+  const EntryEditPage({
+    required this.entryId,
+    this.initialRepositoryPath,
+    this.initialSkillName,
+    super.key,
+  });
 
   final String? entryId;
+  final String? initialRepositoryPath;
+  final String? initialSkillName;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(entryEditViewModelProvider(entryId));
     final viewModel = ref.read(entryEditViewModelProvider(entryId).notifier);
     final isNew = entryId == null;
+
+    // 新規作成 + プリフィル指定がある場合、1 回だけ ViewModel に初期値を流し
+    // 込む。既存編集（entryId != null）では無視する。
+    useEffect(() {
+      if (isNew) {
+        if (initialRepositoryPath != null &&
+            initialRepositoryPath!.isNotEmpty) {
+          viewModel.setRepositoryPath(initialRepositoryPath!);
+        }
+        if (initialSkillName != null && initialSkillName!.isNotEmpty) {
+          viewModel.setSkillName(initialSkillName!);
+        }
+      }
+      return null;
+    }, const []);
 
     final displayNameController = useTextEditingController(
       text: state.displayName,
