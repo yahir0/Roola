@@ -14,6 +14,7 @@ class PtySkillRunner implements SkillRunner {
     required this.repositoryPath,
     required this.skillName,
     this.executable = 'claude',
+    this.idleThreshold = const Duration(seconds: 2),
     Terminal? terminal,
   }) : terminal = terminal ?? Terminal() {
     // Terminal → PTY 方向の配線。`start` で PTY が生成されてから書き込みが
@@ -32,10 +33,16 @@ class PtySkillRunner implements SkillRunner {
   /// 起動するコマンド名。テストでは `bash` など差し替え可。
   final String executable;
 
+  /// PTY 出力が止まってから `waitingInput` 状態へ遷移するまでの時間。
+  /// 短すぎると claude の通常思考中も「入力待ち」と表示されてしまうため、
+  /// 既定 2 秒。出力が再開すれば即 `running` に戻る。
+  final Duration idleThreshold;
+
   @override
   final Terminal terminal;
 
   Pty? _pty;
+  Timer? _idleTimer;
   final _stateController = StreamController<SkillRunState>.broadcast();
   // output は構築直後に View 側から subscribe されるため、`_pty` 生成より
   // 早いタイミングで安定した Stream を返す必要がある。`_pty.output` を直接
@@ -85,18 +92,37 @@ class PtySkillRunner implements SkillRunner {
         _outputController.add(bytes);
       }
       terminal.write(utf8.decode(bytes, allowMalformed: true));
+      // 新しい出力が来た = 「処理中」と判定。waitingInput からも復帰
+      if (_currentState is SkillRunWaitingInput) {
+        _emit(const SkillRunState.running());
+      }
+      _scheduleIdleCheck();
     });
 
     _emit(const SkillRunState.running());
+    _scheduleIdleCheck();
 
     unawaited(
       _pty!.exitCode.then((code) {
         if (_currentState is SkillRunCancelled) {
           return;
         }
+        _idleTimer?.cancel();
         _emit(SkillRunState.completed(code));
       }),
     );
+  }
+
+  /// PTY 出力が止まったら `waitingInput` に遷移するためのタイマーを
+  /// 仕掛け直す。出力受信のたびに呼び、`idleThreshold` 経過時点でまだ
+  /// `running` のままなら入力待ち推定に切り替える。
+  void _scheduleIdleCheck() {
+    _idleTimer?.cancel();
+    _idleTimer = Timer(idleThreshold, () {
+      if (_currentState is SkillRunRunning) {
+        _emit(const SkillRunState.waitingInput());
+      }
+    });
   }
 
   @override
@@ -119,6 +145,7 @@ class PtySkillRunner implements SkillRunner {
         _currentState is SkillRunCompleted) {
       return;
     }
+    _idleTimer?.cancel();
     pty.kill();
     _emit(const SkillRunState.cancelled());
   }
@@ -129,6 +156,8 @@ class PtySkillRunner implements SkillRunner {
       return;
     }
     _disposed = true;
+    _idleTimer?.cancel();
+    _idleTimer = null;
     final pty = _pty;
     if (pty != null &&
         _currentState is! SkillRunCancelled &&

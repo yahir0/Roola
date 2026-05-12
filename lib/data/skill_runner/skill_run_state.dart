@@ -14,8 +14,13 @@ sealed class SkillRunState with _$SkillRunState {
   /// 起動処理中（PTY を作っている途中）。
   const factory SkillRunState.starting() = SkillRunStarting;
 
-  /// PTY 上でプロセスが走っている。
+  /// PTY 上でプロセスが走っており、出力が流れている（active）。
   const factory SkillRunState.running() = SkillRunRunning;
+
+  /// PTY 上でプロセスは生きているが、出力が一定時間止まっており、
+  /// ユーザー入力（承認応答・選択など）または `claude` 内部の tool 結果
+  /// 待ちと推定される状態。新たな出力があれば `running` に戻る。
+  const factory SkillRunState.waitingInput() = SkillRunWaitingInput;
 
   /// プロセスが正常終了した。`exitCode` は POSIX の終了コード。
   const factory SkillRunState.completed(int exitCode) = SkillRunCompleted;

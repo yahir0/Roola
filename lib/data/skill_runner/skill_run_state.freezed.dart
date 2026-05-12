@@ -55,13 +55,14 @@ extension SkillRunStatePatterns on SkillRunState {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( SkillRunIdle value)?  idle,TResult Function( SkillRunStarting value)?  starting,TResult Function( SkillRunRunning value)?  running,TResult Function( SkillRunCompleted value)?  completed,TResult Function( SkillRunFailed value)?  failed,TResult Function( SkillRunCancelled value)?  cancelled,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( SkillRunIdle value)?  idle,TResult Function( SkillRunStarting value)?  starting,TResult Function( SkillRunRunning value)?  running,TResult Function( SkillRunWaitingInput value)?  waitingInput,TResult Function( SkillRunCompleted value)?  completed,TResult Function( SkillRunFailed value)?  failed,TResult Function( SkillRunCancelled value)?  cancelled,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
 case SkillRunIdle() when idle != null:
 return idle(_that);case SkillRunStarting() when starting != null:
 return starting(_that);case SkillRunRunning() when running != null:
-return running(_that);case SkillRunCompleted() when completed != null:
+return running(_that);case SkillRunWaitingInput() when waitingInput != null:
+return waitingInput(_that);case SkillRunCompleted() when completed != null:
 return completed(_that);case SkillRunFailed() when failed != null:
 return failed(_that);case SkillRunCancelled() when cancelled != null:
 return cancelled(_that);case _:
@@ -82,13 +83,14 @@ return cancelled(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( SkillRunIdle value)  idle,required TResult Function( SkillRunStarting value)  starting,required TResult Function( SkillRunRunning value)  running,required TResult Function( SkillRunCompleted value)  completed,required TResult Function( SkillRunFailed value)  failed,required TResult Function( SkillRunCancelled value)  cancelled,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( SkillRunIdle value)  idle,required TResult Function( SkillRunStarting value)  starting,required TResult Function( SkillRunRunning value)  running,required TResult Function( SkillRunWaitingInput value)  waitingInput,required TResult Function( SkillRunCompleted value)  completed,required TResult Function( SkillRunFailed value)  failed,required TResult Function( SkillRunCancelled value)  cancelled,}){
 final _that = this;
 switch (_that) {
 case SkillRunIdle():
 return idle(_that);case SkillRunStarting():
 return starting(_that);case SkillRunRunning():
-return running(_that);case SkillRunCompleted():
+return running(_that);case SkillRunWaitingInput():
+return waitingInput(_that);case SkillRunCompleted():
 return completed(_that);case SkillRunFailed():
 return failed(_that);case SkillRunCancelled():
 return cancelled(_that);}
@@ -105,13 +107,14 @@ return cancelled(_that);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( SkillRunIdle value)?  idle,TResult? Function( SkillRunStarting value)?  starting,TResult? Function( SkillRunRunning value)?  running,TResult? Function( SkillRunCompleted value)?  completed,TResult? Function( SkillRunFailed value)?  failed,TResult? Function( SkillRunCancelled value)?  cancelled,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( SkillRunIdle value)?  idle,TResult? Function( SkillRunStarting value)?  starting,TResult? Function( SkillRunRunning value)?  running,TResult? Function( SkillRunWaitingInput value)?  waitingInput,TResult? Function( SkillRunCompleted value)?  completed,TResult? Function( SkillRunFailed value)?  failed,TResult? Function( SkillRunCancelled value)?  cancelled,}){
 final _that = this;
 switch (_that) {
 case SkillRunIdle() when idle != null:
 return idle(_that);case SkillRunStarting() when starting != null:
 return starting(_that);case SkillRunRunning() when running != null:
-return running(_that);case SkillRunCompleted() when completed != null:
+return running(_that);case SkillRunWaitingInput() when waitingInput != null:
+return waitingInput(_that);case SkillRunCompleted() when completed != null:
 return completed(_that);case SkillRunFailed() when failed != null:
 return failed(_that);case SkillRunCancelled() when cancelled != null:
 return cancelled(_that);case _:
@@ -131,12 +134,13 @@ return cancelled(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  idle,TResult Function()?  starting,TResult Function()?  running,TResult Function( int exitCode)?  completed,TResult Function( String message)?  failed,TResult Function()?  cancelled,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  idle,TResult Function()?  starting,TResult Function()?  running,TResult Function()?  waitingInput,TResult Function( int exitCode)?  completed,TResult Function( String message)?  failed,TResult Function()?  cancelled,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case SkillRunIdle() when idle != null:
 return idle();case SkillRunStarting() when starting != null:
 return starting();case SkillRunRunning() when running != null:
-return running();case SkillRunCompleted() when completed != null:
+return running();case SkillRunWaitingInput() when waitingInput != null:
+return waitingInput();case SkillRunCompleted() when completed != null:
 return completed(_that.exitCode);case SkillRunFailed() when failed != null:
 return failed(_that.message);case SkillRunCancelled() when cancelled != null:
 return cancelled();case _:
@@ -157,12 +161,13 @@ return cancelled();case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  idle,required TResult Function()  starting,required TResult Function()  running,required TResult Function( int exitCode)  completed,required TResult Function( String message)  failed,required TResult Function()  cancelled,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  idle,required TResult Function()  starting,required TResult Function()  running,required TResult Function()  waitingInput,required TResult Function( int exitCode)  completed,required TResult Function( String message)  failed,required TResult Function()  cancelled,}) {final _that = this;
 switch (_that) {
 case SkillRunIdle():
 return idle();case SkillRunStarting():
 return starting();case SkillRunRunning():
-return running();case SkillRunCompleted():
+return running();case SkillRunWaitingInput():
+return waitingInput();case SkillRunCompleted():
 return completed(_that.exitCode);case SkillRunFailed():
 return failed(_that.message);case SkillRunCancelled():
 return cancelled();}
@@ -179,12 +184,13 @@ return cancelled();}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  idle,TResult? Function()?  starting,TResult? Function()?  running,TResult? Function( int exitCode)?  completed,TResult? Function( String message)?  failed,TResult? Function()?  cancelled,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  idle,TResult? Function()?  starting,TResult? Function()?  running,TResult? Function()?  waitingInput,TResult? Function( int exitCode)?  completed,TResult? Function( String message)?  failed,TResult? Function()?  cancelled,}) {final _that = this;
 switch (_that) {
 case SkillRunIdle() when idle != null:
 return idle();case SkillRunStarting() when starting != null:
 return starting();case SkillRunRunning() when running != null:
-return running();case SkillRunCompleted() when completed != null:
+return running();case SkillRunWaitingInput() when waitingInput != null:
+return waitingInput();case SkillRunCompleted() when completed != null:
 return completed(_that.exitCode);case SkillRunFailed() when failed != null:
 return failed(_that.message);case SkillRunCancelled() when cancelled != null:
 return cancelled();case _:
@@ -283,6 +289,38 @@ int get hashCode => runtimeType.hashCode;
 @override
 String toString() {
   return 'SkillRunState.running()';
+}
+
+
+}
+
+
+
+
+/// @nodoc
+
+
+class SkillRunWaitingInput implements SkillRunState {
+  const SkillRunWaitingInput();
+  
+
+
+
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SkillRunWaitingInput);
+}
+
+
+@override
+int get hashCode => runtimeType.hashCode;
+
+@override
+String toString() {
+  return 'SkillRunState.waitingInput()';
 }
 
 

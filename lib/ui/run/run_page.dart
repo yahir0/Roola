@@ -66,6 +66,7 @@ class _StateBadge extends StatelessWidget {
       SkillRunIdle() => '待機中',
       SkillRunStarting() => '起動中…',
       SkillRunRunning() => '実行中',
+      SkillRunWaitingInput() => '入力待ち',
       SkillRunCompleted(:final exitCode) =>
         exitCode == 0 ? '完了 (0)' : '終了 ($exitCode)',
       SkillRunFailed() => '失敗',
@@ -99,7 +100,11 @@ class _ActionButtons extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isRunning = state is SkillRunStarting || state is SkillRunRunning;
+    // 「実行中」扱い: PTY プロセス生存中（出力中も入力待ちも含む）
+    final isRunning =
+        state is SkillRunStarting ||
+        state is SkillRunRunning ||
+        state is SkillRunWaitingInput;
     final isTerminated =
         state is SkillRunCompleted ||
         state is SkillRunFailed ||

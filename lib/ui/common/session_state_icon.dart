@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
     SkillRunIdle() => (Icons.hourglass_empty, Colors.grey),
     SkillRunStarting() => (Icons.play_circle_outline, Colors.blue),
     SkillRunRunning() => (Icons.circle, Colors.green),
+    SkillRunWaitingInput() => (Icons.circle, Colors.amber),
     SkillRunCompleted(:final exitCode) =>
       exitCode == 0
           ? (Icons.check_circle, Colors.green)
