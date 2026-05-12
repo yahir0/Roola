@@ -11,7 +11,7 @@ part of 'explorer_view_model.dart';
 /// エクスプローラの ViewModel。
 ///
 /// ルートディレクトリは `explorerSettingsProvider` を購読して取得する。
-/// `enter` / `goUp` でカレントパスを切り替え、その都度直下を再ロードする。
+/// `navigateTo` で任意の絶対パスに移動し、その都度直下を再ロードする。
 /// `changeRoot` ではルート自体を永続化したうえでカレントも合わせて更新する。
 
 @ProviderFor(ExplorerViewModel)
@@ -20,14 +20,14 @@ final explorerViewModelProvider = ExplorerViewModelProvider._();
 /// エクスプローラの ViewModel。
 ///
 /// ルートディレクトリは `explorerSettingsProvider` を購読して取得する。
-/// `enter` / `goUp` でカレントパスを切り替え、その都度直下を再ロードする。
+/// `navigateTo` で任意の絶対パスに移動し、その都度直下を再ロードする。
 /// `changeRoot` ではルート自体を永続化したうえでカレントも合わせて更新する。
 final class ExplorerViewModelProvider
     extends $NotifierProvider<ExplorerViewModel, ExplorerState> {
   /// エクスプローラの ViewModel。
   ///
   /// ルートディレクトリは `explorerSettingsProvider` を購読して取得する。
-  /// `enter` / `goUp` でカレントパスを切り替え、その都度直下を再ロードする。
+  /// `navigateTo` で任意の絶対パスに移動し、その都度直下を再ロードする。
   /// `changeRoot` ではルート自体を永続化したうえでカレントも合わせて更新する。
   ExplorerViewModelProvider._()
     : super(
@@ -56,12 +56,12 @@ final class ExplorerViewModelProvider
   }
 }
 
-String _$explorerViewModelHash() => r'ff1ba06f3bb2eaed7fc8e0f7c62d37aef8e79216';
+String _$explorerViewModelHash() => r'8a1eabc1a0f72231b18425001690dd49518c83a2';
 
 /// エクスプローラの ViewModel。
 ///
 /// ルートディレクトリは `explorerSettingsProvider` を購読して取得する。
-/// `enter` / `goUp` でカレントパスを切り替え、その都度直下を再ロードする。
+/// `navigateTo` で任意の絶対パスに移動し、その都度直下を再ロードする。
 /// `changeRoot` ではルート自体を永続化したうえでカレントも合わせて更新する。
 
 abstract class _$ExplorerViewModel extends $Notifier<ExplorerState> {

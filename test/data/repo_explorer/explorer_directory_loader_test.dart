@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:claude_skills_launcher/data/repo_explorer/explorer_directory_loader.dart';
+import 'package:claude_skills_launcher/data/repo_explorer/explorer_node.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -24,6 +25,12 @@ void main() {
     await File('${dir.path}/SKILL.md').writeAsString('# $skillName');
   }
 
+  /// 各ノードから表示名を取り出すユーティリティ（sealed の switch 経由）。
+  String nameOf(ExplorerNode n) => switch (n) {
+    ExplorerDirectoryNode(:final name) => name,
+    ExplorerFileNode(:final name) => name,
+  };
+
   test('returns empty list for non-existent path', () {
     expect(loader.load('/path/does/not/exist'), isEmpty);
   });
@@ -38,27 +45,37 @@ void main() {
     await Directory('${tempDir.path}/beta').create();
 
     final nodes = loader.load(tempDir.path);
-    expect(nodes.map((n) => n.name).toList(), ['Alpha', 'beta', 'zeta']);
-  });
-
-  test('excludes files (non-directory entities)', () async {
-    await File('${tempDir.path}/note.txt').writeAsString('hi');
-    await Directory('${tempDir.path}/folder').create();
-
-    final nodes = loader.load(tempDir.path);
-    expect(nodes.map((n) => n.name).toList(), ['folder']);
+    expect(nodes.map(nameOf).toList(), ['Alpha', 'beta', 'zeta']);
   });
 
   test(
-    'excludes common noise directories (.git, node_modules, etc.)',
+    'includes files after directories, both sorted alphabetically',
+    () async {
+      await File('${tempDir.path}/zeta.txt').writeAsString('z');
+      await File('${tempDir.path}/alpha.md').writeAsString('a');
+      await Directory('${tempDir.path}/folder').create();
+
+      final nodes = loader.load(tempDir.path);
+      // ディレクトリが先、その後ファイル
+      expect(nodes.map(nameOf).toList(), ['folder', 'alpha.md', 'zeta.txt']);
+      expect(nodes[0], isA<ExplorerDirectoryNode>());
+      expect(nodes[1], isA<ExplorerFileNode>());
+      expect(nodes[2], isA<ExplorerFileNode>());
+    },
+  );
+
+  test(
+    'excludes common noise entries (.git, node_modules, .DS_Store, etc.)',
     () async {
       for (final name in ['.git', 'node_modules', '.dart_tool', 'build']) {
         await Directory('${tempDir.path}/$name').create();
       }
+      await File('${tempDir.path}/.DS_Store').writeAsString('');
       await Directory('${tempDir.path}/src').create();
+      await File('${tempDir.path}/README.md').writeAsString('# hi');
 
       final nodes = loader.load(tempDir.path);
-      expect(nodes.map((n) => n.name).toList(), ['src']);
+      expect(nodes.map(nameOf).toList(), ['src', 'README.md']);
     },
   );
 
@@ -72,8 +89,11 @@ void main() {
 
       final nodes = loader.load(tempDir.path);
       expect(nodes, hasLength(1));
-      expect(nodes.first.name, 'my-repo');
-      expect(nodes.first.skillNames, ['alpha', 'bravo']);
+      final first = nodes.first;
+      expect(first, isA<ExplorerDirectoryNode>());
+      first as ExplorerDirectoryNode;
+      expect(first.name, 'my-repo');
+      expect(first.skillNames, ['alpha', 'bravo']);
     },
   );
 
@@ -82,7 +102,8 @@ void main() {
     () async {
       await Directory('${tempDir.path}/regular').create();
       final nodes = loader.load(tempDir.path);
-      expect(nodes.first.skillNames, isEmpty);
+      final first = nodes.first as ExplorerDirectoryNode;
+      expect(first.skillNames, isEmpty);
     },
   );
 }

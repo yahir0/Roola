@@ -12,21 +12,22 @@ part 'explorer_view_model.g.dart';
 /// エクスプローラ画面の表示状態。
 ///
 /// `root` は永続化されたルートディレクトリ。`currentPath` は現在表示中の
-/// パス（root と同じか、その配下）。`children` は currentPath の直下の
-/// ディレクトリ一覧（Skill 検知済みのものは `skillNames` が非空）。
+/// 絶対パス（root 配下に限定しない。パスバーやお気に入りからは任意の場所
+/// に飛べる）。`children` は currentPath 直下のディレクトリ + ファイル
+/// （ディレクトリが先、各ブロック内は名前順）。
 @freezed
 abstract class ExplorerState with _$ExplorerState {
   const factory ExplorerState({
     required String root,
     required String currentPath,
-    required List<ExplorerDirectoryNode> children,
+    required List<ExplorerNode> children,
   }) = _ExplorerState;
 }
 
 /// エクスプローラの ViewModel。
 ///
 /// ルートディレクトリは `explorerSettingsProvider` を購読して取得する。
-/// `enter` / `goUp` でカレントパスを切り替え、その都度直下を再ロードする。
+/// `navigateTo` で任意の絶対パスに移動し、その都度直下を再ロードする。
 /// `changeRoot` ではルート自体を永続化したうえでカレントも合わせて更新する。
 @riverpod
 class ExplorerViewModel extends _$ExplorerViewModel {
@@ -43,11 +44,13 @@ class ExplorerViewModel extends _$ExplorerViewModel {
     );
   }
 
-  void enter(String childPath) {
-    state = state.copyWith(
-      currentPath: childPath,
-      children: _loader.load(childPath),
-    );
+  /// 任意の絶対パスへ移動する。存在しないパスは無視。
+  /// パスバー入力 / お気に入りクリック / 子ディレクトリの enter から呼ばれる。
+  void navigateTo(String path) {
+    if (!Directory(path).existsSync()) {
+      return;
+    }
+    state = state.copyWith(currentPath: path, children: _loader.load(path));
   }
 
   void goUp() {

@@ -70,7 +70,50 @@ class ExplorerSettingsNotifier extends AsyncNotifier<ExplorerSettings> {
   Future<ExplorerSettings> build() => _repository.load();
 
   Future<void> setRootPath(String? path) async {
-    final next = ExplorerSettings(rootPath: path);
+    final current = state.value ?? ExplorerSettings.defaults();
+    final next = current.copyWith(rootPath: path);
+    state = await AsyncValue.guard(() async {
+      await _repository.save(next);
+      return next;
+    });
+  }
+
+  /// お気に入りを末尾に追加する。同一 path が既にある場合は何もしない。
+  Future<void> addFavorite(ExplorerFavorite favorite) async {
+    final current = state.value ?? ExplorerSettings.defaults();
+    if (current.favorites.any((f) => f.path == favorite.path)) {
+      return;
+    }
+    final next = current.copyWith(favorites: [...current.favorites, favorite]);
+    state = await AsyncValue.guard(() async {
+      await _repository.save(next);
+      return next;
+    });
+  }
+
+  /// id 一致のお気に入りを削除する。
+  Future<void> removeFavorite(String id) async {
+    final current = state.value ?? ExplorerSettings.defaults();
+    final next = current.copyWith(
+      favorites: current.favorites
+          .where((f) => f.id != id)
+          .toList(growable: false),
+    );
+    state = await AsyncValue.guard(() async {
+      await _repository.save(next);
+      return next;
+    });
+  }
+
+  /// id 一致のお気に入りの表示名を更新する。
+  Future<void> renameFavorite(String id, String newName) async {
+    final current = state.value ?? ExplorerSettings.defaults();
+    final next = current.copyWith(
+      favorites: [
+        for (final f in current.favorites)
+          if (f.id == id) f.copyWith(name: newName) else f,
+      ],
+    );
     state = await AsyncValue.guard(() async {
       await _repository.save(next);
       return next;

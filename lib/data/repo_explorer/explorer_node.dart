@@ -4,8 +4,9 @@ part 'explorer_node.freezed.dart';
 
 /// エクスプローラに描画する 1 ノード。
 ///
-/// 現在はディレクトリのみ。ファイルプレビュー機能を入れる際に sealed の
-/// 別 case を追加する。
+/// ディレクトリとファイルの 2 case。クリック時の挙動が分かれる:
+/// - ディレクトリはアプリ内でナビゲート
+/// - ファイルは `FileOpener` 経由で OS デフォルトアプリで開く
 @freezed
 sealed class ExplorerNode with _$ExplorerNode {
   /// ディレクトリ。`skillNames` が空でなければ「Skill 検知済み」を示す。
@@ -14,4 +15,10 @@ sealed class ExplorerNode with _$ExplorerNode {
     required String name,
     @Default(<String>[]) List<String> skillNames,
   }) = ExplorerDirectoryNode;
+
+  /// ファイル。クリックで OS デフォルトアプリで開く。
+  const factory ExplorerNode.file({
+    required String path,
+    required String name,
+  }) = ExplorerFileNode;
 }

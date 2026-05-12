@@ -2,19 +2,19 @@ import 'package:claude_skills_launcher/core/skill/skill_scanner.dart';
 import 'package:claude_skills_launcher/data/repo_explorer/explorer_node.dart';
 import 'package:claude_skills_launcher/ui/common/macos_window_app_bar.dart';
 import 'package:claude_skills_launcher/ui/explorer/explorer_node_tile.dart';
+import 'package:claude_skills_launcher/ui/explorer/explorer_path_bar.dart';
+import 'package:claude_skills_launcher/ui/explorer/explorer_sidebar.dart';
 import 'package:claude_skills_launcher/ui/explorer/explorer_view_model.dart';
 import 'package:claude_skills_launcher/ui/shell/app_tab_bar.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-/// エクスプローラ画面。ルート配下のディレクトリを直下リストで表示し、
-/// Skill 検知ありフォルダは右側にバッジ、右クリックで起動 / 登録メニュー。
+/// エクスプローラ画面。
 ///
-/// AppBar 左上の戻る矢印は、ルートより下にいる時は「親ディレクトリへ」、
-/// ルートにいる時は非表示。タブ root としてシェル内に居るので
-/// `Navigator.canPop` は false のままで OK（ホームに戻る場合はタブを
-/// 切り替える）。
+/// 上から: AppBar / タブバー / 編集可能なパスバー / [左サイドバー + 本体リスト]。
+/// 本体は currentPath 直下のディレクトリとファイルを一覧表示する。
+/// 戻る矢印はカレントが root と一致する場合のみ非表示。
 class ExplorerPage extends ConsumerWidget {
   const ExplorerPage({super.key});
 
@@ -24,7 +24,9 @@ class ExplorerPage extends ConsumerWidget {
     final isAtRoot = state.currentPath == state.root;
     return Scaffold(
       appBar: MacosWindowAppBar(
-        title: Text(_collapsePath(state.currentPath, state.root)),
+        // パス表示はすぐ下の編集可能パスバー（[ExplorerPathBar]）に
+        // 移したため、ヘッダは固定のラベルだけにする。
+        title: const Text('エクスプローラ'),
         onBack: isAtRoot
             ? null
             : () => ref.read(explorerViewModelProvider.notifier).goUp(),
@@ -39,7 +41,15 @@ class ExplorerPage extends ConsumerWidget {
       body: Column(
         children: [
           const AppTabBar(),
-          Expanded(child: _ExplorerBody(state: state)),
+          ExplorerPathBar(currentPath: state.currentPath),
+          Expanded(
+            child: Row(
+              children: [
+                ExplorerSidebar(currentPath: state.currentPath),
+                Expanded(child: _ExplorerBody(state: state)),
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -51,17 +61,6 @@ class ExplorerPage extends ConsumerWidget {
       await ref.read(explorerViewModelProvider.notifier).changeRoot(picked);
     }
   }
-
-  /// ルートからの相対表記でパスを短縮表示する。`<root>/sub` → `~/sub`。
-  String _collapsePath(String currentPath, String root) {
-    if (currentPath == root) {
-      return root;
-    }
-    if (currentPath.startsWith('$root/')) {
-      return '~${currentPath.substring(root.length)}';
-    }
-    return currentPath;
-  }
 }
 
 class _ExplorerBody extends ConsumerWidget {
@@ -69,24 +68,50 @@ class _ExplorerBody extends ConsumerWidget {
 
   final ExplorerState state;
 
+  /// 末尾余白の高さ。リストが viewport を埋めても、ここに常に
+  /// 右クリック可能な空きエリアを残す。
+  static const double _bottomBackdropHeight = 160;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final isEmpty = state.children.isEmpty;
+    final showParentTile = state.currentPath != '/';
     return CustomScrollView(
       slivers: [
         const SliverPadding(padding: EdgeInsets.only(top: 8)),
-        if (state.children.isNotEmpty)
+        if (showParentTile) ...[
+          SliverToBoxAdapter(
+            child: ExplorerParentDropTile(currentPath: state.currentPath),
+          ),
+          const SliverToBoxAdapter(child: Divider(height: 1)),
+        ],
+        if (!isEmpty)
           SliverList.separated(
             itemCount: state.children.length,
             separatorBuilder: (_, _) => const Divider(height: 1),
             itemBuilder: (_, i) => ExplorerNodeTile(node: state.children[i]),
           ),
-        SliverFillRemaining(
-          hasScrollBody: false,
-          child: _CurrentDirBackdrop(
-            currentPath: state.currentPath,
-            showEmptyHint: state.children.isEmpty,
+        // 空のときは viewport を埋めてヒント表示。非空のときは固定高さの
+        // 右クリック可能領域を末尾に追加して、リストがどれだけ長くても
+        // スクロール下端に余白を確保する。
+        if (isEmpty)
+          SliverFillRemaining(
+            hasScrollBody: false,
+            child: _CurrentDirBackdrop(
+              currentPath: state.currentPath,
+              showEmptyHint: true,
+            ),
+          )
+        else
+          SliverToBoxAdapter(
+            child: SizedBox(
+              height: _bottomBackdropHeight,
+              child: _CurrentDirBackdrop(
+                currentPath: state.currentPath,
+                showEmptyHint: false,
+              ),
+            ),
           ),
-        ),
       ],
     );
   }
@@ -117,7 +142,15 @@ class _CurrentDirBackdrop extends ConsumerWidget {
           name: _basenameOf(currentPath),
           skillNames: _scanner.scan(currentPath),
         );
-        showExplorerContextMenu(context, ref, node, details.globalPosition);
+        showExplorerContextMenu(
+          context,
+          ref,
+          node,
+          details.globalPosition,
+          // backdrop はカレントディレクトリ自身を指すため、「自身を
+          // リネーム」は許可しない（親フォルダから操作してもらう）。
+          showRename: false,
+        );
       },
       child: showEmptyHint
           ? const _EmptyPlaceholder()
@@ -142,7 +175,7 @@ class _EmptyPlaceholder extends StatelessWidget {
         children: [
           Icon(Icons.folder_off_outlined, size: 64),
           SizedBox(height: 12),
-          Text('表示できる子ディレクトリがありません'),
+          Text('表示できる項目がありません'),
         ],
       ),
     );

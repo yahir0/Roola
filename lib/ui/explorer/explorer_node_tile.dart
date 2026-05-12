@@ -1,6 +1,14 @@
+import 'dart:async';
+import 'dart:io';
+
 import 'package:claude_skills_launcher/app/router.dart';
+import 'package:claude_skills_launcher/core/system/explorer_file_ops.dart';
+import 'package:claude_skills_launcher/core/system/file_opener.dart';
 import 'package:claude_skills_launcher/data/repo_explorer/explorer_node.dart';
+import 'package:claude_skills_launcher/data/repo_explorer/explorer_settings.dart';
+import 'package:claude_skills_launcher/data/repo_explorer/explorer_settings_repository_impl.dart';
 import 'package:claude_skills_launcher/data/skill_session/adhoc_run_args.dart';
+import 'package:claude_skills_launcher/ui/common/prompt_name_dialog.dart';
 import 'package:claude_skills_launcher/ui/explorer/explorer_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -8,15 +16,19 @@ import 'package:uuid/uuid.dart';
 
 const _uuid = Uuid();
 
-/// 任意の `ExplorerDirectoryNode` に対する右クリックメニューを表示する。
+/// ディレクトリに対する右クリックメニューを表示する。
 /// タイル本体（[ExplorerNodeTile]）と、リスト下部の空き領域（カレント
 /// ディレクトリを対象にする）の両方から呼ばれる。
+///
+/// `showRename` はカレントディレクトリを対象とする backdrop からの呼び出し
+/// では false にする（「自分自身のリネーム」を同画面でやらせない）。
 Future<void> showExplorerContextMenu(
   BuildContext context,
   WidgetRef ref,
   ExplorerDirectoryNode node,
-  Offset position,
-) async {
+  Offset position, {
+  bool showRename = true,
+}) async {
   final items = <PopupMenuEntry<ExplorerNodeAction>>[
     const PopupMenuItem(
       value: _ActionOpenClaude(),
@@ -25,6 +37,43 @@ Future<void> showExplorerContextMenu(
         title: Text('このディレクトリで Claude Code を開く'),
       ),
     ),
+    const PopupMenuItem(
+      value: _ActionRevealInFinder(),
+      child: ListTile(
+        leading: Icon(Icons.folder_open),
+        title: Text('Finder で表示'),
+      ),
+    ),
+    const PopupMenuItem(
+      value: _ActionAddToFavorite(),
+      child: ListTile(
+        leading: Icon(Icons.star_outline),
+        title: Text('お気に入りに追加'),
+      ),
+    ),
+    const PopupMenuDivider(),
+    const PopupMenuItem(
+      value: _ActionNewFolder(),
+      child: ListTile(
+        leading: Icon(Icons.create_new_folder_outlined),
+        title: Text('新規フォルダ'),
+      ),
+    ),
+    const PopupMenuItem(
+      value: _ActionNewFile(),
+      child: ListTile(
+        leading: Icon(Icons.note_add_outlined),
+        title: Text('新規テキストファイル'),
+      ),
+    ),
+    if (showRename)
+      const PopupMenuItem(
+        value: _ActionRename(),
+        child: ListTile(
+          leading: Icon(Icons.drive_file_rename_outline),
+          title: Text('名前を変更'),
+        ),
+      ),
   ];
   if (node.skillNames.isNotEmpty) {
     items.add(const PopupMenuDivider());
@@ -66,14 +115,70 @@ Future<void> showExplorerContextMenu(
   if (selected == null || !context.mounted) {
     return;
   }
-  _handleSelected(context, node, selected);
+  await _handleDirectoryAction(context, ref, node, selected);
 }
 
-void _handleSelected(
+/// ファイル用の右クリックメニュー（開く / Finder 表示 / 名前変更）。
+Future<void> showFileContextMenu(
   BuildContext context,
+  WidgetRef ref,
+  ExplorerFileNode node,
+  Offset position,
+) async {
+  final selected = await showMenu<_FileAction>(
+    context: context,
+    position: RelativeRect.fromLTRB(
+      position.dx,
+      position.dy,
+      position.dx,
+      position.dy,
+    ),
+    items: const [
+      PopupMenuItem(
+        value: _FileAction.open,
+        child: ListTile(
+          leading: Icon(Icons.open_in_new),
+          title: Text('OS デフォルトアプリで開く'),
+        ),
+      ),
+      PopupMenuItem(
+        value: _FileAction.revealInFinder,
+        child: ListTile(
+          leading: Icon(Icons.folder_open),
+          title: Text('Finder で表示'),
+        ),
+      ),
+      PopupMenuDivider(),
+      PopupMenuItem(
+        value: _FileAction.rename,
+        child: ListTile(
+          leading: Icon(Icons.drive_file_rename_outline),
+          title: Text('名前を変更'),
+        ),
+      ),
+    ],
+  );
+  if (selected == null || !context.mounted) {
+    return;
+  }
+  switch (selected) {
+    case _FileAction.open:
+      await ref.read(fileOpenerProvider).open(node.path);
+    case _FileAction.revealInFinder:
+      await ref.read(fileOpenerProvider).revealInFinder(node.path);
+    case _FileAction.rename:
+      await _renameAndRefresh(context, ref, node.path, node.name);
+  }
+}
+
+enum _FileAction { open, revealInFinder, rename }
+
+Future<void> _handleDirectoryAction(
+  BuildContext context,
+  WidgetRef ref,
   ExplorerDirectoryNode node,
   ExplorerNodeAction action,
-) {
+) async {
   switch (action) {
     case _ActionOpenClaude():
       final adhocId = 'adhoc-${_uuid.v4()}';
@@ -82,7 +187,36 @@ void _handleSelected(
         repositoryPath: node.path,
         displayName: '${node.name} (Claude)',
       );
-      RunAdhocRoute(adhocId: adhocId, $extra: args).push<void>(context);
+      unawaited(
+        RunAdhocRoute(adhocId: adhocId, $extra: args).push<void>(context),
+      );
+    case _ActionRevealInFinder():
+      await ref.read(fileOpenerProvider).open(node.path);
+    case _ActionAddToFavorite():
+      await ref
+          .read(explorerSettingsProvider.notifier)
+          .addFavorite(
+            ExplorerFavorite(
+              id: 'fav-${_uuid.v4()}',
+              path: node.path,
+              name: node.name,
+            ),
+          );
+      if (!context.mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('お気に入りに追加しました: ${node.name}'),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    case _ActionNewFolder():
+      await _createNew(context, ref, node.path, isDirectory: true);
+    case _ActionNewFile():
+      await _createNew(context, ref, node.path, isDirectory: false);
+    case _ActionRename():
+      await _renameAndRefresh(context, ref, node.path, node.name);
     case _ActionRunSkill(:final skillName):
       final adhocId = 'adhoc-${_uuid.v4()}';
       final args = AdhocRunArgs(
@@ -91,12 +225,178 @@ void _handleSelected(
         displayName: '${node.name} / $skillName',
         skillName: skillName,
       );
-      RunAdhocRoute(adhocId: adhocId, $extra: args).push<void>(context);
+      unawaited(
+        RunAdhocRoute(adhocId: adhocId, $extra: args).push<void>(context),
+      );
     case _ActionRegisterSkill(:final skillName):
-      EntryNewRoute(
-        initialRepositoryPath: node.path,
-        initialSkillName: skillName,
-      ).push<void>(context);
+      unawaited(
+        EntryNewRoute(
+          initialRepositoryPath: node.path,
+          initialSkillName: skillName,
+        ).push<void>(context),
+      );
+  }
+}
+
+/// 新規フォルダ / 新規ファイルを [parentPath] 直下に作成する。失敗時は
+/// SnackBar でエラーを表示。成功時はビューモデルを refresh して反映。
+Future<void> _createNew(
+  BuildContext context,
+  WidgetRef ref,
+  String parentPath, {
+  required bool isDirectory,
+}) async {
+  final defaultName = isDirectory ? '新規フォルダ' : '新規テキストファイル.txt';
+  final name = await promptName(
+    context,
+    title: isDirectory ? '新規フォルダ名' : '新規ファイル名',
+    initialValue: defaultName,
+    confirmLabel: '作成',
+  );
+  if (name == null || name.trim().isEmpty || !context.mounted) {
+    return;
+  }
+  final ops = ref.read(explorerFileOpsProvider);
+  try {
+    if (isDirectory) {
+      await ops.createDirectory(parentPath, name.trim());
+    } else {
+      await ops.createFile(parentPath, name.trim());
+    }
+    ref.read(explorerViewModelProvider.notifier).refresh();
+  } on FileSystemException catch (e) {
+    if (!context.mounted) {
+      return;
+    }
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('作成に失敗しました: ${e.message}')));
+  }
+}
+
+/// [oldPath] を新しい名前にリネームし、ビューモデルを refresh する。
+Future<void> _renameAndRefresh(
+  BuildContext context,
+  WidgetRef ref,
+  String oldPath,
+  String oldName,
+) async {
+  final newName = await promptName(
+    context,
+    title: '名前を変更',
+    initialValue: oldName,
+    confirmLabel: '変更',
+  );
+  if (newName == null || newName.trim().isEmpty || newName.trim() == oldName) {
+    return;
+  }
+  if (!context.mounted) {
+    return;
+  }
+  final ops = ref.read(explorerFileOpsProvider);
+  try {
+    await ops.rename(oldPath, newName.trim());
+    ref.read(explorerViewModelProvider.notifier).refresh();
+  } on FileSystemException catch (e) {
+    if (!context.mounted) {
+      return;
+    }
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('リネームに失敗しました: ${e.message}')));
+  }
+}
+
+/// ドラッグ＆ドロップで [sourcePath] を [targetDir] へ移動する。
+/// 移動後はビューモデルを refresh。エラー時は SnackBar で通知。
+Future<void> moveInto(
+  BuildContext context,
+  WidgetRef ref,
+  String sourcePath,
+  String targetDir,
+) async {
+  final ops = ref.read(explorerFileOpsProvider);
+  try {
+    await ops.moveInto(sourcePath, targetDir);
+    ref.read(explorerViewModelProvider.notifier).refresh();
+  } on FileSystemException catch (e) {
+    if (!context.mounted) {
+      return;
+    }
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('移動に失敗しました: ${e.message}')));
+  }
+}
+
+/// パスから親ディレクトリの絶対パスを計算する。`/` の場合は `/`。
+String parentOfPath(String path) {
+  final normalized = path.endsWith('/') && path.length > 1
+      ? path.substring(0, path.length - 1)
+      : path;
+  final lastSlash = normalized.lastIndexOf('/');
+  if (lastSlash <= 0) {
+    return '/';
+  }
+  return normalized.substring(0, lastSlash);
+}
+
+/// リストの先頭に置く「上の階層へ」専用タイル。
+///
+/// クリックで親ディレクトリに移動。ドラッグ＆ドロップで対象を親に
+/// 移動できる。ルート（`/`）にいる時は呼び出し側で非表示にすること。
+class ExplorerParentDropTile extends ConsumerWidget {
+  const ExplorerParentDropTile({required this.currentPath, super.key});
+
+  final String currentPath;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final parentPath = parentOfPath(currentPath);
+    final colors = Theme.of(context).colorScheme;
+    return DragTarget<String>(
+      onWillAcceptWithDetails: (details) {
+        // 既に親に居る項目を「親に移動」しても no-op なので、視覚
+        // フィードバックを出さない。自身や祖先を親に移動するのも
+        // セマンティクス的におかしい（moveInto 側でも弾く）。
+        return parentOfPath(details.data) != parentPath &&
+            details.data != parentPath &&
+            !parentPath.startsWith('${details.data}/');
+      },
+      onAcceptWithDetails: (details) =>
+          moveInto(context, ref, details.data, parentPath),
+      builder: (context, candidate, _) {
+        final isHovering = candidate.isNotEmpty;
+        return InkWell(
+          onTap: () => ref
+              .read(explorerViewModelProvider.notifier)
+              .navigateTo(parentPath),
+          child: Container(
+            color: isHovering ? colors.primary.withValues(alpha: 0.12) : null,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Row(
+              children: [
+                Icon(Icons.arrow_upward, color: colors.onSurfaceVariant),
+                const SizedBox(width: 16),
+                Text('上の階層へ', style: Theme.of(context).textTheme.bodyLarge),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    parentPath,
+                    textAlign: TextAlign.right,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: colors.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 }
 
@@ -110,6 +410,26 @@ class _ActionOpenClaude extends ExplorerNodeAction {
   const _ActionOpenClaude();
 }
 
+class _ActionRevealInFinder extends ExplorerNodeAction {
+  const _ActionRevealInFinder();
+}
+
+class _ActionAddToFavorite extends ExplorerNodeAction {
+  const _ActionAddToFavorite();
+}
+
+class _ActionNewFolder extends ExplorerNodeAction {
+  const _ActionNewFolder();
+}
+
+class _ActionNewFile extends ExplorerNodeAction {
+  const _ActionNewFile();
+}
+
+class _ActionRename extends ExplorerNodeAction {
+  const _ActionRename();
+}
+
 class _ActionRunSkill extends ExplorerNodeAction {
   const _ActionRunSkill(this.skillName);
   final String skillName;
@@ -120,17 +440,55 @@ class _ActionRegisterSkill extends ExplorerNodeAction {
   final String skillName;
 }
 
-/// 1 ディレクトリを表す行。タイル全体（テキスト以外の余白部分も含む）で
-/// 左クリック / 右クリックを受け付ける。`ListTile` の代わりに自前 layout を
-/// 使うのは、ListTile + GestureDetector の組み合わせで右クリックが文字部分
-/// にしか効かない問題を回避するため。
+/// 1 ノード（ディレクトリ or ファイル）を表す行。タイル全体（テキスト以外
+/// の余白部分も含む）で左クリック / 右クリックを受け付ける。
+/// ディレクトリはドラッグソース＋ドロップターゲット、ファイルは
+/// ドラッグソースのみ。
 class ExplorerNodeTile extends ConsumerWidget {
   const ExplorerNodeTile({required this.node, super.key});
+
+  final ExplorerNode node;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return switch (node) {
+      ExplorerDirectoryNode() => _DirectoryTile(
+        node: node as ExplorerDirectoryNode,
+      ),
+      ExplorerFileNode() => _FileTile(node: node as ExplorerFileNode),
+    };
+  }
+}
+
+class _DirectoryTile extends ConsumerWidget {
+  const _DirectoryTile({required this.node});
 
   final ExplorerDirectoryNode node;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    return DragTarget<String>(
+      onWillAcceptWithDetails: (details) =>
+          details.data != node.path &&
+          !node.path.startsWith('${details.data}/'),
+      onAcceptWithDetails: (details) =>
+          moveInto(context, ref, details.data, node.path),
+      builder: (context, candidate, _) {
+        final isHovering = candidate.isNotEmpty;
+        return Draggable<String>(
+          data: node.path,
+          feedback: _DragFeedback(label: node.name, icon: Icons.folder),
+          childWhenDragging: Opacity(
+            opacity: 0.3,
+            child: _content(context, ref, false),
+          ),
+          child: _content(context, ref, isHovering),
+        );
+      },
+    );
+  }
+
+  Widget _content(BuildContext context, WidgetRef ref, bool isDropHovering) {
     final hasSkill = node.skillNames.isNotEmpty;
     final colors = Theme.of(context).colorScheme;
     return GestureDetector(
@@ -139,8 +497,9 @@ class ExplorerNodeTile extends ConsumerWidget {
           showExplorerContextMenu(context, ref, node, details.globalPosition),
       child: InkWell(
         onTap: () =>
-            ref.read(explorerViewModelProvider.notifier).enter(node.path),
-        child: Padding(
+            ref.read(explorerViewModelProvider.notifier).navigateTo(node.path),
+        child: Container(
+          color: isDropHovering ? colors.primary.withValues(alpha: 0.12) : null,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Row(
             children: [
@@ -175,6 +534,116 @@ class ExplorerNodeTile extends ConsumerWidget {
                 ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _FileTile extends ConsumerWidget {
+  const _FileTile({required this.node});
+
+  final ExplorerFileNode node;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final colors = Theme.of(context).colorScheme;
+    final icon = _iconForName(node.name);
+    final content = GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onSecondaryTapDown: (details) =>
+          showFileContextMenu(context, ref, node, details.globalPosition),
+      child: InkWell(
+        onTap: () => ref.read(fileOpenerProvider).open(node.path),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
+            children: [
+              Icon(icon, color: colors.onSurfaceVariant),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Text(
+                  node.name,
+                  style: Theme.of(context).textTheme.bodyLarge,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    return Draggable<String>(
+      data: node.path,
+      feedback: _DragFeedback(label: node.name, icon: icon),
+      childWhenDragging: Opacity(opacity: 0.3, child: content),
+      child: content,
+    );
+  }
+
+  /// 拡張子からざっくりアイコンを決める。厳密に判別する必要は無く、
+  /// ディレクトリと区別がつけばよい程度。
+  IconData _iconForName(String name) {
+    final lower = name.toLowerCase();
+    if (lower.endsWith('.md') || lower.endsWith('.txt')) {
+      return Icons.description;
+    }
+    if (lower.endsWith('.json') ||
+        lower.endsWith('.yaml') ||
+        lower.endsWith('.yml') ||
+        lower.endsWith('.toml')) {
+      return Icons.data_object;
+    }
+    if (lower.endsWith('.png') ||
+        lower.endsWith('.jpg') ||
+        lower.endsWith('.jpeg') ||
+        lower.endsWith('.gif') ||
+        lower.endsWith('.webp') ||
+        lower.endsWith('.svg')) {
+      return Icons.image;
+    }
+    if (lower.endsWith('.zip') ||
+        lower.endsWith('.tar') ||
+        lower.endsWith('.gz')) {
+      return Icons.folder_zip;
+    }
+    return Icons.insert_drive_file;
+  }
+}
+
+/// ドラッグ中にカーソルに追従して表示する小さなチップ。
+class _DragFeedback extends StatelessWidget {
+  const _DragFeedback({required this.label, required this.icon});
+
+  final String label;
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Material(
+      color: Colors.transparent,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: colors.surface,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: colors.primary, width: 1.5),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 18, color: colors.primary),
+            const SizedBox(width: 8),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 200),
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+            ),
+          ],
         ),
       ),
     );

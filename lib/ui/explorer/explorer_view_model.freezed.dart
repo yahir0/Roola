@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$ExplorerState {
 
- String get root; String get currentPath; List<ExplorerDirectoryNode> get children;
+ String get root; String get currentPath; List<ExplorerNode> get children;
 /// Create a copy of ExplorerState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -45,7 +45,7 @@ abstract mixin class $ExplorerStateCopyWith<$Res>  {
   factory $ExplorerStateCopyWith(ExplorerState value, $Res Function(ExplorerState) _then) = _$ExplorerStateCopyWithImpl;
 @useResult
 $Res call({
- String root, String currentPath, List<ExplorerDirectoryNode> children
+ String root, String currentPath, List<ExplorerNode> children
 });
 
 
@@ -67,7 +67,7 @@ class _$ExplorerStateCopyWithImpl<$Res>
 root: null == root ? _self.root : root // ignore: cast_nullable_to_non_nullable
 as String,currentPath: null == currentPath ? _self.currentPath : currentPath // ignore: cast_nullable_to_non_nullable
 as String,children: null == children ? _self.children : children // ignore: cast_nullable_to_non_nullable
-as List<ExplorerDirectoryNode>,
+as List<ExplorerNode>,
   ));
 }
 
@@ -152,7 +152,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String root,  String currentPath,  List<ExplorerDirectoryNode> children)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String root,  String currentPath,  List<ExplorerNode> children)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ExplorerState() when $default != null:
 return $default(_that.root,_that.currentPath,_that.children);case _:
@@ -173,7 +173,7 @@ return $default(_that.root,_that.currentPath,_that.children);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String root,  String currentPath,  List<ExplorerDirectoryNode> children)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String root,  String currentPath,  List<ExplorerNode> children)  $default,) {final _that = this;
 switch (_that) {
 case _ExplorerState():
 return $default(_that.root,_that.currentPath,_that.children);case _:
@@ -193,7 +193,7 @@ return $default(_that.root,_that.currentPath,_that.children);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String root,  String currentPath,  List<ExplorerDirectoryNode> children)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String root,  String currentPath,  List<ExplorerNode> children)?  $default,) {final _that = this;
 switch (_that) {
 case _ExplorerState() when $default != null:
 return $default(_that.root,_that.currentPath,_that.children);case _:
@@ -208,13 +208,13 @@ return $default(_that.root,_that.currentPath,_that.children);case _:
 
 
 class _ExplorerState implements ExplorerState {
-  const _ExplorerState({required this.root, required this.currentPath, required final  List<ExplorerDirectoryNode> children}): _children = children;
+  const _ExplorerState({required this.root, required this.currentPath, required final  List<ExplorerNode> children}): _children = children;
   
 
 @override final  String root;
 @override final  String currentPath;
- final  List<ExplorerDirectoryNode> _children;
-@override List<ExplorerDirectoryNode> get children {
+ final  List<ExplorerNode> _children;
+@override List<ExplorerNode> get children {
   if (_children is EqualUnmodifiableListView) return _children;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_children);
@@ -251,7 +251,7 @@ abstract mixin class _$ExplorerStateCopyWith<$Res> implements $ExplorerStateCopy
   factory _$ExplorerStateCopyWith(_ExplorerState value, $Res Function(_ExplorerState) _then) = __$ExplorerStateCopyWithImpl;
 @override @useResult
 $Res call({
- String root, String currentPath, List<ExplorerDirectoryNode> children
+ String root, String currentPath, List<ExplorerNode> children
 });
 
 
@@ -273,7 +273,7 @@ class __$ExplorerStateCopyWithImpl<$Res>
 root: null == root ? _self.root : root // ignore: cast_nullable_to_non_nullable
 as String,currentPath: null == currentPath ? _self.currentPath : currentPath // ignore: cast_nullable_to_non_nullable
 as String,children: null == children ? _self._children : children // ignore: cast_nullable_to_non_nullable
-as List<ExplorerDirectoryNode>,
+as List<ExplorerNode>,
   ));
 }
 

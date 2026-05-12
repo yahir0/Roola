@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$ExplorerNode {
 
- String get path; String get name; List<String> get skillNames;
+ String get path; String get name;
 /// Create a copy of ExplorerNode
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $ExplorerNodeCopyWith<ExplorerNode> get copyWith => _$ExplorerNodeCopyWithImpl<E
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ExplorerNode&&(identical(other.path, path) || other.path == path)&&(identical(other.name, name) || other.name == name)&&const DeepCollectionEquality().equals(other.skillNames, skillNames));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ExplorerNode&&(identical(other.path, path) || other.path == path)&&(identical(other.name, name) || other.name == name));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,path,name,const DeepCollectionEquality().hash(skillNames));
+int get hashCode => Object.hash(runtimeType,path,name);
 
 @override
 String toString() {
-  return 'ExplorerNode(path: $path, name: $name, skillNames: $skillNames)';
+  return 'ExplorerNode(path: $path, name: $name)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $ExplorerNodeCopyWith<$Res>  {
   factory $ExplorerNodeCopyWith(ExplorerNode value, $Res Function(ExplorerNode) _then) = _$ExplorerNodeCopyWithImpl;
 @useResult
 $Res call({
- String path, String name, List<String> skillNames
+ String path, String name
 });
 
 
@@ -62,12 +62,11 @@ class _$ExplorerNodeCopyWithImpl<$Res>
 
 /// Create a copy of ExplorerNode
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? path = null,Object? name = null,Object? skillNames = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? path = null,Object? name = null,}) {
   return _then(_self.copyWith(
 path: null == path ? _self.path : path // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
-as String,skillNames: null == skillNames ? _self.skillNames : skillNames // ignore: cast_nullable_to_non_nullable
-as List<String>,
+as String,
   ));
 }
 
@@ -88,11 +87,12 @@ extension ExplorerNodePatterns on ExplorerNode {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( ExplorerDirectoryNode value)?  directory,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( ExplorerDirectoryNode value)?  directory,TResult Function( ExplorerFileNode value)?  file,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
 case ExplorerDirectoryNode() when directory != null:
-return directory(_that);case _:
+return directory(_that);case ExplorerFileNode() when file != null:
+return file(_that);case _:
   return orElse();
 
 }
@@ -110,11 +110,12 @@ return directory(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( ExplorerDirectoryNode value)  directory,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( ExplorerDirectoryNode value)  directory,required TResult Function( ExplorerFileNode value)  file,}){
 final _that = this;
 switch (_that) {
 case ExplorerDirectoryNode():
-return directory(_that);}
+return directory(_that);case ExplorerFileNode():
+return file(_that);}
 }
 /// A variant of `map` that fallback to returning `null`.
 ///
@@ -128,11 +129,12 @@ return directory(_that);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( ExplorerDirectoryNode value)?  directory,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( ExplorerDirectoryNode value)?  directory,TResult? Function( ExplorerFileNode value)?  file,}){
 final _that = this;
 switch (_that) {
 case ExplorerDirectoryNode() when directory != null:
-return directory(_that);case _:
+return directory(_that);case ExplorerFileNode() when file != null:
+return file(_that);case _:
   return null;
 
 }
@@ -149,10 +151,11 @@ return directory(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( String path,  String name,  List<String> skillNames)?  directory,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( String path,  String name,  List<String> skillNames)?  directory,TResult Function( String path,  String name)?  file,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case ExplorerDirectoryNode() when directory != null:
-return directory(_that.path,_that.name,_that.skillNames);case _:
+return directory(_that.path,_that.name,_that.skillNames);case ExplorerFileNode() when file != null:
+return file(_that.path,_that.name);case _:
   return orElse();
 
 }
@@ -170,10 +173,11 @@ return directory(_that.path,_that.name,_that.skillNames);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( String path,  String name,  List<String> skillNames)  directory,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( String path,  String name,  List<String> skillNames)  directory,required TResult Function( String path,  String name)  file,}) {final _that = this;
 switch (_that) {
 case ExplorerDirectoryNode():
-return directory(_that.path,_that.name,_that.skillNames);}
+return directory(_that.path,_that.name,_that.skillNames);case ExplorerFileNode():
+return file(_that.path,_that.name);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -187,10 +191,11 @@ return directory(_that.path,_that.name,_that.skillNames);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( String path,  String name,  List<String> skillNames)?  directory,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( String path,  String name,  List<String> skillNames)?  directory,TResult? Function( String path,  String name)?  file,}) {final _that = this;
 switch (_that) {
 case ExplorerDirectoryNode() when directory != null:
-return directory(_that.path,_that.name,_that.skillNames);case _:
+return directory(_that.path,_that.name,_that.skillNames);case ExplorerFileNode() when file != null:
+return file(_that.path,_that.name);case _:
   return null;
 
 }
@@ -208,7 +213,7 @@ class ExplorerDirectoryNode implements ExplorerNode {
 @override final  String path;
 @override final  String name;
  final  List<String> _skillNames;
-@override@JsonKey() List<String> get skillNames {
+@JsonKey() List<String> get skillNames {
   if (_skillNames is EqualUnmodifiableListView) return _skillNames;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_skillNames);
@@ -268,6 +273,74 @@ path: null == path ? _self.path : path // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,skillNames: null == skillNames ? _self._skillNames : skillNames // ignore: cast_nullable_to_non_nullable
 as List<String>,
+  ));
+}
+
+
+}
+
+/// @nodoc
+
+
+class ExplorerFileNode implements ExplorerNode {
+  const ExplorerFileNode({required this.path, required this.name});
+  
+
+@override final  String path;
+@override final  String name;
+
+/// Create a copy of ExplorerNode
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$ExplorerFileNodeCopyWith<ExplorerFileNode> get copyWith => _$ExplorerFileNodeCopyWithImpl<ExplorerFileNode>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ExplorerFileNode&&(identical(other.path, path) || other.path == path)&&(identical(other.name, name) || other.name == name));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,path,name);
+
+@override
+String toString() {
+  return 'ExplorerNode.file(path: $path, name: $name)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $ExplorerFileNodeCopyWith<$Res> implements $ExplorerNodeCopyWith<$Res> {
+  factory $ExplorerFileNodeCopyWith(ExplorerFileNode value, $Res Function(ExplorerFileNode) _then) = _$ExplorerFileNodeCopyWithImpl;
+@override @useResult
+$Res call({
+ String path, String name
+});
+
+
+
+
+}
+/// @nodoc
+class _$ExplorerFileNodeCopyWithImpl<$Res>
+    implements $ExplorerFileNodeCopyWith<$Res> {
+  _$ExplorerFileNodeCopyWithImpl(this._self, this._then);
+
+  final ExplorerFileNode _self;
+  final $Res Function(ExplorerFileNode) _then;
+
+/// Create a copy of ExplorerNode
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? path = null,Object? name = null,}) {
+  return _then(ExplorerFileNode(
+path: null == path ? _self.path : path // ignore: cast_nullable_to_non_nullable
+as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String,
   ));
 }
 

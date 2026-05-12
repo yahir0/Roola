@@ -3,21 +3,23 @@ import 'dart:io';
 import 'package:claude_skills_launcher/core/skill/skill_scanner.dart';
 import 'package:claude_skills_launcher/data/repo_explorer/explorer_node.dart';
 
-/// 指定ディレクトリ直下の子ディレクトリを列挙し、各子で `.claude/skills/`
-/// 直下を `SkillScanner` で再利用してスキャンする loader。
+/// 指定ディレクトリ直下のディレクトリ・ファイルを列挙し、各ディレクトリで
+/// `.claude/skills/` 直下を `SkillScanner` で再利用してスキャンする loader。
 ///
-/// 再帰しない（深部は表示時に都度スキャン）。隠しディレクトリ（`.git` 等）
-/// と一般的なツールキャッシュは除外する。
+/// 再帰しない（深部は表示時に都度スキャン）。well-known なノイズ
+/// （`.git` / `.DS_Store` / `node_modules` 等）は除外する。
+/// ディレクトリ → ファイルの順、各ブロック内は名前昇順（大文字小文字無視）。
 class ExplorerDirectoryLoader {
   const ExplorerDirectoryLoader({this.scanner = const SkillScanner()});
 
   final SkillScanner scanner;
 
-  /// 表示対象から外す名前。Skill 検知用のドット始まり `.claude/skills/`
-  /// を持つことのない一般的なノイズを除外する。
-  static const _hiddenPrefixes = <String>{
+  /// 表示対象から外す名前。ドット始まりでも `.claude` のような
+  /// Skill 検知対象は出したいので、明示的なブロックリスト方式を取る。
+  static const _hiddenNames = <String>{
     '.git',
     '.DS_Store',
+    '.localized',
     'node_modules',
     '.next',
     '.cache',
@@ -27,38 +29,53 @@ class ExplorerDirectoryLoader {
     '.dart_tool',
   };
 
-  /// [parentPath] 直下を読み、子ディレクトリ一覧（名前昇順）を返す。
+  /// [parentPath] 直下を読み、ノード一覧を返す。
   /// パスが存在しない、ディレクトリでない、読めない場合は空リスト。
-  List<ExplorerDirectoryNode> load(String parentPath) {
+  List<ExplorerNode> load(String parentPath) {
     final dir = Directory(parentPath);
     if (!dir.existsSync()) {
       return const [];
     }
-    final List<ExplorerDirectoryNode> nodes;
+    final dirs = <ExplorerDirectoryNode>[];
+    final files = <ExplorerFileNode>[];
     try {
       final entities = dir.listSync(followLinks: false);
-      nodes = <ExplorerDirectoryNode>[];
       for (final entity in entities) {
-        if (entity is! Directory) {
-          continue;
-        }
         final name = _basename(entity.path);
-        if (_hiddenPrefixes.contains(name)) {
+        if (_hiddenNames.contains(name)) {
           continue;
         }
-        nodes.add(
-          ExplorerDirectoryNode(
-            path: entity.path,
-            name: name,
-            skillNames: scanner.scan(entity.path),
-          ),
-        );
+        if (entity is Directory) {
+          dirs.add(
+            ExplorerDirectoryNode(
+              path: entity.path,
+              name: name,
+              skillNames: scanner.scan(entity.path),
+            ),
+          );
+        } else if (entity is File) {
+          files.add(ExplorerFileNode(path: entity.path, name: name));
+        }
+        // Link 等はスキップ。followLinks: false としているのでまずここに来ない。
       }
     } on FileSystemException {
       return const [];
     }
-    nodes.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
-    return nodes;
+    int byName(ExplorerNode a, ExplorerNode b) {
+      final an = switch (a) {
+        ExplorerDirectoryNode(:final name) => name,
+        ExplorerFileNode(:final name) => name,
+      };
+      final bn = switch (b) {
+        ExplorerDirectoryNode(:final name) => name,
+        ExplorerFileNode(:final name) => name,
+      };
+      return an.toLowerCase().compareTo(bn.toLowerCase());
+    }
+
+    dirs.sort(byName);
+    files.sort(byName);
+    return [...dirs, ...files];
   }
 
   String _basename(String path) {
