@@ -14,6 +14,7 @@ import 'package:claude_skills_launcher/ui/explorer/explorer_properties_dialog.da
 import 'package:claude_skills_launcher/ui/explorer/explorer_view_model.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
@@ -97,6 +98,10 @@ Future<void> showExplorerContextMenu(
         value: _ActionCopy(),
         child: ListTile(leading: Icon(Icons.content_copy), title: Text('コピー')),
       ),
+    const PopupMenuItem(
+      value: _ActionCopyPath(),
+      child: ListTile(leading: Icon(Icons.link), title: Text('パスをコピー')),
+    ),
     if (hasClipboard)
       const PopupMenuItem(
         value: _ActionPaste(),
@@ -204,6 +209,10 @@ Future<void> showFileContextMenu(
         value: _FileAction.copy,
         child: ListTile(leading: Icon(Icons.content_copy), title: Text('コピー')),
       ),
+      PopupMenuItem(
+        value: _FileAction.copyPath,
+        child: ListTile(leading: Icon(Icons.link), title: Text('パスをコピー')),
+      ),
       PopupMenuDivider(),
       PopupMenuItem(
         value: _FileAction.properties,
@@ -237,12 +246,22 @@ Future<void> showFileContextMenu(
           duration: const Duration(seconds: 2),
         ),
       );
+    case _FileAction.copyPath:
+      await _copyPathToClipboard(context, node.path);
     case _FileAction.properties:
       await showPropertiesDialog(context, node.path);
   }
 }
 
-enum _FileAction { open, openWith, revealInFinder, rename, copy, properties }
+enum _FileAction {
+  open,
+  openWith,
+  revealInFinder,
+  rename,
+  copy,
+  copyPath,
+  properties,
+}
 
 Future<void> _handleDirectoryAction(
   BuildContext context,
@@ -310,6 +329,8 @@ Future<void> _handleDirectoryAction(
           duration: const Duration(seconds: 2),
         ),
       );
+    case _ActionCopyPath():
+      await _copyPathToClipboard(context, node.path);
     case _ActionPaste():
       await _pasteInto(context, ref, node.path);
     case _ActionProperties():
@@ -444,6 +465,22 @@ Future<void> _pasteInto(
       SnackBar(content: Text('コピー元が見つかりません: ${missing.join(', ')}')),
     );
   }
+}
+
+/// 絶対パス文字列を OS クリップボードにテキストとして書き込む。
+/// ファイル URI 形式の「コピー」とは別経路で、他アプリのテキスト入力
+/// 欄にそのまま貼れることを意図する。
+Future<void> _copyPathToClipboard(BuildContext context, String path) async {
+  await Clipboard.setData(ClipboardData(text: path));
+  if (!context.mounted) {
+    return;
+  }
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Text('パスをコピーしました: $path'),
+      duration: const Duration(seconds: 2),
+    ),
+  );
 }
 
 /// macOS の `open -a` でファイルを指定アプリで開く。アプリ選択は
@@ -599,6 +636,10 @@ class _ActionRename extends ExplorerNodeAction {
 
 class _ActionCopy extends ExplorerNodeAction {
   const _ActionCopy();
+}
+
+class _ActionCopyPath extends ExplorerNodeAction {
+  const _ActionCopyPath();
 }
 
 class _ActionPaste extends ExplorerNodeAction {
