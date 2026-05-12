@@ -33,7 +33,7 @@ void main() {
 
     container = ProviderContainer(
       overrides: [
-        appPathsProvider.overrideWith((ref) async => AppPaths(root: tempDir)),
+        appPathsProvider.overrideWithValue(AppPaths(root: tempDir)),
         launcherEntryRepositoryProvider.overrideWith((ref) => repo),
       ],
     );

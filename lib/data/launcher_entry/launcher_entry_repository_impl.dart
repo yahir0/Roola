@@ -103,24 +103,20 @@ class LauncherEntryRepositoryImpl implements LauncherEntryRepository {
   }
 }
 
-/// `AppPaths` を非同期初期化して提供する Provider。
-final appPathsProvider = FutureProvider<AppPaths>((ref) => AppPaths.resolve());
+/// `AppPaths` を提供する Provider。
+///
+/// アプリ起動時に `main()` で `AppPaths.resolve()` を await し、
+/// `appPathsProvider.overrideWithValue(paths)` で注入する。
+/// デフォルトは未初期化エラーで、テスト・本番の双方で必ず override する。
+final appPathsProvider = Provider<AppPaths>(
+  (ref) => throw UnimplementedError(
+    'appPathsProvider must be overridden in main() with a resolved AppPaths.',
+  ),
+);
 
 /// `LauncherEntryRepository` の Riverpod Provider。
-///
-/// `AppPaths` が解決済み前提で生成するため、初期化フェーズで
-/// `await ref.read(appPathsProvider.future)` を呼んでから使う。
 final launcherEntryRepositoryProvider = Provider<LauncherEntryRepository>((
   ref,
 ) {
-  final paths = ref
-      .watch(appPathsProvider)
-      .maybeWhen(
-        data: (value) => value,
-        orElse: () => throw StateError(
-          'AppPaths is not initialized yet. '
-          'Wait for appPathsProvider before reading this provider.',
-        ),
-      );
-  return LauncherEntryRepositoryImpl(paths: paths);
+  return LauncherEntryRepositoryImpl(paths: ref.watch(appPathsProvider));
 });

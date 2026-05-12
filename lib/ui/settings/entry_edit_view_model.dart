@@ -113,7 +113,7 @@ class EntryEditViewModel extends _$EntryEditViewModel {
     }
     state = state.copyWith(isSubmitting: true);
     try {
-      final paths = await ref.read(appPathsProvider.future);
+      final paths = ref.read(appPathsProvider);
       final isNew = entryId == null;
       final id = isNew ? _uuid.v4() : entryId!;
       String? finalIconPath = state.iconPath;

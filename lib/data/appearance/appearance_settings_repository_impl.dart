@@ -57,13 +57,7 @@ class AppearanceSettingsRepositoryImpl implements AppearanceSettingsRepository {
 /// `AppearanceSettingsRepository` の Provider。
 final appearanceSettingsRepositoryProvider =
     Provider<AppearanceSettingsRepository>((ref) {
-      final paths = ref
-          .watch(appPathsProvider)
-          .maybeWhen(
-            data: (value) => value,
-            orElse: () => throw StateError('AppPaths is not initialized yet.'),
-          );
-      return AppearanceSettingsRepositoryImpl(paths: paths);
+      return AppearanceSettingsRepositoryImpl(paths: ref.watch(appPathsProvider));
     });
 
 /// 外観設定そのものの AsyncNotifier。

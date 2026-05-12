@@ -106,7 +106,7 @@ class _Body extends ConsumerWidget {
     if (src == null) {
       return;
     }
-    final paths = await ref.read(appPathsProvider.future);
+    final paths = ref.read(appPathsProvider);
     final dest = paths.backgroundImageFile;
     await File(src).copy(dest.path);
     await notifier.setImagePath(dest.path);
