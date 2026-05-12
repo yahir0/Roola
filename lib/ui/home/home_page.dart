@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:claude_skills_launcher/app/router.dart';
+import 'package:claude_skills_launcher/data/launcher_entry/launcher_entries_provider.dart';
 import 'package:claude_skills_launcher/data/launcher_entry/launcher_entry.dart';
 import 'package:claude_skills_launcher/data/skill_runner/skill_run_state.dart';
 import 'package:claude_skills_launcher/data/skill_session/active_sessions.dart';
@@ -108,43 +109,122 @@ class _IconGrid extends StatelessWidget {
   }
 }
 
-class _LauncherTile extends StatelessWidget {
+class _LauncherTile extends ConsumerWidget {
   const _LauncherTile({required this.entry, required this.sessionState});
 
   final LauncherEntry entry;
   final SkillRunState? sessionState;
 
   @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(16),
-      onTap: () => RunRoute(entryId: entry.id).push<void>(context),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Stack(
-            clipBehavior: Clip.none,
-            children: [
-              _Icon(iconPath: entry.iconPath),
-              if (sessionState != null)
-                Positioned(
-                  top: -4,
-                  right: -4,
-                  child: _SessionBadge(state: sessionState!),
-                ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Text(
-            entry.displayName,
-            maxLines: 2,
-            textAlign: TextAlign.center,
-            overflow: TextOverflow.ellipsis,
-            style: Theme.of(context).textTheme.bodyMedium,
-          ),
-        ],
+  Widget build(BuildContext context, WidgetRef ref) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onSecondaryTapDown: (details) =>
+          _showTileContextMenu(context, ref, entry, details.globalPosition),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: () => RunRoute(entryId: entry.id).push<void>(context),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                _Icon(iconPath: entry.iconPath),
+                if (sessionState != null)
+                  Positioned(
+                    top: -4,
+                    right: -4,
+                    child: _SessionBadge(state: sessionState!),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Text(
+              entry.displayName,
+              maxLines: 2,
+              textAlign: TextAlign.center,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+          ],
+        ),
       ),
     );
+  }
+}
+
+enum _TileAction { edit, delete }
+
+/// ホームタイルの右クリックメニュー（設定 = エントリ編集 / 削除）。
+Future<void> _showTileContextMenu(
+  BuildContext context,
+  WidgetRef ref,
+  LauncherEntry entry,
+  Offset position,
+) async {
+  final selected = await showMenu<_TileAction>(
+    context: context,
+    position: RelativeRect.fromLTRB(
+      position.dx,
+      position.dy,
+      position.dx,
+      position.dy,
+    ),
+    items: const [
+      PopupMenuItem(
+        value: _TileAction.edit,
+        child: ListTile(
+          leading: Icon(Icons.settings_outlined),
+          title: Text('設定'),
+        ),
+      ),
+      PopupMenuItem(
+        value: _TileAction.delete,
+        child: ListTile(
+          leading: Icon(Icons.delete_outline),
+          title: Text('削除'),
+        ),
+      ),
+    ],
+  );
+  if (selected == null || !context.mounted) {
+    return;
+  }
+  switch (selected) {
+    case _TileAction.edit:
+      await EntryEditRoute(entryId: entry.id).push<void>(context);
+    case _TileAction.delete:
+      await _confirmDeleteEntry(context, ref, entry);
+  }
+}
+
+/// 設定画面 (`SettingsPage._confirmDelete`) と同じ確認ダイアログ。
+/// 確認後に `launcherEntriesProvider` 経由で永続側から削除する。
+Future<void> _confirmDeleteEntry(
+  BuildContext context,
+  WidgetRef ref,
+  LauncherEntry entry,
+) async {
+  final confirmed = await showDialog<bool>(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: const Text('エントリを削除しますか？'),
+      content: Text('「${entry.displayName}」を削除します。この操作は取り消せません。'),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(false),
+          child: const Text('キャンセル'),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.of(context).pop(true),
+          child: const Text('削除'),
+        ),
+      ],
+    ),
+  );
+  if (confirmed ?? false) {
+    await ref.read(launcherEntriesProvider.notifier).delete(entry.id);
   }
 }
 
