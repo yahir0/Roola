@@ -5,6 +5,8 @@ import 'package:claude_skills_launcher/data/launcher_entry/launcher_entry.dart';
 import 'package:claude_skills_launcher/data/skill_runner/pty_skill_runner.dart';
 import 'package:claude_skills_launcher/data/skill_runner/skill_run_state.dart';
 import 'package:claude_skills_launcher/data/skill_runner/skill_runner.dart';
+import 'package:claude_skills_launcher/data/skill_session/active_sessions.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'run_view_model.g.dart';
@@ -24,9 +26,11 @@ class RunPageState {
 
 /// `RunPage` 用 ViewModel。
 ///
-/// build() で PtySkillRunner を 1 つ生成し、状態 Stream を購読しながら
-/// プロセスを start する。再実行は `ref.invalidateSelf` 経由で全体を作り直す。
-@riverpod
+/// build() で PtySkillRunner を 1 つ生成し、`session-registry` に登録した
+/// うえで状態 Stream を購読しながらプロセスを start する。
+/// keepAlive のため、実行画面ウィジェットの離脱後もインスタンスは維持され、
+/// 明示的な `close()` か `restart()` まで生存する。
+@Riverpod(keepAlive: true)
 class RunViewModel extends _$RunViewModel {
   @override
   RunPageState build(String entryId) {
@@ -40,18 +44,30 @@ class RunViewModel extends _$RunViewModel {
       skillName: entry.skillName,
     );
 
+    final registry = ref.read(activeSessionsProvider.notifier);
+
     late final StreamSubscription<SkillRunState> sub;
     sub = runner.state.listen((next) {
       state = RunPageState(entry: entry, runState: next, runner: runner);
+      registry.updateState(entryId, next);
     });
 
     ref.onDispose(() async {
       await sub.cancel();
-      await runner.cancel();
+      await runner.dispose();
     });
 
-    // 起動を 1 度だけトリガする（start は idempotent）。
-    Future.microtask(runner.start);
+    // build 中に他 provider を modify することは Riverpod 3.x の規約違反
+    // （`_debugCurrentlyBuildingElement` assert）になるため、register と
+    // start は build 完了後の microtask で実行する。
+    Future.microtask(() {
+      registry.register(
+        entryId: entryId,
+        initialState: runner.currentState,
+        cancel: runner.cancel,
+      );
+      runner.start();
+    });
 
     return RunPageState(
       entry: entry,
@@ -60,9 +76,24 @@ class RunViewModel extends _$RunViewModel {
     );
   }
 
-  /// 再実行（Provider を invalidate して新しい runner を生成）。
+  /// 実行中の PTY を SIGTERM で終了する。Terminal とセッションは保持される。
+  Future<void> cancelRun() => state.runner.cancel();
+
+  /// 再実行（既存 runner を dispose して新しい runner を生成）。
   void restart() => ref.invalidateSelf();
 
-  /// プロセスをキャンセルする（離脱時に呼ぶ）。
-  Future<void> cancelRun() => state.runner.cancel();
+  // セッションの明示破棄（「閉じる」操作）は keepAlive provider を自身から
+  // invalidate できない Riverpod 3.x の制約のため、View 側で
+  // `terminateSkillSession` ヘルパー（unregister + invalidate）を呼ぶ。
+  // `runner.dispose()` は invalidate 経由で `ref.onDispose` から発火する。
+}
+
+/// セッションを完全破棄するための View 用ヘルパー。
+///
+/// `RunPage` の「閉じる」ボタンと、ホームの session chip の ✕ ボタンの
+/// 双方から呼ばれる。`ActiveSessions` から除去 → `runViewModelProvider`
+/// invalidate の 2 段で、PTY 終了と Terminal 解放を含めて完了する。
+void terminateSkillSession(WidgetRef ref, String entryId) {
+  ref.read(activeSessionsProvider.notifier).unregister(entryId);
+  ref.invalidate(runViewModelProvider(entryId));
 }

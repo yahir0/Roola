@@ -22,6 +22,11 @@ Future<void> main() async {
     await windowManager.focus();
   });
 
+  // セッションが残っている状態での誤終了を防ぐため、close 操作を抑止して
+  // `WindowCloseGuard` で確認ダイアログ → `windowManager.destroy()` に
+  // 取り回す。詳細は `lib/app/window_close_guard.dart` を参照。
+  await windowManager.setPreventClose(true);
+
   // `appPathsProvider` を解決済みの値で上書きするため、ここで先に
   // path_provider のサポートディレクトリを取得する。これにより data 層の
   // Provider 群（リポジトリ）が同期的に初期化でき、loading 起因の error

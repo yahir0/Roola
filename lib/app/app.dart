@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:claude_skills_launcher/app/router.dart';
 import 'package:claude_skills_launcher/app/theme.dart';
+import 'package:claude_skills_launcher/app/window_close_guard.dart';
 import 'package:claude_skills_launcher/data/appearance/appearance_settings.dart';
 import 'package:claude_skills_launcher/data/appearance/appearance_settings_repository_impl.dart';
 import 'package:flutter/material.dart';
@@ -27,9 +28,11 @@ class App extends ConsumerWidget {
       darkTheme: AppTheme.dark(),
       routerConfig: router,
       debugShowCheckedModeBanner: false,
-      builder: (context, child) => _AppearanceLayer(
-        appearance: appearance,
-        child: child ?? const SizedBox.shrink(),
+      builder: (context, child) => WindowCloseGuard(
+        child: _AppearanceLayer(
+          appearance: appearance,
+          child: child ?? const SizedBox.shrink(),
+        ),
       ),
     );
   }

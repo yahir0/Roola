@@ -10,29 +10,35 @@ part of 'run_view_model.dart';
 // ignore_for_file: type=lint, type=warning
 /// `RunPage` 用 ViewModel。
 ///
-/// build() で PtySkillRunner を 1 つ生成し、状態 Stream を購読しながら
-/// プロセスを start する。再実行は `ref.invalidateSelf` 経由で全体を作り直す。
+/// build() で PtySkillRunner を 1 つ生成し、`session-registry` に登録した
+/// うえで状態 Stream を購読しながらプロセスを start する。
+/// keepAlive のため、実行画面ウィジェットの離脱後もインスタンスは維持され、
+/// 明示的な `close()` か `restart()` まで生存する。
 
 @ProviderFor(RunViewModel)
 final runViewModelProvider = RunViewModelFamily._();
 
 /// `RunPage` 用 ViewModel。
 ///
-/// build() で PtySkillRunner を 1 つ生成し、状態 Stream を購読しながら
-/// プロセスを start する。再実行は `ref.invalidateSelf` 経由で全体を作り直す。
+/// build() で PtySkillRunner を 1 つ生成し、`session-registry` に登録した
+/// うえで状態 Stream を購読しながらプロセスを start する。
+/// keepAlive のため、実行画面ウィジェットの離脱後もインスタンスは維持され、
+/// 明示的な `close()` か `restart()` まで生存する。
 final class RunViewModelProvider
     extends $NotifierProvider<RunViewModel, RunPageState> {
   /// `RunPage` 用 ViewModel。
   ///
-  /// build() で PtySkillRunner を 1 つ生成し、状態 Stream を購読しながら
-  /// プロセスを start する。再実行は `ref.invalidateSelf` 経由で全体を作り直す。
+  /// build() で PtySkillRunner を 1 つ生成し、`session-registry` に登録した
+  /// うえで状態 Stream を購読しながらプロセスを start する。
+  /// keepAlive のため、実行画面ウィジェットの離脱後もインスタンスは維持され、
+  /// 明示的な `close()` か `restart()` まで生存する。
   RunViewModelProvider._({
     required RunViewModelFamily super.from,
     required String super.argument,
   }) : super(
          retry: null,
          name: r'runViewModelProvider',
-         isAutoDispose: true,
+         isAutoDispose: false,
          dependencies: null,
          $allTransitiveDependencies: null,
        );
@@ -70,12 +76,14 @@ final class RunViewModelProvider
   }
 }
 
-String _$runViewModelHash() => r'd0be78282b1a15befbec4703cd896caae6bf826e';
+String _$runViewModelHash() => r'414afad36ebcc6f607926c18b3b98fd2da5a3770';
 
 /// `RunPage` 用 ViewModel。
 ///
-/// build() で PtySkillRunner を 1 つ生成し、状態 Stream を購読しながら
-/// プロセスを start する。再実行は `ref.invalidateSelf` 経由で全体を作り直す。
+/// build() で PtySkillRunner を 1 つ生成し、`session-registry` に登録した
+/// うえで状態 Stream を購読しながらプロセスを start する。
+/// keepAlive のため、実行画面ウィジェットの離脱後もインスタンスは維持され、
+/// 明示的な `close()` か `restart()` まで生存する。
 
 final class RunViewModelFamily extends $Family
     with
@@ -92,13 +100,15 @@ final class RunViewModelFamily extends $Family
         name: r'runViewModelProvider',
         dependencies: null,
         $allTransitiveDependencies: null,
-        isAutoDispose: true,
+        isAutoDispose: false,
       );
 
   /// `RunPage` 用 ViewModel。
   ///
-  /// build() で PtySkillRunner を 1 つ生成し、状態 Stream を購読しながら
-  /// プロセスを start する。再実行は `ref.invalidateSelf` 経由で全体を作り直す。
+  /// build() で PtySkillRunner を 1 つ生成し、`session-registry` に登録した
+  /// うえで状態 Stream を購読しながらプロセスを start する。
+  /// keepAlive のため、実行画面ウィジェットの離脱後もインスタンスは維持され、
+  /// 明示的な `close()` か `restart()` まで生存する。
 
   RunViewModelProvider call(String entryId) =>
       RunViewModelProvider._(argument: entryId, from: this);
@@ -109,8 +119,10 @@ final class RunViewModelFamily extends $Family
 
 /// `RunPage` 用 ViewModel。
 ///
-/// build() で PtySkillRunner を 1 つ生成し、状態 Stream を購読しながら
-/// プロセスを start する。再実行は `ref.invalidateSelf` 経由で全体を作り直す。
+/// build() で PtySkillRunner を 1 つ生成し、`session-registry` に登録した
+/// うえで状態 Stream を購読しながらプロセスを start する。
+/// keepAlive のため、実行画面ウィジェットの離脱後もインスタンスは維持され、
+/// 明示的な `close()` か `restart()` まで生存する。
 
 abstract class _$RunViewModel extends $Notifier<RunPageState> {
   late final _$args = ref.$arg as String;

@@ -16,7 +16,7 @@ void main() {
     );
     await runner.start();
     expect(runner.currentState, isA<SkillRunFailed>());
-    await runner.cancel();
+    await runner.dispose();
   });
 
   // NOTE: 実際の PTY 上で起動したプロセスの exitCode 検証は、flutter_pty が
@@ -36,7 +36,30 @@ void main() {
     );
     await runner.start();
     expect(runner.currentState, isA<SkillRunFailed>());
+    await runner.dispose();
+  });
+
+  test('terminal is available before start and survives cancel', () async {
+    final dir = await Directory.systemTemp.createTemp('cskl_pty_term_');
+    addTearDown(() => dir.delete(recursive: true));
+
+    final runner = PtySkillRunner(
+      repositoryPath: dir.path,
+      skillName: 'unused',
+    );
+
+    // 構築直後に terminal が存在する（View が即購読できる）
+    final terminalBefore = runner.terminal;
+    expect(terminalBefore, isNotNull);
+
+    // cancel しても terminal インスタンスは保持される
     await runner.cancel();
+    expect(identical(runner.terminal, terminalBefore), isTrue);
+
+    // dispose 後も terminal 参照自体は残るが onOutput / onResize は外れる
+    await runner.dispose();
+    expect(runner.terminal.onOutput, isNull);
+    expect(runner.terminal.onResize, isNull);
   });
 
   test(
@@ -62,7 +85,7 @@ void main() {
       expect(done, isFalse);
 
       await sub.cancel();
-      await runner.cancel();
+      await runner.dispose();
     },
   );
 }

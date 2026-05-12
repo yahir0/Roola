@@ -1,10 +1,12 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:claude_skills_launcher/data/skill_runner/skill_run_state.dart';
 import 'package:claude_skills_launcher/data/skill_runner/skill_runner.dart';
 import 'package:flutter_pty/flutter_pty.dart';
+import 'package:xterm/xterm.dart';
 
 /// `flutter_pty` の `Pty.start` で `claude` を擬似端末上に起動する実装。
 class PtySkillRunner implements SkillRunner {
@@ -12,7 +14,14 @@ class PtySkillRunner implements SkillRunner {
     required this.repositoryPath,
     required this.skillName,
     this.executable = 'claude',
-  });
+    Terminal? terminal,
+  }) : terminal = terminal ?? Terminal() {
+    // Terminal → PTY 方向の配線。`start` で PTY が生成されてから書き込みが
+    // 走るよう、_pty を late に参照する。`start` 前のキー入力は破棄される
+    // （まだプロセスが居ない正常な状態）。
+    this.terminal.onOutput = _onTerminalOutput;
+    this.terminal.onResize = _onTerminalResize;
+  }
 
   /// 子プロセスの作業ディレクトリ。
   final String repositoryPath;
@@ -22,6 +31,9 @@ class PtySkillRunner implements SkillRunner {
 
   /// 起動するコマンド名。テストでは `bash` など差し替え可。
   final String executable;
+
+  @override
+  final Terminal terminal;
 
   Pty? _pty;
   final _stateController = StreamController<SkillRunState>.broadcast();
@@ -33,6 +45,7 @@ class PtySkillRunner implements SkillRunner {
   StreamSubscription<Uint8List>? _ptyOutputSub;
   SkillRunState _currentState = const SkillRunState.idle();
   bool _started = false;
+  bool _disposed = false;
 
   @override
   SkillRunState get currentState => _currentState;
@@ -71,6 +84,7 @@ class PtySkillRunner implements SkillRunner {
       if (!_outputController.isClosed) {
         _outputController.add(bytes);
       }
+      terminal.write(utf8.decode(bytes, allowMalformed: true));
     });
 
     _emit(const SkillRunState.running());
@@ -99,15 +113,42 @@ class PtySkillRunner implements SkillRunner {
   Future<void> cancel() async {
     final pty = _pty;
     if (pty == null) {
-      await _outputController.close();
+      return;
+    }
+    if (_currentState is SkillRunCancelled ||
+        _currentState is SkillRunCompleted) {
       return;
     }
     pty.kill();
     _emit(const SkillRunState.cancelled());
+  }
+
+  @override
+  Future<void> dispose() async {
+    if (_disposed) {
+      return;
+    }
+    _disposed = true;
+    final pty = _pty;
+    if (pty != null &&
+        _currentState is! SkillRunCancelled &&
+        _currentState is! SkillRunCompleted) {
+      pty.kill();
+    }
     await _ptyOutputSub?.cancel();
     _ptyOutputSub = null;
     await _outputController.close();
     await _stateController.close();
+    terminal.onOutput = null;
+    terminal.onResize = null;
+  }
+
+  void _onTerminalOutput(String data) {
+    _pty?.write(Uint8List.fromList(utf8.encode(data)));
+  }
+
+  void _onTerminalResize(int cols, int rows, int pixelWidth, int pixelHeight) {
+    _pty?.resize(rows, cols);
   }
 
   List<String> _buildArguments() {
