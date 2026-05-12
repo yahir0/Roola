@@ -181,9 +181,14 @@ class PtySkillRunner implements SkillRunner {
   }
 
   List<String> _buildArguments() {
-    // claude CLI に Skill 名を引数として渡す前提。実際の Skills 実行方式が
-    // 異なる場合（例: スラッシュコマンド経由）はここで変える。
-    return [skillName];
+    // Claude Code Skills はスラッシュコマンド `/skill-name` として resolve
+    // される（`claude --help` の `--bare` 説明: "Skills still resolve via
+    // /skill-name"）。引数として `/<name>` を渡すと claude CLI が起動直後の
+    // 最初のメッセージとして処理し、スラッシュコマンド経由で skill を発火
+    // する。`/` を付けずに渡すと自然言語入力扱いになり、Claude が文脈推測で
+    // 別の動作をする（例: cwd 内の似た名前のスクリプトを探して実行する等）。
+    final normalized = skillName.startsWith('/') ? skillName : '/$skillName';
+    return [normalized];
   }
 
   String _formatStartError(Object error) {
