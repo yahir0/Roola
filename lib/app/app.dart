@@ -5,6 +5,7 @@ import 'package:claude_skills_launcher/app/theme.dart';
 import 'package:claude_skills_launcher/app/window_close_guard.dart';
 import 'package:claude_skills_launcher/data/appearance/appearance_settings.dart';
 import 'package:claude_skills_launcher/data/appearance/appearance_settings_repository_impl.dart';
+import 'package:claude_skills_launcher/ui/common/mouse_navigation_listener.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
@@ -33,7 +34,9 @@ class App extends ConsumerWidget {
       builder: (context, child) => WindowCloseGuard(
         child: _AppearanceLayer(
           appearance: appearance,
-          child: child ?? const SizedBox.shrink(),
+          child: MouseNavigationListener(
+            child: child ?? const SizedBox.shrink(),
+          ),
         ),
       ),
     );

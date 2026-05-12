@@ -29,14 +29,27 @@ abstract class ExplorerState with _$ExplorerState {
 /// ルートディレクトリは `explorerSettingsProvider` を購読して取得する。
 /// `navigateTo` で任意の絶対パスに移動し、その都度直下を再ロードする。
 /// `changeRoot` ではルート自体を永続化したうえでカレントも合わせて更新する。
+///
+/// マウスのサイドボタン（戻る / 進む）でブラウザのような履歴ナビゲーション
+/// ができるよう、訪問パスを `_history` に保持し、`_historyCursor` で現在
+/// 位置を指す。`navigateTo` は cursor 以降の forward 履歴を破棄して新しい
+/// パスを末尾に積む。`goBack` / `goForward` は cursor を上下させるだけで
+/// 履歴自体は変更しない。
 @riverpod
 class ExplorerViewModel extends _$ExplorerViewModel {
   static const _loader = ExplorerDirectoryLoader();
+
+  final List<String> _history = [];
+  int _historyCursor = -1;
 
   @override
   ExplorerState build() {
     final settings = ref.watch(explorerSettingsProvider).value;
     final root = settings?.rootPath ?? _defaultRoot();
+    _history
+      ..clear()
+      ..add(root);
+    _historyCursor = 0;
     return ExplorerState(
       root: root,
       currentPath: root,
@@ -45,25 +58,68 @@ class ExplorerViewModel extends _$ExplorerViewModel {
   }
 
   /// 任意の絶対パスへ移動する。存在しないパスは無視。
-  /// パスバー入力 / お気に入りクリック / 子ディレクトリの enter から呼ばれる。
+  /// パスバー入力 / お気に入りクリック / 子ディレクトリの enter / 親への
+  /// `goUp` などすべてのユーザー起点ナビゲーションがここを通り、履歴に
+  /// 積まれる。
   void navigateTo(String path) {
     if (!Directory(path).existsSync()) {
       return;
     }
+    if (state.currentPath == path) {
+      return;
+    }
+    // 現在位置より forward 側の履歴は破棄して、新しいパスを末尾に追加。
+    if (_historyCursor < _history.length - 1) {
+      _history.removeRange(_historyCursor + 1, _history.length);
+    }
+    _history.add(path);
+    _historyCursor = _history.length - 1;
     state = state.copyWith(currentPath: path, children: _loader.load(path));
   }
 
+  /// 履歴を 1 つ戻る。先頭にいる場合は何もしない。
+  /// マウスの戻るボタン（[MouseNavigationListener]）から呼ばれる。
+  void goBack() {
+    if (_historyCursor <= 0) {
+      return;
+    }
+    _historyCursor--;
+    final path = _history[_historyCursor];
+    state = state.copyWith(currentPath: path, children: _loader.load(path));
+  }
+
+  /// 履歴を 1 つ進む。末尾にいる場合は何もしない。
+  /// マウスの進むボタンから呼ばれる。
+  void goForward() {
+    if (_historyCursor >= _history.length - 1) {
+      return;
+    }
+    _historyCursor++;
+    final path = _history[_historyCursor];
+    state = state.copyWith(currentPath: path, children: _loader.load(path));
+  }
+
+  bool get canGoBack => _historyCursor > 0;
+
+  bool get canGoForward => _historyCursor < _history.length - 1;
+
+  /// 親ディレクトリへ移動する（履歴にも積む）。AppBar の back 矢印 /
+  /// `ExplorerParentDropTile` から呼ばれる。ルートと等しい場合は何もしない。
   void goUp() {
     if (state.currentPath == state.root) {
       return;
     }
     final parent = _parentOf(state.currentPath);
-    state = state.copyWith(currentPath: parent, children: _loader.load(parent));
+    navigateTo(parent);
   }
 
-  /// ルートを変更し、永続化する。
+  /// ルートを変更し、永続化する。履歴も新しいルートを起点に作り直す。
   Future<void> changeRoot(String newRoot) async {
     await ref.read(explorerSettingsProvider.notifier).setRootPath(newRoot);
+    _history
+      ..clear()
+      ..add(newRoot);
+    _historyCursor = 0;
     state = ExplorerState(
       root: newRoot,
       currentPath: newRoot,
