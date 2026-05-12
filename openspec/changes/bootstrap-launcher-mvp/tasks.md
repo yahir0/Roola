@@ -46,79 +46,79 @@
 
 ## 4. home フィーチャー（ui）
 
-- [ ] 4.1 `lib/ui/home/home_view_model.dart` に `HomeViewModel` を実装する（`launcherEntryRepositoryProvider` を購読し、エントリ一覧を AsyncValue で公開）
-- [ ] 4.2 `lib/ui/home/home_page.dart` を作成し、ViewModel を購読してアイコングリッドを描画する
-- [ ] 4.3 アイコン未登録時のプレースホルダー UI（設定画面導線付き）を実装する
-- [ ] 4.4 アイコンタップで `/run/<entryId>` へ go_router 遷移する
-- [ ] 4.5 ヘッダーに設定画面への遷移ボタンを設置する
-- [ ] 4.6 デフォルトアイコン（assets 配下）を用意し、エントリの iconPath が空の場合のフォールバック表示にする
+- [x] 4.1 `lib/ui/home/home_view_model.dart` に `HomeViewModel` を実装する（`launcherEntryRepositoryProvider` を購読し、エントリ一覧を AsyncValue で公開）
+- [x] 4.2 `lib/ui/home/home_page.dart` を作成し、ViewModel を購読してアイコングリッドを描画する
+- [x] 4.3 アイコン未登録時のプレースホルダー UI（設定画面導線付き）を実装する
+- [x] 4.4 アイコンタップで `/run/<entryId>` へ go_router 遷移する
+- [x] 4.5 ヘッダーに設定画面への遷移ボタンを設置する
+- [x] 4.6 デフォルトアイコン（assets 配下）を用意し、エントリの iconPath が空の場合のフォールバック表示にする
 
 ## 5. skill_runner（data） + run フィーチャー（ui）
 
 ### 5a. data 層（PTY ベース）
 
-- [ ] 5.1 `lib/data/skill_runner/skill_run_state.dart` に Freezed Union を定義する（idle / starting / running / completed(exitCode) / failed(message) / cancelled）
-- [ ] 5.2 `lib/data/skill_runner/skill_runner.dart` に interface を定義する（`start` / `inputSink` / `output` Stream / `state` Stream / `resize(cols, rows)` / `cancel`）
-- [ ] 5.3 `lib/data/skill_runner/pty_skill_runner.dart` を実装し、`flutter_pty` の `PseudoTerminal.start` で `claude` プロセスを `workingDirectory` 指定で起動する
-- [ ] 5.4 起動前に `Directory(repositoryPath).existsSync()` で存在チェックし、不在なら failed 状態へ遷移させる
-- [ ] 5.5 PTY 起動失敗（`claude` 不在等）の例外をハンドリングし、「`claude` コマンドが見つかりません」のメッセージを failed 状態に乗せる
-- [ ] 5.6 PTY の `exitCode` Future を購読し、completed 状態へ遷移させる
-- [ ] 5.7 cancel メソッドで SIGTERM を送り、cancelled 状態へ遷移させる
-- [ ] 5.8 resize メソッドで `pty.resize(rows, cols)` を呼び出すパススルー実装を入れる
-- [ ] 5.9 Riverpod Provider（family modifier で entryId をパラメータ化）を定義し、`PtySkillRunner` を返す
+- [x] 5.1 `lib/data/skill_runner/skill_run_state.dart` に Freezed Union を定義する（idle / starting / running / completed(exitCode) / failed(message) / cancelled）
+- [x] 5.2 `lib/data/skill_runner/skill_runner.dart` に interface を定義する（`start` / `inputSink` / `output` Stream / `state` Stream / `resize(cols, rows)` / `cancel`）
+- [x] 5.3 `lib/data/skill_runner/pty_skill_runner.dart` を実装し、`flutter_pty` の `PseudoTerminal.start` で `claude` プロセスを `workingDirectory` 指定で起動する
+- [x] 5.4 起動前に `Directory(repositoryPath).existsSync()` で存在チェックし、不在なら failed 状態へ遷移させる
+- [x] 5.5 PTY 起動失敗（`claude` 不在等）の例外をハンドリングし、「`claude` コマンドが見つかりません」のメッセージを failed 状態に乗せる
+- [x] 5.6 PTY の `exitCode` Future を購読し、completed 状態へ遷移させる
+- [x] 5.7 cancel メソッドで SIGTERM を送り、cancelled 状態へ遷移させる
+- [x] 5.8 resize メソッドで `pty.resize(rows, cols)` を呼び出すパススルー実装を入れる
+- [x] 5.9 Riverpod Provider（family modifier で entryId をパラメータ化）を定義し、`PtySkillRunner` を返す
 
 ### 5b. ui 層（フルターミナル）
 
-- [ ] 5.10 `lib/ui/run/run_view_model.dart` に `RunViewModel`（family で `entryId` を受け取る）を実装する。`SkillRunner` の状態を View に橋渡しし、再実行・キャンセル・離脱処理を提供
-- [ ] 5.11 `lib/ui/run/run_page.dart` を実装し、ヘッダーに表示名・実行状態・キャンセル/再実行/ホームへ戻るボタンを置く
-- [ ] 5.12 `xterm` パッケージの `Terminal` インスタンスを保持する Hook（`useTerminal`）を作成する
-- [ ] 5.13 本体に `TerminalView` を配置し、`SkillRunner` の出力ストリームを `terminal.write` に流し込む
-- [ ] 5.14 `terminal.onOutput` のコールバックで `SkillRunner` の inputSink にバイト列を書き込む（矢印・Ctrl 修飾・ペースト含む）
-- [ ] 5.15 `terminal.onResize` で `SkillRunner.resize(cols, rows)` を呼び、PTY サイズを追従させる
-- [ ] 5.16 状態が completed/failed/cancelled になったときの UI 表示（終了コードバッジ・エラーメッセージ）を実装する
-- [ ] 5.17 「再実行」ボタンで `ref.invalidate` を呼んで再起動する
-- [ ] 5.18 「ホームへ戻る」ボタンで go_router pop し、画面破棄時に `SkillRunner.cancel()` を呼ぶ
+- [x] 5.10 `lib/ui/run/run_view_model.dart` に `RunViewModel`（family で `entryId` を受け取る）を実装する。`SkillRunner` の状態を View に橋渡しし、再実行・キャンセル・離脱処理を提供
+- [x] 5.11 `lib/ui/run/run_page.dart` を実装し、ヘッダーに表示名・実行状態・キャンセル/再実行/ホームへ戻るボタンを置く
+- [x] 5.12 `xterm` パッケージの `Terminal` インスタンスを保持する Hook（`useTerminal`）を作成する
+- [x] 5.13 本体に `TerminalView` を配置し、`SkillRunner` の出力ストリームを `terminal.write` に流し込む
+- [x] 5.14 `terminal.onOutput` のコールバックで `SkillRunner` の inputSink にバイト列を書き込む（矢印・Ctrl 修飾・ペースト含む）
+- [x] 5.15 `terminal.onResize` で `SkillRunner.resize(cols, rows)` を呼び、PTY サイズを追従させる
+- [x] 5.16 状態が completed/failed/cancelled になったときの UI 表示（終了コードバッジ・エラーメッセージ）を実装する
+- [x] 5.17 「再実行」ボタンで `ref.invalidate` を呼んで再起動する
+- [x] 5.18 「ホームへ戻る」ボタンで go_router pop し、画面破棄時に `SkillRunner.cancel()` を呼ぶ
 
 ## 6. appearance フィーチャー（data + ui）
 
 ### 6a. data 層
 
-- [ ] 6.1 `lib/data/appearance/appearance_settings.dart` に Freezed モデルを定義する（mode: transparent/solid/image / solidColor / imagePath）
-- [ ] 6.2 `lib/data/appearance/appearance_settings_dto.dart` に JsonSerializable な DTO を実装する
-- [ ] 6.3 `lib/data/appearance/appearance_settings_repository.dart` に interface を定義する
-- [ ] 6.4 `lib/data/appearance/appearance_settings_repository_impl.dart` に `<appSupport>/appearance.json` 経由の実装を書く
+- [x] 6.1 `lib/data/appearance/appearance_settings.dart` に Freezed モデルを定義する（mode: transparent/solid/image / solidColor / imagePath）
+- [x] 6.2 `lib/data/appearance/appearance_settings_dto.dart` に JsonSerializable な DTO を実装する
+- [x] 6.3 `lib/data/appearance/appearance_settings_repository.dart` に interface を定義する
+- [x] 6.4 `lib/data/appearance/appearance_settings_repository_impl.dart` に `<appSupport>/appearance.json` 経由の実装を書く
 
 ### 6b. ui 層
 
-- [ ] 6.5 `lib/ui/settings/appearance_section_view_model.dart` に `AppearanceSectionViewModel` を実装する（モード切替・カラー設定・画像選択を扱う）
-- [ ] 6.6 `lib/ui/settings/appearance_section.dart` を実装し、`SettingsPage` から組み込む
-- [ ] 6.7 画像選択時に `<appSupport>/background.png` へコピー保存する処理を ViewModel に実装する
-- [ ] 6.8 `lib/app/app.dart` で `AppearanceSectionViewModel` の状態を購読し、`Scaffold` の背景色・背景画像レイヤーへ即時反映する
-- [ ] 6.9 `lib/main.dart` 内で `window_manager.setBackgroundColor(Colors.transparent)` を初期化時に呼ぶ
+- [x] 6.5 `lib/ui/settings/appearance_section_view_model.dart` に `AppearanceSectionViewModel` を実装する（モード切替・カラー設定・画像選択を扱う）
+- [x] 6.6 `lib/ui/settings/appearance_section.dart` を実装し、`SettingsPage` から組み込む
+- [x] 6.7 画像選択時に `<appSupport>/background.png` へコピー保存する処理を ViewModel に実装する
+- [x] 6.8 `lib/app/app.dart` で `AppearanceSectionViewModel` の状態を購読し、`Scaffold` の背景色・背景画像レイヤーへ即時反映する
+- [x] 6.9 `lib/main.dart` 内で `window_manager.setBackgroundColor(Colors.transparent)` を初期化時に呼ぶ
 
 ## 7. ヘルスチェックとエラー UX
 
-- [ ] 7.1 アプリ起動時に `claude --version` を `Process.run` で実行し、結果を Provider で公開する
-- [ ] 7.2 ヘルスチェック失敗時に設定画面上部に警告バナーを表示する
-- [ ] 7.3 README.md に「`claude` CLI と `git` を PATH に通すこと」を明記する
+- [x] 7.1 アプリ起動時に `claude --version` を `Process.run` で実行し、結果を Provider で公開する
+- [x] 7.2 ヘルスチェック失敗時に設定画面上部に警告バナーを表示する
+- [x] 7.3 README.md に「`claude` CLI と `git` を PATH に通すこと」を明記する
 
 ## 8. テスト
 
-- [ ] 8.1 `LauncherEntryRepositoryImpl` のユニットテストを書く（一時ディレクトリで JSON 読み書きを検証）
-- [ ] 8.2 `SettingsViewModel` のユニットテストを書く（追加・更新・削除で状態が期待通り更新される。Repository を Mocktail でモック）
-- [ ] 8.3 `EntryEditViewModel` のユニットテストを書く（バリデーション・新規登録 / 既存編集の分岐）
-- [ ] 8.4 `PtySkillRunner` のユニットテストを書く（リポジトリ不在 → failed、正常終了 → completed、cancel → cancelled）。PTY 上で動く軽量コマンド（`bash -lc "exit 0"` 等）で代替する
-- [ ] 8.5 `AppearanceSettingsRepositoryImpl` のユニットテストを書く
-- [ ] 8.6 `HomePage` の Widget テストを書く（エントリ 0 件時のプレースホルダー / 複数件時のアイコン描画）
-- [ ] 8.7 `EntryEditPage` の Widget テストを書く（バリデーションエラー表示）
+- [x] 8.1 `LauncherEntryRepositoryImpl` のユニットテストを書く（一時ディレクトリで JSON 読み書きを検証）
+- [x] 8.2 `SettingsViewModel` のユニットテストを書く（追加・更新・削除で状態が期待通り更新される。Repository を Mocktail でモック）
+- [x] 8.3 `EntryEditViewModel` のユニットテストを書く（バリデーション・新規登録 / 既存編集の分岐）
+- [x] 8.4 `PtySkillRunner` のユニットテストを書く（リポジトリ不在 → failed、正常終了 → completed、cancel → cancelled）。PTY 上で動く軽量コマンド（`bash -lc "exit 0"` 等）で代替する
+- [x] 8.5 `AppearanceSettingsRepositoryImpl` のユニットテストを書く
+- [x] 8.6 `HomePage` の Widget テストを書く（エントリ 0 件時のプレースホルダー / 複数件時のアイコン描画）
+- [x] 8.7 `EntryEditPage` の Widget テストを書く（バリデーションエラー表示）
 
 ## 9. ドキュメント
 
-- [ ] 9.1 `README.md` にセットアップ手順・起動コマンド（`flutter run -d macos --dart-define-from-file=dart_defines/prod.json`）・既知の制約を記載する
-- [ ] 9.2 `flutter run -d macos --dart-define-from-file=dart_defines/prod.json` で手動疎通確認し、受け入れチェック（アイコン登録 → クリック → PTY 上で Skill 実行 → 対話入力）を完走する
+- [x] 9.1 `README.md` にセットアップ手順・起動コマンド（`flutter run -d macos --dart-define-from-file=dart_defines/prod.json`）・既知の制約を記載する
+- [x] 9.2 `flutter run -d macos --dart-define-from-file=dart_defines/prod.json` で手動疎通確認し、受け入れチェック（アイコン登録 → クリック → PTY 上で Skill 実行 → 対話入力）を完走する
 
 ## 10. 仕上げ
 
-- [ ] 10.1 `dart format` / `dart analyze` / `flutter test` をすべてグリーンにする
-- [ ] 10.2 公開前チェック: `git grep` で個人情報・組織名・内部 URL が含まれていないことを確認する
-- [ ] 10.3 change の archive 準備（成果物の最終確認）
+- [x] 10.1 `dart format` / `dart analyze` / `flutter test` をすべてグリーンにする
+- [x] 10.2 公開前チェック: `git grep` で個人情報・組織名・内部 URL が含まれていないことを確認する
+- [x] 10.3 change の archive 準備（成果物の最終確認）

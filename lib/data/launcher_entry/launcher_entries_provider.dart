@@ -3,20 +3,19 @@ import 'package:claude_skills_launcher/data/launcher_entry/launcher_entry_reposi
 import 'package:claude_skills_launcher/data/launcher_entry/launcher_entry_repository_impl.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-/// 設定画面 (`SettingsPage`) のためのエントリ一覧 ViewModel。
+/// アプリ全体で共有する「ランチャーエントリ一覧」の AsyncNotifier。
 ///
-/// `loadAll` を起点に [AsyncValue] でエントリ一覧を公開する。
-/// 追加・更新・削除はメソッドとして公開し、成功すると状態を再ロードする。
-class SettingsViewModel extends AsyncNotifier<List<LauncherEntry>> {
+/// HomePage と SettingsPage の両方がこの Notifier の状態を購読することで、
+/// どちらかの画面で発生した追加・更新・削除が反対側へ即時反映される。
+/// 永続化は `LauncherEntryRepository` に委譲する。
+class LauncherEntriesNotifier extends AsyncNotifier<List<LauncherEntry>> {
   LauncherEntryRepository get _repository =>
       ref.read(launcherEntryRepositoryProvider);
 
   @override
-  Future<List<LauncherEntry>> build() async {
-    return _repository.loadAll();
-  }
+  Future<List<LauncherEntry>> build() => _repository.loadAll();
 
-  Future<void> addEntry(LauncherEntry entry) async {
+  Future<void> add(LauncherEntry entry) async {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
       await _repository.add(entry);
@@ -32,7 +31,7 @@ class SettingsViewModel extends AsyncNotifier<List<LauncherEntry>> {
     });
   }
 
-  Future<void> deleteEntry(String id) async {
+  Future<void> delete(String id) async {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
       await _repository.delete(id);
@@ -41,8 +40,8 @@ class SettingsViewModel extends AsyncNotifier<List<LauncherEntry>> {
   }
 }
 
-/// `SettingsViewModel` を購読する Provider。
-final settingsViewModelProvider =
-    AsyncNotifierProvider<SettingsViewModel, List<LauncherEntry>>(
-  SettingsViewModel.new,
-);
+/// `LauncherEntriesNotifier` の Provider。
+final launcherEntriesProvider =
+    AsyncNotifierProvider<LauncherEntriesNotifier, List<LauncherEntry>>(
+      LauncherEntriesNotifier.new,
+    );

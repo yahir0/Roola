@@ -10,10 +10,7 @@ part 'router.g.dart';
 
 /// アプリの go_router インスタンス。
 final routerProvider = Provider<GoRouter>((ref) {
-  return GoRouter(
-    initialLocation: '/',
-    routes: $appRoutes,
-  );
+  return GoRouter(initialLocation: '/', routes: $appRoutes);
 });
 
 /// ホーム画面ルート (`/`)。

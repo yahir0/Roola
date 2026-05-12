@@ -1,9 +1,9 @@
 import 'dart:io';
 
 import 'package:claude_skills_launcher/core/image/icon_image_processor.dart';
+import 'package:claude_skills_launcher/data/launcher_entry/launcher_entries_provider.dart';
 import 'package:claude_skills_launcher/data/launcher_entry/launcher_entry.dart';
 import 'package:claude_skills_launcher/data/launcher_entry/launcher_entry_repository_impl.dart';
-import 'package:claude_skills_launcher/ui/settings/settings_view_model.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:uuid/uuid.dart';
@@ -48,7 +48,7 @@ class EntryEditViewModel extends _$EntryEditViewModel {
         skillName: '',
       );
     }
-    final entries = ref.read(settingsViewModelProvider).value ?? const [];
+    final entries = ref.read(launcherEntriesProvider).value ?? const [];
     final entry = entries.firstWhere(
       (e) => e.id == entryId,
       orElse: () => throw StateError('Entry not found: $entryId'),
@@ -61,18 +61,26 @@ class EntryEditViewModel extends _$EntryEditViewModel {
     );
   }
 
-  void setDisplayName(String value) =>
-      state = state.copyWith(displayName: value, errors: _clearError('displayName'));
+  void setDisplayName(String value) => state = state.copyWith(
+    displayName: value,
+    errors: _clearError('displayName'),
+  );
 
-  void setRepositoryPath(String value) => state =
-      state.copyWith(repositoryPath: value, errors: _clearError('repositoryPath'));
+  void setRepositoryPath(String value) => state = state.copyWith(
+    repositoryPath: value,
+    errors: _clearError('repositoryPath'),
+  );
 
-  void setSkillName(String value) =>
-      state = state.copyWith(skillName: value, errors: _clearError('skillName'));
+  void setSkillName(String value) => state = state.copyWith(
+    skillName: value,
+    errors: _clearError('skillName'),
+  );
 
   /// アイコン画像のソースパスを設定する。実際の保存処理は `submit` で行う。
-  void setPendingIcon(String sourcePath) =>
-      state = state.copyWith(pendingIconSource: sourcePath, iconPath: sourcePath);
+  void setPendingIcon(String sourcePath) => state = state.copyWith(
+    pendingIconSource: sourcePath,
+    iconPath: sourcePath,
+  );
 
   void clearIcon() =>
       state = state.copyWith(iconPath: null, pendingIconSource: null);
@@ -112,7 +120,10 @@ class EntryEditViewModel extends _$EntryEditViewModel {
       final pending = state.pendingIconSource;
       if (pending != null) {
         final destination = File('${paths.iconsDir.path}/$id.png');
-        await const IconImageProcessor().resizeAndSave(File(pending), destination);
+        await const IconImageProcessor().resizeAndSave(
+          File(pending),
+          destination,
+        );
         finalIconPath = destination.path;
       }
       final entry = LauncherEntry(
@@ -125,11 +136,11 @@ class EntryEditViewModel extends _$EntryEditViewModel {
             ? DateTime.now()
             : _existingCreatedAt(id) ?? DateTime.now(),
       );
-      final settings = ref.read(settingsViewModelProvider.notifier);
+      final entries = ref.read(launcherEntriesProvider.notifier);
       if (isNew) {
-        await settings.addEntry(entry);
+        await entries.add(entry);
       } else {
-        await settings.updateEntry(entry);
+        await entries.updateEntry(entry);
       }
       state = state.copyWith(isSubmitting: false, pendingIconSource: null);
       return true;
@@ -141,7 +152,7 @@ class EntryEditViewModel extends _$EntryEditViewModel {
   }
 
   DateTime? _existingCreatedAt(String id) {
-    final entries = ref.read(settingsViewModelProvider).value ?? const [];
+    final entries = ref.read(launcherEntriesProvider).value ?? const [];
     for (final e in entries) {
       if (e.id == id) {
         return e.createdAt;

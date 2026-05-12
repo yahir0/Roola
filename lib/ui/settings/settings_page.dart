@@ -1,8 +1,10 @@
 import 'dart:io';
 
 import 'package:claude_skills_launcher/app/router.dart';
+import 'package:claude_skills_launcher/core/health/claude_health_check.dart';
+import 'package:claude_skills_launcher/data/launcher_entry/launcher_entries_provider.dart';
 import 'package:claude_skills_launcher/data/launcher_entry/launcher_entry.dart';
-import 'package:claude_skills_launcher/ui/settings/settings_view_model.dart';
+import 'package:claude_skills_launcher/ui/settings/appearance_section.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
@@ -13,7 +15,7 @@ class SettingsPage extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(settingsViewModelProvider);
+    final state = ref.watch(launcherEntriesProvider);
     return Scaffold(
       appBar: AppBar(
         title: const Text('設定'),
@@ -26,9 +28,17 @@ class SettingsPage extends HookConsumerWidget {
         ],
       ),
       body: state.when(
-        data: (entries) => entries.isEmpty
-            ? const _EmptyPlaceholder()
-            : _EntryList(entries: entries),
+        data: (entries) => ListView(
+          children: [
+            const _ClaudeHealthBanner(),
+            const AppearanceSection(),
+            const Divider(),
+            if (entries.isEmpty)
+              const _EmptyPlaceholder()
+            else
+              _EntryList(entries: entries),
+          ],
+        ),
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) => Center(
           child: Padding(
@@ -76,6 +86,8 @@ class _EntryList extends ConsumerWidget {
       padding: const EdgeInsets.symmetric(vertical: 8),
       itemCount: entries.length,
       separatorBuilder: (_, _) => const Divider(height: 1),
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
       itemBuilder: (context, index) {
         final entry = entries[index];
         return ListTile(
@@ -121,7 +133,7 @@ class _EntryList extends ConsumerWidget {
       ),
     );
     if (confirmed ?? false) {
-      await ref.read(settingsViewModelProvider.notifier).deleteEntry(entry.id);
+      await ref.read(launcherEntriesProvider.notifier).delete(entry.id);
     }
   }
 }
@@ -137,12 +149,7 @@ class _EntryIcon extends StatelessWidget {
     if (path != null && File(path).existsSync()) {
       return ClipRRect(
         borderRadius: BorderRadius.circular(8),
-        child: Image.file(
-          File(path),
-          width: 48,
-          height: 48,
-          fit: BoxFit.cover,
-        ),
+        child: Image.file(File(path), width: 48, height: 48, fit: BoxFit.cover),
       );
     }
     return Container(
@@ -155,6 +162,35 @@ class _EntryIcon extends StatelessWidget {
       child: Icon(
         Icons.apps,
         color: Theme.of(context).colorScheme.onPrimaryContainer,
+      ),
+    );
+  }
+}
+
+class _ClaudeHealthBanner extends ConsumerWidget {
+  const _ClaudeHealthBanner();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final health = ref.watch(claudeHealthProvider);
+    return health.when(
+      data: (h) => h.available
+          ? const SizedBox.shrink()
+          : MaterialBanner(
+              backgroundColor: Theme.of(context).colorScheme.errorContainer,
+              leading: const Icon(Icons.warning_amber),
+              content: Text(
+                '`claude` コマンドが見つかりません。インストールと PATH を確認してください。\n'
+                '詳細: ${h.versionOutput}',
+              ),
+              actions: const [SizedBox.shrink()],
+            ),
+      loading: () => const SizedBox.shrink(),
+      error: (e, _) => MaterialBanner(
+        backgroundColor: Theme.of(context).colorScheme.errorContainer,
+        leading: const Icon(Icons.warning_amber),
+        content: Text('ヘルスチェックに失敗: $e'),
+        actions: const [SizedBox.shrink()],
       ),
     );
   }

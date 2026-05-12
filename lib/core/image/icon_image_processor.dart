@@ -22,7 +22,9 @@ class IconImageProcessor {
     if (decoded == null) {
       throw const FormatException('Unsupported image format');
     }
-    final longest = decoded.width > decoded.height ? decoded.width : decoded.height;
+    final longest = decoded.width > decoded.height
+        ? decoded.width
+        : decoded.height;
     final resized = longest > maxSize
         ? img.copyResize(
             decoded,

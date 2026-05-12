@@ -22,15 +22,14 @@ class LauncherEntryDto {
   factory LauncherEntryDto.fromJson(Map<String, dynamic> json) =>
       _$LauncherEntryDtoFromJson(json);
 
-  factory LauncherEntryDto.fromEntity(LauncherEntry entity) =>
-      LauncherEntryDto(
-        id: entity.id,
-        displayName: entity.displayName,
-        repositoryPath: entity.repositoryPath,
-        skillName: entity.skillName,
-        iconPath: entity.iconPath,
-        createdAt: entity.createdAt.toIso8601String(),
-      );
+  factory LauncherEntryDto.fromEntity(LauncherEntry entity) => LauncherEntryDto(
+    id: entity.id,
+    displayName: entity.displayName,
+    repositoryPath: entity.repositoryPath,
+    skillName: entity.skillName,
+    iconPath: entity.iconPath,
+    createdAt: entity.createdAt.toIso8601String(),
+  );
 
   final String id;
   final String displayName;
@@ -42,11 +41,11 @@ class LauncherEntryDto {
   Map<String, dynamic> toJson() => _$LauncherEntryDtoToJson(this);
 
   LauncherEntry toEntity() => LauncherEntry(
-        id: id,
-        displayName: displayName,
-        repositoryPath: repositoryPath,
-        skillName: skillName,
-        iconPath: iconPath,
-        createdAt: DateTime.parse(createdAt),
-      );
+    id: id,
+    displayName: displayName,
+    repositoryPath: repositoryPath,
+    skillName: skillName,
+    iconPath: iconPath,
+    createdAt: DateTime.parse(createdAt),
+  );
 }

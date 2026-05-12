@@ -38,12 +38,13 @@ class LauncherEntryRepositoryImpl implements LauncherEntryRepository {
       if (entriesJson is! List) {
         return const [];
       }
-      final entries = entriesJson
-          .whereType<Map<String, dynamic>>()
-          .map(LauncherEntryDto.fromJson)
-          .map((dto) => dto.toEntity())
-          .toList()
-        ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
+      final entries =
+          entriesJson
+              .whereType<Map<String, dynamic>>()
+              .map(LauncherEntryDto.fromJson)
+              .map((dto) => dto.toEntity())
+              .toList()
+            ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
       return entries;
     } on FormatException {
       // JSON として不正: 空として扱う
@@ -86,7 +87,10 @@ class LauncherEntryRepositoryImpl implements LauncherEntryRepository {
   Future<void> _saveAll(List<LauncherEntry> entries) async {
     await paths.ensureDirectories();
     final json = {
-      'entries': entries.map(LauncherEntryDto.fromEntity).map((dto) => dto.toJson()).toList(),
+      'entries': entries
+          .map(LauncherEntryDto.fromEntity)
+          .map((dto) => dto.toJson())
+          .toList(),
     };
     try {
       await paths.launcherEntriesFile.writeAsString(
@@ -106,9 +110,12 @@ final appPathsProvider = FutureProvider<AppPaths>((ref) => AppPaths.resolve());
 ///
 /// `AppPaths` が解決済み前提で生成するため、初期化フェーズで
 /// `await ref.read(appPathsProvider.future)` を呼んでから使う。
-final launcherEntryRepositoryProvider =
-    Provider<LauncherEntryRepository>((ref) {
-  final paths = ref.watch(appPathsProvider).maybeWhen(
+final launcherEntryRepositoryProvider = Provider<LauncherEntryRepository>((
+  ref,
+) {
+  final paths = ref
+      .watch(appPathsProvider)
+      .maybeWhen(
         data: (value) => value,
         orElse: () => throw StateError(
           'AppPaths is not initialized yet. '

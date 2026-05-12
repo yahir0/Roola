@@ -20,10 +20,12 @@ class EntryEditPage extends HookConsumerWidget {
     final viewModel = ref.read(entryEditViewModelProvider(entryId).notifier);
     final isNew = entryId == null;
 
-    final displayNameController =
-        useTextEditingController(text: state.displayName);
-    final repositoryPathController =
-        useTextEditingController(text: state.repositoryPath);
+    final displayNameController = useTextEditingController(
+      text: state.displayName,
+    );
+    final repositoryPathController = useTextEditingController(
+      text: state.repositoryPath,
+    );
     final skillNameController = useTextEditingController(text: state.skillName);
 
     // state の iconPath / errors / isSubmitting は ref.watch が自動追従するが、
@@ -37,9 +39,7 @@ class EntryEditPage extends HookConsumerWidget {
     }, [state.repositoryPath]);
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(isNew ? 'エントリ追加' : 'エントリ編集'),
-      ),
+      appBar: AppBar(title: Text(isNew ? 'エントリ追加' : 'エントリ編集')),
       body: AbsorbPointer(
         absorbing: state.isSubmitting,
         child: ListView(
@@ -92,8 +92,9 @@ class EntryEditPage extends HookConsumerWidget {
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 TextButton(
-                  onPressed:
-                      state.isSubmitting ? null : () => Navigator.of(context).pop(),
+                  onPressed: state.isSubmitting
+                      ? null
+                      : () => Navigator.of(context).pop(),
                   child: const Text('キャンセル'),
                 ),
                 const SizedBox(width: 8),
