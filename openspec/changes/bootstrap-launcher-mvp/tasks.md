@@ -13,13 +13,13 @@
 
 ## 2. アーキテクチャ骨組み（MVVM 構成）
 
-- [ ] 2.1 `lib/app/main.dart` を作成し、`WidgetsFlutterBinding` 初期化 → `window_manager` 初期化 → `runApp` の順を実装する
-- [ ] 2.2 `lib/app/app.dart` を作成し、`ProviderScope` / `MaterialApp.router` の最小構成を組む
-- [ ] 2.3 `lib/app/router.dart` に go_router_builder ベースの `/` `/run/:entryId` `/settings` `/settings/entries/new` `/settings/entries/:id` を定義する
-- [ ] 2.4 `lib/app/theme.dart` に Material 3 ベースの ThemeData を作成する
-- [ ] 2.5 `lib/core/storage/app_paths.dart` に `path_provider` 経由でサポートディレクトリを取得するヘルパーを置く
-- [ ] 2.6 `lib/core/exceptions/app_exception.dart` に独自例外型（`AppException` Freezed Union）を定義する
-- [ ] 2.7 ディレクトリ骨格を作る:
+- [x] 2.1 `lib/app/main.dart` を作成し、`WidgetsFlutterBinding` 初期化 → `window_manager` 初期化 → `runApp` の順を実装する
+- [x] 2.2 `lib/app/app.dart` を作成し、`ProviderScope` / `MaterialApp.router` の最小構成を組む
+- [x] 2.3 `lib/app/router.dart` に go_router_builder ベースの `/` `/run/:entryId` `/settings` `/settings/entries/new` `/settings/entries/:id` を定義する
+- [x] 2.4 `lib/app/theme.dart` に Material 3 ベースの ThemeData を作成する
+- [x] 2.5 `lib/core/storage/app_paths.dart` に `path_provider` 経由でサポートディレクトリを取得するヘルパーを置く
+- [x] 2.6 `lib/core/exceptions/app_exception.dart` に独自例外型（`AppException` Freezed Union）を定義する
+- [x] 2.7 ディレクトリ骨格を作る:
   - `lib/ui/{home,settings,run,common}/` と `.gitkeep`
   - `lib/data/{launcher_entry,appearance,skill_runner}/` と `.gitkeep`
   - `lib/core/` 配下の必要サブディレクトリ

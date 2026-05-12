@@ -38,27 +38,23 @@
 
 ## Import 順序
 
-`dart format` の自動整列に従えば概ね正しいが、補足規約として以下を守る:
+Dart 標準 lint の `directives_ordering` に従う:
 
 1. `dart:` 系
-2. `package:flutter/` 系
-3. `package:` 系（3rd party）
-4. `package:claude_skills_launcher/` 系（自プロジェクト）
-5. 相対 import（`../` / `./`）
+2. `package:` 系（自プロジェクト含めて **すべてアルファベット順** で 1 ブロック）
+3. 相対 import（`../` / `./`）
 
-各グループ内はアルファベット順。グループ間に空行を入れる。
+`directives_ordering` lint は `package:flutter` と他の `package:` を区別せず、`package:` 全体を 1 つのアルファベット順ブロックとして扱う。読みやすさのためにグループ間で空行を入れたくなるが、lint が拾うので **すべての `package:` import を空行なしで連続させる**。
 
 ```dart
 import 'dart:async';
 import 'dart:io';
 
+import 'package:claude_skills_launcher/data/launcher_entry/launcher_entry.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-
-import 'package:claude_skills_launcher/data/launcher_entry/launcher_entry.dart';
 
 import 'home_view_model.dart';
 ```
