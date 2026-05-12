@@ -25,9 +25,7 @@ class SkillScanner {
       }
       final skillFile = File('${entity.path}/SKILL.md');
       if (skillFile.existsSync()) {
-        names.add(entity.uri.pathSegments
-            .where((s) => s.isNotEmpty)
-            .last);
+        names.add(entity.uri.pathSegments.where((s) => s.isNotEmpty).last);
       }
     }
     names.sort();

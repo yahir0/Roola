@@ -57,7 +57,9 @@ class AppearanceSettingsRepositoryImpl implements AppearanceSettingsRepository {
 /// `AppearanceSettingsRepository` の Provider。
 final appearanceSettingsRepositoryProvider =
     Provider<AppearanceSettingsRepository>((ref) {
-      return AppearanceSettingsRepositoryImpl(paths: ref.watch(appPathsProvider));
+      return AppearanceSettingsRepositoryImpl(
+        paths: ref.watch(appPathsProvider),
+      );
     });
 
 /// 外観設定そのものの AsyncNotifier。
