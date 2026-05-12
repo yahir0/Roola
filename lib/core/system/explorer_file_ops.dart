@@ -50,6 +50,29 @@ class ExplorerFileOps {
     }
   }
 
+  /// [sourcePath] を [targetDir] 直下にコピーする。ディレクトリは再帰。
+  /// macOS の `cp -R` を `Process.run` 経由で呼び出す（dart:io 単体だと
+  /// ディレクトリの再帰コピーが提供されないため）。自身・自身の子孫への
+  /// コピーや、コピー先に同名がある場合は弾く。
+  Future<void> copyInto(String sourcePath, String targetDir) async {
+    if (targetDir == sourcePath || targetDir.startsWith('$sourcePath/')) {
+      throw FileSystemException('自身またはその配下にはコピーできません', sourcePath);
+    }
+    final name = _basename(sourcePath);
+    final newPath = _join(targetDir, name);
+    if (FileSystemEntity.typeSync(newPath) != FileSystemEntityType.notFound) {
+      throw FileSystemException('コピー先に同名の項目があります', newPath);
+    }
+    if (FileSystemEntity.typeSync(sourcePath) ==
+        FileSystemEntityType.notFound) {
+      throw FileSystemException('対象が存在しません', sourcePath);
+    }
+    final result = await Process.run('cp', ['-R', sourcePath, newPath]);
+    if (result.exitCode != 0) {
+      throw FileSystemException('cp が異常終了しました: ${result.stderr}', sourcePath);
+    }
+  }
+
   /// [sourcePath] を [targetDir] 直下へ移動する。同一ボリュームなら
   /// `rename` で原子的に処理される。クロスボリュームは `rename` が失敗
   /// するため呼び出し側でエラー表示する。

@@ -153,4 +153,65 @@ void main() {
       expect(File(src).existsSync(), isTrue);
     });
   });
+
+  group('copyInto', () {
+    test('copies a file into a sibling directory', () async {
+      await File('${tempDir.path}/note.txt').writeAsString('hi');
+      await Directory('${tempDir.path}/dest').create();
+      await ops.copyInto('${tempDir.path}/note.txt', '${tempDir.path}/dest');
+      // ソースは残り、コピーが作られる。
+      expect(File('${tempDir.path}/note.txt').existsSync(), isTrue);
+      expect(File('${tempDir.path}/dest/note.txt').existsSync(), isTrue);
+      expect(File('${tempDir.path}/dest/note.txt').readAsStringSync(), 'hi');
+    });
+
+    test('copies a directory recursively', () async {
+      await Directory('${tempDir.path}/src/inner').create(recursive: true);
+      await File('${tempDir.path}/src/a.txt').writeAsString('a');
+      await File('${tempDir.path}/src/inner/b.txt').writeAsString('b');
+      await Directory('${tempDir.path}/dest').create();
+      await ops.copyInto('${tempDir.path}/src', '${tempDir.path}/dest');
+      // 元は残り、再帰コピーされる。
+      expect(File('${tempDir.path}/src/a.txt').existsSync(), isTrue);
+      expect(File('${tempDir.path}/dest/src/a.txt').existsSync(), isTrue);
+      expect(File('${tempDir.path}/dest/src/inner/b.txt').existsSync(), isTrue);
+    });
+
+    test('throws when target already has same-named entry', () async {
+      await File('${tempDir.path}/a.txt').writeAsString('a');
+      await Directory('${tempDir.path}/dest').create();
+      await File('${tempDir.path}/dest/a.txt').writeAsString('existing');
+      expect(
+        () => ops.copyInto('${tempDir.path}/a.txt', '${tempDir.path}/dest'),
+        throwsA(isA<FileSystemException>()),
+      );
+    });
+
+    test('throws when copying directory into itself', () async {
+      await Directory('${tempDir.path}/box').create();
+      expect(
+        () => ops.copyInto('${tempDir.path}/box', '${tempDir.path}/box'),
+        throwsA(isA<FileSystemException>()),
+      );
+    });
+
+    test('throws when copying directory into its descendant', () async {
+      await Directory('${tempDir.path}/parent/child').create(recursive: true);
+      expect(
+        () => ops.copyInto(
+          '${tempDir.path}/parent',
+          '${tempDir.path}/parent/child',
+        ),
+        throwsA(isA<FileSystemException>()),
+      );
+    });
+
+    test('throws when source does not exist', () async {
+      await Directory('${tempDir.path}/dest').create();
+      expect(
+        () => ops.copyInto('${tempDir.path}/ghost', '${tempDir.path}/dest'),
+        throwsA(isA<FileSystemException>()),
+      );
+    });
+  });
 }

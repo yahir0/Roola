@@ -9,7 +9,10 @@ import 'package:claude_skills_launcher/data/repo_explorer/explorer_settings.dart
 import 'package:claude_skills_launcher/data/repo_explorer/explorer_settings_repository_impl.dart';
 import 'package:claude_skills_launcher/data/skill_session/adhoc_run_args.dart';
 import 'package:claude_skills_launcher/ui/common/prompt_name_dialog.dart';
+import 'package:claude_skills_launcher/ui/explorer/explorer_clipboard_provider.dart';
+import 'package:claude_skills_launcher/ui/explorer/explorer_properties_dialog.dart';
 import 'package:claude_skills_launcher/ui/explorer/explorer_view_model.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:uuid/uuid.dart';
@@ -28,7 +31,9 @@ Future<void> showExplorerContextMenu(
   ExplorerDirectoryNode node,
   Offset position, {
   bool showRename = true,
+  bool showCopy = true,
 }) async {
+  final hasClipboard = ref.read(explorerClipboardProvider) != null;
   final items = <PopupMenuEntry<ExplorerNodeAction>>[
     const PopupMenuItem(
       value: _ActionOpenClaude(),
@@ -74,6 +79,25 @@ Future<void> showExplorerContextMenu(
           title: Text('名前を変更'),
         ),
       ),
+    const PopupMenuDivider(),
+    if (showCopy)
+      const PopupMenuItem(
+        value: _ActionCopy(),
+        child: ListTile(leading: Icon(Icons.content_copy), title: Text('コピー')),
+      ),
+    if (hasClipboard)
+      const PopupMenuItem(
+        value: _ActionPaste(),
+        child: ListTile(
+          leading: Icon(Icons.content_paste),
+          title: Text('ペースト'),
+        ),
+      ),
+    const PopupMenuDivider(),
+    const PopupMenuItem(
+      value: _ActionProperties(),
+      child: ListTile(leading: Icon(Icons.info_outline), title: Text('プロパティ')),
+    ),
   ];
   if (node.skillNames.isNotEmpty) {
     items.add(const PopupMenuDivider());
@@ -118,7 +142,8 @@ Future<void> showExplorerContextMenu(
   await _handleDirectoryAction(context, ref, node, selected);
 }
 
-/// ファイル用の右クリックメニュー（開く / Finder 表示 / 名前変更）。
+/// ファイル用の右クリックメニュー（開く / OpenWith / Finder 表示 /
+/// 名前変更 / コピー / プロパティ）。
 Future<void> showFileContextMenu(
   BuildContext context,
   WidgetRef ref,
@@ -142,6 +167,13 @@ Future<void> showFileContextMenu(
         ),
       ),
       PopupMenuItem(
+        value: _FileAction.openWith,
+        child: ListTile(
+          leading: Icon(Icons.apps),
+          title: Text('別のアプリケーションで開く…'),
+        ),
+      ),
+      PopupMenuItem(
         value: _FileAction.revealInFinder,
         child: ListTile(
           leading: Icon(Icons.folder_open),
@@ -156,6 +188,18 @@ Future<void> showFileContextMenu(
           title: Text('名前を変更'),
         ),
       ),
+      PopupMenuItem(
+        value: _FileAction.copy,
+        child: ListTile(leading: Icon(Icons.content_copy), title: Text('コピー')),
+      ),
+      PopupMenuDivider(),
+      PopupMenuItem(
+        value: _FileAction.properties,
+        child: ListTile(
+          leading: Icon(Icons.info_outline),
+          title: Text('プロパティ'),
+        ),
+      ),
     ],
   );
   if (selected == null || !context.mounted) {
@@ -164,14 +208,29 @@ Future<void> showFileContextMenu(
   switch (selected) {
     case _FileAction.open:
       await ref.read(fileOpenerProvider).open(node.path);
+    case _FileAction.openWith:
+      await _openWith(context, node.path);
     case _FileAction.revealInFinder:
       await ref.read(fileOpenerProvider).revealInFinder(node.path);
     case _FileAction.rename:
       await _renameAndRefresh(context, ref, node.path, node.name);
+    case _FileAction.copy:
+      ref.read(explorerClipboardProvider.notifier).set(node.path);
+      if (!context.mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('コピーしました: ${node.name}'),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    case _FileAction.properties:
+      await showPropertiesDialog(context, node.path);
   }
 }
 
-enum _FileAction { open, revealInFinder, rename }
+enum _FileAction { open, openWith, revealInFinder, rename, copy, properties }
 
 Future<void> _handleDirectoryAction(
   BuildContext context,
@@ -217,6 +276,21 @@ Future<void> _handleDirectoryAction(
       await _createNew(context, ref, node.path, isDirectory: false);
     case _ActionRename():
       await _renameAndRefresh(context, ref, node.path, node.name);
+    case _ActionCopy():
+      ref.read(explorerClipboardProvider.notifier).set(node.path);
+      if (!context.mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('コピーしました: ${node.name}'),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    case _ActionPaste():
+      await _pasteInto(context, ref, node.path);
+    case _ActionProperties():
+      await showPropertiesDialog(context, node.path);
     case _ActionRunSkill(:final skillName):
       final adhocId = 'adhoc-${_uuid.v4()}';
       final args = AdhocRunArgs(
@@ -307,6 +381,65 @@ Future<void> _renameAndRefresh(
   }
 }
 
+/// クリップボードに保持しているパスを [targetDir] にコピーする。
+/// 失敗時は SnackBar でエラー、成功時は ViewModel を refresh。
+/// コピー後もクリップボードは維持する（連続ペースト可）。
+Future<void> _pasteInto(
+  BuildContext context,
+  WidgetRef ref,
+  String targetDir,
+) async {
+  final source = ref.read(explorerClipboardProvider);
+  if (source == null) {
+    return;
+  }
+  if (!File(source).existsSync() && !Directory(source).existsSync()) {
+    if (!context.mounted) {
+      return;
+    }
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('コピー元が見つかりません: $source')));
+    return;
+  }
+  final ops = ref.read(explorerFileOpsProvider);
+  try {
+    await ops.copyInto(source, targetDir);
+    ref.read(explorerViewModelProvider.notifier).refresh();
+  } on FileSystemException catch (e) {
+    if (!context.mounted) {
+      return;
+    }
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('ペーストに失敗しました: ${e.message}')));
+  }
+}
+
+/// macOS の `open -a` でファイルを指定アプリで開く。アプリ選択は
+/// FilePicker で `/Applications` 配下の `.app` バンドルから選んでもらう。
+Future<void> _openWith(BuildContext context, String filePath) async {
+  final picked = await FilePicker.pickFiles(
+    type: FileType.custom,
+    allowedExtensions: const ['app'],
+    initialDirectory: '/Applications',
+    dialogTitle: '開くアプリを選択',
+  );
+  if (picked == null || picked.files.isEmpty) {
+    return;
+  }
+  final appPath = picked.files.single.path;
+  if (appPath == null) {
+    return;
+  }
+  final result = await Process.run('open', ['-a', appPath, filePath]);
+  if (result.exitCode != 0 && context.mounted) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('開けませんでした: ${result.stderr}')));
+  }
+}
+
 /// ドラッグ＆ドロップで [sourcePath] を [targetDir] へ移動する。
 /// 移動後はビューモデルを refresh。エラー時は SnackBar で通知。
 Future<void> moveInto(
@@ -378,7 +511,7 @@ class ExplorerParentDropTile extends ConsumerWidget {
               children: [
                 Icon(Icons.arrow_upward, color: colors.onSurfaceVariant),
                 const SizedBox(width: 16),
-                Text('上の階層へ', style: Theme.of(context).textTheme.bodyLarge),
+                Text('上の階層へ', style: Theme.of(context).textTheme.bodyMedium),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
@@ -428,6 +561,18 @@ class _ActionNewFile extends ExplorerNodeAction {
 
 class _ActionRename extends ExplorerNodeAction {
   const _ActionRename();
+}
+
+class _ActionCopy extends ExplorerNodeAction {
+  const _ActionCopy();
+}
+
+class _ActionPaste extends ExplorerNodeAction {
+  const _ActionPaste();
+}
+
+class _ActionProperties extends ExplorerNodeAction {
+  const _ActionProperties();
 }
 
 class _ActionRunSkill extends ExplorerNodeAction {
@@ -514,7 +659,7 @@ class _DirectoryTile extends ConsumerWidget {
                   children: [
                     Text(
                       node.name,
-                      style: Theme.of(context).textTheme.bodyLarge,
+                      style: Theme.of(context).textTheme.bodyMedium,
                     ),
                     if (hasSkill)
                       Text(
@@ -564,7 +709,7 @@ class _FileTile extends ConsumerWidget {
               Expanded(
                 child: Text(
                   node.name,
-                  style: Theme.of(context).textTheme.bodyLarge,
+                  style: Theme.of(context).textTheme.bodyMedium,
                 ),
               ),
             ],

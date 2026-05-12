@@ -77,6 +77,11 @@ class _ExplorerBody extends ConsumerWidget {
     final isEmpty = state.children.isEmpty;
     final showParentTile = state.currentPath != '/';
     return CustomScrollView(
+      // currentPath を含む ValueKey を付与することで、ディレクトリ
+      // 切替時に CustomScrollView が再生成され、スクロール位置が必ず
+      // 先頭に戻る。同じ key のままだと Flutter は既存の Sliver 要素を
+      // 再利用してスクロール位置を保持してしまう。
+      key: ValueKey('explorer-body:${state.currentPath}'),
       slivers: [
         const SliverPadding(padding: EdgeInsets.only(top: 8)),
         if (showParentTile) ...[
@@ -148,8 +153,10 @@ class _CurrentDirBackdrop extends ConsumerWidget {
           node,
           details.globalPosition,
           // backdrop はカレントディレクトリ自身を指すため、「自身を
-          // リネーム」は許可しない（親フォルダから操作してもらう）。
+          // リネーム / コピー」は許可しない（親フォルダから操作して
+          // もらう）。プロパティとペーストは backdrop でも有効。
           showRename: false,
+          showCopy: false,
         );
       },
       child: showEmptyHint
