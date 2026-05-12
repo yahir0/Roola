@@ -33,8 +33,14 @@ class EntryEditPage extends HookConsumerWidget {
 
     // 新規作成 + プリフィル指定がある場合、1 回だけ ViewModel に初期値を流し
     // 込む。既存編集（entryId != null）では無視する。
+    // flutter_hooks 0.21+ では useEffect が initHook から同期で呼ばれるため、
+    // 初回 build 中の Notifier 書き換えになり Riverpod のガードに引っかかる。
+    // Future.microtask で 1 tick 遅延させ、build 完了後に流し込む。
     useEffect(() {
-      if (isNew) {
+      if (!isNew) {
+        return null;
+      }
+      Future.microtask(() {
         if (initialRepositoryPath != null &&
             initialRepositoryPath!.isNotEmpty) {
           viewModel.setRepositoryPath(initialRepositoryPath!);
@@ -42,7 +48,7 @@ class EntryEditPage extends HookConsumerWidget {
         if (initialSkillName != null && initialSkillName!.isNotEmpty) {
           viewModel.setSkillName(initialSkillName!);
         }
-      }
+      });
       return null;
     }, const []);
 
