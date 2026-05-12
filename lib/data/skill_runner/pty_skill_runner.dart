@@ -25,6 +25,12 @@ class PtySkillRunner implements SkillRunner {
 
   Pty? _pty;
   final _stateController = StreamController<SkillRunState>.broadcast();
+  // output は構築直後に View 側から subscribe されるため、`_pty` 生成より
+  // 早いタイミングで安定した Stream を返す必要がある。`_pty.output` を直接
+  // 公開すると start 前の subscribe が空 Stream に紐づき、PTY 出力が
+  // ターミナルに流れない（ログが何も出ない症状になる）。
+  final _outputController = StreamController<Uint8List>.broadcast();
+  StreamSubscription<Uint8List>? _ptyOutputSub;
   SkillRunState _currentState = const SkillRunState.idle();
   bool _started = false;
 
@@ -35,8 +41,7 @@ class PtySkillRunner implements SkillRunner {
   Stream<SkillRunState> get state => _stateController.stream;
 
   @override
-  Stream<Uint8List> get output =>
-      _pty?.output ?? const Stream<Uint8List>.empty();
+  Stream<Uint8List> get output => _outputController.stream;
 
   @override
   Future<void> start() async {
@@ -61,6 +66,12 @@ class PtySkillRunner implements SkillRunner {
       _emit(SkillRunState.failed(_formatStartError(e)));
       return;
     }
+
+    _ptyOutputSub = _pty!.output.listen((bytes) {
+      if (!_outputController.isClosed) {
+        _outputController.add(bytes);
+      }
+    });
 
     _emit(const SkillRunState.running());
 
@@ -88,10 +99,14 @@ class PtySkillRunner implements SkillRunner {
   Future<void> cancel() async {
     final pty = _pty;
     if (pty == null) {
+      await _outputController.close();
       return;
     }
     pty.kill();
     _emit(const SkillRunState.cancelled());
+    await _ptyOutputSub?.cancel();
+    _ptyOutputSub = null;
+    await _outputController.close();
     await _stateController.close();
   }
 

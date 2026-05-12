@@ -38,4 +38,31 @@ void main() {
     expect(runner.currentState, isA<SkillRunFailed>());
     await runner.cancel();
   });
+
+  test(
+    'output stream is subscribable before start (does not complete immediately)',
+    () async {
+      // 回帰: 以前は `output` getter が `_pty?.output ?? Stream.empty()` を
+      // 返していたため、構築直後に subscribe するとすぐに完了済みの空 Stream に
+      // 紐づいてしまい、PTY 生成後の出力が xterm に流れなかった。
+      // RunPage の useEffect は build 時点で subscribe するため、この順序を
+      // ロックするテスト。
+      final dir = await Directory.systemTemp.createTemp('cskl_pty_out_');
+      addTearDown(() => dir.delete(recursive: true));
+
+      final runner = PtySkillRunner(
+        repositoryPath: dir.path,
+        skillName: 'unused',
+      );
+      var done = false;
+      final sub = runner.output.listen((_) {}, onDone: () => done = true);
+
+      // 短時間待っても Stream は完了状態にならない（subscribe を保持する）。
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      expect(done, isFalse);
+
+      await sub.cancel();
+      await runner.cancel();
+    },
+  );
 }
