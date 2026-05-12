@@ -100,6 +100,12 @@ class EntryEditPage extends HookConsumerWidget {
                 suffixIcon: state.availableSkills.isEmpty
                     ? null
                     : PopupMenuButton<String>(
+                        // ValueKey で repositoryPath をひもづけ、リポジトリ
+                        // パス変更時に PopupMenuButton を強制的に作り直す。
+                        // InputDecorator が suffixIcon の同一性を保ったまま
+                        // 子の itemBuilder 差し替えだけでは更新が反映されない
+                        // macOS 実機の挙動を回避するための保険。
+                        key: ValueKey('skill-suggest-${state.repositoryPath}'),
                         icon: const Icon(Icons.arrow_drop_down),
                         tooltip: '候補から選択',
                         itemBuilder: (context) => state.availableSkills

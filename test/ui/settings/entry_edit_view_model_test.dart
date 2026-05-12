@@ -85,4 +85,45 @@ void main() {
     expect(ok, isTrue);
     verify(() => repo.add(any())).called(1);
   });
+
+  test(
+    'setRepositoryPath refreshes availableSkills when path changes',
+    () async {
+      final repoA = await Directory.systemTemp.createTemp('cskl_repo_a_');
+      final repoB = await Directory.systemTemp.createTemp('cskl_repo_b_');
+      addTearDown(() async {
+        if (repoA.existsSync()) await repoA.delete(recursive: true);
+        if (repoB.existsSync()) await repoB.delete(recursive: true);
+      });
+
+      Future<void> seedSkill(Directory repo, String skillName) async {
+        final dir = Directory('${repo.path}/.claude/skills/$skillName');
+        await dir.create(recursive: true);
+        await File('${dir.path}/SKILL.md').writeAsString('# $skillName');
+      }
+
+      await seedSkill(repoA, 'alpha');
+      await seedSkill(repoB, 'bravo');
+
+      final notifier = container.read(
+        entryEditViewModelProvider(null).notifier,
+      );
+
+      notifier.setRepositoryPath(repoA.path);
+      expect(container.read(entryEditViewModelProvider(null)).availableSkills, [
+        'alpha',
+      ]);
+
+      notifier.setRepositoryPath(repoB.path);
+      expect(container.read(entryEditViewModelProvider(null)).availableSkills, [
+        'bravo',
+      ]);
+
+      notifier.setRepositoryPath('/path/does/not/exist');
+      expect(
+        container.read(entryEditViewModelProvider(null)).availableSkills,
+        isEmpty,
+      );
+    },
+  );
 }

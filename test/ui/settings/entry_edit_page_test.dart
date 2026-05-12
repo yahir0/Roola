@@ -1,0 +1,101 @@
+import 'dart:io';
+
+import 'package:claude_skills_launcher/core/storage/app_paths.dart';
+import 'package:claude_skills_launcher/data/launcher_entry/launcher_entry.dart';
+import 'package:claude_skills_launcher/data/launcher_entry/launcher_entry_repository.dart';
+import 'package:claude_skills_launcher/data/launcher_entry/launcher_entry_repository_impl.dart';
+import 'package:claude_skills_launcher/ui/settings/entry_edit_page.dart';
+import 'package:claude_skills_launcher/ui/settings/entry_edit_view_model.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:mocktail/mocktail.dart';
+
+class _MockLauncherEntryRepository extends Mock
+    implements LauncherEntryRepository {}
+
+class _FakeLauncherEntry extends Fake implements LauncherEntry {}
+
+void main() {
+  setUpAll(() {
+    registerFallbackValue(_FakeLauncherEntry());
+  });
+
+  late Directory tempDir;
+  late Directory repoA;
+  late Directory repoB;
+  late _MockLauncherEntryRepository repo;
+
+  Future<void> seedSkill(Directory repo, String skillName) async {
+    final dir = Directory('${repo.path}/.claude/skills/$skillName');
+    await dir.create(recursive: true);
+    await File('${dir.path}/SKILL.md').writeAsString('# $skillName');
+  }
+
+  setUp(() async {
+    tempDir = await Directory.systemTemp.createTemp('cskl_eep_');
+    repoA = await Directory.systemTemp.createTemp('cskl_eep_a_');
+    repoB = await Directory.systemTemp.createTemp('cskl_eep_b_');
+    await seedSkill(repoA, 'alpha');
+    await seedSkill(repoB, 'bravo');
+
+    repo = _MockLauncherEntryRepository();
+    when(() => repo.loadAll()).thenAnswer((_) async => const []);
+    when(() => repo.add(any())).thenAnswer((_) async {});
+    when(() => repo.update(any())).thenAnswer((_) async {});
+  });
+
+  tearDown(() async {
+    for (final d in [tempDir, repoA, repoB]) {
+      if (d.existsSync()) {
+        await d.delete(recursive: true);
+      }
+    }
+  });
+
+  testWidgets(
+    'PopupMenuButton items reflect availableSkills when path changes twice',
+    (tester) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            appPathsProvider.overrideWithValue(AppPaths(root: tempDir)),
+            launcherEntryRepositoryProvider.overrideWith((ref) => repo),
+          ],
+          child: const MaterialApp(home: EntryEditPage(entryId: null)),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // 直接 ViewModel を介して 1 回目のパスを設定
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(EntryEditPage)),
+      );
+      final notifier = container.read(
+        entryEditViewModelProvider(null).notifier,
+      );
+
+      notifier.setRepositoryPath(repoA.path);
+      await tester.pumpAndSettle();
+
+      // suffix の dropdown を開いて中身を確認
+      await tester.tap(find.byIcon(Icons.arrow_drop_down));
+      await tester.pumpAndSettle();
+      expect(find.text('alpha'), findsOneWidget);
+      expect(find.text('bravo'), findsNothing);
+
+      // 一度メニューを閉じる
+      await tester.tapAt(const Offset(10, 10));
+      await tester.pumpAndSettle();
+
+      // 2 回目のパスを設定（連続して別ディレクトリへ）
+      notifier.setRepositoryPath(repoB.path);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.arrow_drop_down));
+      await tester.pumpAndSettle();
+      expect(find.text('bravo'), findsOneWidget);
+      expect(find.text('alpha'), findsNothing);
+    },
+  );
+}
