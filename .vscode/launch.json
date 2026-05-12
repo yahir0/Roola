@@ -5,7 +5,7 @@
       "name": "Launch (prod)",
       "request": "launch",
       "type": "dart",
-      "program": "lib/app/main.dart",
+      "program": "lib/main.dart",
       "args": [
         "--dart-define-from-file=dart_defines/prod.json"
       ]
@@ -15,7 +15,7 @@
       "request": "launch",
       "type": "dart",
       "flutterMode": "profile",
-      "program": "lib/app/main.dart",
+      "program": "lib/main.dart",
       "args": [
         "--dart-define-from-file=dart_defines/prod.json"
       ]
@@ -25,7 +25,7 @@
       "request": "launch",
       "type": "dart",
       "flutterMode": "release",
-      "program": "lib/app/main.dart",
+      "program": "lib/main.dart",
       "args": [
         "--dart-define-from-file=dart_defines/prod.json"
       ]

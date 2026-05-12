@@ -13,7 +13,7 @@
 
 ## 2. アーキテクチャ骨組み（MVVM 構成）
 
-- [x] 2.1 `lib/app/main.dart` を作成し、`WidgetsFlutterBinding` 初期化 → `window_manager` 初期化 → `runApp` の順を実装する
+- [x] 2.1 `lib/main.dart` を作成し、`WidgetsFlutterBinding` 初期化 → `window_manager` 初期化 → `runApp` の順を実装する（Flutter 規約に従いエントリポイントは `lib/` 直下に置く）
 - [x] 2.2 `lib/app/app.dart` を作成し、`ProviderScope` / `MaterialApp.router` の最小構成を組む
 - [x] 2.3 `lib/app/router.dart` に go_router_builder ベースの `/` `/run/:entryId` `/settings` `/settings/entries/new` `/settings/entries/:id` を定義する
 - [x] 2.4 `lib/app/theme.dart` に Material 3 ベースの ThemeData を作成する
@@ -94,7 +94,7 @@
 - [ ] 6.6 `lib/ui/settings/appearance_section.dart` を実装し、`SettingsPage` から組み込む
 - [ ] 6.7 画像選択時に `<appSupport>/background.png` へコピー保存する処理を ViewModel に実装する
 - [ ] 6.8 `lib/app/app.dart` で `AppearanceSectionViewModel` の状態を購読し、`Scaffold` の背景色・背景画像レイヤーへ即時反映する
-- [ ] 6.9 `lib/app/main.dart` 内で `window_manager.setBackgroundColor(Colors.transparent)` を初期化時に呼ぶ
+- [ ] 6.9 `lib/main.dart` 内で `window_manager.setBackgroundColor(Colors.transparent)` を初期化時に呼ぶ
 
 ## 7. ヘルスチェックとエラー UX
 

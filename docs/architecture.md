@@ -23,8 +23,9 @@ Flutter 公式の [App architecture guide](https://docs.flutter.dev/app-architec
 
 ```
 lib/
-├── app/                                 # 起動 / DI / ルーティング / テーマ
-│   ├── main.dart                        # WidgetsFlutterBinding + window_manager 初期化 + runApp
+├── main.dart                            # エントリポイント (Flutter 規約に従い lib 直下に置く)
+│                                        # WidgetsFlutterBinding + window_manager 初期化 + runApp
+├── app/                                 # アプリ最上位の合成 / DI / ルーティング / テーマ
 │   ├── app.dart                         # MaterialApp.router / ProviderScope
 │   ├── router.dart                      # go_router_builder で定義したルート
 │   └── theme.dart                       # ThemeData
