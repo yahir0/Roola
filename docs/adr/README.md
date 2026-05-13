@@ -17,6 +17,8 @@
 | [0009](./0009-ad-hoc-skill-sessions.md) | ad-hoc セッションを別 provider で扱う | Accepted |
 | [0010](./0010-stateful-shell-tabbed-navigation.md) | Home / Explorer をタブ式 `StatefulShellRoute` で束ね、Run/Settings は root navigator に push | Accepted |
 | [0011](./0011-os-drag-and-drop.md) | エクスプローラの DnD を `super_drag_and_drop` で OS 連携にする | Accepted |
+| [0012](./0012-multi-window-via-separate-process.md) | マルチウィンドウは別プロセス起動で実現（共有 Engine 方式は後追い検討） | Accepted |
+| [0013](./0013-bundle-id-and-dev-prefix.md) | Bundle ID を `tech.yahiro.Roola` に、Debug / Profile は `dev.` プレフィックスで分離 | Accepted |
 
 ## フォーマット
 

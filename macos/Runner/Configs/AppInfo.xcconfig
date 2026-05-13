@@ -1,14 +1,16 @@
 // Application-level settings for the Runner target.
 //
-// This may be replaced with something auto-generated from metadata (e.g., pubspec.yaml) in the
-// future. If not, the values below would default to using the project name when this becomes a
-// 'flutter create' template.
+// PRODUCT_BUNDLE_IDENTIFIER は Release 構成のみここで使われる。
+// Debug / Profile は project.pbxproj 側で `dev.tech.yahiro.Roola` に
+// 上書きされる（make run 時に prod とは別の Application Support を
+// 使わせて、開発ビルドとインストール版を完全分離するため）。
+// 背景: ADR-0012 / ADR-0013。
 
 // The application's name. By default this is also the title of the Flutter window.
 PRODUCT_NAME = Roola
 
 // The application's bundle identifier
-PRODUCT_BUNDLE_IDENTIFIER = io.github.yahir0.roola
+PRODUCT_BUNDLE_IDENTIFIER = tech.yahiro.Roola
 
 // The copyright displayed in application information
-PRODUCT_COPYRIGHT = Copyright © 2026 io.github.yahir0. All rights reserved.
+PRODUCT_COPYRIGHT = Copyright © 2026 yahiro.tech. All rights reserved.

@@ -73,6 +73,8 @@ Mac 向けの Claude Code Skills ランチャーアプリ（Flutter Desktop / ma
 - ADR-0009: ad-hoc セッションを別 provider で扱う
 - ADR-0010: Home / Explorer をタブ式 `StatefulShellRoute` で束ねる
 - ADR-0011: エクスプローラの DnD を `super_drag_and_drop` で OS 連携にする
+- ADR-0012: マルチウィンドウは別プロセス起動で実現（共有 Engine 方式は後追い検討）
+- ADR-0013: Bundle ID を `tech.yahiro.Roola` に、Debug / Profile は `dev.` プレフィックスで分離
 
 ## ディレクトリ構成
 
