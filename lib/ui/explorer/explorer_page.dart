@@ -1,5 +1,6 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:roola/core/skill/skill_scanner.dart';
 import 'package:roola/data/repo_explorer/explorer_node.dart';
@@ -9,6 +10,7 @@ import 'package:roola/ui/explorer/explorer_path_bar.dart';
 import 'package:roola/ui/explorer/explorer_sidebar.dart';
 import 'package:roola/ui/explorer/explorer_view_model.dart';
 import 'package:roola/ui/shell/app_tab_bar.dart';
+import 'package:super_drag_and_drop/super_drag_and_drop.dart';
 
 /// エクスプローラ画面。
 ///
@@ -126,8 +128,13 @@ class _ExplorerBody extends ConsumerWidget {
 /// リスト下部の空き領域 ＋ 何も無いときのプレースホルダ。
 ///
 /// 右クリックでカレントディレクトリを対象とした context menu を開く。
-/// Skill 検知はこの時点でだけ走らせる（毎ナビゲートで走らせる必要はない）。
-class _CurrentDirBackdrop extends ConsumerWidget {
+/// 加えて、Finder などアプリ外からこの領域へ drop されたファイルは
+/// カレントディレクトリ直下に move / copy する（ディレクトリタイルや
+/// サイドバーで受けきれない「空き領域への drop」を救済する）。
+///
+/// Skill 検知は context menu 表示時に都度実行する（毎ナビゲートで
+/// 走らせる必要はない）。
+class _CurrentDirBackdrop extends HookConsumerWidget {
   const _CurrentDirBackdrop({
     required this.currentPath,
     required this.showEmptyHint,
@@ -140,31 +147,49 @@ class _CurrentDirBackdrop extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onSecondaryTapDown: (details) {
-        final node = ExplorerDirectoryNode(
-          path: currentPath,
-          name: _basenameOf(currentPath),
-          skillNames: _scanner.scan(currentPath),
-        );
-        showExplorerContextMenu(
-          context,
-          ref,
-          node,
-          details.globalPosition,
-          // backdrop はカレントディレクトリ自身を指すため、「自身を
-          // リネーム / コピー / 削除」は許可しない（親フォルダから
-          // 操作してもらう）。プロパティとペーストは backdrop でも
-          // 有効。
-          showRename: false,
-          showCopy: false,
-          showDelete: false,
-        );
+    final isHovering = useState(false);
+    final colors = Theme.of(context).colorScheme;
+    return DropRegion(
+      formats: const [Formats.fileUri],
+      hitTestBehavior: HitTestBehavior.opaque,
+      onDropOver: (event) => decideDropOperation(event.session, currentPath),
+      onDropEnter: (_) => isHovering.value = true,
+      onDropLeave: (_) => isHovering.value = false,
+      onPerformDrop: (event) async {
+        isHovering.value = false;
+        await performFileDrop(context, ref, event, currentPath);
       },
-      child: showEmptyHint
-          ? const _EmptyPlaceholder()
-          : const SizedBox.expand(),
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onSecondaryTapDown: (details) {
+          final node = ExplorerDirectoryNode(
+            path: currentPath,
+            name: _basenameOf(currentPath),
+            skillNames: _scanner.scan(currentPath),
+          );
+          showExplorerContextMenu(
+            context,
+            ref,
+            node,
+            details.globalPosition,
+            // backdrop はカレントディレクトリ自身を指すため、「自身を
+            // リネーム / コピー / 削除」は許可しない（親フォルダから
+            // 操作してもらう）。プロパティとペーストは backdrop でも
+            // 有効。
+            showRename: false,
+            showCopy: false,
+            showDelete: false,
+          );
+        },
+        child: Container(
+          color: isHovering.value
+              ? colors.primary.withValues(alpha: 0.08)
+              : null,
+          child: showEmptyHint
+              ? const _EmptyPlaceholder()
+              : const SizedBox.expand(),
+        ),
+      ),
     );
   }
 

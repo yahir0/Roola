@@ -71,6 +71,8 @@ Mac 向けの Claude Code Skills ランチャーアプリ（Flutter Desktop / ma
 - ADR-0007: `riverpod_lint` / `custom_lint` の採用を当面保留
 - ADR-0008: スキル実行セッションを実行画面 widget から切り離して保持
 - ADR-0009: ad-hoc セッションを別 provider で扱う
+- ADR-0010: Home / Explorer をタブ式 `StatefulShellRoute` で束ねる
+- ADR-0011: エクスプローラの DnD を `super_drag_and_drop` で OS 連携にする
 
 ## ディレクトリ構成
 

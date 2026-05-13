@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:roola/app/router.dart';
 import 'package:roola/core/system/explorer_file_ops.dart';
@@ -17,6 +18,7 @@ import 'package:roola/ui/common/prompt_name_dialog.dart';
 import 'package:roola/ui/explorer/explorer_clipboard_provider.dart';
 import 'package:roola/ui/explorer/explorer_properties_dialog.dart';
 import 'package:roola/ui/explorer/explorer_view_model.dart';
+import 'package:super_drag_and_drop/super_drag_and_drop.dart';
 import 'package:uuid/uuid.dart';
 
 const _uuid = Uuid();
@@ -584,26 +586,85 @@ Future<void> _openWith(BuildContext context, String filePath) async {
   }
 }
 
-/// ドラッグ＆ドロップで [sourcePath] を [targetDir] へ移動する。
-/// 移動後はビューモデルを refresh。エラー時は SnackBar で通知。
-Future<void> moveInto(
+/// ドラッグ＆ドロップで [sourcePath] を [targetDir] へ「移動」または
+/// 「コピー」する。Finder と同等のセマンティクスを実現する:
+///
+/// - 同一ボリューム & 修飾キー無し: 移動
+/// - 異ボリューム: コピー（rename が失敗するため自動でコピーに倒す）
+/// - `prefersCopy = true` (⌥ 押下や drop 元のセマンティクス指定): コピー
+/// - それ以外: 移動
+///
+/// 例外時は SnackBar でエラーを通知。完了後は ViewModel を refresh する。
+///
+/// 注意: 異ボリュームでの「強制移動」（Finder の ⌘+drag に相当する
+/// copy + 元削除）は未対応。⌘ 指定で異ボリュームに drag した場合も
+/// このヘルパーはコピーになる。
+Future<void> moveOrCopyInto(
   BuildContext context,
   WidgetRef ref,
   String sourcePath,
-  String targetDir,
-) async {
+  String targetDir, {
+  required bool prefersCopy,
+}) async {
   final ops = ref.read(explorerFileOpsProvider);
+  final crossVolume = _volumeKey(sourcePath) != _volumeKey(targetDir);
+  final shouldCopy = prefersCopy || crossVolume;
   try {
-    await ops.moveInto(sourcePath, targetDir);
+    if (shouldCopy) {
+      await ops.copyInto(sourcePath, targetDir);
+    } else {
+      await ops.moveInto(sourcePath, targetDir);
+    }
     ref.read(explorerViewModelProvider.notifier).refresh();
   } on FileSystemException catch (e) {
     if (!context.mounted) {
       return;
     }
+    final verb = shouldCopy ? 'コピー' : '移動';
     ScaffoldMessenger.of(
       context,
-    ).showSnackBar(SnackBar(content: Text('移動に失敗しました: ${e.message}')));
+    ).showSnackBar(SnackBar(content: Text('$verbに失敗しました: ${e.message}')));
   }
+}
+
+/// drag セッションが完了したらエクスプローラを refresh する `dragCompleted`
+/// リスナを登録する。
+///
+/// 主目的はアプリ外（Finder / 他アプリ）へ drag したときに、移動で消えた
+/// source ファイルを即座にリスト反映させること。内部 drop でも fire する
+/// が、そちらは `performFileDrop` 経由でも refresh されるため二重 refresh
+/// になる（実害は軽微なので許容）。
+///
+/// `dragCompleted.value` は drag 終了時に [DropOperation] が入る。`null` の
+/// まま終わった場合はキャンセル扱いなので refresh しない。リスナは一度だけ
+/// 発火させて自分自身を外す。
+void _refreshOnDragCompleted(WidgetRef ref, DragSession session) {
+  final notifier = ref.read(explorerViewModelProvider.notifier);
+  void listener() {
+    if (session.dragCompleted.value == null) {
+      return;
+    }
+    notifier.refresh();
+    session.dragCompleted.removeListener(listener);
+  }
+
+  session.dragCompleted.addListener(listener);
+}
+
+/// macOS の絶対パスからボリュームを識別するキーを取り出す。
+///
+/// - 起動ボリューム配下（`/Volumes/` 以外）: `/`
+/// - 外部・ネットワーク等のマウント: `/Volumes/<name>`
+///
+/// 同じキーなら同一ボリュームと判断する。bind mount 等のレアケースまで
+/// は扱わない（実用上は `/Volumes/` 配下の判定で十分なため）。
+String _volumeKey(String path) {
+  const prefix = '/Volumes/';
+  if (path.startsWith(prefix)) {
+    final next = path.indexOf('/', prefix.length);
+    return next == -1 ? path : path.substring(0, next);
+  }
+  return '/';
 }
 
 /// パスから親ディレクトリの絶対パスを計算する。`/` の場合は `/`。
@@ -622,7 +683,7 @@ String parentOfPath(String path) {
 ///
 /// クリックで親ディレクトリに移動。ドラッグ＆ドロップで対象を親に
 /// 移動できる。ルート（`/`）にいる時は呼び出し側で非表示にすること。
-class ExplorerParentDropTile extends ConsumerWidget {
+class ExplorerParentDropTile extends HookConsumerWidget {
   const ExplorerParentDropTile({required this.currentPath, super.key});
 
   final String currentPath;
@@ -631,48 +692,54 @@ class ExplorerParentDropTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final parentPath = parentOfPath(currentPath);
     final colors = Theme.of(context).colorScheme;
-    return DragTarget<String>(
-      onWillAcceptWithDetails: (details) {
-        // 既に親に居る項目を「親に移動」しても no-op なので、視覚
-        // フィードバックを出さない。自身や祖先を親に移動するのも
-        // セマンティクス的におかしい（moveInto 側でも弾く）。
-        return parentOfPath(details.data) != parentPath &&
-            details.data != parentPath &&
-            !parentPath.startsWith('${details.data}/');
+    final isHovering = useState(false);
+    return DropRegion(
+      formats: const [Formats.fileUri],
+      hitTestBehavior: HitTestBehavior.opaque,
+      // 既に親に居る項目を「親に移動」しても no-op なので、視覚フィー
+      // ドバックを出さない（disallowSameParent: true）。自身や祖先を
+      // 親に移動するのもセマンティクス的におかしい（moveOrCopyInto
+      // 側でも弾く）。
+      onDropOver: (event) => decideDropOperation(
+        event.session,
+        parentPath,
+        disallowSameParent: true,
+      ),
+      onDropEnter: (_) => isHovering.value = true,
+      onDropLeave: (_) => isHovering.value = false,
+      onPerformDrop: (event) async {
+        isHovering.value = false;
+        await performFileDrop(context, ref, event, parentPath);
       },
-      onAcceptWithDetails: (details) =>
-          moveInto(context, ref, details.data, parentPath),
-      builder: (context, candidate, _) {
-        final isHovering = candidate.isNotEmpty;
-        return InkWell(
-          onTap: () => ref
-              .read(explorerViewModelProvider.notifier)
-              .navigateTo(parentPath),
-          child: Container(
-            color: isHovering ? colors.primary.withValues(alpha: 0.12) : null,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            child: Row(
-              children: [
-                Icon(Icons.arrow_upward, color: colors.onSurfaceVariant),
-                const SizedBox(width: 16),
-                Text('上の階層へ', style: Theme.of(context).textTheme.bodyMedium),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    parentPath,
-                    textAlign: TextAlign.right,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: colors.onSurfaceVariant,
-                    ),
+      child: InkWell(
+        onTap: () =>
+            ref.read(explorerViewModelProvider.notifier).navigateTo(parentPath),
+        child: Container(
+          color: isHovering.value
+              ? colors.primary.withValues(alpha: 0.12)
+              : null,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
+            children: [
+              Icon(Icons.arrow_upward, color: colors.onSurfaceVariant),
+              const SizedBox(width: 16),
+              Text('上の階層へ', style: Theme.of(context).textTheme.bodyMedium),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  parentPath,
+                  textAlign: TextAlign.right,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: colors.onSurfaceVariant,
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 }
@@ -761,31 +828,39 @@ class ExplorerNodeTile extends ConsumerWidget {
   }
 }
 
-class _DirectoryTile extends ConsumerWidget {
+class _DirectoryTile extends HookConsumerWidget {
   const _DirectoryTile({required this.node});
 
   final ExplorerDirectoryNode node;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return DragTarget<String>(
-      onWillAcceptWithDetails: (details) =>
-          details.data != node.path &&
-          !node.path.startsWith('${details.data}/'),
-      onAcceptWithDetails: (details) =>
-          moveInto(context, ref, details.data, node.path),
-      builder: (context, candidate, _) {
-        final isHovering = candidate.isNotEmpty;
-        return Draggable<String>(
-          data: node.path,
-          feedback: _DragFeedback(label: node.name, icon: Icons.folder),
-          childWhenDragging: Opacity(
-            opacity: 0.3,
-            child: _content(context, ref, false),
-          ),
-          child: _content(context, ref, isHovering),
-        );
+    final isHovering = useState(false);
+    return DropRegion(
+      formats: const [Formats.fileUri],
+      hitTestBehavior: HitTestBehavior.opaque,
+      // 内部 drag は自身 / 子孫への drop を弾く（loop 防止）。modifier
+      // とボリューム判定は decideDropOperation 側で済ませて move / copy
+      // を返す。
+      onDropOver: (event) => decideDropOperation(event.session, node.path),
+      onDropEnter: (_) => isHovering.value = true,
+      onDropLeave: (_) => isHovering.value = false,
+      onPerformDrop: (event) async {
+        isHovering.value = false;
+        await performFileDrop(context, ref, event, node.path);
       },
+      child: DragItemWidget(
+        allowedOperations: () =>
+            const [DropOperation.move, DropOperation.copy],
+        dragItemProvider: (request) async {
+          _refreshOnDragCompleted(ref, request.session);
+          return DragItem(suggestedName: node.name, localData: node.path)
+            ..add(Formats.fileUri(Uri.file(node.path)));
+        },
+        child: DraggableWidget(
+          child: _content(context, ref, isHovering.value),
+        ),
+      ),
     );
   }
 
@@ -873,11 +948,14 @@ class _FileTile extends ConsumerWidget {
         ),
       ),
     );
-    return Draggable<String>(
-      data: node.path,
-      feedback: _DragFeedback(label: node.name, icon: icon),
-      childWhenDragging: Opacity(opacity: 0.3, child: content),
-      child: content,
+    return DragItemWidget(
+      allowedOperations: () => const [DropOperation.move, DropOperation.copy],
+      dragItemProvider: (request) async {
+        _refreshOnDragCompleted(ref, request.session);
+        return DragItem(suggestedName: node.name, localData: node.path)
+          ..add(Formats.fileUri(Uri.file(node.path)));
+      },
+      child: DraggableWidget(child: content),
     );
   }
 
@@ -911,42 +989,109 @@ class _FileTile extends ConsumerWidget {
   }
 }
 
-/// ドラッグ中にカーソルに追従して表示する小さなチップ。
-class _DragFeedback extends StatelessWidget {
-  const _DragFeedback({required this.label, required this.icon});
+/// DropRegion の `onDropOver` で「drop を受け入れるか / 何の操作にするか」
+/// を Finder と同等のセマンティクスで判定する。
+///
+/// 受け入れ条件:
+/// - drag セッションの 1 件目が `Formats.fileUri` を提供する
+/// - 内部 drag（`localData` に String パスが入る）の場合のみ、self-loop
+///   を防ぐガードを掛ける:
+///     - source == target
+///     - target が source の子孫 (`target.startsWith('source/')`)
+///     - `disallowSameParent` 指定時、source の親 == target（同一親内
+///       no-op 移動の抑止。「上の階層へ」タイル用）
+///
+/// 操作判定（Finder 等価）:
+/// - ⌥ (option) 押下中: copy
+/// - ⌘ (command) 押下中: move
+/// - 内部 drag で異ボリューム: copy（rename が失敗する側に倒れるため）
+/// - それ以外: move
+///
+/// 外部 drag では source のボリュームが onDropOver 同期で取れないため、
+/// 修飾キーが無ければ move を返す。実際の操作判定（必要なら copy に倒す）
+/// は [performFileDrop] 側で行うので、カーソル表示と最終操作が一瞬ずれ
+/// るケースが残る（実用上の影響は軽微）。
+DropOperation decideDropOperation(
+  DropSession session,
+  String targetPath, {
+  bool disallowSameParent = false,
+}) {
+  final items = session.items;
+  if (items.isEmpty) {
+    return DropOperation.none;
+  }
+  final first = items.first;
+  if (!first.canProvide(Formats.fileUri)) {
+    return DropOperation.none;
+  }
+  final source = first.localData;
+  if (source is String) {
+    if (source == targetPath || targetPath.startsWith('$source/')) {
+      return DropOperation.none;
+    }
+    if (disallowSameParent && parentOfPath(source) == targetPath) {
+      return DropOperation.none;
+    }
+  }
+  final keyboard = HardwareKeyboard.instance;
+  if (keyboard.isAltPressed) {
+    return DropOperation.copy;
+  }
+  if (keyboard.isMetaPressed) {
+    return DropOperation.move;
+  }
+  if (source is String &&
+      _volumeKey(source) != _volumeKey(targetPath)) {
+    return DropOperation.copy;
+  }
+  return DropOperation.move;
+}
 
-  final String label;
-  final IconData icon;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    return Material(
-      color: Colors.transparent,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: colors.surface,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: colors.primary, width: 1.5),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 18, color: colors.primary),
-            const SizedBox(width: 8),
-            ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 200),
-              child: Text(
-                label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-            ),
-          ],
-        ),
-      ),
+/// DropRegion の `onPerformDrop` で、drag セッション内のすべての fileUri
+/// アイテムを順番に [targetDir] へ移動 or コピーする。[event] の
+/// `reader.getValue` は非同期コールバックなので、`Completer` で順序を
+/// 待ち合わせる。
+///
+/// 操作種別は [PerformDropEvent.acceptedOperation]（= 直前の `onDropOver`
+/// が返した結果）を参照する。実際の rename / cp は [moveOrCopyInto] に
+/// 委譲し、cross-volume での move 試行はそこで自動 copy にフォールバ
+/// ックされる。エラー UX も同関数の SnackBar 経路に乗る。
+Future<void> performFileDrop(
+  BuildContext context,
+  WidgetRef ref,
+  PerformDropEvent event,
+  String targetDir,
+) async {
+  final prefersCopy = event.acceptedOperation == DropOperation.copy;
+  for (final item in event.session.items) {
+    final reader = item.dataReader;
+    if (reader == null || !reader.canProvide(Formats.fileUri)) {
+      continue;
+    }
+    final completer = Completer<Uri?>();
+    reader.getValue(
+      Formats.fileUri,
+      (uri) {
+        if (!completer.isCompleted) {
+          completer.complete(uri);
+        }
+      },
+      onError: (_) {
+        if (!completer.isCompleted) {
+          completer.complete(null);
+        }
+      },
+    );
+    final uri = await completer.future;
+    if (uri == null || !context.mounted) {
+      continue;
+    }
+    await moveOrCopyInto(
+      context,
+      ref,
+      uri.toFilePath(),
+      targetDir,
+      prefersCopy: prefersCopy,
     );
   }
 }

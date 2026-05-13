@@ -16,6 +16,7 @@
 | [0008](./0008-keep-alive-skill-sessions.md) | スキル実行セッションを実行画面 widget から切り離して保持 | Accepted |
 | [0009](./0009-ad-hoc-skill-sessions.md) | ad-hoc セッションを別 provider で扱う | Accepted |
 | [0010](./0010-stateful-shell-tabbed-navigation.md) | Home / Explorer をタブ式 `StatefulShellRoute` で束ね、Run/Settings は root navigator に push | Accepted |
+| [0011](./0011-os-drag-and-drop.md) | エクスプローラの DnD を `super_drag_and_drop` で OS 連携にする | Accepted |
 
 ## フォーマット
 

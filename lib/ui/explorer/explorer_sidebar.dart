@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:roola/data/repo_explorer/explorer_settings.dart';
 import 'package:roola/data/repo_explorer/explorer_settings_repository_impl.dart';
 import 'package:roola/ui/common/prompt_name_dialog.dart';
 import 'package:roola/ui/explorer/explorer_node_tile.dart'
-    show moveInto;
+    show decideDropOperation, performFileDrop;
 import 'package:roola/ui/explorer/explorer_view_model.dart';
+import 'package:super_drag_and_drop/super_drag_and_drop.dart';
 import 'package:uuid/uuid.dart';
 
 const _uuid = Uuid();
@@ -111,7 +113,7 @@ class _SidebarHeader extends ConsumerWidget {
   }
 }
 
-class _FavoriteTile extends ConsumerWidget {
+class _FavoriteTile extends HookConsumerWidget {
   const _FavoriteTile({required this.favorite, required this.isCurrent});
 
   final ExplorerFavorite favorite;
@@ -120,57 +122,61 @@ class _FavoriteTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = Theme.of(context).colorScheme;
-    return DragTarget<String>(
-      onWillAcceptWithDetails: (details) {
-        // 自身（同じパス）や自身の祖先を、自身の中に移動するのは不可。
-        return details.data != favorite.path &&
-            !favorite.path.startsWith('${details.data}/');
+    final isHovering = useState(false);
+    // 「現在地」「ドラッグホバー中」の二状態をまとめる。両方とも
+    // primary 色のうっすら背景。ホバーの方が濃く見えるよう alpha を
+    // 大きめに取る。
+    final Color? backgroundColor = isHovering.value
+        ? colors.primary.withValues(alpha: 0.18)
+        : isCurrent
+        ? colors.primary.withValues(alpha: 0.1)
+        : null;
+    return DropRegion(
+      formats: const [Formats.fileUri],
+      hitTestBehavior: HitTestBehavior.opaque,
+      // 内部 drag は自身・自身の祖先への drop を弾く（loop 防止）。
+      // modifier とボリューム判定は decideDropOperation 内で済ませて
+      // move / copy を返す。
+      onDropOver: (event) =>
+          decideDropOperation(event.session, favorite.path),
+      onDropEnter: (_) => isHovering.value = true,
+      onDropLeave: (_) => isHovering.value = false,
+      onPerformDrop: (event) async {
+        isHovering.value = false;
+        await performFileDrop(context, ref, event, favorite.path);
       },
-      onAcceptWithDetails: (details) =>
-          moveInto(context, ref, details.data, favorite.path),
-      builder: (context, candidate, _) {
-        final isHovering = candidate.isNotEmpty;
-        // 「現在地」「ドラッグホバー中」の二状態をまとめる。両方とも
-        // primary 色のうっすら背景。ホバーの方が濃く見えるよう alpha を
-        // 大きめに取る。
-        final Color? backgroundColor = isHovering
-            ? colors.primary.withValues(alpha: 0.18)
-            : isCurrent
-            ? colors.primary.withValues(alpha: 0.1)
-            : null;
-        return GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onSecondaryTapDown: (details) =>
-              _showMenu(context, ref, details.globalPosition),
-          child: InkWell(
-            onTap: () => ref
-                .read(explorerViewModelProvider.notifier)
-                .navigateTo(favorite.path),
-            child: Container(
-              color: backgroundColor,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.folder_outlined,
-                    size: 18,
-                    color: isCurrent ? colors.primary : colors.onSurfaceVariant,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onSecondaryTapDown: (details) =>
+            _showMenu(context, ref, details.globalPosition),
+        child: InkWell(
+          onTap: () => ref
+              .read(explorerViewModelProvider.notifier)
+              .navigateTo(favorite.path),
+          child: Container(
+            color: backgroundColor,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.folder_outlined,
+                  size: 18,
+                  color: isCurrent ? colors.primary : colors.onSurfaceVariant,
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    favorite.name,
+                    style: Theme.of(context).textTheme.bodyMedium,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      favorite.name,
-                      style: Theme.of(context).textTheme.bodyMedium,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 
