@@ -20,6 +20,45 @@ class MainFlutterWindow: NSWindow {
 
     RegisterGeneratedPlugins(registry: flutterViewController)
 
+    // ゴミ箱への移動。Dart 側からは `claude_skills_launcher/trash` の
+    // `moveToTrash` を呼ぶ。NSWorkspace 経由ではなく FileManager
+    // .trashItem を使うことで、Finder の Cmd+Delete と同じ挙動になる。
+    let trashChannel = FlutterMethodChannel(
+      name: "claude_skills_launcher/trash",
+      binaryMessenger: flutterViewController.engine.binaryMessenger
+    )
+    trashChannel.setMethodCallHandler { call, result in
+      guard call.method == "moveToTrash" else {
+        result(FlutterMethodNotImplemented)
+        return
+      }
+      guard let args = call.arguments as? [String: Any],
+            let path = args["path"] as? String
+      else {
+        result(
+          FlutterError(
+            code: "INVALID_ARGS",
+            message: "path is required",
+            details: nil
+          )
+        )
+        return
+      }
+      let url = URL(fileURLWithPath: path)
+      do {
+        try FileManager.default.trashItem(at: url, resultingItemURL: nil)
+        result(nil)
+      } catch {
+        result(
+          FlutterError(
+            code: "TRASH_FAILED",
+            message: error.localizedDescription,
+            details: nil
+          )
+        )
+      }
+    }
+
     super.awakeFromNib()
   }
 }

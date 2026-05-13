@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:claude_skills_launcher/app/router.dart';
 import 'package:claude_skills_launcher/core/system/explorer_file_ops.dart';
 import 'package:claude_skills_launcher/core/system/file_opener.dart';
+import 'package:claude_skills_launcher/core/system/trash_service.dart';
 import 'package:claude_skills_launcher/data/repo_explorer/explorer_node.dart';
 import 'package:claude_skills_launcher/data/repo_explorer/explorer_settings.dart';
 import 'package:claude_skills_launcher/data/repo_explorer/explorer_settings_repository_impl.dart';
@@ -33,6 +34,7 @@ Future<void> showExplorerContextMenu(
   Offset position, {
   bool showRename = true,
   bool showCopy = true,
+  bool showDelete = true,
 }) async {
   // OS クリップボードの状態は非同期でしか取れないため、showMenu の前に
   // 一度問い合わせて「ペースト」項目の表示可否を確定させる。
@@ -110,6 +112,16 @@ Future<void> showExplorerContextMenu(
           title: Text('ペースト'),
         ),
       ),
+    if (showDelete) ...const [
+      PopupMenuDivider(),
+      PopupMenuItem(
+        value: _ActionMoveToTrash(),
+        child: ListTile(
+          leading: Icon(Icons.delete_outline),
+          title: Text('削除'),
+        ),
+      ),
+    ],
     const PopupMenuDivider(),
     const PopupMenuItem(
       value: _ActionProperties(),
@@ -215,6 +227,14 @@ Future<void> showFileContextMenu(
       ),
       PopupMenuDivider(),
       PopupMenuItem(
+        value: _FileAction.moveToTrash,
+        child: ListTile(
+          leading: Icon(Icons.delete_outline),
+          title: Text('削除'),
+        ),
+      ),
+      PopupMenuDivider(),
+      PopupMenuItem(
         value: _FileAction.properties,
         child: ListTile(
           leading: Icon(Icons.info_outline),
@@ -248,6 +268,8 @@ Future<void> showFileContextMenu(
       );
     case _FileAction.copyPath:
       await _copyPathToClipboard(context, node.path);
+    case _FileAction.moveToTrash:
+      await _moveToTrash(context, ref, node.path, node.name);
     case _FileAction.properties:
       await showPropertiesDialog(context, node.path);
   }
@@ -260,6 +282,7 @@ enum _FileAction {
   rename,
   copy,
   copyPath,
+  moveToTrash,
   properties,
 }
 
@@ -333,6 +356,8 @@ Future<void> _handleDirectoryAction(
       await _copyPathToClipboard(context, node.path);
     case _ActionPaste():
       await _pasteInto(context, ref, node.path);
+    case _ActionMoveToTrash():
+      await _moveToTrash(context, ref, node.path, node.name);
     case _ActionProperties():
       await showPropertiesDialog(context, node.path);
     case _ActionRunSkill(:final skillName):
@@ -464,6 +489,58 @@ Future<void> _pasteInto(
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('コピー元が見つかりません: ${missing.join(', ')}')),
     );
+  }
+}
+
+/// [path] を OS のゴミ箱に移動する。実行前に必ず確認ダイアログを出し、
+/// 承認された場合のみ実行する（誤クリック対策）。実体はゴミ箱送りで
+/// 戻せるため、文言は「削除しますか？」と直接的に書く。
+/// 完了後は ViewModel を refresh し、SnackBar で結果を通知する。
+Future<void> _moveToTrash(
+  BuildContext context,
+  WidgetRef ref,
+  String path,
+  String displayName,
+) async {
+  final confirmed = await showDialog<bool>(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: const Text('削除しますか？'),
+      content: Text('「$displayName」をゴミ箱に移動します。'),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(false),
+          child: const Text('キャンセル'),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.of(context).pop(true),
+          child: const Text('削除'),
+        ),
+      ],
+    ),
+  );
+  if (confirmed != true || !context.mounted) {
+    return;
+  }
+  try {
+    await ref.read(trashServiceProvider).moveToTrash(path);
+    ref.read(explorerViewModelProvider.notifier).refresh();
+    if (!context.mounted) {
+      return;
+    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('ゴミ箱に移動しました: $displayName'),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  } on PlatformException catch (e) {
+    if (!context.mounted) {
+      return;
+    }
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('ゴミ箱に移動できませんでした: ${e.message ?? e.code}')));
   }
 }
 
@@ -644,6 +721,10 @@ class _ActionCopyPath extends ExplorerNodeAction {
 
 class _ActionPaste extends ExplorerNodeAction {
   const _ActionPaste();
+}
+
+class _ActionMoveToTrash extends ExplorerNodeAction {
+  const _ActionMoveToTrash();
 }
 
 class _ActionProperties extends ExplorerNodeAction {

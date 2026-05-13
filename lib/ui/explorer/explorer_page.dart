@@ -153,10 +153,12 @@ class _CurrentDirBackdrop extends ConsumerWidget {
           node,
           details.globalPosition,
           // backdrop はカレントディレクトリ自身を指すため、「自身を
-          // リネーム / コピー」は許可しない（親フォルダから操作して
-          // もらう）。プロパティとペーストは backdrop でも有効。
+          // リネーム / コピー / 削除」は許可しない（親フォルダから
+          // 操作してもらう）。プロパティとペーストは backdrop でも
+          // 有効。
           showRename: false,
           showCopy: false,
+          showDelete: false,
         );
       },
       child: showEmptyHint
