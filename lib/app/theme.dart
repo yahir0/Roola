@@ -77,7 +77,7 @@ class AppTheme {
       canvasColor: Colors.transparent,
       // AppBar は背景を完全透過にする。半透明の塗りを当てると
       // AppearanceMode.transparent でも透過しなくなるため、見た目の
-      // 区切りは個別の widget（AppTabBar の gradient accent line 等）に
+      // 区切りは個別の widget（AppBar 下端の `LogoAccentLine` 等）に
       // 任せる。
       appBarTheme: const AppBarTheme(
         backgroundColor: Colors.transparent,

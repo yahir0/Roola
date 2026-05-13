@@ -2,75 +2,64 @@ import 'package:claude_skills_launcher/app/theme.dart';
 import 'package:claude_skills_launcher/ui/shell/app_shell_scope.dart';
 import 'package:flutter/material.dart';
 
-/// Home / Explorer タブを切り替えるバー。
+/// Home / Explorer をシェルレベルで切り替える SegmentedButton。
 ///
-/// `AppShellScope.maybeOf(context)` でシェルを取得し、SegmentedButton で
-/// 操作する。シェル外の route（Run / Settings 等）から表示することは
-/// 想定していないため、見つからなければ高さ 0 を返す。背景は完全透過にし、
-/// 区切りはロゴアクセント色のグラデーションライン 1px で表現する。
-class AppTabBar extends StatelessWidget implements PreferredSizeWidget {
-  const AppTabBar({super.key});
-
-  static const _segmentRowHeight = 42.0;
-  static const _accentLineHeight = 1.0;
-
-  @override
-  Size get preferredSize =>
-      const Size.fromHeight(_segmentRowHeight + _accentLineHeight);
+/// 旧 `AppTabBar` は独立した行として AppBar の下に配置していたが、
+/// タブの文字 / 行が縦方向に冗長だったため AppBar のタイトル枠に
+/// 直接埋め込む形に変更した。シェル外の route（Run / Settings 等）から
+/// 表示することは想定していないため、`AppShellScope` が見つからなければ
+/// 何も描画しない。
+class AppTabSegments extends StatelessWidget {
+  const AppTabSegments({super.key});
 
   @override
   Widget build(BuildContext context) {
     final shell = AppShellScope.maybeOf(context);
     if (shell == null) {
-      return const SizedBox(height: _segmentRowHeight + _accentLineHeight);
+      return const SizedBox.shrink();
     }
-    final logo = Theme.of(context).extension<LogoTheme>()!;
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          height: _segmentRowHeight,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-          alignment: Alignment.centerLeft,
-          child: SegmentedButton<int>(
-            showSelectedIcon: false,
-            segments: const [
-              ButtonSegment(
-                value: 0,
-                icon: Icon(Icons.home_outlined),
-                label: Text('ホーム'),
-              ),
-              ButtonSegment(
-                value: 1,
-                icon: Icon(Icons.folder_outlined),
-                label: Text('エクスプローラ'),
-              ),
-            ],
-            selected: {shell.currentIndex},
-            onSelectionChanged: (selection) {
-              final index = selection.first;
-              shell.goBranch(
-                index,
-                initialLocation: index == shell.currentIndex,
-              );
-            },
-          ),
+    return SegmentedButton<int>(
+      showSelectedIcon: false,
+      segments: const [
+        ButtonSegment(
+          value: 0,
+          icon: Icon(Icons.home_outlined),
+          label: Text('ホーム'),
         ),
-        _LogoAccentLine(color: logo.accentBlue),
+        ButtonSegment(
+          value: 1,
+          icon: Icon(Icons.folder_outlined),
+          label: Text('エクスプローラ'),
+        ),
       ],
+      selected: {shell.currentIndex},
+      onSelectionChanged: (selection) {
+        final index = selection.first;
+        shell.goBranch(
+          index,
+          initialLocation: index == shell.currentIndex,
+        );
+      },
     );
   }
 }
 
-/// ロゴアクセント色のグラデーションライン（左右フェード）。背景透過を
-/// 損なわずにタブとコンテンツの区切りを示す。
-class _LogoAccentLine extends StatelessWidget {
-  const _LogoAccentLine({required this.color});
+/// ロゴアクセント色のグラデーションライン（左右フェード）。AppBar の
+/// 下端に置いて、タブと本体コンテンツの区切りを 1px で示す。背景透過を
+/// 損なわずにアクセントだけ残す目的。
+class LogoAccentLine extends StatelessWidget implements PreferredSizeWidget {
+  const LogoAccentLine({super.key});
 
-  final Color color;
+  @override
+  Size get preferredSize => const Size.fromHeight(1);
 
   @override
   Widget build(BuildContext context) {
+    // 通常は AppTheme から LogoTheme 拡張が刺さっているが、テスト等で
+    // 拡張無しの ThemeData が使われている場合の保険として
+    // `colorScheme.primary` にフォールバックする。
+    final logoTheme = Theme.of(context).extension<LogoTheme>();
+    final color = logoTheme?.accentBlue ?? Theme.of(context).colorScheme.primary;
     return Container(
       height: 1,
       decoration: BoxDecoration(

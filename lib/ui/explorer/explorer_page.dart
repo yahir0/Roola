@@ -24,9 +24,11 @@ class ExplorerPage extends ConsumerWidget {
     final isAtRoot = state.currentPath == state.root;
     return Scaffold(
       appBar: MacosWindowAppBar(
-        // パス表示はすぐ下の編集可能パスバー（[ExplorerPathBar]）に
-        // 移したため、ヘッダは固定のラベルだけにする。
-        title: const Text('エクスプローラ'),
+        // タブ切替を AppBar のタイトル枠に置き、戻るボタン / actions と
+        // 同じ行に並べる。パス表示はすぐ下の編集可能パスバー
+        // （[ExplorerPathBar]）が担う。
+        title: const AppTabSegments(),
+        bottom: const LogoAccentLine(),
         onBack: isAtRoot
             ? null
             : () => ref.read(explorerViewModelProvider.notifier).goUp(),
@@ -40,7 +42,6 @@ class ExplorerPage extends ConsumerWidget {
       ),
       body: Column(
         children: [
-          const AppTabBar(),
           ExplorerPathBar(currentPath: state.currentPath),
           Expanded(
             child: Row(

@@ -40,7 +40,6 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('Claude Skills Launcher'), findsOneWidget);
       expect(find.text('登録されたランチャーがまだありません'), findsOneWidget);
     },
   );

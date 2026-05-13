@@ -25,7 +25,8 @@ class HomePage extends HookConsumerWidget {
     final sessions = ref.watch(activeSessionsProvider);
     return Scaffold(
       appBar: MacosWindowAppBar(
-        title: const Text('Claude Skills Launcher'),
+        title: const AppTabSegments(),
+        bottom: const LogoAccentLine(),
         actions: [
           IconButton(
             icon: const Icon(Icons.settings),
@@ -36,7 +37,6 @@ class HomePage extends HookConsumerWidget {
       ),
       body: Column(
         children: [
-          const AppTabBar(),
           const ActiveSessionsStrip(),
           Expanded(
             child: state.when(

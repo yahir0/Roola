@@ -13,11 +13,16 @@ import 'package:flutter/material.dart';
 /// 自動表示するが、Explorer のように「同じ route のまま内部状態を
 /// 巻き戻したい」ケースのために [onBack] を渡すと、push 履歴の有無に
 /// 関係なくその callback を back の動作として使う。
+///
+/// [title] は省略可能で、Home / Explorer のようにタブで現在地が示せる
+/// 画面ではタイトル文字列を出さずに [AppTabSegments] のような widget を
+/// 直接置く前提。
 class MacosWindowAppBar extends StatelessWidget implements PreferredSizeWidget {
   const MacosWindowAppBar({
-    required this.title,
+    this.title,
     this.actions,
     this.onBack,
+    this.bottom,
     super.key,
   });
 
@@ -28,7 +33,7 @@ class MacosWindowAppBar extends StatelessWidget implements PreferredSizeWidget {
   /// 標準 `BackButton` の描画幅。
   static const double _backButtonWidth = 48;
 
-  final Widget title;
+  final Widget? title;
   final List<Widget>? actions;
 
   /// back ボタンの動作を上書きする callback。null の場合は
@@ -38,8 +43,14 @@ class MacosWindowAppBar extends StatelessWidget implements PreferredSizeWidget {
   /// callback として `null` を渡すと back ボタンが消える。
   final VoidCallback? onBack;
 
+  /// AppBar の下端に重ねる widget（区切りライン等）。Material の AppBar
+  /// `bottom` スロットへそのまま流す。
+  final PreferredSizeWidget? bottom;
+
   @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+  Size get preferredSize => Size.fromHeight(
+    kToolbarHeight + (bottom?.preferredSize.height ?? 0),
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -48,6 +59,7 @@ class MacosWindowAppBar extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
       title: title,
       actions: actions,
+      bottom: bottom,
       automaticallyImplyLeading: false,
       leadingWidth: _trafficLightsWidth + (showBack ? _backButtonWidth : 0),
       leading: showBack
