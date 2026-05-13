@@ -27,6 +27,17 @@ abstract class AppearanceSettings with _$AppearanceSettings {
     /// 1.0 で完全不透明、0.0 で完全透過。色はロゴの deep background 固定。
     /// 既定値はウィンドウ枠が視認できる程度の 0.8。
     @Default(0.8) double transparencyOpacity,
+
+    /// `transparent` モード時に中央に重ね描きする画像のパス。
+    /// 日本国旗の赤円のように「窓の真ん中に配置する装飾」用で、サイズは
+    /// ウィンドウの短辺の 60% 程度に縮めて表示する。null なら描画しない。
+    String? transparentCenterImagePath,
+
+    /// 中央画像ファイルの更新時刻（`millisecondsSinceEpoch`）。同じパスに
+    /// 上書き保存しても state の equality が壊れず Image widget が再
+    /// リゾルブされない問題を回避するための「変化のシグナル」として持つ。
+    /// path と同時に必ずセットする。null は「画像なし」と等価。
+    int? transparentCenterImageMtime,
   }) = _AppearanceSettings;
 
   /// 既定値（透過 + 不透明度 0.8）。

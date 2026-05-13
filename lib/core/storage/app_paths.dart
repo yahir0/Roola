@@ -35,6 +35,10 @@ class AppPaths {
   /// 背景画像の保存先。
   File get backgroundImageFile => File('${root.path}/background.png');
 
+  /// 透過モード時の中央画像の保存先。
+  File get transparentCenterImageFile =>
+      File('${root.path}/transparent_center.png');
+
   /// ディレクトリが存在しない場合に作る（再帰的）。
   Future<void> ensureDirectories() async {
     if (!root.existsSync()) {

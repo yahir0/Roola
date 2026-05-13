@@ -87,11 +87,19 @@ class _Body extends ConsumerWidget {
             },
           ),
           const SizedBox(height: 16),
-          if (settings.mode == AppearanceMode.transparent)
+          if (settings.mode == AppearanceMode.transparent) ...[
             _OpacitySlider(
               value: settings.transparencyOpacity,
               onChanged: notifier.setTransparencyOpacity,
             ),
+            const SizedBox(height: 16),
+            _CenterImagePicker(
+              imagePath: settings.transparentCenterImagePath,
+              onPick: () =>
+                  _pickAndSaveCenterImage(context, ref, notifier),
+              onClear: () => notifier.setTransparentCenterImagePath(null),
+            ),
+          ],
           if (settings.mode == AppearanceMode.solid)
             _ColorPicker(
               selectedColor: settings.solidColor,
@@ -120,7 +128,30 @@ class _Body extends ConsumerWidget {
     final paths = ref.read(appPathsProvider);
     final dest = paths.backgroundImageFile;
     await File(src).copy(dest.path);
+    // 同じパスに上書き保存しただけでは Flutter の ImageCache が
+    // 古いバイト列を返し続け、再起動するまで描画が更新されない。
+    // 該当パスの FileImage を cache から落として強制再読み込みする。
+    await FileImage(dest).evict();
     await notifier.setImagePath(dest.path);
+  }
+
+  Future<void> _pickAndSaveCenterImage(
+    BuildContext context,
+    WidgetRef ref,
+    AppearanceSettingsNotifier notifier,
+  ) async {
+    final result = await FilePicker.pickFiles(type: FileType.image);
+    final src = result?.files.single.path;
+    if (src == null) {
+      return;
+    }
+    final paths = ref.read(appPathsProvider);
+    final dest = paths.transparentCenterImageFile;
+    await File(src).copy(dest.path);
+    // 上書き保存後のキャッシュ立て直し。背景画像と同じ理由（詳細は
+    // `_pickAndSaveImage` のコメント参照）。
+    await FileImage(dest).evict();
+    await notifier.setTransparentCenterImagePath(dest.path);
   }
 }
 
@@ -198,7 +229,8 @@ class _ImagePicker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hasImage = imagePath != null && File(imagePath!).existsSync();
+    final file = imagePath != null ? File(imagePath!) : null;
+    final hasImage = file != null && file.existsSync();
     return Row(
       children: [
         Container(
@@ -210,7 +242,12 @@ class _ImagePicker extends StatelessWidget {
           ),
           clipBehavior: Clip.antiAlias,
           child: hasImage
-              ? Image.file(File(imagePath!), fit: BoxFit.cover)
+              ? Image.file(
+                  file,
+                  // 同パス上書きで Image が再リゾルブされない問題対策
+                  key: ValueKey(file.lastModifiedSync()),
+                  fit: BoxFit.cover,
+                )
               : const Icon(Icons.image_outlined, size: 32),
         ),
         const SizedBox(width: 16),
@@ -218,6 +255,78 @@ class _ImagePicker extends StatelessWidget {
           icon: const Icon(Icons.upload_file),
           label: const Text('画像を選択'),
           onPressed: onPick,
+        ),
+      ],
+    );
+  }
+}
+
+/// 透過モード時に中央へ重ねる画像のピッカー。`_ImagePicker` と似た形だが、
+/// 「クリア」操作を持つ点と、見出しテキストを追加する点が異なる。
+class _CenterImagePicker extends StatelessWidget {
+  const _CenterImagePicker({
+    required this.imagePath,
+    required this.onPick,
+    required this.onClear,
+  });
+
+  final String? imagePath;
+  final VoidCallback onPick;
+  final VoidCallback onClear;
+
+  @override
+  Widget build(BuildContext context) {
+    final file = imagePath != null ? File(imagePath!) : null;
+    final hasImage = file != null && file.existsSync();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('中央画像', style: Theme.of(context).textTheme.bodyMedium),
+        const SizedBox(height: 4),
+        Text(
+          'ウィンドウの中央に重ねて表示します（短辺の 60% 程度のサイズ）。',
+          style: Theme.of(context).textTheme.bodySmall,
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Container(
+              width: 96,
+              height: 96,
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                shape: BoxShape.circle,
+              ),
+              clipBehavior: Clip.antiAlias,
+              child: hasImage
+                  ? Image.file(
+                      file,
+                      // 同パス上書きで Image が再リゾルブされない問題対策
+                      key: ValueKey(file.lastModifiedSync()),
+                      fit: BoxFit.cover,
+                    )
+                  : const Icon(Icons.image_outlined, size: 32),
+            ),
+            const SizedBox(width: 16),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                FilledButton.icon(
+                  icon: const Icon(Icons.upload_file),
+                  label: const Text('画像を選択'),
+                  onPressed: onPick,
+                ),
+                if (hasImage) ...[
+                  const SizedBox(height: 8),
+                  TextButton.icon(
+                    icon: const Icon(Icons.clear),
+                    label: const Text('クリア'),
+                    onPressed: onClear,
+                  ),
+                ],
+              ],
+            ),
+          ],
         ),
       ],
     );

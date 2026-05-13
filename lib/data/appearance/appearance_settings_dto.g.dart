@@ -13,6 +13,9 @@ AppearanceSettingsDto _$AppearanceSettingsDtoFromJson(
   solidColor: (json['solidColor'] as num?)?.toInt(),
   imagePath: json['imagePath'] as String?,
   transparencyOpacity: (json['transparencyOpacity'] as num?)?.toDouble(),
+  transparentCenterImagePath: json['transparentCenterImagePath'] as String?,
+  transparentCenterImageMtime: (json['transparentCenterImageMtime'] as num?)
+      ?.toInt(),
 );
 
 Map<String, dynamic> _$AppearanceSettingsDtoToJson(
@@ -22,4 +25,6 @@ Map<String, dynamic> _$AppearanceSettingsDtoToJson(
   'solidColor': instance.solidColor,
   'imagePath': instance.imagePath,
   'transparencyOpacity': instance.transparencyOpacity,
+  'transparentCenterImagePath': instance.transparentCenterImagePath,
+  'transparentCenterImageMtime': instance.transparentCenterImageMtime,
 };
