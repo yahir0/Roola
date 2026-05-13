@@ -1,14 +1,14 @@
 import 'dart:io';
 
-import 'package:claude_skills_launcher/core/system/explorer_file_ops.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:roola/core/system/explorer_file_ops.dart';
 
 void main() {
   late Directory tempDir;
   const ops = ExplorerFileOps();
 
   setUp(() async {
-    tempDir = await Directory.systemTemp.createTemp('cskl_fileops_');
+    tempDir = await Directory.systemTemp.createTemp('roola_fileops_');
   });
 
   tearDown(() async {

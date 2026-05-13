@@ -1,6 +1,6 @@
-import 'package:claude_skills_launcher/data/skill_runner/skill_run_state.dart';
-import 'package:claude_skills_launcher/ui/common/pulsing_icon.dart';
 import 'package:flutter/material.dart';
+import 'package:roola/data/skill_runner/skill_run_state.dart';
+import 'package:roola/ui/common/pulsing_icon.dart';
 
 /// 状態に応じたアイコン形状と色のペア。`Chip.avatar` の `Icon` や、
 /// バッジで描画する小アイコンの基礎情報として複数のフィーチャーから参照する。

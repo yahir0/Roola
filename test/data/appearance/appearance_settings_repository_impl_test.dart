@@ -1,16 +1,16 @@
 import 'dart:io';
 
-import 'package:claude_skills_launcher/core/storage/app_paths.dart';
-import 'package:claude_skills_launcher/data/appearance/appearance_settings.dart';
-import 'package:claude_skills_launcher/data/appearance/appearance_settings_repository_impl.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:roola/core/storage/app_paths.dart';
+import 'package:roola/data/appearance/appearance_settings.dart';
+import 'package:roola/data/appearance/appearance_settings_repository_impl.dart';
 
 void main() {
   late Directory tempDir;
   late AppearanceSettingsRepositoryImpl repo;
 
   setUp(() async {
-    tempDir = await Directory.systemTemp.createTemp('cskl_app_');
+    tempDir = await Directory.systemTemp.createTemp('roola_app_');
     repo = AppearanceSettingsRepositoryImpl(paths: AppPaths(root: tempDir));
   });
 

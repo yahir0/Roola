@@ -1,16 +1,16 @@
 import 'dart:io';
 
-import 'package:claude_skills_launcher/core/storage/app_paths.dart';
-import 'package:claude_skills_launcher/data/repo_explorer/explorer_settings.dart';
-import 'package:claude_skills_launcher/data/repo_explorer/explorer_settings_repository_impl.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:roola/core/storage/app_paths.dart';
+import 'package:roola/data/repo_explorer/explorer_settings.dart';
+import 'package:roola/data/repo_explorer/explorer_settings_repository_impl.dart';
 
 void main() {
   late Directory tempDir;
   late ExplorerSettingsRepositoryImpl repo;
 
   setUp(() async {
-    tempDir = await Directory.systemTemp.createTemp('cskl_explorer_');
+    tempDir = await Directory.systemTemp.createTemp('roola_explorer_');
     repo = ExplorerSettingsRepositoryImpl(paths: AppPaths(root: tempDir));
   });
 

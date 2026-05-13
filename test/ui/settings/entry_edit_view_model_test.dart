@@ -1,14 +1,14 @@
 import 'dart:io';
 
-import 'package:claude_skills_launcher/core/storage/app_paths.dart';
-import 'package:claude_skills_launcher/data/launcher_entry/launcher_entries_provider.dart';
-import 'package:claude_skills_launcher/data/launcher_entry/launcher_entry.dart';
-import 'package:claude_skills_launcher/data/launcher_entry/launcher_entry_repository.dart';
-import 'package:claude_skills_launcher/data/launcher_entry/launcher_entry_repository_impl.dart';
-import 'package:claude_skills_launcher/ui/settings/entry_edit_view_model.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:roola/core/storage/app_paths.dart';
+import 'package:roola/data/launcher_entry/launcher_entries_provider.dart';
+import 'package:roola/data/launcher_entry/launcher_entry.dart';
+import 'package:roola/data/launcher_entry/launcher_entry_repository.dart';
+import 'package:roola/data/launcher_entry/launcher_entry_repository_impl.dart';
+import 'package:roola/ui/settings/entry_edit_view_model.dart';
 
 class _MockLauncherEntryRepository extends Mock
     implements LauncherEntryRepository {}
@@ -25,7 +25,7 @@ void main() {
   late ProviderContainer container;
 
   setUp(() async {
-    tempDir = await Directory.systemTemp.createTemp('cskl_evm_');
+    tempDir = await Directory.systemTemp.createTemp('roola_evm_');
     repo = _MockLauncherEntryRepository();
     when(() => repo.loadAll()).thenAnswer((_) async => const []);
     when(() => repo.add(any())).thenAnswer((_) async {});
@@ -89,8 +89,8 @@ void main() {
   test(
     'setRepositoryPath refreshes availableSkills when path changes',
     () async {
-      final repoA = await Directory.systemTemp.createTemp('cskl_repo_a_');
-      final repoB = await Directory.systemTemp.createTemp('cskl_repo_b_');
+      final repoA = await Directory.systemTemp.createTemp('roola_repo_a_');
+      final repoB = await Directory.systemTemp.createTemp('roola_repo_b_');
       addTearDown(() async {
         if (repoA.existsSync()) await repoA.delete(recursive: true);
         if (repoB.existsSync()) await repoB.delete(recursive: true);

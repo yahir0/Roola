@@ -1,10 +1,10 @@
 import 'dart:io';
 
-import 'package:claude_skills_launcher/core/system/file_opener.dart';
-import 'package:claude_skills_launcher/ui/explorer/explorer_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:roola/core/system/file_opener.dart';
+import 'package:roola/ui/explorer/explorer_view_model.dart';
 
 /// エクスプローラ上部の編集可能なパスバー。
 ///

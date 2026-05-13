@@ -1,14 +1,14 @@
-import 'package:claude_skills_launcher/core/skill/skill_scanner.dart';
-import 'package:claude_skills_launcher/data/repo_explorer/explorer_node.dart';
-import 'package:claude_skills_launcher/ui/common/macos_window_app_bar.dart';
-import 'package:claude_skills_launcher/ui/explorer/explorer_node_tile.dart';
-import 'package:claude_skills_launcher/ui/explorer/explorer_path_bar.dart';
-import 'package:claude_skills_launcher/ui/explorer/explorer_sidebar.dart';
-import 'package:claude_skills_launcher/ui/explorer/explorer_view_model.dart';
-import 'package:claude_skills_launcher/ui/shell/app_tab_bar.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:roola/core/skill/skill_scanner.dart';
+import 'package:roola/data/repo_explorer/explorer_node.dart';
+import 'package:roola/ui/common/macos_window_app_bar.dart';
+import 'package:roola/ui/explorer/explorer_node_tile.dart';
+import 'package:roola/ui/explorer/explorer_path_bar.dart';
+import 'package:roola/ui/explorer/explorer_sidebar.dart';
+import 'package:roola/ui/explorer/explorer_view_model.dart';
+import 'package:roola/ui/shell/app_tab_bar.dart';
 
 /// エクスプローラ画面。
 ///

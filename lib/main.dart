@@ -1,8 +1,8 @@
-import 'package:claude_skills_launcher/app/app.dart';
-import 'package:claude_skills_launcher/core/storage/app_paths.dart';
-import 'package:claude_skills_launcher/data/launcher_entry/launcher_entry_repository_impl.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:roola/app/app.dart';
+import 'package:roola/core/storage/app_paths.dart';
+import 'package:roola/data/launcher_entry/launcher_entry_repository_impl.dart';
 import 'package:window_manager/window_manager.dart';
 
 Future<void> main() async {
@@ -14,7 +14,7 @@ Future<void> main() async {
     minimumSize: Size(640, 480),
     backgroundColor: Colors.transparent,
     titleBarStyle: TitleBarStyle.hidden,
-    title: 'Claude Skills Launcher',
+    title: 'Roola',
   );
   await windowManager.waitUntilReadyToShow(windowOptions, () async {
     await windowManager.setBackgroundColor(Colors.transparent);

@@ -1,8 +1,8 @@
 import 'dart:io';
 
-import 'package:claude_skills_launcher/data/skill_runner/pty_skill_runner.dart';
-import 'package:claude_skills_launcher/data/skill_runner/skill_run_state.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:roola/data/skill_runner/pty_skill_runner.dart';
+import 'package:roola/data/skill_runner/skill_run_state.dart';
 
 /// `PtySkillRunner` の状態遷移を、軽量コマンド（`true`/`false`）で検証する。
 ///
@@ -26,7 +26,7 @@ void main() {
   // （存在しないディレクトリ・存在しない実行ファイル）の状態遷移のみ確認する。
 
   test('failed when executable is missing', () async {
-    final dir = await Directory.systemTemp.createTemp('cskl_pty_');
+    final dir = await Directory.systemTemp.createTemp('roola_pty_');
     addTearDown(() => dir.delete(recursive: true));
 
     final runner = PtySkillRunner(
@@ -40,7 +40,7 @@ void main() {
   });
 
   test('terminal is available before start and survives cancel', () async {
-    final dir = await Directory.systemTemp.createTemp('cskl_pty_term_');
+    final dir = await Directory.systemTemp.createTemp('roola_pty_term_');
     addTearDown(() => dir.delete(recursive: true));
 
     final runner = PtySkillRunner(
@@ -70,7 +70,7 @@ void main() {
       // 紐づいてしまい、PTY 生成後の出力が xterm に流れなかった。
       // RunPage の useEffect は build 時点で subscribe するため、この順序を
       // ロックするテスト。
-      final dir = await Directory.systemTemp.createTemp('cskl_pty_out_');
+      final dir = await Directory.systemTemp.createTemp('roola_pty_out_');
       addTearDown(() => dir.delete(recursive: true));
 
       final runner = PtySkillRunner(
@@ -93,7 +93,7 @@ void main() {
     // skillName が空 = 「このディレクトリで Claude を開く」経路。
     // インスタンス化と dispose が問題なく通ることだけを確認する
     // （_buildArguments の検証は実機 / integration_test に委ねる）。
-    final dir = await Directory.systemTemp.createTemp('cskl_pty_adhoc_');
+    final dir = await Directory.systemTemp.createTemp('roola_pty_adhoc_');
     addTearDown(() => dir.delete(recursive: true));
     final runner = PtySkillRunner(repositoryPath: dir.path, skillName: '');
     expect(runner.skillName, '');

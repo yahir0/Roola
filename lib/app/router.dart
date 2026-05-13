@@ -1,13 +1,13 @@
-import 'package:claude_skills_launcher/ui/explorer/explorer_page.dart';
-import 'package:claude_skills_launcher/ui/home/home_page.dart';
-import 'package:claude_skills_launcher/ui/run/adhoc_run_view_model.dart';
-import 'package:claude_skills_launcher/ui/run/run_page.dart';
-import 'package:claude_skills_launcher/ui/settings/entry_edit_page.dart';
-import 'package:claude_skills_launcher/ui/settings/settings_page.dart';
-import 'package:claude_skills_launcher/ui/shell/app_shell_scope.dart';
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:roola/ui/explorer/explorer_page.dart';
+import 'package:roola/ui/home/home_page.dart';
+import 'package:roola/ui/run/adhoc_run_view_model.dart';
+import 'package:roola/ui/run/run_page.dart';
+import 'package:roola/ui/settings/entry_edit_page.dart';
+import 'package:roola/ui/settings/settings_page.dart';
+import 'package:roola/ui/shell/app_shell_scope.dart';
 
 part 'router.g.dart';
 

@@ -1,12 +1,12 @@
-import 'package:claude_skills_launcher/app/router.dart';
-import 'package:claude_skills_launcher/data/launcher_entry/launcher_entries_provider.dart';
-import 'package:claude_skills_launcher/data/skill_runner/skill_run_state.dart';
-import 'package:claude_skills_launcher/data/skill_session/active_sessions.dart';
-import 'package:claude_skills_launcher/ui/common/session_state_icon.dart';
-import 'package:claude_skills_launcher/ui/run/adhoc_run_view_model.dart';
-import 'package:claude_skills_launcher/ui/run/run_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:roola/app/router.dart';
+import 'package:roola/data/launcher_entry/launcher_entries_provider.dart';
+import 'package:roola/data/skill_runner/skill_run_state.dart';
+import 'package:roola/data/skill_session/active_sessions.dart';
+import 'package:roola/ui/common/session_state_icon.dart';
+import 'package:roola/ui/run/adhoc_run_view_model.dart';
+import 'package:roola/ui/run/run_view_model.dart';
 
 /// ホーム画面上部に実行中・終了済みセッションを横並びで表示するストリップ。
 ///

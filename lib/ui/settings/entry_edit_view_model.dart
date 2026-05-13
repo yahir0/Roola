@@ -1,12 +1,12 @@
 import 'dart:io';
 
-import 'package:claude_skills_launcher/core/image/icon_image_processor.dart';
-import 'package:claude_skills_launcher/core/skill/skill_scanner.dart';
-import 'package:claude_skills_launcher/data/launcher_entry/launcher_entries_provider.dart';
-import 'package:claude_skills_launcher/data/launcher_entry/launcher_entry.dart';
-import 'package:claude_skills_launcher/data/launcher_entry/launcher_entry_repository_impl.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:roola/core/image/icon_image_processor.dart';
+import 'package:roola/core/skill/skill_scanner.dart';
+import 'package:roola/data/launcher_entry/launcher_entries_provider.dart';
+import 'package:roola/data/launcher_entry/launcher_entry.dart';
+import 'package:roola/data/launcher_entry/launcher_entry_repository_impl.dart';
 import 'package:uuid/uuid.dart';
 
 part 'entry_edit_view_model.freezed.dart';

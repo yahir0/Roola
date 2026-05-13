@@ -1,13 +1,13 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:claude_skills_launcher/core/exceptions/app_exception.dart';
-import 'package:claude_skills_launcher/core/storage/app_paths.dart';
-import 'package:claude_skills_launcher/data/launcher_entry/launcher_entry_repository_impl.dart';
-import 'package:claude_skills_launcher/data/repo_explorer/explorer_settings.dart';
-import 'package:claude_skills_launcher/data/repo_explorer/explorer_settings_dto.dart';
-import 'package:claude_skills_launcher/data/repo_explorer/explorer_settings_repository.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:roola/core/exceptions/app_exception.dart';
+import 'package:roola/core/storage/app_paths.dart';
+import 'package:roola/data/launcher_entry/launcher_entry_repository_impl.dart';
+import 'package:roola/data/repo_explorer/explorer_settings.dart';
+import 'package:roola/data/repo_explorer/explorer_settings_dto.dart';
+import 'package:roola/data/repo_explorer/explorer_settings_repository.dart';
 
 /// `<appSupport>/repo_explorer_settings.json` を保存先とする実装。
 class ExplorerSettingsRepositoryImpl implements ExplorerSettingsRepository {

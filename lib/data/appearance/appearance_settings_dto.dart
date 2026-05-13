@@ -1,5 +1,5 @@
-import 'package:claude_skills_launcher/data/appearance/appearance_settings.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:roola/data/appearance/appearance_settings.dart';
 
 part 'appearance_settings_dto.g.dart';
 

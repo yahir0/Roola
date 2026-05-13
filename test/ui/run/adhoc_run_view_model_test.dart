@@ -1,17 +1,17 @@
 import 'dart:io';
 
-import 'package:claude_skills_launcher/data/skill_runner/skill_run_state.dart';
-import 'package:claude_skills_launcher/data/skill_session/active_sessions.dart';
-import 'package:claude_skills_launcher/ui/run/adhoc_run_view_model.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:roola/data/skill_runner/skill_run_state.dart';
+import 'package:roola/data/skill_session/active_sessions.dart';
+import 'package:roola/ui/run/adhoc_run_view_model.dart';
 
 void main() {
   late Directory tempDir;
   late ProviderContainer container;
 
   setUp(() async {
-    tempDir = await Directory.systemTemp.createTemp('cskl_adhoc_');
+    tempDir = await Directory.systemTemp.createTemp('roola_adhoc_');
     container = ProviderContainer();
     addTearDown(container.dispose);
   });

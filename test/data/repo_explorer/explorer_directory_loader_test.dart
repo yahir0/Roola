@@ -1,15 +1,15 @@
 import 'dart:io';
 
-import 'package:claude_skills_launcher/data/repo_explorer/explorer_directory_loader.dart';
-import 'package:claude_skills_launcher/data/repo_explorer/explorer_node.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:roola/data/repo_explorer/explorer_directory_loader.dart';
+import 'package:roola/data/repo_explorer/explorer_node.dart';
 
 void main() {
   late Directory tempDir;
   late ExplorerDirectoryLoader loader;
 
   setUp(() async {
-    tempDir = await Directory.systemTemp.createTemp('cskl_loader_');
+    tempDir = await Directory.systemTemp.createTemp('roola_loader_');
     loader = const ExplorerDirectoryLoader();
   });
 

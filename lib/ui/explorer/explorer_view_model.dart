@@ -1,10 +1,10 @@
 import 'dart:io';
 
-import 'package:claude_skills_launcher/data/repo_explorer/explorer_directory_loader.dart';
-import 'package:claude_skills_launcher/data/repo_explorer/explorer_node.dart';
-import 'package:claude_skills_launcher/data/repo_explorer/explorer_settings_repository_impl.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:roola/data/repo_explorer/explorer_directory_loader.dart';
+import 'package:roola/data/repo_explorer/explorer_node.dart';
+import 'package:roola/data/repo_explorer/explorer_settings_repository_impl.dart';
 
 part 'explorer_view_model.freezed.dart';
 part 'explorer_view_model.g.dart';

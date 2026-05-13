@@ -1,6 +1,6 @@
-import 'package:claude_skills_launcher/app/theme.dart';
-import 'package:claude_skills_launcher/ui/shell/app_shell_scope.dart';
 import 'package:flutter/material.dart';
+import 'package:roola/app/theme.dart';
+import 'package:roola/ui/shell/app_shell_scope.dart';
 
 /// Home / Explorer をシェルレベルで切り替える SegmentedButton。
 ///

@@ -1,10 +1,10 @@
-import 'package:claude_skills_launcher/data/launcher_entry/launcher_entry.dart';
-import 'package:claude_skills_launcher/data/launcher_entry/launcher_entry_repository.dart';
-import 'package:claude_skills_launcher/data/launcher_entry/launcher_entry_repository_impl.dart';
-import 'package:claude_skills_launcher/ui/home/home_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:roola/data/launcher_entry/launcher_entry.dart';
+import 'package:roola/data/launcher_entry/launcher_entry_repository.dart';
+import 'package:roola/data/launcher_entry/launcher_entry_repository_impl.dart';
+import 'package:roola/ui/home/home_page.dart';
 
 class _FakeLauncherEntryRepository implements LauncherEntryRepository {
   _FakeLauncherEntryRepository(this.initial);

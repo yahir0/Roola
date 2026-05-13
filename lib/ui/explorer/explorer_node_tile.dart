@@ -1,22 +1,22 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:claude_skills_launcher/app/router.dart';
-import 'package:claude_skills_launcher/core/system/explorer_file_ops.dart';
-import 'package:claude_skills_launcher/core/system/file_opener.dart';
-import 'package:claude_skills_launcher/core/system/trash_service.dart';
-import 'package:claude_skills_launcher/data/repo_explorer/explorer_node.dart';
-import 'package:claude_skills_launcher/data/repo_explorer/explorer_settings.dart';
-import 'package:claude_skills_launcher/data/repo_explorer/explorer_settings_repository_impl.dart';
-import 'package:claude_skills_launcher/data/skill_session/adhoc_run_args.dart';
-import 'package:claude_skills_launcher/ui/common/prompt_name_dialog.dart';
-import 'package:claude_skills_launcher/ui/explorer/explorer_clipboard_provider.dart';
-import 'package:claude_skills_launcher/ui/explorer/explorer_properties_dialog.dart';
-import 'package:claude_skills_launcher/ui/explorer/explorer_view_model.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:roola/app/router.dart';
+import 'package:roola/core/system/explorer_file_ops.dart';
+import 'package:roola/core/system/file_opener.dart';
+import 'package:roola/core/system/trash_service.dart';
+import 'package:roola/data/repo_explorer/explorer_node.dart';
+import 'package:roola/data/repo_explorer/explorer_settings.dart';
+import 'package:roola/data/repo_explorer/explorer_settings_repository_impl.dart';
+import 'package:roola/data/skill_session/adhoc_run_args.dart';
+import 'package:roola/ui/common/prompt_name_dialog.dart';
+import 'package:roola/ui/explorer/explorer_clipboard_provider.dart';
+import 'package:roola/ui/explorer/explorer_properties_dialog.dart';
+import 'package:roola/ui/explorer/explorer_view_model.dart';
 import 'package:uuid/uuid.dart';
 
 const _uuid = Uuid();

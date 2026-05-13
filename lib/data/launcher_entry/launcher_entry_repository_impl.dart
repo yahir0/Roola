@@ -2,12 +2,12 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:claude_skills_launcher/core/exceptions/app_exception.dart';
-import 'package:claude_skills_launcher/core/storage/app_paths.dart';
-import 'package:claude_skills_launcher/data/launcher_entry/launcher_entry.dart';
-import 'package:claude_skills_launcher/data/launcher_entry/launcher_entry_dto.dart';
-import 'package:claude_skills_launcher/data/launcher_entry/launcher_entry_repository.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:roola/core/exceptions/app_exception.dart';
+import 'package:roola/core/storage/app_paths.dart';
+import 'package:roola/data/launcher_entry/launcher_entry.dart';
+import 'package:roola/data/launcher_entry/launcher_entry_dto.dart';
+import 'package:roola/data/launcher_entry/launcher_entry_repository.dart';
 
 /// `<appSupport>/launcher_entries.json` を保存先とする実装。
 ///

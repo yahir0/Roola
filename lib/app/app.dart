@@ -1,13 +1,13 @@
 import 'dart:io';
 
-import 'package:claude_skills_launcher/app/router.dart';
-import 'package:claude_skills_launcher/app/theme.dart';
-import 'package:claude_skills_launcher/app/window_close_guard.dart';
-import 'package:claude_skills_launcher/data/appearance/appearance_settings.dart';
-import 'package:claude_skills_launcher/data/appearance/appearance_settings_repository_impl.dart';
-import 'package:claude_skills_launcher/ui/common/mouse_navigation_listener.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:roola/app/router.dart';
+import 'package:roola/app/theme.dart';
+import 'package:roola/app/window_close_guard.dart';
+import 'package:roola/data/appearance/appearance_settings.dart';
+import 'package:roola/data/appearance/appearance_settings_repository_impl.dart';
+import 'package:roola/ui/common/mouse_navigation_listener.dart';
 
 /// アプリ最上位の Widget。
 ///
@@ -25,7 +25,7 @@ class App extends ConsumerWidget {
         ref.watch(appearanceSettingsProvider).value ??
         AppearanceSettings.defaults();
     return MaterialApp.router(
-      title: 'Claude Skills Launcher',
+      title: 'Roola',
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),
       themeMode: ThemeMode.dark,

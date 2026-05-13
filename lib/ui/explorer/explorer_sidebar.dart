@@ -1,11 +1,11 @@
-import 'package:claude_skills_launcher/data/repo_explorer/explorer_settings.dart';
-import 'package:claude_skills_launcher/data/repo_explorer/explorer_settings_repository_impl.dart';
-import 'package:claude_skills_launcher/ui/common/prompt_name_dialog.dart';
-import 'package:claude_skills_launcher/ui/explorer/explorer_node_tile.dart'
-    show moveInto;
-import 'package:claude_skills_launcher/ui/explorer/explorer_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:roola/data/repo_explorer/explorer_settings.dart';
+import 'package:roola/data/repo_explorer/explorer_settings_repository_impl.dart';
+import 'package:roola/ui/common/prompt_name_dialog.dart';
+import 'package:roola/ui/explorer/explorer_node_tile.dart'
+    show moveInto;
+import 'package:roola/ui/explorer/explorer_view_model.dart';
 import 'package:uuid/uuid.dart';
 
 const _uuid = Uuid();

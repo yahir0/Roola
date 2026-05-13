@@ -1,5 +1,5 @@
-import 'package:claude_skills_launcher/data/repo_explorer/explorer_settings.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:roola/data/repo_explorer/explorer_settings.dart';
 
 part 'explorer_settings_dto.g.dart';
 

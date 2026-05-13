@@ -1,7 +1,7 @@
-import 'package:claude_skills_launcher/data/skill_session/active_sessions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:roola/data/skill_session/active_sessions.dart';
 import 'package:window_manager/window_manager.dart';
 
 /// ウィンドウ close 操作を捕まえ、アクティブセッションがあれば確認ダイアログを

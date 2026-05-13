@@ -1,6 +1,6 @@
-import 'package:claude_skills_launcher/data/skill_runner/skill_run_state.dart';
-import 'package:claude_skills_launcher/data/skill_session/adhoc_run_args.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:roola/data/skill_runner/skill_run_state.dart';
+import 'package:roola/data/skill_session/adhoc_run_args.dart';
 
 part 'active_sessions.g.dart';
 

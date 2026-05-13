@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:typed_data';
 
-import 'package:claude_skills_launcher/data/skill_runner/skill_run_state.dart';
+import 'package:roola/data/skill_runner/skill_run_state.dart';
 import 'package:xterm/xterm.dart';
 
 /// PTY 上で `claude` プロセスを起動し、Skill を実行するための抽象。

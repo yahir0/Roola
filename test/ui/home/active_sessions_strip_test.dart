@@ -1,18 +1,18 @@
 import 'dart:io';
 
-import 'package:claude_skills_launcher/core/storage/app_paths.dart';
-import 'package:claude_skills_launcher/data/launcher_entry/launcher_entries_provider.dart';
-import 'package:claude_skills_launcher/data/launcher_entry/launcher_entry.dart';
-import 'package:claude_skills_launcher/data/launcher_entry/launcher_entry_repository.dart';
-import 'package:claude_skills_launcher/data/launcher_entry/launcher_entry_repository_impl.dart';
-import 'package:claude_skills_launcher/data/skill_runner/skill_run_state.dart';
-import 'package:claude_skills_launcher/data/skill_session/active_sessions.dart';
-import 'package:claude_skills_launcher/ui/home/active_sessions_strip.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:roola/core/storage/app_paths.dart';
+import 'package:roola/data/launcher_entry/launcher_entries_provider.dart';
+import 'package:roola/data/launcher_entry/launcher_entry.dart';
+import 'package:roola/data/launcher_entry/launcher_entry_repository.dart';
+import 'package:roola/data/launcher_entry/launcher_entry_repository_impl.dart';
+import 'package:roola/data/skill_runner/skill_run_state.dart';
+import 'package:roola/data/skill_session/active_sessions.dart';
+import 'package:roola/ui/home/active_sessions_strip.dart';
 
 class _MockRepo extends Mock implements LauncherEntryRepository {}
 
@@ -21,7 +21,7 @@ void main() {
   late _MockRepo repo;
 
   setUp(() async {
-    tempDir = await Directory.systemTemp.createTemp('cskl_strip_');
+    tempDir = await Directory.systemTemp.createTemp('roola_strip_');
     repo = _MockRepo();
     when(() => repo.loadAll()).thenAnswer(
       (_) async => [

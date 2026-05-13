@@ -1,14 +1,14 @@
 import 'dart:io';
 
-import 'package:claude_skills_launcher/core/skill/skill_scanner.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:roola/core/skill/skill_scanner.dart';
 
 void main() {
   late Directory tempDir;
   const scanner = SkillScanner();
 
   setUp(() async {
-    tempDir = await Directory.systemTemp.createTemp('cskl_scanner_');
+    tempDir = await Directory.systemTemp.createTemp('roola_scanner_');
   });
 
   tearDown(() async {

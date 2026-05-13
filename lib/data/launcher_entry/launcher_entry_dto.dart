@@ -1,5 +1,5 @@
-import 'package:claude_skills_launcher/data/launcher_entry/launcher_entry.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:roola/data/launcher_entry/launcher_entry.dart';
 
 part 'launcher_entry_dto.g.dart';
 

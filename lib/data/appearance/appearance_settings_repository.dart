@@ -1,4 +1,4 @@
-import 'package:claude_skills_launcher/data/appearance/appearance_settings.dart';
+import 'package:roola/data/appearance/appearance_settings.dart';
 
 /// 外観設定の永続化抽象。
 abstract interface class AppearanceSettingsRepository {

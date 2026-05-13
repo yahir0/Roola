@@ -1,11 +1,11 @@
 import 'dart:io';
 
-import 'package:claude_skills_launcher/data/appearance/appearance_settings.dart';
-import 'package:claude_skills_launcher/data/appearance/appearance_settings_repository_impl.dart';
-import 'package:claude_skills_launcher/data/launcher_entry/launcher_entry_repository_impl.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:roola/data/appearance/appearance_settings.dart';
+import 'package:roola/data/appearance/appearance_settings_repository_impl.dart';
+import 'package:roola/data/launcher_entry/launcher_entry_repository_impl.dart';
 
 /// 設定画面に組み込む「外観」セクション。
 ///

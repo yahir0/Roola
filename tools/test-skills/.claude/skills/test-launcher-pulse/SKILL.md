@@ -1,11 +1,11 @@
 ---
 name: test-launcher-pulse
-description: Claude Skills Launcher の動作確認用に、約 1 分間ハートビートを出力するだけの無害なスキル。ファイル変更・ネットワーク呼び出し・Git 操作などの副作用は一切行わない。
+description: Roola の動作確認用に、約 1 分間ハートビートを出力するだけの無害なスキル。ファイル変更・ネットワーク呼び出し・Git 操作などの副作用は一切行わない。
 ---
 
-# Claude Skills Launcher 動作確認用スキル
+# Roola 動作確認用スキル
 
-これは Claude Skills Launcher 本体の動作確認専用スキルです。並行実行・
+これは Roola 本体の動作確認専用スキルです。並行実行・
 キャンセル・閉じる・確認ダイアログなどの UI 挙動を、本物の Skill を
 動かす副作用なしに検証するために使います。
 

@@ -1,12 +1,12 @@
 import 'dart:io';
 
-import 'package:claude_skills_launcher/data/repo_explorer/explorer_settings.dart';
-import 'package:claude_skills_launcher/data/repo_explorer/explorer_settings_repository_impl.dart';
-import 'package:claude_skills_launcher/ui/explorer/explorer_page.dart';
-import 'package:claude_skills_launcher/ui/explorer/explorer_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:roola/data/repo_explorer/explorer_settings.dart';
+import 'package:roola/data/repo_explorer/explorer_settings_repository_impl.dart';
+import 'package:roola/ui/explorer/explorer_page.dart';
+import 'package:roola/ui/explorer/explorer_view_model.dart';
 
 /// テスト用に「最初から rootPath を持つ ExplorerSettings」を返す Notifier。
 /// build() の非同期 I/O を回避し、テストの永久ループを防ぐ。
@@ -24,7 +24,7 @@ void main() {
   late Directory plain;
 
   setUp(() async {
-    tempDir = await Directory.systemTemp.createTemp('cskl_explorer_page_');
+    tempDir = await Directory.systemTemp.createTemp('roola_explorer_page_');
     repoA = Directory('${tempDir.path}/repo-a');
     await Directory(
       '${repoA.path}/.claude/skills/alpha',

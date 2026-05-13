@@ -1,4 +1,4 @@
-# Claude Skills Launcher — Project Guide
+# Roola — Project Guide
 
 Mac 向けの Claude Code Skills ランチャーアプリ（Flutter Desktop / macOS）。設定済みのリポジトリ + Skill の組み合わせをアイコンとして登録し、ワンクリックで対象ディレクトリで Skill 実行まで到達することを目的にする。
 

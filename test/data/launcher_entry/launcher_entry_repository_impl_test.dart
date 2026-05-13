@@ -1,16 +1,16 @@
 import 'dart:io';
 
-import 'package:claude_skills_launcher/core/storage/app_paths.dart';
-import 'package:claude_skills_launcher/data/launcher_entry/launcher_entry.dart';
-import 'package:claude_skills_launcher/data/launcher_entry/launcher_entry_repository_impl.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:roola/core/storage/app_paths.dart';
+import 'package:roola/data/launcher_entry/launcher_entry.dart';
+import 'package:roola/data/launcher_entry/launcher_entry_repository_impl.dart';
 
 void main() {
   late Directory tempDir;
   late LauncherEntryRepositoryImpl repo;
 
   setUp(() async {
-    tempDir = await Directory.systemTemp.createTemp('cskl_repo_');
+    tempDir = await Directory.systemTemp.createTemp('roola_repo_');
     repo = LauncherEntryRepositoryImpl(paths: AppPaths(root: tempDir));
   });
 

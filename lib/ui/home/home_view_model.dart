@@ -1,6 +1,6 @@
-import 'package:claude_skills_launcher/data/launcher_entry/launcher_entries_provider.dart';
-import 'package:claude_skills_launcher/data/launcher_entry/launcher_entry.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:roola/data/launcher_entry/launcher_entries_provider.dart';
+import 'package:roola/data/launcher_entry/launcher_entry.dart';
 
 /// ホーム画面 (`HomePage`) 用 ViewModel。
 ///

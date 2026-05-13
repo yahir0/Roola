@@ -1,11 +1,11 @@
 import 'dart:io';
 
-import 'package:claude_skills_launcher/ui/common/macos_window_app_bar.dart';
-import 'package:claude_skills_launcher/ui/settings/entry_edit_view_model.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:roola/ui/common/macos_window_app_bar.dart';
+import 'package:roola/ui/settings/entry_edit_view_model.dart';
 
 /// エントリ追加・編集画面。
 ///

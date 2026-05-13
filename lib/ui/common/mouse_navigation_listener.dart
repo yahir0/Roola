@@ -1,9 +1,9 @@
-import 'package:claude_skills_launcher/app/router.dart';
-import 'package:claude_skills_launcher/ui/explorer/explorer_view_model.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:roola/app/router.dart';
+import 'package:roola/ui/explorer/explorer_view_model.dart';
 
 /// マウスのサイドボタン（戻る / 進む）でアプリ内ナビゲーションを操作する Listener。
 ///

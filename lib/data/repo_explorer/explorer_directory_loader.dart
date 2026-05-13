@@ -1,7 +1,7 @@
 import 'dart:io';
 
-import 'package:claude_skills_launcher/core/skill/skill_scanner.dart';
-import 'package:claude_skills_launcher/data/repo_explorer/explorer_node.dart';
+import 'package:roola/core/skill/skill_scanner.dart';
+import 'package:roola/data/repo_explorer/explorer_node.dart';
 
 /// 指定ディレクトリ直下のディレクトリ・ファイルを列挙し、各ディレクトリで
 /// `.claude/skills/` 直下を `SkillScanner` で再利用してスキャンする loader。

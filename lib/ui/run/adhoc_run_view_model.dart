@@ -1,16 +1,16 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:claude_skills_launcher/data/launcher_entry/launcher_entry.dart';
-import 'package:claude_skills_launcher/data/skill_runner/pty_skill_runner.dart';
-import 'package:claude_skills_launcher/data/skill_runner/skill_run_state.dart';
-import 'package:claude_skills_launcher/data/skill_session/active_sessions.dart';
-import 'package:claude_skills_launcher/data/skill_session/adhoc_run_args.dart';
-import 'package:claude_skills_launcher/ui/run/run_view_model.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:roola/data/launcher_entry/launcher_entry.dart';
+import 'package:roola/data/skill_runner/pty_skill_runner.dart';
+import 'package:roola/data/skill_runner/skill_run_state.dart';
+import 'package:roola/data/skill_session/active_sessions.dart';
+import 'package:roola/data/skill_session/adhoc_run_args.dart';
+import 'package:roola/ui/run/run_view_model.dart';
 
-export 'package:claude_skills_launcher/data/skill_session/adhoc_run_args.dart';
+export 'package:roola/data/skill_session/adhoc_run_args.dart';
 
 part 'adhoc_run_view_model.g.dart';
 

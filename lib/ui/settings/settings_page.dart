@@ -1,13 +1,13 @@
 import 'dart:io';
 
-import 'package:claude_skills_launcher/app/router.dart';
-import 'package:claude_skills_launcher/core/health/claude_health_check.dart';
-import 'package:claude_skills_launcher/data/launcher_entry/launcher_entries_provider.dart';
-import 'package:claude_skills_launcher/data/launcher_entry/launcher_entry.dart';
-import 'package:claude_skills_launcher/ui/common/macos_window_app_bar.dart';
-import 'package:claude_skills_launcher/ui/settings/appearance_section.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:roola/app/router.dart';
+import 'package:roola/core/health/claude_health_check.dart';
+import 'package:roola/data/launcher_entry/launcher_entries_provider.dart';
+import 'package:roola/data/launcher_entry/launcher_entry.dart';
+import 'package:roola/ui/common/macos_window_app_bar.dart';
+import 'package:roola/ui/settings/appearance_section.dart';
 
 /// 設定画面。登録済みランチャーエントリの一覧を表示し、追加・編集・削除へ
 /// 導線を提供する。

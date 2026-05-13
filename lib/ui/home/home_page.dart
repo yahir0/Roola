@@ -1,17 +1,17 @@
 import 'dart:io';
 
-import 'package:claude_skills_launcher/app/router.dart';
-import 'package:claude_skills_launcher/data/launcher_entry/launcher_entries_provider.dart';
-import 'package:claude_skills_launcher/data/launcher_entry/launcher_entry.dart';
-import 'package:claude_skills_launcher/data/skill_runner/skill_run_state.dart';
-import 'package:claude_skills_launcher/data/skill_session/active_sessions.dart';
-import 'package:claude_skills_launcher/ui/common/macos_window_app_bar.dart';
-import 'package:claude_skills_launcher/ui/common/session_state_icon.dart';
-import 'package:claude_skills_launcher/ui/home/active_sessions_strip.dart';
-import 'package:claude_skills_launcher/ui/home/home_view_model.dart';
-import 'package:claude_skills_launcher/ui/shell/app_tab_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:roola/app/router.dart';
+import 'package:roola/data/launcher_entry/launcher_entries_provider.dart';
+import 'package:roola/data/launcher_entry/launcher_entry.dart';
+import 'package:roola/data/skill_runner/skill_run_state.dart';
+import 'package:roola/data/skill_session/active_sessions.dart';
+import 'package:roola/ui/common/macos_window_app_bar.dart';
+import 'package:roola/ui/common/session_state_icon.dart';
+import 'package:roola/ui/home/active_sessions_strip.dart';
+import 'package:roola/ui/home/home_view_model.dart';
+import 'package:roola/ui/shell/app_tab_bar.dart';
 
 /// ホーム画面。登録済みランチャーエントリのアイコングリッドを表示する。
 /// 上部に実行中・終了済みセッションの chip 列、各アイコン右上に状態バッジを

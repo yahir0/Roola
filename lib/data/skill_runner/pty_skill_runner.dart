@@ -3,9 +3,9 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:claude_skills_launcher/data/skill_runner/skill_run_state.dart';
-import 'package:claude_skills_launcher/data/skill_runner/skill_runner.dart';
 import 'package:flutter_pty/flutter_pty.dart';
+import 'package:roola/data/skill_runner/skill_run_state.dart';
+import 'package:roola/data/skill_runner/skill_runner.dart';
 import 'package:xterm/xterm.dart';
 
 /// `flutter_pty` の `Pty.start` で `claude` を擬似端末上に起動する実装。

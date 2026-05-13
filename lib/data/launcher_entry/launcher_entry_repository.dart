@@ -1,4 +1,4 @@
-import 'package:claude_skills_launcher/data/launcher_entry/launcher_entry.dart';
+import 'package:roola/data/launcher_entry/launcher_entry.dart';
 
 /// ランチャーエントリの永続化を抽象化する Repository。
 ///

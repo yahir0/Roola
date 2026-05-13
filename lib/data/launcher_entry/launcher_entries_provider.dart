@@ -1,7 +1,7 @@
-import 'package:claude_skills_launcher/data/launcher_entry/launcher_entry.dart';
-import 'package:claude_skills_launcher/data/launcher_entry/launcher_entry_repository.dart';
-import 'package:claude_skills_launcher/data/launcher_entry/launcher_entry_repository_impl.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:roola/data/launcher_entry/launcher_entry.dart';
+import 'package:roola/data/launcher_entry/launcher_entry_repository.dart';
+import 'package:roola/data/launcher_entry/launcher_entry_repository_impl.dart';
 
 /// アプリ全体で共有する「ランチャーエントリ一覧」の AsyncNotifier。
 ///

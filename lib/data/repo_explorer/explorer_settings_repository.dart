@@ -1,4 +1,4 @@
-import 'package:claude_skills_launcher/data/repo_explorer/explorer_settings.dart';
+import 'package:roola/data/repo_explorer/explorer_settings.dart';
 
 /// エクスプローラ画面の永続化対象状態の抽象。
 abstract interface class ExplorerSettingsRepository {

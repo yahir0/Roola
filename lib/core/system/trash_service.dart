@@ -10,7 +10,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 class TrashService {
   const TrashService();
 
-  static const _channel = MethodChannel('claude_skills_launcher/trash');
+  static const _channel = MethodChannel('roola/trash');
 
   /// [path] のファイル / ディレクトリをゴミ箱へ移動する。
   /// 成功時は無例外で完了。失敗時は [PlatformException] を投げる。

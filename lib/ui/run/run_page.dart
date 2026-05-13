@@ -1,11 +1,11 @@
-import 'package:claude_skills_launcher/data/skill_runner/skill_run_state.dart';
-import 'package:claude_skills_launcher/ui/common/macos_window_app_bar.dart';
-import 'package:claude_skills_launcher/ui/common/session_state_icon.dart';
-import 'package:claude_skills_launcher/ui/run/adhoc_run_view_model.dart';
-import 'package:claude_skills_launcher/ui/run/run_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:roola/data/skill_runner/skill_run_state.dart';
+import 'package:roola/ui/common/macos_window_app_bar.dart';
+import 'package:roola/ui/common/session_state_icon.dart';
+import 'package:roola/ui/run/adhoc_run_view_model.dart';
+import 'package:roola/ui/run/run_view_model.dart';
 import 'package:xterm/xterm.dart';
 
 /// xterm 用のロゴ準拠テーマ。`TerminalView` 側で `backgroundOpacity: 0`

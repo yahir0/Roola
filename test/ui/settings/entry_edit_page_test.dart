@@ -1,15 +1,15 @@
 import 'dart:io';
 
-import 'package:claude_skills_launcher/core/storage/app_paths.dart';
-import 'package:claude_skills_launcher/data/launcher_entry/launcher_entry.dart';
-import 'package:claude_skills_launcher/data/launcher_entry/launcher_entry_repository.dart';
-import 'package:claude_skills_launcher/data/launcher_entry/launcher_entry_repository_impl.dart';
-import 'package:claude_skills_launcher/ui/settings/entry_edit_page.dart';
-import 'package:claude_skills_launcher/ui/settings/entry_edit_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:roola/core/storage/app_paths.dart';
+import 'package:roola/data/launcher_entry/launcher_entry.dart';
+import 'package:roola/data/launcher_entry/launcher_entry_repository.dart';
+import 'package:roola/data/launcher_entry/launcher_entry_repository_impl.dart';
+import 'package:roola/ui/settings/entry_edit_page.dart';
+import 'package:roola/ui/settings/entry_edit_view_model.dart';
 
 class _MockLauncherEntryRepository extends Mock
     implements LauncherEntryRepository {}
@@ -33,9 +33,9 @@ void main() {
   }
 
   setUp(() async {
-    tempDir = await Directory.systemTemp.createTemp('cskl_eep_');
-    repoA = await Directory.systemTemp.createTemp('cskl_eep_a_');
-    repoB = await Directory.systemTemp.createTemp('cskl_eep_b_');
+    tempDir = await Directory.systemTemp.createTemp('roola_eep_');
+    repoA = await Directory.systemTemp.createTemp('roola_eep_a_');
+    repoB = await Directory.systemTemp.createTemp('roola_eep_b_');
     await seedSkill(repoA, 'alpha');
     await seedSkill(repoB, 'bravo');
 

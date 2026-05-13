@@ -20,11 +20,11 @@ class MainFlutterWindow: NSWindow {
 
     RegisterGeneratedPlugins(registry: flutterViewController)
 
-    // ゴミ箱への移動。Dart 側からは `claude_skills_launcher/trash` の
+    // ゴミ箱への移動。Dart 側からは `roola/trash` の
     // `moveToTrash` を呼ぶ。NSWorkspace 経由ではなく FileManager
     // .trashItem を使うことで、Finder の Cmd+Delete と同じ挙動になる。
     let trashChannel = FlutterMethodChannel(
-      name: "claude_skills_launcher/trash",
+      name: "roola/trash",
       binaryMessenger: flutterViewController.engine.binaryMessenger
     )
     trashChannel.setMethodCallHandler { call, result in
