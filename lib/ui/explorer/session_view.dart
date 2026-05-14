@@ -92,12 +92,17 @@ class SessionView extends ConsumerWidget {
           onClose: () {
             final adhocArgs = _adhocArgs;
             final entryId = _entryId;
+            // selection を先に切替えてからセッションを破棄する。逆順だと
+            // SessionView 自身が watch している RunViewModel /
+            // AdhocRunViewModel を invalidate 直後に再評価してしまい、
+            // build() が新しい runner を作り直して PTY が再起動する
+            // （「破棄したのに残っている」ように見える）。
+            onClosed?.call();
             if (adhocArgs != null) {
               terminateAdhocSession(ref, adhocArgs);
             } else if (entryId != null) {
               terminateSkillSession(ref, entryId);
             }
-            onClosed?.call();
           },
         ),
         const Divider(height: 1),

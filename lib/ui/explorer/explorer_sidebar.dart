@@ -17,6 +17,7 @@ import 'package:roola/ui/explorer/explorer_node_tile.dart'
     show decideDropOperation, performFileDrop;
 import 'package:roola/ui/explorer/explorer_selection.dart';
 import 'package:roola/ui/explorer/explorer_view_model.dart';
+import 'package:roola/ui/explorer/launcher_actions.dart';
 import 'package:roola/ui/run/adhoc_run_view_model.dart';
 import 'package:roola/ui/run/run_view_model.dart';
 import 'package:super_drag_and_drop/super_drag_and_drop.dart';
@@ -497,9 +498,10 @@ class _EmptyLauncherHint extends StatelessWidget {
   }
 }
 
-/// ランチャー登録エントリ 1 件のタイル。クリックで `runViewModelProvider`
-/// を起動して selection をそのセッションに切替える（body が PTY ターミナル
-/// に変わる）。
+/// ランチャー登録エントリ 1 件のタイル。クリックで `launchLauncherEntry`
+/// を呼ぶ。初回は永続セッション、すでに動いていれば連番付きの ad-hoc
+/// セッションが起動する。selection も合わせて切替わるので body が PTY
+/// ターミナルになる。
 class _LauncherTile extends ConsumerWidget {
   const _LauncherTile({required this.entry});
 
@@ -509,14 +511,7 @@ class _LauncherTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = Theme.of(context).colorScheme;
     return InkWell(
-      onTap: () {
-        // 先に runner を build しないと PTY が起動しない。`read` で 1 回
-        // 触れば build が走り、`ActiveSessions.register` が走る。
-        ref.read(runViewModelProvider(entry.id));
-        ref
-            .read(explorerSelectionProvider.notifier)
-            .selectEntrySession(entry.id);
-      },
+      onTap: () => launchLauncherEntry(ref, entry),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
         child: Row(
@@ -590,10 +585,29 @@ class _RunningTile extends ConsumerWidget {
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
               onPressed: () {
+                // 破棄対象が「いま body に表示されているセッション」と
+                // 同じ場合、先に selection をディレクトリに切替えて
+                // SessionView を unmount しないと、invalidate 直後の
+                // rebuild で provider が再評価されて新しい runner が
+                // build される（PTY が「破棄されない」ように見える）。
+                final selection = ref.read(explorerSelectionProvider);
+                final isCurrentlyViewed = switch (selection) {
+                  ExplorerSelectionEntrySession(:final entryId) =>
+                    entry != null && entryId == sessionId,
+                  ExplorerSelectionAdhocSession(:final args) =>
+                    adhocArgs != null && args.adhocId == adhocArgs.adhocId,
+                  _ => false,
+                };
+                if (isCurrentlyViewed) {
+                  final st = ref.read(explorerViewModelProvider);
+                  ref
+                      .read(explorerSelectionProvider.notifier)
+                      .selectDirectory(st.currentPath);
+                }
                 if (entry != null) {
                   terminateSkillSession(ref, sessionId);
-                } else {
-                  terminateAdhocSession(ref, adhocArgs!);
+                } else if (adhocArgs != null) {
+                  terminateAdhocSession(ref, adhocArgs);
                 }
               },
             ),

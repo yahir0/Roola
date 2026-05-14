@@ -8,7 +8,7 @@ import 'package:roola/data/launcher_entry/launcher_entry.dart';
 import 'package:roola/data/skill_runner/skill_run_state.dart';
 import 'package:roola/data/skill_session/active_sessions.dart';
 import 'package:roola/ui/common/session_state_icon.dart';
-import 'package:roola/ui/explorer/explorer_selection.dart';
+import 'package:roola/ui/explorer/launcher_actions.dart';
 
 /// AppBar の ⚡ popover で表示するランチャー一覧グリッド。
 ///
@@ -158,13 +158,11 @@ class _Tile extends ConsumerWidget {
     return InkWell(
       borderRadius: BorderRadius.circular(12),
       onTap: () {
-        // popover を閉じてから selection 更新。閉じる順序を逆にすると、
-        // popover の Navigator が pop 中の selection 変更で再評価され、
-        // 一瞬奇妙な見た目になることがある。
+        // popover を閉じてから起動する。閉じる順序を逆にすると、popover の
+        // Navigator が pop 中の selection 変更で再評価され、一瞬奇妙な
+        // 見た目になることがある。
         Navigator.of(context).maybePop();
-        ref
-            .read(explorerSelectionProvider.notifier)
-            .selectEntrySession(entry.id);
+        launchLauncherEntry(ref, entry);
       },
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
