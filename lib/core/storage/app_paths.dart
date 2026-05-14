@@ -29,9 +29,6 @@ class AppPaths {
   File get repoExplorerSettingsFile =>
       File('${root.path}/repo_explorer_settings.json');
 
-  /// アイコン画像保存ディレクトリ。
-  Directory get iconsDir => Directory('${root.path}/icons');
-
   /// 背景画像の保存先。
   File get backgroundImageFile => File('${root.path}/background.png');
 
@@ -43,9 +40,6 @@ class AppPaths {
   Future<void> ensureDirectories() async {
     if (!root.existsSync()) {
       await root.create(recursive: true);
-    }
-    if (!iconsDir.existsSync()) {
-      await iconsDir.create(recursive: true);
     }
   }
 }

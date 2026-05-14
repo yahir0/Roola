@@ -27,9 +27,6 @@ abstract class LauncherEntry with _$LauncherEntry {
     /// 起動時にやること。タイプ別の追加フィールドはここに含まれる。
     required LauncherAction action,
 
-    /// アイコン画像のローカル絶対パス。未設定なら null（既定アイコンを使う）。
-    String? iconPath,
-
     /// 所属フォルダ ID。null なら root（フォルダなし、ADR-0019）。
     String? folderId,
 

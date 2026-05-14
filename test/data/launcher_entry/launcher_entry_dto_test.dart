@@ -37,6 +37,9 @@ void main() {
     });
 
     test('新スキーマ（openHere）はそのまま読み込める', () {
+      // 旧 iconPath キーは ADR-0023 で削除済み。fromJson は json_serializable
+      // の既定で未知のキーを silently ignore するため、混じっていても
+      // エラーにならず、正常に読み込める。
       final json = <String, dynamic>{
         'id': 'e2',
         'displayName': 'Project Foo',
@@ -49,7 +52,6 @@ void main() {
       final entity = LauncherEntryDto.fromJson(json).toEntity();
 
       expect(entity.action, isA<OpenHereAction>());
-      expect(entity.iconPath, '/Users/me/Library/Roola/icons/e2.png');
     });
 
     test('新スキーマ（claudeSkill）はそのまま読み込める', () {
@@ -124,7 +126,8 @@ void main() {
         entity.action,
         const LauncherAction.claudeSkill(skillName: 'commit'),
       );
-      expect(entity.iconPath, '/path/to/icon.png');
+      // ADR-0023 で iconPath フィールドは削除済み。旧 JSON に含まれていても
+      // 黙って無視される。
     });
 
     test('不正な action.type 値の JSON は例外を投げる（repository 側で skip 処理）', () {

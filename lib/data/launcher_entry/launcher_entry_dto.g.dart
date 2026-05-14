@@ -13,7 +13,6 @@ LauncherEntryDto _$LauncherEntryDtoFromJson(Map<String, dynamic> json) =>
       workingDirectory: json['workingDirectory'] as String,
       action: LauncherAction.fromJson(json['action'] as Map<String, dynamic>),
       createdAt: json['createdAt'] as String,
-      iconPath: json['iconPath'] as String?,
       folderId: json['folderId'] as String?,
     );
 
@@ -23,7 +22,6 @@ Map<String, dynamic> _$LauncherEntryDtoToJson(LauncherEntryDto instance) =>
       'displayName': instance.displayName,
       'workingDirectory': instance.workingDirectory,
       'action': instance.action,
-      'iconPath': instance.iconPath,
       'folderId': instance.folderId,
       'createdAt': instance.createdAt,
     };

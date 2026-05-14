@@ -3,12 +3,10 @@ import 'dart:io';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:roola/core/health/claude_health_check.dart';
-import 'package:roola/core/image/icon_image_processor.dart';
 import 'package:roola/core/skill/skill_scanner.dart';
 import 'package:roola/data/launcher_entry/launcher_action.dart';
 import 'package:roola/data/launcher_entry/launcher_entries_provider.dart';
 import 'package:roola/data/launcher_entry/launcher_entry.dart';
-import 'package:roola/data/launcher_entry/launcher_entry_repository_impl.dart';
 import 'package:uuid/uuid.dart';
 
 part 'entry_edit_view_model.freezed.dart';
@@ -38,14 +36,6 @@ abstract class EntryEditState with _$EntryEditState {
 
     /// 「🤖 Claude Skill」セグメント用の編集中 Skill 名。
     @Default('') String editedSkillName,
-
-    /// 表示中のアイコンパス。新規選択中はソース画像の絶対パス、
-    /// 保存済みエントリ編集時は永続化先のパス。
-    String? iconPath,
-
-    /// 「保存ボタンを押したらこのソース画像をリサイズして保存する」用の
-    /// 一時的なソースパス。null なら既存 iconPath を維持する。
-    String? pendingIconSource,
 
     /// 現在の作業ディレクトリ配下で検出された Skill 名候補。
     /// `<dir>/.claude/skills/<name>/SKILL.md` の `<name>` を集めたもの。
@@ -105,7 +95,6 @@ class EntryEditViewModel extends _$EntryEditViewModel {
       editedCommand: command,
       editedKeepShellAfterExit: keepShell,
       editedSkillName: skillName,
-      iconPath: entry.iconPath,
       availableSkills: scanSkills
           ? _scanner.scan(entry.workingDirectory)
           : const [],
@@ -187,15 +176,6 @@ class EntryEditViewModel extends _$EntryEditViewModel {
     );
   }
 
-  /// アイコン画像のソースパスを設定する。実際の保存処理は `submit` で行う。
-  void setPendingIcon(String sourcePath) => state = state.copyWith(
-    pendingIconSource: sourcePath,
-    iconPath: sourcePath,
-  );
-
-  void clearIcon() =>
-      state = state.copyWith(iconPath: null, pendingIconSource: null);
-
   /// 入力値を検証し、エラーがあれば state に乗せて false を返す。
   /// action タイプ別に必須フィールドが異なる（ADR-0016 / spec:
   /// launcher-config「動作タイプの相互排他性」）。
@@ -226,7 +206,7 @@ class EntryEditViewModel extends _$EntryEditViewModel {
     return errors.isEmpty;
   }
 
-  /// 保存処理。バリデーション → アイコン保存 → リポジトリ書き込みの順。
+  /// 保存処理。バリデーション → リポジトリ書き込みの順。
   ///
   /// 成功時に true、検証エラー時に false を返す。保存される `action` は
   /// アクティブタイプの値で、他タイプ用の編集中値（editedXxx）は永続化
@@ -237,25 +217,13 @@ class EntryEditViewModel extends _$EntryEditViewModel {
     }
     state = state.copyWith(isSubmitting: true);
     try {
-      final paths = ref.read(appPathsProvider);
       final isNew = entryId == null;
       final id = isNew ? _uuid.v4() : entryId!;
-      String? finalIconPath = state.iconPath;
-      final pending = state.pendingIconSource;
-      if (pending != null) {
-        final destination = File('${paths.iconsDir.path}/$id.png');
-        await const IconImageProcessor().resizeAndSave(
-          File(pending),
-          destination,
-        );
-        finalIconPath = destination.path;
-      }
       final entry = LauncherEntry(
         id: id,
         displayName: state.displayName.trim(),
         workingDirectory: state.workingDirectory.trim(),
         action: _trimmedAction(state.action),
-        iconPath: finalIconPath,
         folderId: state.folderId,
         createdAt: isNew
             ? DateTime.now()
@@ -267,7 +235,7 @@ class EntryEditViewModel extends _$EntryEditViewModel {
       } else {
         await entries.updateEntry(entry);
       }
-      state = state.copyWith(isSubmitting: false, pendingIconSource: null);
+      state = state.copyWith(isSubmitting: false);
       return true;
     } finally {
       if (state.isSubmitting) {

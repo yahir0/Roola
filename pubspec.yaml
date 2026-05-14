@@ -43,7 +43,6 @@ dependencies:
   dio: ^5.9.2
   path_provider: ^2.1.5
   file_picker: ^11.0.2
-  image: ^4.8.0
   xterm: ^4.0.0
   flutter_pty: ^0.4.2
   window_manager: ^0.5.1

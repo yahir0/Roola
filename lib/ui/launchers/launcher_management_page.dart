@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:roola/app/router.dart';
@@ -360,7 +358,7 @@ class _EntryTile extends ConsumerWidget {
         child: SizedBox(
           width: 320,
           child: ListTile(
-            leading: _EntryIcon(iconPath: entry.iconPath),
+            leading: _ActionIcon(action: entry.action),
             title: Text(entry.displayName),
             subtitle: Text(_actionLabel(entry.action), maxLines: 1),
           ),
@@ -374,7 +372,7 @@ class _EntryTile extends ConsumerWidget {
 
   Widget _content(BuildContext context, WidgetRef ref) {
     return ListTile(
-      leading: _EntryIcon(iconPath: entry.iconPath),
+      leading: _ActionIcon(action: entry.action),
       title: Text(entry.displayName),
       subtitle: Text(
         '${entry.workingDirectory}\n${_actionLabel(entry.action)}',
@@ -426,31 +424,29 @@ String _actionLabel(LauncherAction action) => switch (action) {
   ClaudeSkillAction(:final skillName) => '動作: Claude Skill — $skillName',
 };
 
-class _EntryIcon extends StatelessWidget {
-  const _EntryIcon({required this.iconPath});
+/// 動作タイプ別の小さな leading アイコン（ADR-0023 で _EntryIcon を廃止）。
+class _ActionIcon extends StatelessWidget {
+  const _ActionIcon({required this.action});
 
-  final String? iconPath;
+  final LauncherAction action;
 
   @override
   Widget build(BuildContext context) {
-    final path = iconPath;
-    if (path != null && File(path).existsSync()) {
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(2),
-        child: Image.file(File(path), width: 48, height: 48, fit: BoxFit.cover),
-      );
-    }
+    final colors = Theme.of(context).colorScheme;
+    final icon = switch (action) {
+      OpenHereAction() => Icons.folder_open,
+      RunCommandAction() => Icons.bolt,
+      ClaudeSkillAction() => Icons.auto_awesome,
+    };
     return Container(
-      width: 48,
-      height: 48,
+      width: 40,
+      height: 40,
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.primaryContainer,
+        color: colors.surfaceContainerHigh,
+        border: Border.all(color: colors.outlineVariant),
         borderRadius: BorderRadius.circular(2),
       ),
-      child: Icon(
-        Icons.apps,
-        color: Theme.of(context).colorScheme.onPrimaryContainer,
-      ),
+      child: Icon(icon, size: 20, color: colors.onSurfaceVariant),
     );
   }
 }
