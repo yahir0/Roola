@@ -27,6 +27,7 @@
 | [0019](./0019-launcher-folders-single-level.md) | ランチャーをフォルダで 1 階層グループ化する | Accepted |
 | [0020](./0020-win11-flat-utility-theme.md) | UI を Win10/11 風フラット実用テーマに転換する | Accepted |
 | [0021](./0021-double-click-and-cc-copy.md) | エクスプローラの操作モデルをダブルクリック化 + CC でパスコピー | Accepted |
+| [0022](./0022-claude-features-optional.md) | Claude Code 関連機能を optional 化する | Accepted |
 
 ## フォーマット
 

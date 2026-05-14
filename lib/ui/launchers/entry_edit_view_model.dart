@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:roola/core/health/claude_health_check.dart';
 import 'package:roola/core/image/icon_image_processor.dart';
 import 'package:roola/core/skill/skill_scanner.dart';
 import 'package:roola/data/launcher_entry/launcher_action.dart';
@@ -70,6 +71,9 @@ class EntryEditViewModel extends _$EntryEditViewModel {
 
   @override
   EntryEditState build(String? entryId) {
+    // Claude 未導入時は Skill 候補スキャンを行わない（ADR-0022）。Skill タイプ
+    // 自体が UI でほぼ無効化されるので候補列を出す意味が無い。
+    final scanSkills = ref.read(claudeAvailableProvider);
     if (entryId == null) {
       return const EntryEditState(
         displayName: '',
@@ -102,7 +106,9 @@ class EntryEditViewModel extends _$EntryEditViewModel {
       editedKeepShellAfterExit: keepShell,
       editedSkillName: skillName,
       iconPath: entry.iconPath,
-      availableSkills: _scanner.scan(entry.workingDirectory),
+      availableSkills: scanSkills
+          ? _scanner.scan(entry.workingDirectory)
+          : const [],
       folderId: entry.folderId,
     );
   }
@@ -116,11 +122,14 @@ class EntryEditViewModel extends _$EntryEditViewModel {
     errors: _clearError('displayName'),
   );
 
-  void setWorkingDirectory(String value) => state = state.copyWith(
-    workingDirectory: value,
-    errors: _clearError('workingDirectory'),
-    availableSkills: _scanner.scan(value),
-  );
+  void setWorkingDirectory(String value) {
+    final scanSkills = ref.read(claudeAvailableProvider);
+    state = state.copyWith(
+      workingDirectory: value,
+      errors: _clearError('workingDirectory'),
+      availableSkills: scanSkills ? _scanner.scan(value) : const [],
+    );
+  }
 
   /// 動作タイプを切り替える。タイプ切替時は state.action を新タイプ +
   /// 一時値で再構築し、新タイプ用キーのエラーだけクリアする

@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:roola/app/router.dart';
+import 'package:roola/core/health/claude_health_check.dart';
 import 'package:roola/core/system/explorer_file_ops.dart';
 import 'package:roola/core/system/file_opener.dart';
 import 'package:roola/core/system/trash_service.dart';
@@ -44,17 +45,22 @@ Future<void> showExplorerContextMenu(
   // OS クリップボードの状態は非同期でしか取れないため、showMenu の前に
   // 一度問い合わせて「ペースト」項目の表示可否を確定させる。
   final hasClipboard = await ref.read(osClipboardServiceProvider).hasFile();
+  // Claude CLI 未導入時は Claude 起動 / Skill 系メニューを非表示にする
+  // （ADR-0022）。判定は cached な claudeHealthProvider を参照するだけで
+  // I/O は発生しない。
+  final claudeAvailable = ref.read(claudeAvailableProvider);
   if (!context.mounted) {
     return;
   }
   final items = <PopupMenuEntry<ExplorerNodeAction>>[
-    const PopupMenuItem(
-      value: _ActionOpenClaude(),
-      child: ListTile(
-        leading: Icon(Icons.terminal),
-        title: Text('このディレクトリで Claude Code を開く'),
+    if (claudeAvailable)
+      const PopupMenuItem(
+        value: _ActionOpenClaude(),
+        child: ListTile(
+          leading: Icon(Icons.terminal),
+          title: Text('このディレクトリで Claude Code を開く'),
+        ),
       ),
-    ),
     const PopupMenuItem(
       value: _ActionOpenTerminal(),
       child: ListTile(
@@ -133,7 +139,7 @@ Future<void> showExplorerContextMenu(
       child: ListTile(leading: Icon(Icons.info_outline), title: Text('プロパティ')),
     ),
   ];
-  if (node.skillNames.isNotEmpty) {
+  if (claudeAvailable && node.skillNames.isNotEmpty) {
     items.add(const PopupMenuDivider());
     for (final skill in node.skillNames) {
       items.add(
@@ -875,7 +881,9 @@ class _DirectoryTile extends HookConsumerWidget {
   }
 
   Widget _content(BuildContext context, WidgetRef ref, bool isDropHovering) {
-    final hasSkill = node.skillNames.isNotEmpty;
+    // Claude CLI 未導入時は Skill 検知関連の表示を完全に消す（ADR-0022）。
+    final claudeAvailable = ref.watch(claudeAvailableProvider);
+    final hasSkill = claudeAvailable && node.skillNames.isNotEmpty;
     final colors = Theme.of(context).colorScheme;
     final isSelected = ref.watch(explorerItemSelectionProvider) == node.path;
     return GestureDetector(

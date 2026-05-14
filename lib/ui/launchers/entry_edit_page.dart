@@ -4,6 +4,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:roola/core/health/claude_health_check.dart';
 import 'package:roola/data/launcher_entry/launcher_action.dart';
 import 'package:roola/data/launcher_entry/launcher_folders_provider.dart';
 import 'package:roola/ui/common/macos_window_app_bar.dart';
@@ -210,7 +211,11 @@ class _FolderSelector extends ConsumerWidget {
 }
 
 /// 動作タイプを選ぶセグメント。3 タイル横並び（📂 / ⚡ / 🤖）。
-class _ActionTypeSelector extends StatelessWidget {
+///
+/// Claude CLI 未導入時は「Claude Skill」セグメントを隠す（ADR-0022）。
+/// ただし、既に編集中エントリが ClaudeSkillAction の場合は残す——強制的に
+/// タイプ切替を要求するのは破壊的なので、状態維持と warning 表示で運用する。
+class _ActionTypeSelector extends ConsumerWidget {
   const _ActionTypeSelector({
     required this.selected,
     required this.onChanged,
@@ -220,37 +225,83 @@ class _ActionTypeSelector extends StatelessWidget {
   final ValueChanged<LauncherActionType> onChanged;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final claudeAvailable = ref.watch(claudeAvailableProvider);
+    final showClaudeSkill =
+        claudeAvailable || selected == LauncherActionType.claudeSkill;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('動作', style: Theme.of(context).textTheme.labelLarge),
         const SizedBox(height: 8),
+        if (!claudeAvailable) ...[
+          _ClaudeUnavailableNotice(currentIsClaudeSkill: showClaudeSkill),
+          const SizedBox(height: 8),
+        ],
         SizedBox(
           width: double.infinity,
           child: SegmentedButton<LauncherActionType>(
-            segments: const [
-              ButtonSegment(
+            segments: [
+              const ButtonSegment(
                 value: LauncherActionType.openHere,
                 icon: Icon(Icons.folder_open),
                 label: Text('開くだけ'),
               ),
-              ButtonSegment(
+              const ButtonSegment(
                 value: LauncherActionType.runCommand,
                 icon: Icon(Icons.bolt),
                 label: Text('コマンド実行'),
               ),
-              ButtonSegment(
-                value: LauncherActionType.claudeSkill,
-                icon: Icon(Icons.auto_awesome),
-                label: Text('Claude Skill'),
-              ),
+              if (showClaudeSkill)
+                const ButtonSegment(
+                  value: LauncherActionType.claudeSkill,
+                  icon: Icon(Icons.auto_awesome),
+                  label: Text('Claude Skill'),
+                ),
             ],
             selected: {selected},
             onSelectionChanged: (set) => onChanged(set.first),
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Claude CLI 未導入の警告バナー。Skill タイプの選択肢が消える / 既存エントリは
+/// 実行不能になることをユーザーに伝える（ADR-0022）。
+class _ClaudeUnavailableNotice extends StatelessWidget {
+  const _ClaudeUnavailableNotice({required this.currentIsClaudeSkill});
+
+  /// 現在の編集対象が ClaudeSkillAction かどうか。true のとき「保存しても
+  /// 動かない」旨を追記する。
+  final bool currentIsClaudeSkill;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+      decoration: BoxDecoration(
+        color: colors.surfaceContainerHigh,
+        border: Border.all(color: colors.outlineVariant),
+        borderRadius: BorderRadius.circular(2),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.info_outline, size: 18, color: colors.onSurfaceVariant),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              currentIsClaudeSkill
+                  ? 'Claude Code が未導入です。このエントリは Skill タイプですが、保存しても起動できません。「設定」画面のインストール手順を参照してください。'
+                  : 'Claude Code が未導入のため「Claude Skill」タイプは無効化されています。「設定」画面のインストール手順を参照してください。',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

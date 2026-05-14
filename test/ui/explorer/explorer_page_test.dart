@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:roola/core/health/claude_health_check.dart';
 import 'package:roola/data/repo_explorer/explorer_settings.dart';
 import 'package:roola/data/repo_explorer/explorer_settings_repository_impl.dart';
 import 'package:roola/ui/explorer/explorer_page.dart';
@@ -45,6 +46,16 @@ void main() {
   ProviderContainer makeContainerForRoot(String rootPath) {
     return ProviderContainer(
       overrides: [
+        // claudeHealthProvider は本物だと Process.run('claude', ...) を
+        // 発火して非同期完了待ちで pending timer が残るため、テストでは
+        // 同期的な ClaudeHealth で override しておく（Skill バッジが
+        // 出る挙動を見たいので available: true を渡す）。
+        claudeHealthProvider.overrideWith(
+          (ref) async => const ClaudeHealth(
+            available: true,
+            versionOutput: 'test',
+          ),
+        ),
         explorerSettingsProvider.overrideWith(
           () => _SeededExplorerSettings(ExplorerSettings(rootPath: rootPath)),
         ),
