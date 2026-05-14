@@ -1,115 +1,65 @@
 import 'dart:async';
-import 'dart:convert';
-import 'dart:developer' as developer;
-import 'dart:io';
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:roola/core/exceptions/app_exception.dart';
 import 'package:roola/core/storage/app_paths.dart';
+import 'package:roola/data/launcher_entry/launcher_catalog_store.dart';
 import 'package:roola/data/launcher_entry/launcher_entry.dart';
-import 'package:roola/data/launcher_entry/launcher_entry_dto.dart';
 import 'package:roola/data/launcher_entry/launcher_entry_repository.dart';
 
 /// `<appSupport>/launcher_entries.json` を保存先とする実装。
 ///
-/// JSON のスキーマは `{"entries": [LauncherEntryDto, ...]}` の単純形式。
-/// 書き込みは「上書き保存」で、配列差分更新は行わない（件数が少ない前提）。
+/// JSON のスキーマは `{"folders": [...], "entries": [...]}`（ADR-0019）。
+/// 旧スキーマ（`entries` のみ）も lazy migration で読み込める。書き込みは
+/// 必ず `LauncherCatalogStore` 経由で全体を上書きするため、`folders` 配列は
+/// 自動で温存される（フォルダ用 repository と相互干渉しない）。
 class LauncherEntryRepositoryImpl implements LauncherEntryRepository {
-  LauncherEntryRepositoryImpl({required this.paths});
+  LauncherEntryRepositoryImpl({required this.store});
 
-  final AppPaths paths;
+  final LauncherCatalogStore store;
 
   @override
   Future<List<LauncherEntry>> loadAll() async {
-    final file = paths.launcherEntriesFile;
-    if (!file.existsSync()) {
-      return const [];
-    }
-    try {
-      final raw = await file.readAsString();
-      if (raw.trim().isEmpty) {
-        return const [];
-      }
-      final decoded = jsonDecode(raw);
-      if (decoded is! Map<String, dynamic>) {
-        // 破損ファイル: 空として扱う（起動を妨げない）
-        return const [];
-      }
-      final entriesJson = decoded['entries'];
-      if (entriesJson is! List) {
-        return const [];
-      }
-      // 個別エントリの parse 失敗はそのエントリだけ読み飛ばす。
-      // 不正な action.type 値（spec: launcher-config / 動作タイプの相互排他性）
-      // や旧スキーマの欠落フィールドで 1 件壊れても、残り全件は復元できる。
-      final entries = <LauncherEntry>[];
-      for (final raw in entriesJson.whereType<Map<String, dynamic>>()) {
-        try {
-          entries.add(LauncherEntryDto.fromJson(raw).toEntity());
-        } on Object catch (e) {
-          developer.log(
-            'launcher entry parse failed, skipping: $e',
-            name: 'LauncherEntryRepository',
-            error: e,
-          );
-        }
-      }
-      entries.sort((a, b) => a.createdAt.compareTo(b.createdAt));
-      return entries;
-    } on FormatException {
-      // JSON として不正: 空として扱う
-      return const [];
-    } on FileSystemException catch (e) {
-      throw AppException.persistenceFailure(e.message);
-    }
+    final snapshot = await store.load();
+    return snapshot.entries;
   }
 
   @override
   Future<void> add(LauncherEntry entry) async {
-    final entries = await loadAll();
-    if (entries.any((e) => e.id == entry.id)) {
+    final snapshot = await store.load();
+    if (snapshot.entries.any((e) => e.id == entry.id)) {
       throw StateError('LauncherEntry already exists: ${entry.id}');
     }
-    await _saveAll([...entries, entry]);
+    await store.save(
+      LauncherCatalogSnapshot(
+        folders: snapshot.folders,
+        entries: [...snapshot.entries, entry],
+      ),
+    );
   }
 
   @override
   Future<void> update(LauncherEntry entry) async {
-    final entries = await loadAll();
-    final index = entries.indexWhere((e) => e.id == entry.id);
+    final snapshot = await store.load();
+    final index = snapshot.entries.indexWhere((e) => e.id == entry.id);
     if (index < 0) {
       throw StateError('LauncherEntry not found: ${entry.id}');
     }
-    final updated = [...entries]..[index] = entry;
-    await _saveAll(updated);
+    final updated = [...snapshot.entries]..[index] = entry;
+    await store.save(
+      LauncherCatalogSnapshot(folders: snapshot.folders, entries: updated),
+    );
   }
 
   @override
   Future<void> delete(String id) async {
-    final entries = await loadAll();
-    final filtered = entries.where((e) => e.id != id).toList();
-    if (filtered.length == entries.length) {
+    final snapshot = await store.load();
+    final filtered = snapshot.entries.where((e) => e.id != id).toList();
+    if (filtered.length == snapshot.entries.length) {
       return;
     }
-    await _saveAll(filtered);
-  }
-
-  Future<void> _saveAll(List<LauncherEntry> entries) async {
-    await paths.ensureDirectories();
-    final json = {
-      'entries': entries
-          .map(LauncherEntryDto.fromEntity)
-          .map((dto) => dto.toJson())
-          .toList(),
-    };
-    try {
-      await paths.launcherEntriesFile.writeAsString(
-        const JsonEncoder.withIndent('  ').convert(json),
-        flush: true,
-      );
-    } on FileSystemException catch (e) {
-      throw AppException.persistenceFailure(e.message);
-    }
+    await store.save(
+      LauncherCatalogSnapshot(folders: snapshot.folders, entries: filtered),
+    );
   }
 }
 
@@ -124,9 +74,16 @@ final appPathsProvider = Provider<AppPaths>(
   ),
 );
 
+/// `launcher_entries.json` 全体を扱う store の Provider。
+final launcherCatalogStoreProvider = Provider<LauncherCatalogStore>((ref) {
+  return LauncherCatalogStore(paths: ref.watch(appPathsProvider));
+});
+
 /// `LauncherEntryRepository` の Riverpod Provider。
 final launcherEntryRepositoryProvider = Provider<LauncherEntryRepository>((
   ref,
 ) {
-  return LauncherEntryRepositoryImpl(paths: ref.watch(appPathsProvider));
+  return LauncherEntryRepositoryImpl(
+    store: ref.watch(launcherCatalogStoreProvider),
+  );
 });

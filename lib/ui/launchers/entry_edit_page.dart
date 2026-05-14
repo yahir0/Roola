@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:roola/data/launcher_entry/launcher_action.dart';
+import 'package:roola/data/launcher_entry/launcher_folders_provider.dart';
 import 'package:roola/ui/common/macos_window_app_bar.dart';
 import 'package:roola/ui/launchers/entry_edit_view_model.dart';
 
@@ -112,6 +113,11 @@ class EntryEditPage extends HookConsumerWidget {
               ),
               onChanged: viewModel.setWorkingDirectory,
             ),
+            const SizedBox(height: 16),
+            _FolderSelector(
+              selectedFolderId: state.folderId,
+              onChanged: viewModel.setFolderId,
+            ),
             const SizedBox(height: 24),
             _ActionTypeSelector(
               selected: launcherActionTypeOf(state.action),
@@ -169,6 +175,37 @@ class EntryEditPage extends HookConsumerWidget {
     if (path != null) {
       viewModel.setPendingIcon(path);
     }
+  }
+}
+
+/// 所属フォルダを選ぶドロップダウン。ADR-0019 で追加。
+///
+/// 「フォルダなし（未分類）」 + 既存フォルダ一覧から 1 つ選ぶ。フォルダ自体の
+/// 追加・編集はここでは行わず、管理画面の「+ フォルダ」ボタン経由とする。
+class _FolderSelector extends ConsumerWidget {
+  const _FolderSelector({required this.selectedFolderId, required this.onChanged});
+
+  final String? selectedFolderId;
+  final ValueChanged<String?> onChanged;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final folders = ref.watch(launcherFoldersProvider).value ?? const [];
+    return DropdownButtonFormField<String?>(
+      initialValue: selectedFolderId,
+      decoration: const InputDecoration(
+        labelText: 'フォルダ',
+        border: OutlineInputBorder(),
+      ),
+      items: [
+        const DropdownMenuItem<String?>(
+          child: Text('フォルダなし（未分類）'),
+        ),
+        for (final f in folders)
+          DropdownMenuItem<String?>(value: f.id, child: Text(f.name)),
+      ],
+      onChanged: onChanged,
+    );
   }
 }
 

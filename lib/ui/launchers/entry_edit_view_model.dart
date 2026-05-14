@@ -49,6 +49,9 @@ abstract class EntryEditState with _$EntryEditState {
     /// 現在の作業ディレクトリ配下で検出された Skill 名候補。
     /// `<dir>/.claude/skills/<name>/SKILL.md` の `<name>` を集めたもの。
     @Default(<String>[]) List<String> availableSkills,
+
+    /// 所属させるフォルダ ID。null なら root（フォルダなし、ADR-0019）。
+    String? folderId,
     @Default(<String, String>{}) Map<String, String> errors,
     @Default(false) bool isSubmitting,
   }) = _EntryEditState;
@@ -100,8 +103,13 @@ class EntryEditViewModel extends _$EntryEditViewModel {
       editedSkillName: skillName,
       iconPath: entry.iconPath,
       availableSkills: _scanner.scan(entry.workingDirectory),
+      folderId: entry.folderId,
     );
   }
+
+  /// 所属フォルダを変更する。null は root（フォルダなし）。
+  void setFolderId(String? folderId) =>
+      state = state.copyWith(folderId: folderId);
 
   void setDisplayName(String value) => state = state.copyWith(
     displayName: value,
@@ -239,6 +247,7 @@ class EntryEditViewModel extends _$EntryEditViewModel {
         workingDirectory: state.workingDirectory.trim(),
         action: _trimmedAction(state.action),
         iconPath: finalIconPath,
+        folderId: state.folderId,
         createdAt: isNew
             ? DateTime.now()
             : _existingCreatedAt(id) ?? DateTime.now(),

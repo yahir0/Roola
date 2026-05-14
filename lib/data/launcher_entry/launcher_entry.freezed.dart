@@ -19,7 +19,8 @@ mixin _$LauncherEntry {
  String get displayName;/// PTY を起動する作業ディレクトリの絶対パス。
  String get workingDirectory;/// 起動時にやること。タイプ別の追加フィールドはここに含まれる。
  LauncherAction get action;/// アイコン画像のローカル絶対パス。未設定なら null（既定アイコンを使う）。
- String? get iconPath;/// エントリ作成日時。
+ String? get iconPath;/// 所属フォルダ ID。null なら root（フォルダなし、ADR-0019）。
+ String? get folderId;/// エントリ作成日時。
  DateTime get createdAt;
 /// Create a copy of LauncherEntry
 /// with the given fields replaced by the non-null parameter values.
@@ -31,16 +32,16 @@ $LauncherEntryCopyWith<LauncherEntry> get copyWith => _$LauncherEntryCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is LauncherEntry&&(identical(other.id, id) || other.id == id)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.workingDirectory, workingDirectory) || other.workingDirectory == workingDirectory)&&(identical(other.action, action) || other.action == action)&&(identical(other.iconPath, iconPath) || other.iconPath == iconPath)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is LauncherEntry&&(identical(other.id, id) || other.id == id)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.workingDirectory, workingDirectory) || other.workingDirectory == workingDirectory)&&(identical(other.action, action) || other.action == action)&&(identical(other.iconPath, iconPath) || other.iconPath == iconPath)&&(identical(other.folderId, folderId) || other.folderId == folderId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,displayName,workingDirectory,action,iconPath,createdAt);
+int get hashCode => Object.hash(runtimeType,id,displayName,workingDirectory,action,iconPath,folderId,createdAt);
 
 @override
 String toString() {
-  return 'LauncherEntry(id: $id, displayName: $displayName, workingDirectory: $workingDirectory, action: $action, iconPath: $iconPath, createdAt: $createdAt)';
+  return 'LauncherEntry(id: $id, displayName: $displayName, workingDirectory: $workingDirectory, action: $action, iconPath: $iconPath, folderId: $folderId, createdAt: $createdAt)';
 }
 
 
@@ -51,7 +52,7 @@ abstract mixin class $LauncherEntryCopyWith<$Res>  {
   factory $LauncherEntryCopyWith(LauncherEntry value, $Res Function(LauncherEntry) _then) = _$LauncherEntryCopyWithImpl;
 @useResult
 $Res call({
- String id, String displayName, String workingDirectory, LauncherAction action, String? iconPath, DateTime createdAt
+ String id, String displayName, String workingDirectory, LauncherAction action, String? iconPath, String? folderId, DateTime createdAt
 });
 
 
@@ -68,13 +69,14 @@ class _$LauncherEntryCopyWithImpl<$Res>
 
 /// Create a copy of LauncherEntry
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? displayName = null,Object? workingDirectory = null,Object? action = null,Object? iconPath = freezed,Object? createdAt = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? displayName = null,Object? workingDirectory = null,Object? action = null,Object? iconPath = freezed,Object? folderId = freezed,Object? createdAt = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,displayName: null == displayName ? _self.displayName : displayName // ignore: cast_nullable_to_non_nullable
 as String,workingDirectory: null == workingDirectory ? _self.workingDirectory : workingDirectory // ignore: cast_nullable_to_non_nullable
 as String,action: null == action ? _self.action : action // ignore: cast_nullable_to_non_nullable
 as LauncherAction,iconPath: freezed == iconPath ? _self.iconPath : iconPath // ignore: cast_nullable_to_non_nullable
+as String?,folderId: freezed == folderId ? _self.folderId : folderId // ignore: cast_nullable_to_non_nullable
 as String?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,
   ));
@@ -170,10 +172,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String displayName,  String workingDirectory,  LauncherAction action,  String? iconPath,  DateTime createdAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String displayName,  String workingDirectory,  LauncherAction action,  String? iconPath,  String? folderId,  DateTime createdAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _LauncherEntry() when $default != null:
-return $default(_that.id,_that.displayName,_that.workingDirectory,_that.action,_that.iconPath,_that.createdAt);case _:
+return $default(_that.id,_that.displayName,_that.workingDirectory,_that.action,_that.iconPath,_that.folderId,_that.createdAt);case _:
   return orElse();
 
 }
@@ -191,10 +193,10 @@ return $default(_that.id,_that.displayName,_that.workingDirectory,_that.action,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String displayName,  String workingDirectory,  LauncherAction action,  String? iconPath,  DateTime createdAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String displayName,  String workingDirectory,  LauncherAction action,  String? iconPath,  String? folderId,  DateTime createdAt)  $default,) {final _that = this;
 switch (_that) {
 case _LauncherEntry():
-return $default(_that.id,_that.displayName,_that.workingDirectory,_that.action,_that.iconPath,_that.createdAt);case _:
+return $default(_that.id,_that.displayName,_that.workingDirectory,_that.action,_that.iconPath,_that.folderId,_that.createdAt);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -211,10 +213,10 @@ return $default(_that.id,_that.displayName,_that.workingDirectory,_that.action,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String displayName,  String workingDirectory,  LauncherAction action,  String? iconPath,  DateTime createdAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String displayName,  String workingDirectory,  LauncherAction action,  String? iconPath,  String? folderId,  DateTime createdAt)?  $default,) {final _that = this;
 switch (_that) {
 case _LauncherEntry() when $default != null:
-return $default(_that.id,_that.displayName,_that.workingDirectory,_that.action,_that.iconPath,_that.createdAt);case _:
+return $default(_that.id,_that.displayName,_that.workingDirectory,_that.action,_that.iconPath,_that.folderId,_that.createdAt);case _:
   return null;
 
 }
@@ -226,7 +228,7 @@ return $default(_that.id,_that.displayName,_that.workingDirectory,_that.action,_
 
 
 class _LauncherEntry implements LauncherEntry {
-  const _LauncherEntry({required this.id, required this.displayName, required this.workingDirectory, required this.action, this.iconPath, required this.createdAt});
+  const _LauncherEntry({required this.id, required this.displayName, required this.workingDirectory, required this.action, this.iconPath, this.folderId, required this.createdAt});
   
 
 /// 一意 ID（uuid v4）。
@@ -239,6 +241,8 @@ class _LauncherEntry implements LauncherEntry {
 @override final  LauncherAction action;
 /// アイコン画像のローカル絶対パス。未設定なら null（既定アイコンを使う）。
 @override final  String? iconPath;
+/// 所属フォルダ ID。null なら root（フォルダなし、ADR-0019）。
+@override final  String? folderId;
 /// エントリ作成日時。
 @override final  DateTime createdAt;
 
@@ -252,16 +256,16 @@ _$LauncherEntryCopyWith<_LauncherEntry> get copyWith => __$LauncherEntryCopyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _LauncherEntry&&(identical(other.id, id) || other.id == id)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.workingDirectory, workingDirectory) || other.workingDirectory == workingDirectory)&&(identical(other.action, action) || other.action == action)&&(identical(other.iconPath, iconPath) || other.iconPath == iconPath)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _LauncherEntry&&(identical(other.id, id) || other.id == id)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.workingDirectory, workingDirectory) || other.workingDirectory == workingDirectory)&&(identical(other.action, action) || other.action == action)&&(identical(other.iconPath, iconPath) || other.iconPath == iconPath)&&(identical(other.folderId, folderId) || other.folderId == folderId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,displayName,workingDirectory,action,iconPath,createdAt);
+int get hashCode => Object.hash(runtimeType,id,displayName,workingDirectory,action,iconPath,folderId,createdAt);
 
 @override
 String toString() {
-  return 'LauncherEntry(id: $id, displayName: $displayName, workingDirectory: $workingDirectory, action: $action, iconPath: $iconPath, createdAt: $createdAt)';
+  return 'LauncherEntry(id: $id, displayName: $displayName, workingDirectory: $workingDirectory, action: $action, iconPath: $iconPath, folderId: $folderId, createdAt: $createdAt)';
 }
 
 
@@ -272,7 +276,7 @@ abstract mixin class _$LauncherEntryCopyWith<$Res> implements $LauncherEntryCopy
   factory _$LauncherEntryCopyWith(_LauncherEntry value, $Res Function(_LauncherEntry) _then) = __$LauncherEntryCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String displayName, String workingDirectory, LauncherAction action, String? iconPath, DateTime createdAt
+ String id, String displayName, String workingDirectory, LauncherAction action, String? iconPath, String? folderId, DateTime createdAt
 });
 
 
@@ -289,13 +293,14 @@ class __$LauncherEntryCopyWithImpl<$Res>
 
 /// Create a copy of LauncherEntry
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? displayName = null,Object? workingDirectory = null,Object? action = null,Object? iconPath = freezed,Object? createdAt = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? displayName = null,Object? workingDirectory = null,Object? action = null,Object? iconPath = freezed,Object? folderId = freezed,Object? createdAt = null,}) {
   return _then(_LauncherEntry(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,displayName: null == displayName ? _self.displayName : displayName // ignore: cast_nullable_to_non_nullable
 as String,workingDirectory: null == workingDirectory ? _self.workingDirectory : workingDirectory // ignore: cast_nullable_to_non_nullable
 as String,action: null == action ? _self.action : action // ignore: cast_nullable_to_non_nullable
 as LauncherAction,iconPath: freezed == iconPath ? _self.iconPath : iconPath // ignore: cast_nullable_to_non_nullable
+as String?,folderId: freezed == folderId ? _self.folderId : folderId // ignore: cast_nullable_to_non_nullable
 as String?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,
   ));

@@ -169,6 +169,39 @@ void main() {
       expect(decoded.containsKey('skillName'), isFalse);
     });
 
+    test('folderId 未設定の新スキーマ JSON は folderId=null として読める', () {
+      // ADR-0019 で folderId フィールドを追加したが、それ以前に書き出された
+      // 新スキーマ JSON (action あり / folderId なし) も lazy migrate する。
+      final json = <String, dynamic>{
+        'id': 'pre-folders-1',
+        'displayName': 'pre-folders entry',
+        'workingDirectory': '/work',
+        'action': {'type': 'openHere'},
+        'iconPath': null,
+        'createdAt': '2026-05-14T10:00:00.000',
+      };
+
+      final entity = LauncherEntryDto.fromJson(json).toEntity();
+
+      expect(entity.folderId, isNull);
+    });
+
+    test('folderId 付き JSON は folderId を保持する', () {
+      final json = <String, dynamic>{
+        'id': 'with-folder',
+        'displayName': 'in folder',
+        'workingDirectory': '/work',
+        'action': {'type': 'openHere'},
+        'iconPath': null,
+        'folderId': 'folder-abc',
+        'createdAt': '2026-05-14T10:00:00.000',
+      };
+
+      final entity = LauncherEntryDto.fromJson(json).toEntity();
+
+      expect(entity.folderId, 'folder-abc');
+    });
+
     test('round-trip: 旧スキーマ → 読み込み → 新スキーマで書き戻し → 同じ entity に復元できる', () {
       final oldJson = <String, dynamic>{
         'id': 'rt-2',

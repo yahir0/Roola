@@ -7,13 +7,15 @@ part 'launcher_entry_dto.g.dart';
 /// `LauncherEntry` の JSON 永続化用 DTO。
 ///
 /// 永続化スキーマは `{"id", "displayName", "workingDirectory", "action",
-/// "iconPath", "createdAt"}`。`action` は [LauncherAction] の sealed union を
-/// `type` キー付き JSON で表現する。`createdAt` は ISO 8601 文字列、
-/// `iconPath` は null 許容。
+/// "iconPath", "folderId", "createdAt"}`。`action` は [LauncherAction] の
+/// sealed union を `type` キー付き JSON で表現する。`createdAt` は ISO 8601
+/// 文字列、`iconPath` / `folderId` は null 許容（後者は ADR-0019 で追加）。
 ///
 /// 旧スキーマ（`repositoryPath` / `skillName` の 2 フィールド）も [fromJson]
 /// で受理する。`action` キーが無いか旧 key が存在する場合は新スキーマへ自動
-/// 変換する（ADR-0016 の lazy migration on read）。書き戻しは新スキーマ固定。
+/// 変換する（ADR-0016 の lazy migration on read）。`folderId` キーが無い古い
+/// 新スキーマ JSON は null として読み込む（ADR-0019）。書き戻しは新スキーマ
+/// 固定。
 @JsonSerializable()
 class LauncherEntryDto {
   LauncherEntryDto({
@@ -23,6 +25,7 @@ class LauncherEntryDto {
     required this.action,
     required this.createdAt,
     this.iconPath,
+    this.folderId,
   });
 
   factory LauncherEntryDto.fromJson(Map<String, dynamic> json) {
@@ -53,6 +56,7 @@ class LauncherEntryDto {
     workingDirectory: entity.workingDirectory,
     action: entity.action,
     iconPath: entity.iconPath,
+    folderId: entity.folderId,
     createdAt: entity.createdAt.toIso8601String(),
   );
 
@@ -61,6 +65,7 @@ class LauncherEntryDto {
   final String workingDirectory;
   final LauncherAction action;
   final String? iconPath;
+  final String? folderId;
   final String createdAt;
 
   Map<String, dynamic> toJson() => _$LauncherEntryDtoToJson(this);
@@ -71,6 +76,7 @@ class LauncherEntryDto {
     workingDirectory: workingDirectory,
     action: action,
     iconPath: iconPath,
+    folderId: folderId,
     createdAt: DateTime.parse(createdAt),
   );
 }

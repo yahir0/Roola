@@ -83,7 +83,9 @@ void main() {
       await tester.pumpAndSettle();
 
       // suffix の dropdown を開いて中身を確認
-      await tester.tap(find.byIcon(Icons.arrow_drop_down));
+      // フォルダドロップダウンと同じ arrow_drop_down を持つので、
+      // tooltip で Skill 候補ボタンに限定して tap する。
+      await tester.tap(find.byTooltip('候補から選択'));
       await tester.pumpAndSettle();
       expect(find.text('alpha'), findsOneWidget);
       expect(find.text('bravo'), findsNothing);
@@ -96,7 +98,9 @@ void main() {
       notifier.setWorkingDirectory(repoB.path);
       await tester.pumpAndSettle();
 
-      await tester.tap(find.byIcon(Icons.arrow_drop_down));
+      // フォルダドロップダウンと同じ arrow_drop_down を持つので、
+      // tooltip で Skill 候補ボタンに限定して tap する。
+      await tester.tap(find.byTooltip('候補から選択'));
       await tester.pumpAndSettle();
       expect(find.text('bravo'), findsOneWidget);
       expect(find.text('alpha'), findsNothing);

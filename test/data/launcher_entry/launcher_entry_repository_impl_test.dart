@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:roola/core/storage/app_paths.dart';
 import 'package:roola/data/launcher_entry/launcher_action.dart';
+import 'package:roola/data/launcher_entry/launcher_catalog_store.dart';
 import 'package:roola/data/launcher_entry/launcher_entry.dart';
 import 'package:roola/data/launcher_entry/launcher_entry_repository_impl.dart';
 
@@ -12,7 +13,9 @@ void main() {
 
   setUp(() async {
     tempDir = await Directory.systemTemp.createTemp('roola_repo_');
-    repo = LauncherEntryRepositoryImpl(paths: AppPaths(root: tempDir));
+    repo = LauncherEntryRepositoryImpl(
+      store: LauncherCatalogStore(paths: AppPaths(root: tempDir)),
+    );
   });
 
   tearDown(() async {

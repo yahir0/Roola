@@ -30,6 +30,9 @@ abstract class LauncherEntry with _$LauncherEntry {
     /// アイコン画像のローカル絶対パス。未設定なら null（既定アイコンを使う）。
     String? iconPath,
 
+    /// 所属フォルダ ID。null なら root（フォルダなし、ADR-0019）。
+    String? folderId,
+
     /// エントリ作成日時。
     required DateTime createdAt,
   }) = _LauncherEntry;

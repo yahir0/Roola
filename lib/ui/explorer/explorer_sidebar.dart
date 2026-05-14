@@ -7,6 +7,8 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:roola/app/router.dart';
 import 'package:roola/data/launcher_entry/launcher_entries_provider.dart';
 import 'package:roola/data/launcher_entry/launcher_entry.dart';
+import 'package:roola/data/launcher_entry/launcher_folder.dart';
+import 'package:roola/data/launcher_entry/launcher_folders_provider.dart';
 import 'package:roola/data/repo_explorer/explorer_settings.dart';
 import 'package:roola/data/repo_explorer/explorer_settings_repository_impl.dart';
 import 'package:roola/data/skill_session/active_sessions.dart';
@@ -37,7 +39,7 @@ const _uuid = Uuid();
 ///
 /// 各セクションは見出し + 中身の縦並びで、サイドバー全体は `ListView` で
 /// スクロール可能。
-class ExplorerSidebar extends ConsumerWidget {
+class ExplorerSidebar extends HookConsumerWidget {
   const ExplorerSidebar({required this.currentPath, super.key});
 
   static const double width = 220;
@@ -51,7 +53,27 @@ class ExplorerSidebar extends ConsumerWidget {
         ExplorerSettings.defaults();
     final favorites = settings.favorites;
     final entries = ref.watch(launcherEntriesProvider).value ?? const [];
+    final folders = ref.watch(launcherFoldersProvider).value ?? const [];
     final sessions = ref.watch(activeSessionsProvider);
+
+    // フォルダの展開状態をセッション内で保持する。デフォルトは全フォルダ
+    // 展開（フォルダを作ってもクリックしないと中身が見えない状態を避ける）。
+    // 永続化はしない: 再起動でリセットされても影響が小さく、永続化用の
+    // スキーマを増やすコストに見合わないため（ADR-0019）。
+    final expandedFolderIds = useState<Set<String>>(
+      {for (final f in folders) f.id},
+    );
+    // folders が追加されたら、新しい folder も初期 expanded として混ぜる。
+    useEffect(() {
+      final missing = folders
+          .where((f) => !expandedFolderIds.value.contains(f.id))
+          .map((f) => f.id)
+          .toSet();
+      if (missing.isNotEmpty) {
+        expandedFolderIds.value = {...expandedFolderIds.value, ...missing};
+      }
+      return null;
+    }, [folders]);
 
     // お気に入りに current path と同じパスがあると、場所セクション
     // （ホーム等）とお気に入り側が同時に highlight されて「二重選択」
@@ -97,10 +119,33 @@ class ExplorerSidebar extends ConsumerWidget {
 
           // ランチャー
           _LauncherHeader(),
-          if (entries.isEmpty)
+          if (entries.isEmpty && folders.isEmpty)
             const _EmptyLauncherHint()
-          else
-            for (final e in entries) _LauncherTile(entry: e),
+          else ...[
+            // 各フォルダ + その配下のエントリを縦に並べる。
+            for (final folder in folders) ...[
+              _LauncherFolderTile(
+                folder: folder,
+                expanded: expandedFolderIds.value.contains(folder.id),
+                onToggle: () {
+                  final next = Set<String>.from(expandedFolderIds.value);
+                  if (!next.add(folder.id)) {
+                    next.remove(folder.id);
+                  }
+                  expandedFolderIds.value = next;
+                },
+              ),
+              if (expandedFolderIds.value.contains(folder.id))
+                for (final e in entries.where((e) => e.folderId == folder.id))
+                  _LauncherTile(entry: e, indented: true),
+            ],
+            // フォルダがあるときは「未分類」mini-header を出して、フォルダ
+            // → root への drop 動線を確保する（ADR-0019 Phase 4）。
+            if (folders.isNotEmpty) const _LauncherRootDropZone(),
+            // フォルダに属さない (root) エントリを下に並べる。
+            for (final e in entries.where((e) => e.folderId == null))
+              _LauncherTile(entry: e),
+          ],
           const _LauncherManageTile(),
           const SizedBox(height: 8),
           const Divider(height: 1),
@@ -473,35 +518,92 @@ enum _FavoriteAction { rename, remove }
 
 // ----- ランチャーセクション -----
 
-class _LauncherHeader extends StatelessWidget {
+/// ランチャーセクションのヘッダ。「+」ボタンで新規エントリ追加、右クリックで
+/// 「新しいフォルダ」「新しいエントリ」のコンテキストメニューを出す（Phase 4）。
+class _LauncherHeader extends ConsumerWidget {
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colors = Theme.of(context).colorScheme;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 12, 8, 4),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(
-              'ランチャー',
-              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: colors.onSurfaceVariant,
-                fontWeight: FontWeight.w600,
+    return GestureDetector(
+      onSecondaryTapDown: (details) =>
+          _showContextMenu(context, ref, details.globalPosition),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 12, 8, 4),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                'ランチャー',
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: colors.onSurfaceVariant,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.add, size: 18),
-            tooltip: '新規エントリを登録',
-            visualDensity: VisualDensity.compact,
-            onPressed: () =>
-                const EntryNewRoute().push<void>(context),
-          ),
-        ],
+            IconButton(
+              icon: const Icon(Icons.add, size: 18),
+              tooltip: '新規エントリを登録（右クリックでフォルダも作成）',
+              visualDensity: VisualDensity.compact,
+              onPressed: () => const EntryNewRoute().push<void>(context),
+            ),
+          ],
+        ),
       ),
     );
   }
+
+  Future<void> _showContextMenu(
+    BuildContext context,
+    WidgetRef ref,
+    Offset globalPosition,
+  ) async {
+    final overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
+    final action = await showMenu<_LauncherHeaderAction>(
+      context: context,
+      position: RelativeRect.fromRect(
+        Rect.fromLTWH(globalPosition.dx, globalPosition.dy, 0, 0),
+        Offset.zero & overlay.size,
+      ),
+      items: const [
+        PopupMenuItem(
+          value: _LauncherHeaderAction.newFolder,
+          child: Text('新しいフォルダ'),
+        ),
+        PopupMenuItem(
+          value: _LauncherHeaderAction.newEntry,
+          child: Text('新しいエントリ'),
+        ),
+      ],
+    );
+    if (action == null || !context.mounted) {
+      return;
+    }
+    switch (action) {
+      case _LauncherHeaderAction.newFolder:
+        final name = await promptName(
+          context,
+          title: 'フォルダ名',
+          hintText: '例: dev / ops',
+        );
+        if (name == null || name.trim().isEmpty) {
+          return;
+        }
+        await ref
+            .read(launcherFoldersProvider.notifier)
+            .add(
+              LauncherFolder(
+                id: _uuid.v4(),
+                name: name.trim(),
+                createdAt: DateTime.now(),
+              ),
+            );
+      case _LauncherHeaderAction.newEntry:
+        await const EntryNewRoute().push<void>(context);
+    }
+  }
 }
+
+enum _LauncherHeaderAction { newFolder, newEntry }
 
 class _EmptyLauncherHint extends StatelessWidget {
   const _EmptyLauncherHint();
@@ -559,18 +661,45 @@ class _LauncherManageTile extends StatelessWidget {
 /// を呼ぶ。初回は永続セッション、すでに動いていれば連番付きの ad-hoc
 /// セッションが起動する。selection も合わせて切替わるので body が PTY
 /// ターミナルになる。
+///
+/// [indented] が true のとき、左端パディングを増やしてフォルダ配下である
+/// ことを視覚的に示す（ADR-0019）。
+///
+/// 管理画面と同じく、`LongPressDraggable<LauncherEntry>` でドラッグ可能。
+/// フォルダタイル / 「未分類」mini-header の `DragTarget` へドロップすると
+/// folderId が切り替わる（Phase 4）。
 class _LauncherTile extends ConsumerWidget {
-  const _LauncherTile({required this.entry});
+  const _LauncherTile({required this.entry, this.indented = false});
 
   final LauncherEntry entry;
+  final bool indented;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    return LongPressDraggable<LauncherEntry>(
+      data: entry,
+      feedback: Material(
+        elevation: 4,
+        borderRadius: BorderRadius.circular(6),
+        child: SizedBox(
+          width: ExplorerSidebar.width - 16,
+          child: _tile(context, ref, dragging: false),
+        ),
+      ),
+      childWhenDragging: Opacity(
+        opacity: 0.4,
+        child: _tile(context, ref, dragging: true),
+      ),
+      child: _tile(context, ref, dragging: false),
+    );
+  }
+
+  Widget _tile(BuildContext context, WidgetRef ref, {required bool dragging}) {
     final colors = Theme.of(context).colorScheme;
     return InkWell(
-      onTap: () => launchLauncherEntry(ref, entry),
+      onTap: dragging ? null : () => launchLauncherEntry(ref, entry),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        padding: EdgeInsets.fromLTRB(indented ? 32 : 16, 6, 16, 6),
         child: Row(
           children: [
             Icon(Icons.bolt, size: 18, color: colors.primary),
@@ -586,6 +715,178 @@ class _LauncherTile extends ConsumerWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// フォルダ 1 件分のヘッダタイル。caret + フォルダアイコン + 名前。
+/// クリックで配下エントリの inline 展開/折りたたみをトグルする（ADR-0019）。
+///
+/// Phase 4 で `DragTarget<LauncherEntry>` 化。エントリをドロップすると
+/// folderId をこのフォルダに切り替える。右クリックで「リネーム / 削除」
+/// コンテキストメニューも表示する（管理画面のフォルダヘッダと挙動を揃える）。
+class _LauncherFolderTile extends ConsumerWidget {
+  const _LauncherFolderTile({
+    required this.folder,
+    required this.expanded,
+    required this.onToggle,
+  });
+
+  final LauncherFolder folder;
+  final bool expanded;
+  final VoidCallback onToggle;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return DragTarget<LauncherEntry>(
+      onWillAcceptWithDetails: (details) => details.data.folderId != folder.id,
+      onAcceptWithDetails: (details) async {
+        await ref
+            .read(launcherEntriesProvider.notifier)
+            .updateEntry(details.data.copyWith(folderId: folder.id));
+      },
+      builder: (context, candidate, rejected) {
+        final colors = Theme.of(context).colorScheme;
+        final hover = candidate.isNotEmpty;
+        return GestureDetector(
+          onSecondaryTapDown: (details) =>
+              _showContextMenu(context, ref, details.globalPosition),
+          child: InkWell(
+            onTap: onToggle,
+            child: Container(
+              color: hover ? colors.primary.withValues(alpha: 0.12) : null,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              child: Row(
+                children: [
+                  Icon(
+                    expanded ? Icons.arrow_drop_down : Icons.arrow_right,
+                    size: 20,
+                    color: colors.onSurfaceVariant,
+                  ),
+                  Icon(
+                    Icons.folder_outlined,
+                    size: 18,
+                    color: colors.secondary,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      folder.name,
+                      style: Theme.of(context).textTheme.bodyMedium,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _showContextMenu(
+    BuildContext context,
+    WidgetRef ref,
+    Offset globalPosition,
+  ) async {
+    final overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
+    final action = await showMenu<_LauncherFolderAction>(
+      context: context,
+      position: RelativeRect.fromRect(
+        Rect.fromLTWH(globalPosition.dx, globalPosition.dy, 0, 0),
+        Offset.zero & overlay.size,
+      ),
+      items: const [
+        PopupMenuItem(
+          value: _LauncherFolderAction.rename,
+          child: Text('リネーム'),
+        ),
+        PopupMenuItem(
+          value: _LauncherFolderAction.delete,
+          child: Text('削除（中身は未分類に戻る）'),
+        ),
+      ],
+    );
+    if (action == null || !context.mounted) {
+      return;
+    }
+    switch (action) {
+      case _LauncherFolderAction.rename:
+        final newName = await promptName(
+          context,
+          title: 'フォルダ名',
+          initialValue: folder.name,
+        );
+        if (newName == null || newName.trim().isEmpty) {
+          return;
+        }
+        await ref
+            .read(launcherFoldersProvider.notifier)
+            .updateFolder(folder.copyWith(name: newName.trim()));
+      case _LauncherFolderAction.delete:
+        if (!context.mounted) {
+          return;
+        }
+        final confirmed = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('フォルダを削除しますか？'),
+            content: Text(
+              '「${folder.name}」を削除します。中身のエントリは未分類に戻ります。',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text('キャンセル'),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: const Text('削除'),
+              ),
+            ],
+          ),
+        );
+        if (confirmed ?? false) {
+          await ref.read(launcherFoldersProvider.notifier).delete(folder.id);
+        }
+    }
+  }
+}
+
+enum _LauncherFolderAction { rename, delete }
+
+/// フォルダがあるとき、フォルダ群と root エントリの間に挟む「未分類」
+/// mini-header 兼 drop zone。エントリをドロップすると folderId=null に
+/// 戻して root に移動する（Phase 4）。
+class _LauncherRootDropZone extends ConsumerWidget {
+  const _LauncherRootDropZone();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final colors = Theme.of(context).colorScheme;
+    return DragTarget<LauncherEntry>(
+      onWillAcceptWithDetails: (details) => details.data.folderId != null,
+      onAcceptWithDetails: (details) async {
+        await ref
+            .read(launcherEntriesProvider.notifier)
+            .updateEntry(details.data.copyWith(folderId: null));
+      },
+      builder: (context, candidate, rejected) {
+        final hover = candidate.isNotEmpty;
+        return Container(
+          color: hover ? colors.primary.withValues(alpha: 0.12) : null,
+          padding: const EdgeInsets.fromLTRB(16, 6, 16, 4),
+          child: Text(
+            '未分類',
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: colors.onSurfaceVariant,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        );
+      },
     );
   }
 }
