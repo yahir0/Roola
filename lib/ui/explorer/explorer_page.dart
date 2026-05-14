@@ -6,7 +6,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:roola/app/router.dart';
 import 'package:roola/core/skill/skill_scanner.dart';
 import 'package:roola/data/repo_explorer/explorer_node.dart';
-import 'package:roola/ui/common/logo_accent_line.dart';
+import 'package:roola/ui/common/app_bar_divider.dart';
 import 'package:roola/ui/common/macos_window_app_bar.dart';
 import 'package:roola/ui/explorer/explorer_item_selection.dart';
 import 'package:roola/ui/explorer/explorer_node_tile.dart';
@@ -47,7 +47,7 @@ class ExplorerPage extends ConsumerWidget {
     final isDirectory = selection is ExplorerSelectionDirectory;
     return Scaffold(
       appBar: MacosWindowAppBar(
-        bottom: const LogoAccentLine(),
+        bottom: const AppBarDivider(),
         onBack: _onBack(ref, state, selection),
         onForward: _onForward(ref, selection),
         actions: [
