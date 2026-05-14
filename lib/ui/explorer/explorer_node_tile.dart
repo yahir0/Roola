@@ -159,7 +159,7 @@ Future<void> showExplorerContextMenu(
           value: _ActionRegisterSkill(skill),
           child: ListTile(
             leading: const Icon(Icons.add_circle_outline),
-            title: Text('「$skill」をホームに登録'),
+            title: Text('「$skill」をランチャーに登録'),
           ),
         ),
       );

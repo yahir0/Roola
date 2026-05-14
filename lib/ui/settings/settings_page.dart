@@ -180,7 +180,7 @@ class _ClaudeIntegrationSection extends ConsumerWidget {
           ),
           const _FeatureRow(
             description:
-                '右クリックメニューに「Claude Code を開く」「Skill を即実行」「Skill をホームに登録」を追加',
+                '右クリックメニューに「Claude Code を開く」「Skill を即実行」「Skill をランチャーに登録」を追加',
           ),
           const _FeatureRow(
             description:

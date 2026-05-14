@@ -8,7 +8,7 @@ part 'active_sessions.g.dart';
 ///
 /// ライフサイクルは `RunViewModel.build()` での `register` から
 /// 明示的な `unregister`（「閉じる」操作）まで。state 変化は `updateState`
-/// で都度反映する。ホーム画面の chip 列とエントリアイコンのバッジは
+/// で都度反映する。サイドバーの chip 列とエントリアイコンのバッジは
 /// この Notifier を購読することで状態変化を受け取る。
 @Riverpod(keepAlive: true)
 class ActiveSessions extends _$ActiveSessions {

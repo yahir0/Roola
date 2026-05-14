@@ -94,7 +94,7 @@ class RunViewModel extends _$RunViewModel {
 
 /// セッションを完全破棄するための View 用ヘルパー。
 ///
-/// `RunPage` の「閉じる」ボタンと、ホームの session chip の ✕ ボタンの
+/// `RunPage` の「閉じる」ボタンと、サイドバーの session chip の ✕ ボタンの
 /// 双方から呼ばれる。`ActiveSessions` から除去 → `runViewModelProvider`
 /// invalidate の 2 段で、PTY 終了と Terminal 解放を含めて完了する。
 void terminateSkillSession(WidgetRef ref, String entryId) {
