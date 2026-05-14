@@ -20,7 +20,7 @@ import 'package:super_drag_and_drop/super_drag_and_drop.dart';
 ///
 /// レイアウト:
 /// ```
-/// AppBar (戻る / ⚡ / 起動時のディレクトリ / ⚙)
+/// AppBar (戻る / 進む / ⚡ / 起動時のディレクトリ / ⚙)
 /// [path bar — selection が directory のときだけ]
 /// ┌─ sidebar ─┬─ body ─────────────────────────┐
 /// │           │ directory listing               │
@@ -46,6 +46,7 @@ class ExplorerPage extends HookConsumerWidget {
       appBar: MacosWindowAppBar(
         bottom: const LogoAccentLine(),
         onBack: _onBack(ref, state, selection),
+        onForward: _onForward(ref, selection),
         actions: [
           MenuAnchor(
             controller: menuController,
@@ -112,6 +113,23 @@ class ExplorerPage extends HookConsumerWidget {
       return null;
     }
     return () => ref.read(explorerViewModelProvider.notifier).goBack();
+  }
+
+  /// AppBar の進むボタンが呼ぶコールバック。
+  ///
+  /// - selection が directory で forward 履歴がある: goForward
+  /// - それ以外（session 表示中 / forward 履歴なし）: null（ボタン非表示）
+  ///
+  /// session 表示中に forward を出さないのは、戻るは「ビューを directory に
+  /// 戻す」と意味付けされているのに対し、進む方向に対応する操作が無いため。
+  VoidCallback? _onForward(WidgetRef ref, ExplorerSelection selection) {
+    if (selection is! ExplorerSelectionDirectory) {
+      return null;
+    }
+    if (!ref.read(explorerViewModelProvider.notifier).canGoForward) {
+      return null;
+    }
+    return () => ref.read(explorerViewModelProvider.notifier).goForward();
   }
 
   Future<void> _pickRoot(BuildContext context, WidgetRef ref) async {
