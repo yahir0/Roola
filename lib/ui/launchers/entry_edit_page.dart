@@ -494,7 +494,7 @@ class _IconSection extends StatelessWidget {
           height: 96,
           decoration: BoxDecoration(
             color: Theme.of(context).colorScheme.primaryContainer,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(2),
           ),
           clipBehavior: Clip.antiAlias,
           child: hasIcon

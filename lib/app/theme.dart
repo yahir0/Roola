@@ -1,16 +1,29 @@
 import 'package:flutter/material.dart';
 
-/// 本アプリの ThemeData。
+/// 本アプリの ThemeData。Win10/11 風のフラット実用 UI を目指す（ADR-0020）。
 ///
-/// ロゴ（`macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_1024.png`）
-/// からサンプリングした gunmetal + sky-blue のパレットを基盤とする。
-/// 透過ウィンドウとカスタム背景を前提とするため `scaffoldBackgroundColor`
-/// は透明のまま。ロゴ固有のグラデーション・アクセントは [LogoTheme]
-/// ThemeExtension 経由で参照する。
+/// 設計方針:
+/// - 角は 2px の浅い丸めに統一（[_radius]）。完全な 0px だとドットパターンの
+///   交差や描画エッジでジャギーが出るため、Win11 のコントロール類と同じ
+///   ごく浅い丸めを採用。
+/// - elevation / drop shadow は使わない。コンテナの区切りは 1px の
+///   `outlineVariant` ボーダーまたは背景色トーン差で表現。
+/// - InkWell の ripple は [NoSplash.splashFactory] で抑制し、Win10 風の
+///   静的なホバー反応（背景色 1 段差）にする。
+/// - [VisualDensity.compact] でデスクトップ密度に揃える。
+/// - Light テーマは Win11 ニュートラルグレー（#F3F3F3 系）。Dark テーマは
+///   ロゴ由来の gunmetal を維持。アクセントブルー（[_logoBlue]）だけは
+///   両テーマ共通でブランド色として残す。
+///
+/// ロゴ固有のグラデーション・アクセントは [LogoTheme] ThemeExtension 経由で
+/// 参照する（透過ウィンドウ背景の暗幕などで使う）。
 class AppTheme {
   const AppTheme._();
 
-  // ロゴ由来のパレット。
+  /// コントロール類の共通角丸（px）。Win11 のボタン・カードと同じく浅め。
+  static const double _radius = 2.0;
+
+  // ロゴ由来のパレット（アクセント + Dark テーマ surface）。
   static const Color _logoBlue = Color(0xFF5080C0);
   static const Color _logoBlueLight = Color(0xFF90C0F0);
   static const Color _logoBackgroundTop = Color(0xFF4B525C);
@@ -19,6 +32,19 @@ class AppTheme {
   static const Color _logoSurfaceContainer = Color(0xFF3A4148);
   static const Color _logoOnSurface = Color(0xFFFFFFFF);
   static const Color _logoOnSurfaceVariant = Color(0xFFA8B0BC);
+
+  // Light テーマの Win11 ニュートラルグレー。Mica/Acrylic は再現せず
+  // 静的フラット塗りで近づける。
+  static const Color _lightBackground = Color(0xFFF3F3F3);
+  static const Color _lightSurface = Color(0xFFFAFAFA);
+  static const Color _lightSurfaceContainerLow = Color(0xFFF0F0F0);
+  static const Color _lightSurfaceContainer = Color(0xFFEAEAEA);
+  static const Color _lightSurfaceContainerHigh = Color(0xFFE2E2E2);
+  static const Color _lightSurfaceContainerHighest = Color(0xFFDADADA);
+  static const Color _lightOutline = Color(0xFFBFBFBF);
+  static const Color _lightOutlineVariant = Color(0xFFD8D8D8);
+  static const Color _lightOnSurface = Color(0xFF1F1F1F);
+  static const Color _lightOnSurfaceVariant = Color(0xFF5C5C5C);
 
   /// 透過モード時の暗幕に使う無彩色グレー。ロゴの deep gunmetal
   /// (`_logoBackgroundBottom`) は青に寄っているため、透過設定下では
@@ -49,7 +75,6 @@ class AppTheme {
       seedColor: _logoBlue,
       brightness: brightness,
     );
-    // dark はロゴそのものの配色に直接寄せる。light は seed 由来のまま。
     final colorScheme = isDark
         ? base.copyWith(
             primary: _logoBlue,
@@ -63,35 +88,53 @@ class AppTheme {
             onSurface: _logoOnSurface,
             onSurfaceVariant: _logoOnSurfaceVariant,
           )
-        : base;
+        : base.copyWith(
+            // Light は seed の薄ブルー寄りを捨てて、Win11 ニュートラル
+            // グレーに置換する。アクセントブルー（primary）は維持。
+            primary: _logoBlue,
+            secondary: _logoBlue,
+            surface: _lightSurface,
+            surfaceContainerLowest: _lightSurface,
+            surfaceContainerLow: _lightSurfaceContainerLow,
+            surfaceContainer: _lightSurfaceContainer,
+            surfaceContainerHigh: _lightSurfaceContainerHigh,
+            surfaceContainerHighest: _lightSurfaceContainerHighest,
+            onSurface: _lightOnSurface,
+            onSurfaceVariant: _lightOnSurfaceVariant,
+            outline: _lightOutline,
+            outlineVariant: _lightOutlineVariant,
+          );
+
+    final shape = RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(_radius),
+    );
+
     return ThemeData(
       colorScheme: colorScheme,
       useMaterial3: true,
-      scaffoldBackgroundColor: Colors.transparent,
+      scaffoldBackgroundColor: isDark ? Colors.transparent : _lightBackground,
       // canvasColor は MaterialApp 配下の Material widget の既定背景色。
-      // 既定では `colorScheme.surface`（不透明 gunmetal）になり、ルート
-      // route の Material が画面全体を塗ってしまうため、AppearanceMode.
-      // transparent でも背景が見えなくなる。ここで透明に倒し、表示が
-      // 必要な要素（Card / Dialog / Menu 等）は個別に surface 系を
-      // 明示している widget に任せる。
-      canvasColor: Colors.transparent,
-      // AppBar は背景を完全透過にする。半透明の塗りを当てると
-      // AppearanceMode.transparent でも透過しなくなるため、見た目の
-      // 区切りは個別の widget（AppBar 下端の `LogoAccentLine` 等）に
-      // 任せる。
+      // Dark は AppearanceMode.transparent 用に透明、Light は通常の背景。
+      canvasColor: isDark ? Colors.transparent : _lightBackground,
+      visualDensity: VisualDensity.compact,
+      // Win10/11 では ripple アニメーションが無いので、Flutter デフォルトの
+      // ink ripple を全廃する。クリック反応は背景色変化のみ。
+      splashFactory: NoSplash.splashFactory,
+      // hover 時の overlay は Material widget の `hoverColor` に従う。
+      // outlineVariant 寄りの薄いトーンでホバーを示す。
+      hoverColor: colorScheme.surfaceContainerHigh.withValues(alpha: 0.6),
+      highlightColor: Colors.transparent,
       appBarTheme: const AppBarTheme(
         backgroundColor: Colors.transparent,
         scrolledUnderElevation: 0,
         elevation: 0,
       ),
-      // フラット基調。Card / Dialog の elevation を 0 にして影を排し、
-      // 区切りはアウトラインまたは背景色の差で表現する。
       cardTheme: CardThemeData(
         elevation: 0,
         color: colorScheme.surface,
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(_radius),
           side: BorderSide(color: colorScheme.outlineVariant),
         ),
       ),
@@ -99,18 +142,71 @@ class AppTheme {
         elevation: 0,
         backgroundColor: colorScheme.surface,
         surfaceTintColor: Colors.transparent,
+        shape: shape,
       ),
       menuTheme: MenuThemeData(
         style: MenuStyle(
           elevation: const WidgetStatePropertyAll(0),
           surfaceTintColor: const WidgetStatePropertyAll(Colors.transparent),
           backgroundColor: WidgetStatePropertyAll(colorScheme.surface),
+          shape: WidgetStatePropertyAll(shape),
+          side: WidgetStatePropertyAll(
+            BorderSide(color: colorScheme.outlineVariant),
+          ),
         ),
       ),
       popupMenuTheme: PopupMenuThemeData(
         elevation: 0,
         color: colorScheme.surface,
         surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(_radius),
+          side: BorderSide(color: colorScheme.outlineVariant),
+        ),
+      ),
+      dropdownMenuTheme: DropdownMenuThemeData(
+        menuStyle: MenuStyle(
+          shape: WidgetStatePropertyAll(shape),
+          side: WidgetStatePropertyAll(
+            BorderSide(color: colorScheme.outlineVariant),
+          ),
+        ),
+      ),
+      tooltipTheme: TooltipThemeData(
+        decoration: BoxDecoration(
+          color: colorScheme.inverseSurface,
+          borderRadius: BorderRadius.circular(_radius),
+        ),
+      ),
+      // 各種ボタンを 2px 角に統一。
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(shape: shape),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(shape: shape, elevation: 0),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(shape: shape),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(shape: shape),
+      ),
+      segmentedButtonTheme: SegmentedButtonThemeData(
+        style: SegmentedButton.styleFrom(shape: shape),
+      ),
+      chipTheme: ChipThemeData(shape: shape, side: BorderSide.none),
+      inputDecorationTheme: InputDecorationTheme(
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(_radius),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(_radius),
+          borderSide: BorderSide(color: colorScheme.outlineVariant),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(_radius),
+          borderSide: BorderSide(color: colorScheme.primary),
+        ),
       ),
       dividerTheme: DividerThemeData(
         color: colorScheme.outlineVariant.withValues(alpha: 0.5),

@@ -80,7 +80,7 @@ class ExplorerPathBar extends HookConsumerWidget {
             tooltip: 'このパスに移動',
             onPressed: submit,
           ),
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(2)),
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 12,
             vertical: 10,

@@ -25,6 +25,7 @@
 | [0017](./0017-sarasa-term-j-bundled-font.md) | ターミナル描画フォントに Sarasa Term J を同梱する | Accepted |
 | [0018](./0018-launcher-management-out-of-settings.md) | ランチャー管理 UI を Settings から独立画面へ分離 | Accepted |
 | [0019](./0019-launcher-folders-single-level.md) | ランチャーをフォルダで 1 階層グループ化する | Accepted |
+| [0020](./0020-win11-flat-utility-theme.md) | UI を Win10/11 風フラット実用テーマに転換する | Accepted |
 
 ## フォーマット
 

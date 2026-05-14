@@ -356,7 +356,7 @@ class _EntryTile extends ConsumerWidget {
       // 包装が必要なのは elevation / overlay 由来。
       feedback: Material(
         elevation: 4,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(2),
         child: SizedBox(
           width: 320,
           child: ListTile(
@@ -436,7 +436,7 @@ class _EntryIcon extends StatelessWidget {
     final path = iconPath;
     if (path != null && File(path).existsSync()) {
       return ClipRRect(
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(2),
         child: Image.file(File(path), width: 48, height: 48, fit: BoxFit.cover),
       );
     }
@@ -445,7 +445,7 @@ class _EntryIcon extends StatelessWidget {
       height: 48,
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.primaryContainer,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(2),
       ),
       child: Icon(
         Icons.apps,

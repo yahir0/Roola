@@ -238,7 +238,7 @@ class _ImagePicker extends StatelessWidget {
           height: 96,
           decoration: BoxDecoration(
             color: Theme.of(context).colorScheme.surfaceContainerHighest,
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(2),
           ),
           clipBehavior: Clip.antiAlias,
           child: hasImage

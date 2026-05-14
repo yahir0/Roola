@@ -680,7 +680,7 @@ class _LauncherTile extends ConsumerWidget {
       data: entry,
       feedback: Material(
         elevation: 4,
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: BorderRadius.circular(2),
         child: SizedBox(
           width: ExplorerSidebar.width - 16,
           child: _tile(context, ref, dragging: false),
