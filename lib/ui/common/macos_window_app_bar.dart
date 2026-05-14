@@ -64,8 +64,12 @@ class MacosWindowAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    final canPop = Navigator.of(context).canPop();
-    final showBack = onBack != null || canPop;
+    final navigator = Navigator.of(context);
+    final canPop = navigator.canPop();
+    // onBack 指定が無くて pop 可能なら、暗黙の Navigator.pop を行う
+    // callback を組み立てる。`BackButton` を使っていた頃の挙動を維持。
+    final effectiveOnBack = onBack ?? (canPop ? navigator.maybePop : null);
+    final showBack = effectiveOnBack != null;
     final showForward = onForward != null;
     final navButtonsWidth =
         (showBack ? _navButtonWidth : 0) + (showForward ? _navButtonWidth : 0);
@@ -87,11 +91,15 @@ class MacosWindowAppBar extends StatelessWidget implements PreferredSizeWidget {
                   // 切り替わるが、forward には対応する自動 widget が無い。
                   // 両者を手動で同じ icon family に揃えるため、back も
                   // IconButton で書き下す。
+                  //
+                  // BackButton は onPressed が null のとき自動で
+                  // Navigator.pop を呼ぶフォールバックを持つので、
+                  // それ相当の挙動を `effectiveOnBack` で再現している。
                   if (showBack)
                     IconButton(
                       icon: const Icon(Icons.arrow_back_ios_new_rounded),
                       tooltip: '戻る',
-                      onPressed: onBack,
+                      onPressed: effectiveOnBack,
                     ),
                   if (showForward)
                     IconButton(
