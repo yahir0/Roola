@@ -17,7 +17,9 @@ mixin _$ExplorerSettings {
 /// 最後に開いていたルートディレクトリの絶対パス。`null` なら未設定
 /// （ホームディレクトリで開く）。
  String? get rootPath;/// サイドバーに並べるお気に入り。先頭から順に表示する。
- List<ExplorerFavorite> get favorites;
+ List<ExplorerFavorite> get favorites;/// ファイル / フォルダのタイル表示密度（ADR-0024）。新規ユーザーには
+/// comfortable がデフォルト（Skill サブタイトル / チップを含む 3 要素レイアウト）。
+ ExplorerListDensity get listDensity;
 /// Create a copy of ExplorerSettings
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +30,16 @@ $ExplorerSettingsCopyWith<ExplorerSettings> get copyWith => _$ExplorerSettingsCo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ExplorerSettings&&(identical(other.rootPath, rootPath) || other.rootPath == rootPath)&&const DeepCollectionEquality().equals(other.favorites, favorites));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ExplorerSettings&&(identical(other.rootPath, rootPath) || other.rootPath == rootPath)&&const DeepCollectionEquality().equals(other.favorites, favorites)&&(identical(other.listDensity, listDensity) || other.listDensity == listDensity));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,rootPath,const DeepCollectionEquality().hash(favorites));
+int get hashCode => Object.hash(runtimeType,rootPath,const DeepCollectionEquality().hash(favorites),listDensity);
 
 @override
 String toString() {
-  return 'ExplorerSettings(rootPath: $rootPath, favorites: $favorites)';
+  return 'ExplorerSettings(rootPath: $rootPath, favorites: $favorites, listDensity: $listDensity)';
 }
 
 
@@ -48,7 +50,7 @@ abstract mixin class $ExplorerSettingsCopyWith<$Res>  {
   factory $ExplorerSettingsCopyWith(ExplorerSettings value, $Res Function(ExplorerSettings) _then) = _$ExplorerSettingsCopyWithImpl;
 @useResult
 $Res call({
- String? rootPath, List<ExplorerFavorite> favorites
+ String? rootPath, List<ExplorerFavorite> favorites, ExplorerListDensity listDensity
 });
 
 
@@ -65,11 +67,12 @@ class _$ExplorerSettingsCopyWithImpl<$Res>
 
 /// Create a copy of ExplorerSettings
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? rootPath = freezed,Object? favorites = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? rootPath = freezed,Object? favorites = null,Object? listDensity = null,}) {
   return _then(_self.copyWith(
 rootPath: freezed == rootPath ? _self.rootPath : rootPath // ignore: cast_nullable_to_non_nullable
 as String?,favorites: null == favorites ? _self.favorites : favorites // ignore: cast_nullable_to_non_nullable
-as List<ExplorerFavorite>,
+as List<ExplorerFavorite>,listDensity: null == listDensity ? _self.listDensity : listDensity // ignore: cast_nullable_to_non_nullable
+as ExplorerListDensity,
   ));
 }
 
@@ -154,10 +157,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? rootPath,  List<ExplorerFavorite> favorites)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? rootPath,  List<ExplorerFavorite> favorites,  ExplorerListDensity listDensity)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ExplorerSettings() when $default != null:
-return $default(_that.rootPath,_that.favorites);case _:
+return $default(_that.rootPath,_that.favorites,_that.listDensity);case _:
   return orElse();
 
 }
@@ -175,10 +178,10 @@ return $default(_that.rootPath,_that.favorites);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? rootPath,  List<ExplorerFavorite> favorites)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? rootPath,  List<ExplorerFavorite> favorites,  ExplorerListDensity listDensity)  $default,) {final _that = this;
 switch (_that) {
 case _ExplorerSettings():
-return $default(_that.rootPath,_that.favorites);case _:
+return $default(_that.rootPath,_that.favorites,_that.listDensity);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -195,10 +198,10 @@ return $default(_that.rootPath,_that.favorites);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? rootPath,  List<ExplorerFavorite> favorites)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? rootPath,  List<ExplorerFavorite> favorites,  ExplorerListDensity listDensity)?  $default,) {final _that = this;
 switch (_that) {
 case _ExplorerSettings() when $default != null:
-return $default(_that.rootPath,_that.favorites);case _:
+return $default(_that.rootPath,_that.favorites,_that.listDensity);case _:
   return null;
 
 }
@@ -210,7 +213,7 @@ return $default(_that.rootPath,_that.favorites);case _:
 
 
 class _ExplorerSettings implements ExplorerSettings {
-  const _ExplorerSettings({this.rootPath, final  List<ExplorerFavorite> favorites = const <ExplorerFavorite>[]}): _favorites = favorites;
+  const _ExplorerSettings({this.rootPath, final  List<ExplorerFavorite> favorites = const <ExplorerFavorite>[], this.listDensity = ExplorerListDensity.comfortable}): _favorites = favorites;
   
 
 /// 最後に開いていたルートディレクトリの絶対パス。`null` なら未設定
@@ -225,6 +228,9 @@ class _ExplorerSettings implements ExplorerSettings {
   return EqualUnmodifiableListView(_favorites);
 }
 
+/// ファイル / フォルダのタイル表示密度（ADR-0024）。新規ユーザーには
+/// comfortable がデフォルト（Skill サブタイトル / チップを含む 3 要素レイアウト）。
+@override@JsonKey() final  ExplorerListDensity listDensity;
 
 /// Create a copy of ExplorerSettings
 /// with the given fields replaced by the non-null parameter values.
@@ -236,16 +242,16 @@ _$ExplorerSettingsCopyWith<_ExplorerSettings> get copyWith => __$ExplorerSetting
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ExplorerSettings&&(identical(other.rootPath, rootPath) || other.rootPath == rootPath)&&const DeepCollectionEquality().equals(other._favorites, _favorites));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ExplorerSettings&&(identical(other.rootPath, rootPath) || other.rootPath == rootPath)&&const DeepCollectionEquality().equals(other._favorites, _favorites)&&(identical(other.listDensity, listDensity) || other.listDensity == listDensity));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,rootPath,const DeepCollectionEquality().hash(_favorites));
+int get hashCode => Object.hash(runtimeType,rootPath,const DeepCollectionEquality().hash(_favorites),listDensity);
 
 @override
 String toString() {
-  return 'ExplorerSettings(rootPath: $rootPath, favorites: $favorites)';
+  return 'ExplorerSettings(rootPath: $rootPath, favorites: $favorites, listDensity: $listDensity)';
 }
 
 
@@ -256,7 +262,7 @@ abstract mixin class _$ExplorerSettingsCopyWith<$Res> implements $ExplorerSettin
   factory _$ExplorerSettingsCopyWith(_ExplorerSettings value, $Res Function(_ExplorerSettings) _then) = __$ExplorerSettingsCopyWithImpl;
 @override @useResult
 $Res call({
- String? rootPath, List<ExplorerFavorite> favorites
+ String? rootPath, List<ExplorerFavorite> favorites, ExplorerListDensity listDensity
 });
 
 
@@ -273,11 +279,12 @@ class __$ExplorerSettingsCopyWithImpl<$Res>
 
 /// Create a copy of ExplorerSettings
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? rootPath = freezed,Object? favorites = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? rootPath = freezed,Object? favorites = null,Object? listDensity = null,}) {
   return _then(_ExplorerSettings(
 rootPath: freezed == rootPath ? _self.rootPath : rootPath // ignore: cast_nullable_to_non_nullable
 as String?,favorites: null == favorites ? _self._favorites : favorites // ignore: cast_nullable_to_non_nullable
-as List<ExplorerFavorite>,
+as List<ExplorerFavorite>,listDensity: null == listDensity ? _self.listDensity : listDensity // ignore: cast_nullable_to_non_nullable
+as ExplorerListDensity,
   ));
 }
 

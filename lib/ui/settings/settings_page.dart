@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:roola/core/health/claude_health_check.dart';
+import 'package:roola/data/repo_explorer/explorer_settings.dart';
+import 'package:roola/data/repo_explorer/explorer_settings_repository_impl.dart';
 import 'package:roola/ui/common/macos_window_app_bar.dart';
 import 'package:roola/ui/settings/appearance_section.dart';
 
@@ -22,9 +24,81 @@ class SettingsPage extends ConsumerWidget {
         children: const [
           AppearanceSection(),
           Divider(height: 32),
+          _ExplorerSection(),
+          Divider(height: 32),
           _ClaudeIntegrationSection(),
           Divider(height: 32),
           _ShortcutsSection(),
+        ],
+      ),
+    );
+  }
+}
+
+/// エクスプローラ表示設定セクション（ADR-0024）。
+/// ファイル / フォルダタイルの縦幅を「サイドバーと同等の単行 (compact)」と
+/// 「Skill subtitle を含む従来 3 行 (comfortable)」で切替える。
+class _ExplorerSection extends ConsumerWidget {
+  const _ExplorerSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(explorerSettingsProvider);
+    final colors = Theme.of(context).colorScheme;
+    final density =
+        state.value?.listDensity ?? ExplorerListDensity.comfortable;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(24, 8, 24, 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'エクスプローラ',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'ファイル / フォルダタイルの縦幅と情報量を切替えます。',
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant),
+          ),
+          const SizedBox(height: 12),
+          SegmentedButton<ExplorerListDensity>(
+            segments: const [
+              ButtonSegment(
+                value: ExplorerListDensity.compact,
+                label: Text('コンパクト'),
+                icon: Icon(Icons.density_small),
+              ),
+              ButtonSegment(
+                value: ExplorerListDensity.comfortable,
+                label: Text('ゆったり'),
+                icon: Icon(Icons.density_medium),
+              ),
+            ],
+            selected: {density},
+            onSelectionChanged: state.isLoading
+                ? null
+                : (set) {
+                    if (set.isNotEmpty) {
+                      ref
+                          .read(explorerSettingsProvider.notifier)
+                          .setListDensity(set.first);
+                    }
+                  },
+          ),
+          const SizedBox(height: 8),
+          Text(
+            density == ExplorerListDensity.compact
+                ? 'コンパクト: サイドバーと同じ縦幅。Skill サブタイトル / チップは省略。'
+                : 'ゆったり: 縦幅にゆとりを持たせ、Skill サブタイトルとチップも表示。',
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant),
+          ),
         ],
       ),
     );

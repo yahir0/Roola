@@ -4,9 +4,16 @@ import 'package:roola/data/repo_explorer/explorer_settings.dart';
 part 'explorer_settings_dto.g.dart';
 
 /// `ExplorerSettings` の JSON 永続化 DTO。
+///
+/// スキーマ: `{"rootPath", "favorites", "listDensity"}`。
+/// `listDensity` キーが無いデータは `comfortable` として解釈する（ADR-0024）。
 @JsonSerializable(explicitToJson: true)
 class ExplorerSettingsDto {
-  ExplorerSettingsDto({this.rootPath, this.favorites = const []});
+  ExplorerSettingsDto({
+    this.rootPath,
+    this.favorites = const [],
+    this.listDensity = ExplorerListDensity.comfortable,
+  });
 
   factory ExplorerSettingsDto.fromJson(Map<String, dynamic> json) =>
       _$ExplorerSettingsDtoFromJson(json);
@@ -17,16 +24,19 @@ class ExplorerSettingsDto {
         favorites: entity.favorites
             .map(ExplorerFavoriteDto.fromEntity)
             .toList(growable: false),
+        listDensity: entity.listDensity,
       );
 
   final String? rootPath;
   final List<ExplorerFavoriteDto> favorites;
+  final ExplorerListDensity listDensity;
 
   Map<String, dynamic> toJson() => _$ExplorerSettingsDtoToJson(this);
 
   ExplorerSettings toEntity() => ExplorerSettings(
     rootPath: rootPath,
     favorites: favorites.map((dto) => dto.toEntity()).toList(growable: false),
+    listDensity: listDensity,
   );
 }
 

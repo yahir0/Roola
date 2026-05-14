@@ -119,6 +119,19 @@ class ExplorerSettingsNotifier extends AsyncNotifier<ExplorerSettings> {
       return next;
     });
   }
+
+  /// ファイルリストの表示密度を切替える（ADR-0024）。
+  Future<void> setListDensity(ExplorerListDensity density) async {
+    final current = state.value ?? ExplorerSettings.defaults();
+    if (current.listDensity == density) {
+      return;
+    }
+    final next = current.copyWith(listDensity: density);
+    state = await AsyncValue.guard(() async {
+      await _repository.save(next);
+      return next;
+    });
+  }
 }
 
 final explorerSettingsProvider =

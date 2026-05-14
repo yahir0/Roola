@@ -886,6 +886,12 @@ class _DirectoryTile extends HookConsumerWidget {
     final hasSkill = claudeAvailable && node.skillNames.isNotEmpty;
     final colors = Theme.of(context).colorScheme;
     final isSelected = ref.watch(explorerItemSelectionProvider) == node.path;
+    // ADR-0024: compact ではサイドバーと同じ縦幅・1 行表示にして Skill 表示を省略する。
+    final density =
+        ref.watch(explorerSettingsProvider).value?.listDensity ??
+        ExplorerListDensity.comfortable;
+    final isCompact = density == ExplorerListDensity.compact;
+    final showSkill = hasSkill && !isCompact;
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onSecondaryTapDown: (details) =>
@@ -901,14 +907,18 @@ class _DirectoryTile extends HookConsumerWidget {
           color: isDropHovering
               ? colors.primary.withValues(alpha: 0.12)
               : (isSelected ? colors.primary.withValues(alpha: 0.16) : null),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          padding: EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: isCompact ? 6 : 12,
+          ),
           child: Row(
             children: [
               Icon(
                 hasSkill ? Icons.folder_special : Icons.folder,
+                size: isCompact ? 18 : null,
                 color: hasSkill ? colors.primary : colors.onSurfaceVariant,
               ),
-              const SizedBox(width: 16),
+              SizedBox(width: isCompact ? 12 : 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -916,8 +926,10 @@ class _DirectoryTile extends HookConsumerWidget {
                     Text(
                       node.name,
                       style: Theme.of(context).textTheme.bodyMedium,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    if (hasSkill)
+                    if (showSkill)
                       Text(
                         'Skill: ${node.skillNames.join(', ')}',
                         style: Theme.of(context).textTheme.bodySmall,
@@ -927,7 +939,7 @@ class _DirectoryTile extends HookConsumerWidget {
                   ],
                 ),
               ),
-              if (hasSkill)
+              if (showSkill)
                 Chip(
                   visualDensity: VisualDensity.compact,
                   label: Text('${node.skillNames.length}'),
@@ -951,6 +963,11 @@ class _FileTile extends ConsumerWidget {
     final colors = Theme.of(context).colorScheme;
     final icon = _iconForName(node.name);
     final isSelected = ref.watch(explorerItemSelectionProvider) == node.path;
+    // ADR-0024: ディレクトリタイルと同じく compact ではサイドバーと同じ縦幅。
+    final density =
+        ref.watch(explorerSettingsProvider).value?.listDensity ??
+        ExplorerListDensity.comfortable;
+    final isCompact = density == ExplorerListDensity.compact;
     final content = GestureDetector(
       behavior: HitTestBehavior.opaque,
       onSecondaryTapDown: (details) =>
@@ -963,15 +980,24 @@ class _FileTile extends ConsumerWidget {
         onDoubleTap: () => ref.read(fileOpenerProvider).open(node.path),
         child: Container(
           color: isSelected ? colors.primary.withValues(alpha: 0.16) : null,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          padding: EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: isCompact ? 6 : 12,
+          ),
           child: Row(
             children: [
-              Icon(icon, color: colors.onSurfaceVariant),
-              const SizedBox(width: 16),
+              Icon(
+                icon,
+                size: isCompact ? 18 : null,
+                color: colors.onSurfaceVariant,
+              ),
+              SizedBox(width: isCompact ? 12 : 16),
               Expanded(
                 child: Text(
                   node.name,
                   style: Theme.of(context).textTheme.bodyMedium,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
