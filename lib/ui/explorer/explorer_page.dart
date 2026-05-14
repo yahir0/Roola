@@ -1,5 +1,6 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:roola/app/router.dart';
@@ -7,6 +8,7 @@ import 'package:roola/core/skill/skill_scanner.dart';
 import 'package:roola/data/repo_explorer/explorer_node.dart';
 import 'package:roola/ui/common/logo_accent_line.dart';
 import 'package:roola/ui/common/macos_window_app_bar.dart';
+import 'package:roola/ui/explorer/explorer_item_selection.dart';
 import 'package:roola/ui/explorer/explorer_node_tile.dart';
 import 'package:roola/ui/explorer/explorer_path_bar.dart';
 import 'package:roola/ui/explorer/explorer_selection.dart';
@@ -154,7 +156,11 @@ class _Body extends ConsumerWidget {
 }
 
 /// ディレクトリビュー本体（旧 `_ExplorerBody`）。
-class _DirectoryListing extends ConsumerWidget {
+///
+/// ADR-0021 で操作モデルが変更され、ノードへのシングルクリックは選択、
+/// ダブルクリックで遷移/オープン。選択中アイテムがあるとき `C` を 500ms
+/// 以内に 2 回押すと、選択パスがクリップボードにコピーされる。
+class _DirectoryListing extends HookConsumerWidget {
   const _DirectoryListing({required this.state});
 
   final ExplorerState state;
@@ -163,11 +169,56 @@ class _DirectoryListing extends ConsumerWidget {
   /// 右クリック可能な空きエリアを残す。
   static const double _bottomBackdropHeight = 160;
 
+  /// CC 連打が同一シーケンスとみなされる猶予時間。Vim の `yy` 風の
+  /// double-stroke 認識に揃えてある。
+  static const Duration _ccGap = Duration(milliseconds: 500);
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isEmpty = state.children.isEmpty;
     final showParentTile = state.currentPath != '/';
-    return CustomScrollView(
+
+    // currentPath が変わったら item selection を解除する（別ディレクトリの
+    // 古い選択をそのまま持ち越さないため）。
+    ref.listen<String>(
+      explorerViewModelProvider.select((s) => s.currentPath),
+      (previous, next) {
+        if (previous != next) {
+          ref.read(explorerItemSelectionProvider.notifier).clear();
+        }
+      },
+    );
+
+    // CC 連打検出用の state。closure に渡すため useRef で保持する。
+    final lastCAt = useRef<DateTime?>(null);
+    final focusNode = useFocusNode();
+
+    void handleC() {
+      final selectedPath = ref.read(explorerItemSelectionProvider);
+      if (selectedPath == null) {
+        lastCAt.value = null;
+        return;
+      }
+      final now = DateTime.now();
+      final prev = lastCAt.value;
+      if (prev != null && now.difference(prev) <= _ccGap) {
+        Clipboard.setData(ClipboardData(text: selectedPath));
+        lastCAt.value = null;
+        final messenger = ScaffoldMessenger.maybeOf(context);
+        messenger?.removeCurrentSnackBar();
+        messenger?.showSnackBar(
+          SnackBar(
+            content: Text('パスをコピーしました: $selectedPath'),
+            duration: const Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      } else {
+        lastCAt.value = now;
+      }
+    }
+
+    final body = CustomScrollView(
       // currentPath を含む ValueKey を付与することで、ディレクトリ
       // 切替時に CustomScrollView が再生成され、スクロール位置が必ず
       // 先頭に戻る。
@@ -205,6 +256,27 @@ class _DirectoryListing extends ConsumerWidget {
             ),
           ),
       ],
+    );
+
+    // Focus は autofocus でディレクトリビュー表示時にキー入力を捕まえる。
+    // ターミナル等のテキスト入力先に focus が移っている間は子側が消費する
+    // ため、ここでは反応しない。C 以外のキーは ignored で通過させる。
+    return Focus(
+      focusNode: focusNode,
+      autofocus: true,
+      onKeyEvent: (node, event) {
+        if (event is! KeyDownEvent) {
+          return KeyEventResult.ignored;
+        }
+        if (event.logicalKey == LogicalKeyboardKey.keyC) {
+          handleC();
+          return KeyEventResult.handled;
+        }
+        // C 以外のキーが入ったら連打シーケンスをリセット。
+        lastCAt.value = null;
+        return KeyEventResult.ignored;
+      },
+      child: body,
     );
   }
 }

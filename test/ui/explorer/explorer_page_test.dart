@@ -75,7 +75,9 @@ void main() {
     expect(find.text('Skill: alpha'), findsOneWidget);
   });
 
-  testWidgets('tapping a child enters it', (tester) async {
+  testWidgets('double-tapping a child enters it', (tester) async {
+    // ADR-0021 で操作モデルがダブルクリック式に変わったので、
+    // シングルタップ = 選択、ダブルタップ = 遷移を検証する。
     final container = makeContainerForRoot(tempDir.path);
     addTearDown(container.dispose);
     await container.read(explorerSettingsProvider.future);
@@ -83,8 +85,21 @@ void main() {
     await tester.pumpWidget(harness(container));
     await tester.pump();
 
+    // シングルタップは遷移しない。double-tap 待ちタイマーを切らせるため
+    // 十分長く pump してから検証する (Flutter デフォルトの doubleTap
+    // タイムアウトは 300ms 前後)。
     await tester.tap(find.text('repo-a'));
-    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(
+      container.read(explorerViewModelProvider).currentPath,
+      tempDir.path,
+    );
+
+    // ダブルタップで遷移。
+    await tester.tap(find.text('repo-a'));
+    await tester.pump(const Duration(milliseconds: 50));
+    await tester.tap(find.text('repo-a'));
+    await tester.pump(const Duration(milliseconds: 600));
 
     final vm = container.read(explorerViewModelProvider);
     expect(vm.currentPath, repoA.path);

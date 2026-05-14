@@ -16,6 +16,7 @@ import 'package:roola/data/repo_explorer/explorer_settings.dart';
 import 'package:roola/data/repo_explorer/explorer_settings_repository_impl.dart';
 import 'package:roola/ui/common/prompt_name_dialog.dart';
 import 'package:roola/ui/explorer/explorer_clipboard_provider.dart';
+import 'package:roola/ui/explorer/explorer_item_selection.dart';
 import 'package:roola/ui/explorer/explorer_properties_dialog.dart';
 import 'package:roola/ui/explorer/explorer_selection.dart';
 import 'package:roola/ui/explorer/explorer_view_model.dart';
@@ -876,15 +877,22 @@ class _DirectoryTile extends HookConsumerWidget {
   Widget _content(BuildContext context, WidgetRef ref, bool isDropHovering) {
     final hasSkill = node.skillNames.isNotEmpty;
     final colors = Theme.of(context).colorScheme;
+    final isSelected = ref.watch(explorerItemSelectionProvider) == node.path;
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onSecondaryTapDown: (details) =>
           showExplorerContextMenu(context, ref, node, details.globalPosition),
       child: InkWell(
-        onTap: () =>
+        // ADR-0021: シングルクリックで選択、ダブルクリックで遷移。
+        onTap: () => ref
+            .read(explorerItemSelectionProvider.notifier)
+            .select(node.path),
+        onDoubleTap: () =>
             ref.read(explorerViewModelProvider.notifier).navigateTo(node.path),
         child: Container(
-          color: isDropHovering ? colors.primary.withValues(alpha: 0.12) : null,
+          color: isDropHovering
+              ? colors.primary.withValues(alpha: 0.12)
+              : (isSelected ? colors.primary.withValues(alpha: 0.16) : null),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Row(
             children: [
@@ -934,13 +942,19 @@ class _FileTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = Theme.of(context).colorScheme;
     final icon = _iconForName(node.name);
+    final isSelected = ref.watch(explorerItemSelectionProvider) == node.path;
     final content = GestureDetector(
       behavior: HitTestBehavior.opaque,
       onSecondaryTapDown: (details) =>
           showFileContextMenu(context, ref, node, details.globalPosition),
       child: InkWell(
-        onTap: () => ref.read(fileOpenerProvider).open(node.path),
-        child: Padding(
+        // ADR-0021: シングルクリックで選択、ダブルクリックで開く。
+        onTap: () => ref
+            .read(explorerItemSelectionProvider.notifier)
+            .select(node.path),
+        onDoubleTap: () => ref.read(fileOpenerProvider).open(node.path),
+        child: Container(
+          color: isSelected ? colors.primary.withValues(alpha: 0.16) : null,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Row(
             children: [
