@@ -28,17 +28,24 @@ class ExplorerRoute extends GoRouteData with $ExplorerRoute {
 }
 
 /// 設定画面ルート (`/settings`)。外観 / claude ヘルスのみ。
+///
+/// `buildPage` で `NoTransitionPage` を返しているのは、macOS のデフォルト
+/// 「右から slide-in」遷移を抑制してエクスプローラ内ナビゲーションと体感を
+/// 揃えるため。エクスプローラ自体はルートを切替えず内部 state で画面を差し
+/// 替えるので遷移アニメが無く、Settings / LauncherManagement / EntryEdit
+/// だけ別の遷移挙動だと違和感があった。
 @TypedGoRoute<SettingsRoute>(path: '/settings')
 class SettingsRoute extends GoRouteData with $SettingsRoute {
   const SettingsRoute();
 
   @override
-  Widget build(BuildContext context, GoRouterState state) =>
-      const SettingsPage();
+  Page<void> buildPage(BuildContext context, GoRouterState state) =>
+      const NoTransitionPage(child: SettingsPage());
 }
 
 /// ランチャー管理画面ルート (`/launchers`)。登録済みエントリの一覧 + 追加 /
 /// 編集 / 削除導線。サイドバーの「管理…」から push。
+/// 遷移アニメを抑制する理由は `SettingsRoute` 参照。
 @TypedGoRoute<LauncherManagementRoute>(
   path: '/launchers',
   routes: <TypedRoute<RouteData>>[
@@ -51,8 +58,8 @@ class LauncherManagementRoute extends GoRouteData
   const LauncherManagementRoute();
 
   @override
-  Widget build(BuildContext context, GoRouterState state) =>
-      const LauncherManagementPage();
+  Page<void> buildPage(BuildContext context, GoRouterState state) =>
+      const NoTransitionPage(child: LauncherManagementPage());
 }
 
 /// エントリ新規作成ルート (`/launchers/new`)。
@@ -66,11 +73,14 @@ class EntryNewRoute extends GoRouteData with $EntryNewRoute {
   final String? initialSkillName;
 
   @override
-  Widget build(BuildContext context, GoRouterState state) => EntryEditPage(
-    entryId: null,
-    initialRepositoryPath: initialRepositoryPath,
-    initialSkillName: initialSkillName,
-  );
+  Page<void> buildPage(BuildContext context, GoRouterState state) =>
+      NoTransitionPage(
+        child: EntryEditPage(
+          entryId: null,
+          initialRepositoryPath: initialRepositoryPath,
+          initialSkillName: initialSkillName,
+        ),
+      );
 }
 
 /// エントリ編集ルート (`/launchers/:entryId`)。
@@ -80,6 +90,6 @@ class EntryEditRoute extends GoRouteData with $EntryEditRoute {
   final String entryId;
 
   @override
-  Widget build(BuildContext context, GoRouterState state) =>
-      EntryEditPage(entryId: entryId);
+  Page<void> buildPage(BuildContext context, GoRouterState state) =>
+      NoTransitionPage(child: EntryEditPage(entryId: entryId));
 }
