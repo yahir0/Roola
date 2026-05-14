@@ -22,6 +22,7 @@
 | [0014](./0014-explorer-first-ui.md) | Explorer をメイン UI に格上げ、Skills ランチャーをサブ機能へ降格 | Accepted |
 | [0015](./0015-drop-explorer-root-ceiling.md) | Explorer の root ceiling を廃止、rootPath は「起動時の開始位置」に弱める | Accepted |
 | [0016](./0016-generalize-launcher-action.md) | ランチャーを Claude Skill 専用から汎用ターミナルランチャーへ | Accepted |
+| [0017](./0017-sarasa-term-j-bundled-font.md) | ターミナル描画フォントに Sarasa Term J を同梱する | Accepted |
 
 ## フォーマット
 

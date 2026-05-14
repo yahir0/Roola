@@ -15,6 +15,27 @@ import 'package:xterm/xterm.dart';
 /// deep background）を渡すこと。cursor / selection はロゴアクセント
 /// ブルー。ANSI 16 色は xterm defaultTheme を継承（VS Code 系配色で
 /// Claude Code の出力が崩れない）。
+/// ターミナル描画フォント。pubspec.yaml に登録した Sarasa Term J を主に使う。
+///
+/// Sarasa Term J は Iosevka Term（ASCII）と Source Han Sans JP（CJK）を
+/// 合成した CJK 対応モノスペース。ASCII グリフは Iosevka Term と同一で
+/// 細くシャープ、日本語も同じテイストのゴシック体で描画される。
+/// 「Arch Linux の素のターミナル」寄りの見た目を狙う（ADR-0017）。
+///
+/// `fontFamilyFallback` は絵文字と最終フォールバックのみ残す。Sarasa Term J
+/// が CJK・記号類をほぼカバーするので、Menlo 等のフォールバックは挟まない
+/// 方が見た目の一貫性が出る（フォールバックが効く＝そこだけ別フォントに
+/// なるので、丸っこさが混ざってちぐはぐになる）。
+const TerminalStyle _terminalStyle = TerminalStyle(
+  fontFamily: 'SarasaTermJ',
+  fontFamilyFallback: [
+    'Apple Color Emoji',
+    'Noto Color Emoji',
+    'monospace',
+    'sans-serif',
+  ],
+);
+
 const TerminalTheme _terminalTheme = TerminalTheme(
   cursor: Color(0xFF90C0F0),
   selection: Color(0x665080C0),
@@ -110,6 +131,7 @@ class SessionView extends ConsumerWidget {
           child: TerminalView(
             pageState.runner.terminal,
             theme: _terminalTheme,
+            textStyle: _terminalStyle,
             // 内部 Container を完全透過にし、`_AppearanceLayer` の暗幕を
             // そのまま見せる。デフォルトの 1.0 のままだと theme.background
             // の色が opaque で塗られてターミナル領域だけ不透明になる。

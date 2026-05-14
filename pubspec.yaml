@@ -83,6 +83,18 @@ flutter:
   # the material Icons class.
   uses-material-design: true
 
+  fonts:
+    # ターミナル (xterm) 描画用。Sarasa Term J は Iosevka Term と Source Han
+    # Sans JP を合成した CJK 対応モノスペース。ASCII は Iosevka Term と同一
+    # グリフのまま、日本語も同じ細さ・シャープさのゴシック体で描画できる
+    # （Hiragino フォールバックだと丸さが混ざってちぐはぐになるのを避ける）。
+    # 50MB と大きいのは CJK 全文字を含むため。詳細は ADR-0017。
+    - family: SarasaTermJ
+      fonts:
+        - asset: assets/fonts/SarasaTermJ-Regular.ttf
+        - asset: assets/fonts/SarasaTermJ-Bold.ttf
+          weight: 700
+
   # To add assets to your application, add an assets section, like this:
   # assets:
   #   - images/a_dot_burr.jpeg

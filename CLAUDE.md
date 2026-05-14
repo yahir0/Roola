@@ -78,6 +78,7 @@ Mac 向けの汎用ターミナルランチャーアプリ（Flutter Desktop / m
 - ADR-0014: Explorer をメイン UI に格上げ、Skills ランチャーをサブ機能へ降格
 - ADR-0015: Explorer の root ceiling を廃止、rootPath は「起動時の開始位置」に弱める
 - ADR-0016: ランチャーを Claude Skill 専用から汎用ターミナルランチャーへ
+- ADR-0017: ターミナル描画フォントに Sarasa Term J を同梱する
 
 ## ディレクトリ構成
 
