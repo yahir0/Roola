@@ -1,20 +1,13 @@
 schema: spec-driven
 
-# Project context (optional)
-# This is shown to AI when creating artifacts.
-# Add your tech stack, conventions, style guides, domain knowledge, etc.
-# Example:
-#   context: |
-#     Tech stack: TypeScript, React, Node.js
-#     We use conventional commits
-#     Domain: e-commerce platform
+context: |
+  Roola は OpenSpec を「change の design / proposal / spec / tasks を書く場所」
+  として使うが、`openspec/specs/` への spec promote は運用していない。
+  全 change の spec.md は `openspec/changes/<name>/specs/` または archive 後
+  `openspec/changes/archive/<date>-<name>/specs/` 配下に残り続ける。
 
-# Per-artifact rules (optional)
-# Add custom rules for specific artifacts.
-# Example:
-#   rules:
-#     proposal:
-#       - Keep proposals under 500 words
-#       - Always include a "Non-goals" section
-#     tasks:
-#       - Break tasks into chunks of max 2 hours
+  そのため `openspec archive` は `--skip-specs` で実行する。`openspec/specs/`
+  が空なのは仕様で、過去 change は archive ディレクトリを直接読めば全文残って
+  いる（仕様の歴史は git log と archive で追える）。
+
+  詳細経緯: docs/adr/ と CLAUDE.md「ディレクトリ構成」を参照。
