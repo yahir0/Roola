@@ -5,6 +5,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:roola/data/repo_explorer/explorer_directory_loader.dart';
 import 'package:roola/data/repo_explorer/explorer_node.dart';
 import 'package:roola/data/repo_explorer/explorer_settings_repository_impl.dart';
+import 'package:roola/ui/explorer/explorer_selection.dart';
 
 part 'explorer_view_model.freezed.dart';
 part 'explorer_view_model.g.dart';
@@ -61,21 +62,22 @@ class ExplorerViewModel extends _$ExplorerViewModel {
   /// 任意の絶対パスへ移動する。存在しないパスは無視。
   /// パスバー入力 / お気に入りクリック / 子ディレクトリの enter / 親への
   /// `goUp` などすべてのユーザー起点ナビゲーションがここを通り、履歴に
-  /// 積まれる。
+  /// 積まれる。同時に `explorerSelectionProvider` を directory に切替えて
+  /// セッションビュー表示中だった場合もディレクトリビューに戻す。
   void navigateTo(String path) {
     if (!Directory(path).existsSync()) {
       return;
     }
-    if (state.currentPath == path) {
-      return;
-    }
     // 現在位置より forward 側の履歴は破棄して、新しいパスを末尾に追加。
-    if (_historyCursor < _history.length - 1) {
-      _history.removeRange(_historyCursor + 1, _history.length);
+    if (state.currentPath != path) {
+      if (_historyCursor < _history.length - 1) {
+        _history.removeRange(_historyCursor + 1, _history.length);
+      }
+      _history.add(path);
+      _historyCursor = _history.length - 1;
+      state = state.copyWith(currentPath: path, children: _loader.load(path));
     }
-    _history.add(path);
-    _historyCursor = _history.length - 1;
-    state = state.copyWith(currentPath: path, children: _loader.load(path));
+    ref.read(explorerSelectionProvider.notifier).selectDirectory(path);
   }
 
   /// 履歴を 1 つ戻る。先頭にいる場合は何もしない。
@@ -87,6 +89,7 @@ class ExplorerViewModel extends _$ExplorerViewModel {
     _historyCursor--;
     final path = _history[_historyCursor];
     state = state.copyWith(currentPath: path, children: _loader.load(path));
+    ref.read(explorerSelectionProvider.notifier).selectDirectory(path);
   }
 
   /// 履歴を 1 つ進む。末尾にいる場合は何もしない。
@@ -98,6 +101,7 @@ class ExplorerViewModel extends _$ExplorerViewModel {
     _historyCursor++;
     final path = _history[_historyCursor];
     state = state.copyWith(currentPath: path, children: _loader.load(path));
+    ref.read(explorerSelectionProvider.notifier).selectDirectory(path);
   }
 
   bool get canGoBack => _historyCursor > 0;
@@ -125,6 +129,7 @@ class ExplorerViewModel extends _$ExplorerViewModel {
       currentPath: newRoot,
       children: _loader.load(newRoot),
     );
+    ref.read(explorerSelectionProvider.notifier).selectDirectory(newRoot);
   }
 
   /// テスト用の手動リフレッシュ。実機では使用しない。

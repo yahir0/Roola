@@ -13,11 +13,12 @@ import 'package:roola/core/system/trash_service.dart';
 import 'package:roola/data/repo_explorer/explorer_node.dart';
 import 'package:roola/data/repo_explorer/explorer_settings.dart';
 import 'package:roola/data/repo_explorer/explorer_settings_repository_impl.dart';
-import 'package:roola/data/skill_session/adhoc_run_args.dart';
 import 'package:roola/ui/common/prompt_name_dialog.dart';
 import 'package:roola/ui/explorer/explorer_clipboard_provider.dart';
 import 'package:roola/ui/explorer/explorer_properties_dialog.dart';
+import 'package:roola/ui/explorer/explorer_selection.dart';
 import 'package:roola/ui/explorer/explorer_view_model.dart';
+import 'package:roola/ui/run/adhoc_run_view_model.dart';
 import 'package:super_drag_and_drop/super_drag_and_drop.dart';
 import 'package:uuid/uuid.dart';
 
@@ -302,9 +303,10 @@ Future<void> _handleDirectoryAction(
         repositoryPath: node.path,
         displayName: '${node.name} (Claude)',
       );
-      unawaited(
-        RunAdhocRoute(adhocId: adhocId, $extra: args).push<void>(context),
-      );
+      // PTY を起動してから selection を切替える（順序逆だと body が
+      // build される前に Notifier 側で runner が無くて空表示になる）。
+      ref.read(adhocRunViewModelProvider(args));
+      ref.read(explorerSelectionProvider.notifier).selectAdhocSession(args);
     case _ActionOpenTerminal():
       final adhocId = 'adhoc-${_uuid.v4()}';
       final args = AdhocRunArgs(
@@ -313,9 +315,8 @@ Future<void> _handleDirectoryAction(
         displayName: '${node.name} (Terminal)',
         kind: AdhocRunKind.terminal,
       );
-      unawaited(
-        RunAdhocRoute(adhocId: adhocId, $extra: args).push<void>(context),
-      );
+      ref.read(adhocRunViewModelProvider(args));
+      ref.read(explorerSelectionProvider.notifier).selectAdhocSession(args);
     case _ActionRevealInFinder():
       await ref.read(fileOpenerProvider).open(node.path);
     case _ActionAddToFavorite():
@@ -370,9 +371,8 @@ Future<void> _handleDirectoryAction(
         displayName: '${node.name} / $skillName',
         skillName: skillName,
       );
-      unawaited(
-        RunAdhocRoute(adhocId: adhocId, $extra: args).push<void>(context),
-      );
+      ref.read(adhocRunViewModelProvider(args));
+      ref.read(explorerSelectionProvider.notifier).selectAdhocSession(args);
     case _ActionRegisterSkill(:final skillName):
       unawaited(
         EntryNewRoute(

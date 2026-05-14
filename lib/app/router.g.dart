@@ -6,53 +6,10 @@ part of 'router.dart';
 // GoRouterGenerator
 // **************************************************************************
 
-List<RouteBase> get $appRoutes => [
-  $appShellRoute,
-  $runRoute,
-  $runAdhocRoute,
-  $settingsRoute,
-];
+List<RouteBase> get $appRoutes => [$explorerRoute, $settingsRoute];
 
-RouteBase get $appShellRoute => StatefulShellRouteData.$route(
-  factory: $AppShellRouteExtension._fromState,
-  branches: [
-    StatefulShellBranchData.$branch(
-      routes: [GoRouteData.$route(path: '/', factory: $HomeRoute._fromState)],
-    ),
-    StatefulShellBranchData.$branch(
-      routes: [
-        GoRouteData.$route(
-          path: '/explorer',
-          factory: $ExplorerRoute._fromState,
-        ),
-      ],
-    ),
-  ],
-);
-
-extension $AppShellRouteExtension on AppShellRoute {
-  static AppShellRoute _fromState(GoRouterState state) => const AppShellRoute();
-}
-
-mixin $HomeRoute on GoRouteData {
-  static HomeRoute _fromState(GoRouterState state) => const HomeRoute();
-
-  @override
-  String get location => GoRouteData.$location('/');
-
-  @override
-  void go(BuildContext context) => context.go(location);
-
-  @override
-  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
-
-  @override
-  void pushReplacement(BuildContext context) =>
-      context.pushReplacement(location);
-
-  @override
-  void replace(BuildContext context) => context.replace(location);
-}
+RouteBase get $explorerRoute =>
+    GoRouteData.$route(path: '/explorer', factory: $ExplorerRoute._fromState);
 
 mixin $ExplorerRoute on GoRouteData {
   static ExplorerRoute _fromState(GoRouterState state) => const ExplorerRoute();
@@ -72,66 +29,6 @@ mixin $ExplorerRoute on GoRouteData {
 
   @override
   void replace(BuildContext context) => context.replace(location);
-}
-
-RouteBase get $runRoute =>
-    GoRouteData.$route(path: '/run/:entryId', factory: $RunRoute._fromState);
-
-mixin $RunRoute on GoRouteData {
-  static RunRoute _fromState(GoRouterState state) =>
-      RunRoute(entryId: state.pathParameters['entryId']!);
-
-  RunRoute get _self => this as RunRoute;
-
-  @override
-  String get location =>
-      GoRouteData.$location('/run/${Uri.encodeComponent(_self.entryId)}');
-
-  @override
-  void go(BuildContext context) => context.go(location);
-
-  @override
-  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
-
-  @override
-  void pushReplacement(BuildContext context) =>
-      context.pushReplacement(location);
-
-  @override
-  void replace(BuildContext context) => context.replace(location);
-}
-
-RouteBase get $runAdhocRoute => GoRouteData.$route(
-  path: '/run-adhoc/:adhocId',
-  factory: $RunAdhocRoute._fromState,
-);
-
-mixin $RunAdhocRoute on GoRouteData {
-  static RunAdhocRoute _fromState(GoRouterState state) => RunAdhocRoute(
-    adhocId: state.pathParameters['adhocId']!,
-    $extra: state.extra as AdhocRunArgs,
-  );
-
-  RunAdhocRoute get _self => this as RunAdhocRoute;
-
-  @override
-  String get location =>
-      GoRouteData.$location('/run-adhoc/${Uri.encodeComponent(_self.adhocId)}');
-
-  @override
-  void go(BuildContext context) => context.go(location, extra: _self.$extra);
-
-  @override
-  Future<T?> push<T>(BuildContext context) =>
-      context.push<T>(location, extra: _self.$extra);
-
-  @override
-  void pushReplacement(BuildContext context) =>
-      context.pushReplacement(location, extra: _self.$extra);
-
-  @override
-  void replace(BuildContext context) =>
-      context.replace(location, extra: _self.$extra);
 }
 
 RouteBase get $settingsRoute => GoRouteData.$route(

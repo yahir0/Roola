@@ -15,6 +15,7 @@ import 'package:roola/ui/common/prompt_name_dialog.dart';
 import 'package:roola/ui/common/session_state_icon.dart';
 import 'package:roola/ui/explorer/explorer_node_tile.dart'
     show decideDropOperation, performFileDrop;
+import 'package:roola/ui/explorer/explorer_selection.dart';
 import 'package:roola/ui/explorer/explorer_view_model.dart';
 import 'package:roola/ui/run/adhoc_run_view_model.dart';
 import 'package:roola/ui/run/run_view_model.dart';
@@ -496,8 +497,9 @@ class _EmptyLauncherHint extends StatelessWidget {
   }
 }
 
-/// ランチャー登録エントリ 1 件のタイル。クリックで Phase 1 は既存の
-/// `/run/:entryId` 全画面遷移、Phase 2 で body 切替に置換予定。
+/// ランチャー登録エントリ 1 件のタイル。クリックで `runViewModelProvider`
+/// を起動して selection をそのセッションに切替える（body が PTY ターミナル
+/// に変わる）。
 class _LauncherTile extends ConsumerWidget {
   const _LauncherTile({required this.entry});
 
@@ -507,16 +509,19 @@ class _LauncherTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = Theme.of(context).colorScheme;
     return InkWell(
-      onTap: () => RunRoute(entryId: entry.id).push<void>(context),
+      onTap: () {
+        // 先に runner を build しないと PTY が起動しない。`read` で 1 回
+        // 触れば build が走り、`ActiveSessions.register` が走る。
+        ref.read(runViewModelProvider(entry.id));
+        ref
+            .read(explorerSelectionProvider.notifier)
+            .selectEntrySession(entry.id);
+      },
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
         child: Row(
           children: [
-            Icon(
-              Icons.bolt,
-              size: 18,
-              color: colors.primary,
-            ),
+            Icon(Icons.bolt, size: 18, color: colors.primary),
             const SizedBox(width: 10),
             Expanded(
               child: Text(
@@ -535,9 +540,8 @@ class _LauncherTile extends ConsumerWidget {
 
 // ----- 実行中セクション -----
 
-/// 実行中セッション 1 件のタイル。永続エントリ由来は `RunRoute` push、
-/// ad-hoc 由来は `RunAdhocRoute` push。クリック挙動は Phase 1 暫定で、
-/// Phase 2 で body 切替に置換予定。
+/// 実行中セッション 1 件のタイル。クリックで body をその PTY ターミナル
+/// に切替える。✕ で完全破棄。
 class _RunningTile extends ConsumerWidget {
   const _RunningTile({required this.sessionId, required this.state});
 
@@ -558,13 +562,11 @@ class _RunningTile extends ConsumerWidget {
     final label = entry?.displayName ?? adhocArgs!.displayName;
     return InkWell(
       onTap: () {
+        final selection = ref.read(explorerSelectionProvider.notifier);
         if (entry != null) {
-          RunRoute(entryId: sessionId).push<void>(context);
+          selection.selectEntrySession(sessionId);
         } else {
-          RunAdhocRoute(
-            adhocId: adhocArgs!.adhocId,
-            $extra: adhocArgs,
-          ).push<void>(context);
+          selection.selectAdhocSession(adhocArgs!);
         }
       },
       child: Padding(

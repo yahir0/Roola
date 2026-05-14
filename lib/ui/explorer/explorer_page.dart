@@ -2,60 +2,116 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:roola/app/router.dart';
 import 'package:roola/core/skill/skill_scanner.dart';
 import 'package:roola/data/repo_explorer/explorer_node.dart';
+import 'package:roola/ui/common/logo_accent_line.dart';
 import 'package:roola/ui/common/macos_window_app_bar.dart';
 import 'package:roola/ui/explorer/explorer_node_tile.dart';
 import 'package:roola/ui/explorer/explorer_path_bar.dart';
+import 'package:roola/ui/explorer/explorer_selection.dart';
 import 'package:roola/ui/explorer/explorer_sidebar.dart';
 import 'package:roola/ui/explorer/explorer_view_model.dart';
-import 'package:roola/ui/shell/app_tab_bar.dart';
+import 'package:roola/ui/explorer/launcher_grid.dart';
+import 'package:roola/ui/explorer/session_view.dart';
 import 'package:super_drag_and_drop/super_drag_and_drop.dart';
 
-/// エクスプローラ画面。
+/// エクスプローラ画面（Phase 2 以降は唯一のメイン画面）。
 ///
-/// 上から: AppBar / タブバー / 編集可能なパスバー / [左サイドバー + 本体リスト]。
-/// 本体は currentPath 直下のディレクトリとファイルを一覧表示する。
-/// 戻る矢印はカレントが root と一致する場合のみ非表示。
-class ExplorerPage extends ConsumerWidget {
+/// レイアウト:
+/// ```
+/// AppBar (戻る / ⚡ / 起動時のディレクトリ / ⚙)
+/// [path bar — selection が directory のときだけ]
+/// ┌─ sidebar ─┬─ body ─────────────────────────┐
+/// │           │ directory listing               │
+/// │           │   OR                            │
+/// │           │ SessionView (PTY terminal)      │
+/// └───────────┴─────────────────────────────────┘
+/// ```
+///
+/// `explorerSelectionProvider` を購読し、ディレクトリ / セッションの
+/// いずれかをエクスプローラ body に排他的に描画する（ADR-0014）。
+/// PTY 自体は keep-alive provider 側で保持されているので、selection 切替
+/// で widget が unmount されても出力は失われない。
+class ExplorerPage extends HookConsumerWidget {
   const ExplorerPage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(explorerViewModelProvider);
-    final isAtRoot = state.currentPath == state.root;
+    final selection = ref.watch(explorerSelectionProvider);
+    final isDirectory = selection is ExplorerSelectionDirectory;
+    final menuController = useMemoized(MenuController.new);
     return Scaffold(
       appBar: MacosWindowAppBar(
-        // タブ切替を AppBar のタイトル枠に置き、戻るボタン / actions と
-        // 同じ行に並べる。パス表示はすぐ下の編集可能パスバー
-        // （[ExplorerPathBar]）が担う。
-        title: const AppTabSegments(),
         bottom: const LogoAccentLine(),
-        onBack: isAtRoot
-            ? null
-            : () => ref.read(explorerViewModelProvider.notifier).goUp(),
+        onBack: _onBack(ref, state, selection),
         actions: [
+          MenuAnchor(
+            controller: menuController,
+            alignmentOffset: const Offset(0, 8),
+            style: const MenuStyle(
+              backgroundColor: WidgetStatePropertyAll(Colors.transparent),
+              padding: WidgetStatePropertyAll(EdgeInsets.zero),
+              elevation: WidgetStatePropertyAll(0),
+            ),
+            menuChildren: const [LauncherGrid()],
+            child: IconButton(
+              icon: const Icon(Icons.bolt),
+              tooltip: 'ランチャー',
+              onPressed: () => menuController.isOpen
+                  ? menuController.close()
+                  : menuController.open(),
+            ),
+          ),
           IconButton(
             icon: const Icon(Icons.drive_folder_upload),
             tooltip: '起動時のディレクトリを変更',
             onPressed: () => _pickRoot(context, ref),
           ),
+          IconButton(
+            icon: const Icon(Icons.settings),
+            tooltip: '設定',
+            onPressed: () => const SettingsRoute().push<void>(context),
+          ),
         ],
       ),
       body: Column(
         children: [
-          ExplorerPathBar(currentPath: state.currentPath),
+          if (isDirectory) ExplorerPathBar(currentPath: state.currentPath),
           Expanded(
             child: Row(
               children: [
                 ExplorerSidebar(currentPath: state.currentPath),
-                Expanded(child: _ExplorerBody(state: state)),
+                Expanded(child: _Body(state: state, selection: selection)),
               ],
             ),
           ),
         ],
       ),
     );
+  }
+
+  /// AppBar 左の戻る矢印が呼ぶコールバック。selection の種別と
+  /// `ExplorerViewModel` の history で出し分ける。
+  ///
+  /// - selection が session: directory ビューに戻す（PTY は破棄しない）
+  /// - selection が directory で history を遡れる: goBack
+  /// - それ以外: null（ボタン非表示）
+  VoidCallback? _onBack(
+    WidgetRef ref,
+    ExplorerState state,
+    ExplorerSelection selection,
+  ) {
+    if (selection is! ExplorerSelectionDirectory) {
+      return () => ref
+          .read(explorerSelectionProvider.notifier)
+          .selectDirectory(state.currentPath);
+    }
+    if (!ref.read(explorerViewModelProvider.notifier).canGoBack) {
+      return null;
+    }
+    return () => ref.read(explorerViewModelProvider.notifier).goBack();
   }
 
   Future<void> _pickRoot(BuildContext context, WidgetRef ref) async {
@@ -66,8 +122,38 @@ class ExplorerPage extends ConsumerWidget {
   }
 }
 
-class _ExplorerBody extends ConsumerWidget {
-  const _ExplorerBody({required this.state});
+/// selection の種別に応じて、ディレクトリ一覧 / セッションビューを描画する。
+class _Body extends ConsumerWidget {
+  const _Body({required this.state, required this.selection});
+
+  final ExplorerState state;
+  final ExplorerSelection selection;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return switch (selection) {
+      ExplorerSelectionDirectory() => _DirectoryListing(state: state),
+      ExplorerSelectionEntrySession(:final entryId) => SessionView.fromEntry(
+        entryId,
+        key: ValueKey('session-entry:$entryId'),
+        onClosed: () => ref
+            .read(explorerSelectionProvider.notifier)
+            .selectDirectory(state.currentPath),
+      ),
+      ExplorerSelectionAdhocSession(:final args) => SessionView.fromAdhoc(
+        args,
+        key: ValueKey('session-adhoc:${args.adhocId}'),
+        onClosed: () => ref
+            .read(explorerSelectionProvider.notifier)
+            .selectDirectory(state.currentPath),
+      ),
+    };
+  }
+}
+
+/// ディレクトリビュー本体（旧 `_ExplorerBody`）。
+class _DirectoryListing extends ConsumerWidget {
+  const _DirectoryListing({required this.state});
 
   final ExplorerState state;
 
@@ -82,8 +168,7 @@ class _ExplorerBody extends ConsumerWidget {
     return CustomScrollView(
       // currentPath を含む ValueKey を付与することで、ディレクトリ
       // 切替時に CustomScrollView が再生成され、スクロール位置が必ず
-      // 先頭に戻る。同じ key のままだと Flutter は既存の Sliver 要素を
-      // 再利用してスクロール位置を保持してしまう。
+      // 先頭に戻る。
       key: ValueKey('explorer-body:${state.currentPath}'),
       slivers: [
         const SliverPadding(padding: EdgeInsets.only(top: 8)),
@@ -99,9 +184,6 @@ class _ExplorerBody extends ConsumerWidget {
             separatorBuilder: (_, _) => const Divider(height: 1),
             itemBuilder: (_, i) => ExplorerNodeTile(node: state.children[i]),
           ),
-        // 空のときは viewport を埋めてヒント表示。非空のときは固定高さの
-        // 右クリック可能領域を末尾に追加して、リストがどれだけ長くても
-        // スクロール下端に余白を確保する。
         if (isEmpty)
           SliverFillRemaining(
             hasScrollBody: false,
@@ -129,11 +211,7 @@ class _ExplorerBody extends ConsumerWidget {
 ///
 /// 右クリックでカレントディレクトリを対象とした context menu を開く。
 /// 加えて、Finder などアプリ外からこの領域へ drop されたファイルは
-/// カレントディレクトリ直下に move / copy する（ディレクトリタイルや
-/// サイドバーで受けきれない「空き領域への drop」を救済する）。
-///
-/// Skill 検知は context menu 表示時に都度実行する（毎ナビゲートで
-/// 走らせる必要はない）。
+/// カレントディレクトリ直下に move / copy する。
 class _CurrentDirBackdrop extends HookConsumerWidget {
   const _CurrentDirBackdrop({
     required this.currentPath,
@@ -172,10 +250,6 @@ class _CurrentDirBackdrop extends HookConsumerWidget {
             ref,
             node,
             details.globalPosition,
-            // backdrop はカレントディレクトリ自身を指すため、「自身を
-            // リネーム / コピー / 削除」は許可しない（親フォルダから
-            // 操作してもらう）。プロパティとペーストは backdrop でも
-            // 有効。
             showRename: false,
             showCopy: false,
             showDelete: false,
