@@ -239,9 +239,33 @@ class PtyTerminalRunner implements TerminalRunner {
       // 最初のメッセージとして処理し、スラッシュコマンド経由で skill を発火
       // する。`/` を付けずに渡すと自然言語入力扱いになり、Claude が文脈推測で
       // 別の動作をする（例: cwd 内の似た名前のスクリプトを探して実行する等）。
+      //
+      // 直接 `claude` を `Pty.start` するとプロセスの PATH が launchd 由来の
+      // 最小 PATH (`/usr/bin:/bin:...`) になり、pnpm / nvm / Homebrew 配下の
+      // `claude` も、claude の shebang が呼ぶ `node` も解決できず
+      // `execvp: No such file or directory` で即落ちする（DMG / Dock 起動）。
+      // ターミナル直起動だと再現しないため気付きにくい。
+      //
+      // login + interactive shell (`$SHELL -i -l`) 経由で起動して
+      // `.zprofile` / `.zshrc` の両方を読み込ませて PATH を継承させ、
+      // `exec "$@"` でシェル自身を claude に置き換えることでプロセスツリー
+      // を増やさずに済ます。`-c` の `"$@"` quote により skill 名に空白等が
+      // 含まれても safe。
+      //
+      // `-l` だけだと `.zshrc` が読まれず、`.zshrc` に PATH 拡張を書いて
+      // いるユーザー（pnpm / Homebrew 等の一般的構成）で `command not
+      // found` になる。`-i` を追加して `.zshrc` も読ませる。
       ClaudeSkillAction(:final skillName) => (
-        'claude',
-        [skillName.startsWith('/') ? skillName : '/$skillName'],
+        _userShell(),
+        <String>[
+          '-i',
+          '-l',
+          '-c',
+          r'exec "$@"',
+          '_',
+          'claude',
+          skillName.startsWith('/') ? skillName : '/$skillName',
+        ],
       ),
     };
   }
