@@ -75,6 +75,8 @@ Mac 向けの Claude Code Skills ランチャーアプリ（Flutter Desktop / ma
 - ADR-0011: エクスプローラの DnD を `super_drag_and_drop` で OS 連携にする
 - ADR-0012: マルチウィンドウは別プロセス起動で実現（共有 Engine 方式は後追い検討）
 - ADR-0013: Bundle ID を `tech.yahiro.Roola` に、Debug / Profile は `dev.` プレフィックスで分離
+- ADR-0014: Explorer をメイン UI に格上げ、Skills ランチャーをサブ機能へ降格
+- ADR-0015: Explorer の root ceiling を廃止、rootPath は「起動時の開始位置」に弱める
 
 ## ディレクトリ構成
 

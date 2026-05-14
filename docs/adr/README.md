@@ -19,6 +19,8 @@
 | [0011](./0011-os-drag-and-drop.md) | エクスプローラの DnD を `super_drag_and_drop` で OS 連携にする | Accepted |
 | [0012](./0012-multi-window-via-separate-process.md) | マルチウィンドウは別プロセス起動で実現（共有 Engine 方式は後追い検討） | Accepted |
 | [0013](./0013-bundle-id-and-dev-prefix.md) | Bundle ID を `tech.yahiro.Roola` に、Debug / Profile は `dev.` プレフィックスで分離 | Accepted |
+| [0014](./0014-explorer-first-ui.md) | Explorer をメイン UI に格上げ、Skills ランチャーをサブ機能へ降格 | Accepted |
+| [0015](./0015-drop-explorer-root-ceiling.md) | Explorer の root ceiling を廃止、rootPath は「起動時の開始位置」に弱める | Accepted |
 
 ## フォーマット
 

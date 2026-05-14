@@ -1,22 +1,40 @@
+import 'dart:io';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:roola/app/router.dart';
+import 'package:roola/data/launcher_entry/launcher_entries_provider.dart';
+import 'package:roola/data/launcher_entry/launcher_entry.dart';
 import 'package:roola/data/repo_explorer/explorer_settings.dart';
 import 'package:roola/data/repo_explorer/explorer_settings_repository_impl.dart';
+import 'package:roola/data/skill_runner/skill_run_state.dart';
+import 'package:roola/data/skill_session/active_sessions.dart';
 import 'package:roola/ui/common/prompt_name_dialog.dart';
+import 'package:roola/ui/common/session_state_icon.dart';
 import 'package:roola/ui/explorer/explorer_node_tile.dart'
     show decideDropOperation, performFileDrop;
 import 'package:roola/ui/explorer/explorer_view_model.dart';
+import 'package:roola/ui/run/adhoc_run_view_model.dart';
+import 'package:roola/ui/run/run_view_model.dart';
 import 'package:super_drag_and_drop/super_drag_and_drop.dart';
 import 'package:uuid/uuid.dart';
 
 const _uuid = Uuid();
 
-/// エクスプローラ左側のお気に入りサイドバー。Finder のサイドバー相当。
+/// エクスプローラ左側のサイドバー。Finder のサイドバー相当。
 ///
-/// `explorerSettingsProvider.favorites` を購読して、タイルクリックで対象
-/// パスに移動する。上部の「+」ボタンで現在地を登録、各タイルの右クリック
-/// から削除・リネームができる。
+/// 4 セクション構成（上から）:
+/// - **場所**: ホーム / ダウンロード / デスクトップ / ドキュメント /
+///   アプリケーション + 「別のフォルダを開く…」
+/// - **お気に入り**: ユーザー登録のフォルダ。クリックで navigate、右クリック
+///   でリネーム / 削除、ドラッグ受け（`moveOrCopyInto`）
+/// - **ランチャー**: 登録済み LauncherEntry。クリックで Skill セッション起動
+/// - **実行中**: active session。空のときは「なし」プレースホルダ
+///
+/// 各セクションは見出し + 中身の縦並びで、サイドバー全体は `ListView` で
+/// スクロール可能。
 class ExplorerSidebar extends ConsumerWidget {
   const ExplorerSidebar({required this.currentPath, super.key});
 
@@ -30,6 +48,9 @@ class ExplorerSidebar extends ConsumerWidget {
         ref.watch(explorerSettingsProvider).value ??
         ExplorerSettings.defaults();
     final favorites = settings.favorites;
+    final entries = ref.watch(launcherEntriesProvider).value ?? const [];
+    final sessions = ref.watch(activeSessionsProvider);
+
     return Container(
       width: width,
       decoration: BoxDecoration(
@@ -37,42 +58,218 @@ class ExplorerSidebar extends ConsumerWidget {
           right: BorderSide(color: Theme.of(context).dividerColor),
         ),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+      child: ListView(
+        padding: const EdgeInsets.symmetric(vertical: 4),
         children: [
-          _SidebarHeader(currentPath: currentPath),
+          // 場所
+          const _SectionHeader('場所'),
+          for (final place in _defaultPlaces)
+            _PlaceTile(place: place, currentPath: currentPath),
+          _OpenOtherFolderTile(),
+          const SizedBox(height: 8),
           const Divider(height: 1),
-          Expanded(
-            child: favorites.isEmpty
-                ? const _EmptyHint()
-                : ListView.builder(
-                    padding: const EdgeInsets.symmetric(vertical: 4),
-                    itemCount: favorites.length,
-                    itemBuilder: (_, i) => _FavoriteTile(
-                      favorite: favorites[i],
-                      isCurrent: favorites[i].path == currentPath,
-                    ),
-                  ),
-          ),
+
+          // お気に入り
+          _FavoritesHeader(currentPath: currentPath),
+          if (favorites.isEmpty)
+            const _EmptyFavoritesHint()
+          else
+            for (final fav in favorites)
+              _FavoriteTile(
+                favorite: fav,
+                isCurrent: fav.path == currentPath,
+              ),
+          const SizedBox(height: 8),
+          const Divider(height: 1),
+
+          // ランチャー
+          _LauncherHeader(),
+          if (entries.isEmpty)
+            const _EmptyLauncherHint()
+          else
+            for (final e in entries) _LauncherTile(entry: e),
+          const SizedBox(height: 8),
+          const Divider(height: 1),
+
+          // 実行中
+          const _SectionHeader('実行中'),
+          if (sessions.isEmpty)
+            const _RunningEmptyTile()
+          else
+            for (final entry in sessions.entries)
+              _RunningTile(sessionId: entry.key, state: entry.value),
+          const SizedBox(height: 8),
         ],
       ),
     );
   }
 }
 
-class _SidebarHeader extends ConsumerWidget {
-  const _SidebarHeader({required this.currentPath});
+// ----- 共通 -----
+
+/// セクション見出し（小さめ・控えめなラベル）。
+class _SectionHeader extends StatelessWidget {
+  const _SectionHeader(this.label);
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 8, 4),
+      child: Text(
+        label,
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+          color: colors.onSurfaceVariant,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+}
+
+// ----- 場所セクション -----
+
+/// 場所セクションの固定エントリ定義。
+class _Place {
+  const _Place(this.label, this.icon, this.envVar, this.relPath);
+
+  final String label;
+  final IconData icon;
+
+  /// 環境変数名（通常は HOME）。
+  final String envVar;
+
+  /// HOME 配下の相対パス。空文字なら HOME 直下を指す。
+  final String relPath;
+
+  /// 解決済みの絶対パス。`HOME` 未設定時は `null`。
+  String? resolve() {
+    final base = Platform.environment[envVar];
+    if (base == null || base.isEmpty) {
+      return null;
+    }
+    if (relPath.isEmpty) {
+      return base;
+    }
+    return '$base/$relPath';
+  }
+}
+
+/// 場所セクションに並ぶ固定 5 件 + 「アプリケーション」は絶対パス固定。
+const _defaultPlaces = <_Place>[
+  _Place('ホーム', Icons.home_outlined, 'HOME', ''),
+  _Place('ダウンロード', Icons.download_outlined, 'HOME', 'Downloads'),
+  _Place('デスクトップ', Icons.desktop_mac_outlined, 'HOME', 'Desktop'),
+  _Place('ドキュメント', Icons.description_outlined, 'HOME', 'Documents'),
+  // アプリケーションは HOME 配下ではなく `/Applications` 固定。
+  _Place('アプリケーション', Icons.apps, '__abs__', '/Applications'),
+];
+
+class _PlaceTile extends ConsumerWidget {
+  const _PlaceTile({required this.place, required this.currentPath});
+
+  final _Place place;
+  final String currentPath;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final colors = Theme.of(context).colorScheme;
+    final path = place.envVar == '__abs__' ? place.relPath : place.resolve();
+    final isCurrent = path != null && path == currentPath;
+    return InkWell(
+      onTap: path == null
+          ? null
+          : () =>
+                ref.read(explorerViewModelProvider.notifier).navigateTo(path),
+      child: Container(
+        color: isCurrent ? colors.primary.withValues(alpha: 0.1) : null,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        child: Row(
+          children: [
+            Icon(
+              place.icon,
+              size: 18,
+              color: isCurrent ? colors.primary : colors.onSurfaceVariant,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                place.label,
+                style: Theme.of(context).textTheme.bodyMedium,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// 「別のフォルダを開く…」エントリ。file_picker でディレクトリを選ばせ、
+/// `navigateTo` する。場所セクションの末尾に置く。
+class _OpenOtherFolderTile extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final colors = Theme.of(context).colorScheme;
+    return InkWell(
+      onTap: () async {
+        final picked = await FilePicker.getDirectoryPath();
+        if (picked == null || !context.mounted) {
+          return;
+        }
+        ref.read(explorerViewModelProvider.notifier).navigateTo(picked);
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        child: Row(
+          children: [
+            Icon(
+              Icons.more_horiz,
+              size: 18,
+              color: colors.onSurfaceVariant,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                '別のフォルダを開く…',
+                style: Theme.of(context).textTheme.bodyMedium,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ----- お気に入りセクション -----
+
+class _FavoritesHeader extends ConsumerWidget {
+  const _FavoritesHeader({required this.currentPath});
 
   final String currentPath;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final colors = Theme.of(context).colorScheme;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 12, 8, 8),
+      padding: const EdgeInsets.fromLTRB(16, 12, 8, 4),
       child: Row(
         children: [
           Expanded(
-            child: Text('お気に入り', style: Theme.of(context).textTheme.titleSmall),
+            child: Text(
+              'お気に入り',
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                color: colors.onSurfaceVariant,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
           IconButton(
             icon: const Icon(Icons.add, size: 18),
@@ -110,6 +307,23 @@ class _SidebarHeader extends ConsumerWidget {
   static String _basename(String path) {
     final segments = path.split('/').where((s) => s.isNotEmpty).toList();
     return segments.isEmpty ? path : segments.last;
+  }
+}
+
+class _EmptyFavoritesHint extends StatelessWidget {
+  const _EmptyFavoritesHint();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
+      child: Text(
+        '上の + で現在のディレクトリを登録',
+        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
+      ),
+    );
   }
 }
 
@@ -155,7 +369,7 @@ class _FavoriteTile extends HookConsumerWidget {
               .navigateTo(favorite.path),
           child: Container(
             color: backgroundColor,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
             child: Row(
               children: [
                 Icon(
@@ -233,16 +447,173 @@ class _FavoriteTile extends HookConsumerWidget {
 
 enum _FavoriteAction { rename, remove }
 
-class _EmptyHint extends StatelessWidget {
-  const _EmptyHint();
+// ----- ランチャーセクション -----
+
+class _LauncherHeader extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 8, 4),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              'ランチャー',
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                color: colors.onSurfaceVariant,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.add, size: 18),
+            tooltip: '新規エントリを登録',
+            visualDensity: VisualDensity.compact,
+            onPressed: () =>
+                const EntryNewRoute().push<void>(context),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _EmptyLauncherHint extends StatelessWidget {
+  const _EmptyLauncherHint();
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
       child: Text(
-        '上の + を押して現在のディレクトリを登録するとここに並びます',
-        style: Theme.of(context).textTheme.bodySmall,
+        '上の + で Skill エントリを登録',
+        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
+      ),
+    );
+  }
+}
+
+/// ランチャー登録エントリ 1 件のタイル。クリックで Phase 1 は既存の
+/// `/run/:entryId` 全画面遷移、Phase 2 で body 切替に置換予定。
+class _LauncherTile extends ConsumerWidget {
+  const _LauncherTile({required this.entry});
+
+  final LauncherEntry entry;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final colors = Theme.of(context).colorScheme;
+    return InkWell(
+      onTap: () => RunRoute(entryId: entry.id).push<void>(context),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        child: Row(
+          children: [
+            Icon(
+              Icons.bolt,
+              size: 18,
+              color: colors.primary,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                entry.displayName,
+                style: Theme.of(context).textTheme.bodyMedium,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ----- 実行中セクション -----
+
+/// 実行中セッション 1 件のタイル。永続エントリ由来は `RunRoute` push、
+/// ad-hoc 由来は `RunAdhocRoute` push。クリック挙動は Phase 1 暫定で、
+/// Phase 2 で body 切替に置換予定。
+class _RunningTile extends ConsumerWidget {
+  const _RunningTile({required this.sessionId, required this.state});
+
+  final String sessionId;
+  final SkillRunState state;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final entries = ref.watch(launcherEntriesProvider).value ?? const [];
+    final entry = entries.where((e) => e.id == sessionId).firstOrNull;
+    final adhocArgs = entry == null
+        ? ref.read(activeSessionsProvider.notifier).adhocArgsFor(sessionId)
+        : null;
+    if (entry == null && adhocArgs == null) {
+      // 整合性が崩れている。表示しない。
+      return const SizedBox.shrink();
+    }
+    final label = entry?.displayName ?? adhocArgs!.displayName;
+    return InkWell(
+      onTap: () {
+        if (entry != null) {
+          RunRoute(entryId: sessionId).push<void>(context);
+        } else {
+          RunAdhocRoute(
+            adhocId: adhocArgs!.adhocId,
+            $extra: adhocArgs,
+          ).push<void>(context);
+        }
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        child: Row(
+          children: [
+            SizedBox(width: 18, height: 18, child: sessionStateAvatar(state)),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                label,
+                style: Theme.of(context).textTheme.bodyMedium,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            IconButton(
+              icon: const Icon(Icons.close, size: 16),
+              tooltip: 'セッションを完全に破棄',
+              visualDensity: VisualDensity.compact,
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
+              onPressed: () {
+                if (entry != null) {
+                  terminateSkillSession(ref, sessionId);
+                } else {
+                  terminateAdhocSession(ref, adhocArgs!);
+                }
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _RunningEmptyTile extends StatelessWidget {
+  const _RunningEmptyTile();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
+      child: Text(
+        'なし',
+        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
       ),
     );
   }

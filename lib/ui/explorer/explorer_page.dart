@@ -37,7 +37,7 @@ class ExplorerPage extends ConsumerWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.drive_folder_upload),
-            tooltip: 'ルートディレクトリを変更',
+            tooltip: '起動時のディレクトリを変更',
             onPressed: () => _pickRoot(context, ref),
           ),
         ],

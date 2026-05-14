@@ -11,10 +11,11 @@ part 'explorer_view_model.g.dart';
 
 /// エクスプローラ画面の表示状態。
 ///
-/// `root` は永続化されたルートディレクトリ。`currentPath` は現在表示中の
-/// 絶対パス（root 配下に限定しない。パスバーやお気に入りからは任意の場所
-/// に飛べる）。`children` は currentPath 直下のディレクトリ + ファイル
-/// （ディレクトリが先、各ブロック内は名前順）。
+/// `root` は起動時の開始位置として永続化された絶対パス。ADR-0015 で
+/// ceiling（上限）としての役割は撤去され、`currentPath` は root より
+/// 上にも自由に navigate できる。`currentPath` は現在表示中の絶対パス。
+/// `children` は currentPath 直下のディレクトリ + ファイル（ディレクトリ
+/// が先、各ブロック内は名前順）。
 @freezed
 abstract class ExplorerState with _$ExplorerState {
   const factory ExplorerState({
@@ -104,11 +105,10 @@ class ExplorerViewModel extends _$ExplorerViewModel {
   bool get canGoForward => _historyCursor < _history.length - 1;
 
   /// 親ディレクトリへ移動する（履歴にも積む）。AppBar の back 矢印 /
-  /// `ExplorerParentDropTile` から呼ばれる。ルートと等しい場合は何もしない。
+  /// `ExplorerParentDropTile` から呼ばれる。ADR-0015 で root ceiling は
+  /// 廃止済みのため、root より上にも登れる。filesystem root (`/`) では
+  /// `_parentOf` が `/` を返し、`navigateTo` の existsSync で no-op になる。
   void goUp() {
-    if (state.currentPath == state.root) {
-      return;
-    }
     final parent = _parentOf(state.currentPath);
     navigateTo(parent);
   }
