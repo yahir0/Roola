@@ -10,6 +10,7 @@ import 'package:roola/app/router.dart';
 import 'package:roola/core/system/explorer_file_ops.dart';
 import 'package:roola/core/system/file_opener.dart';
 import 'package:roola/core/system/trash_service.dart';
+import 'package:roola/data/launcher_entry/launcher_action.dart';
 import 'package:roola/data/repo_explorer/explorer_node.dart';
 import 'package:roola/data/repo_explorer/explorer_settings.dart';
 import 'package:roola/data/repo_explorer/explorer_settings_repository_impl.dart';
@@ -298,10 +299,18 @@ Future<void> _handleDirectoryAction(
   switch (action) {
     case _ActionOpenClaude():
       final adhocId = 'adhoc-${_uuid.v4()}';
+      // 「Claude Code を開く」は素の `claude` 起動。新モデルでは
+      // ClaudeSkillAction が必ず非空の skillName を要求するため、Skill 名
+      // 無し起動は RunCommandAction(command: 'claude') で表現する
+      // （ADR-0016 / design.md Decision 4）。
       final args = AdhocRunArgs(
         adhocId: adhocId,
-        repositoryPath: node.path,
+        workingDirectory: node.path,
         displayName: '${node.name} (Claude)',
+        action: const LauncherAction.runCommand(
+          command: 'claude',
+          keepShellAfterExit: false,
+        ),
       );
       // PTY を起動してから selection を切替える（順序逆だと body が
       // build される前に Notifier 側で runner が無くて空表示になる）。
@@ -311,9 +320,9 @@ Future<void> _handleDirectoryAction(
       final adhocId = 'adhoc-${_uuid.v4()}';
       final args = AdhocRunArgs(
         adhocId: adhocId,
-        repositoryPath: node.path,
+        workingDirectory: node.path,
         displayName: '${node.name} (Terminal)',
-        kind: AdhocRunKind.terminal,
+        action: const LauncherAction.openHere(),
       );
       ref.read(adhocRunViewModelProvider(args));
       ref.read(explorerSelectionProvider.notifier).selectAdhocSession(args);
@@ -367,9 +376,9 @@ Future<void> _handleDirectoryAction(
       final adhocId = 'adhoc-${_uuid.v4()}';
       final args = AdhocRunArgs(
         adhocId: adhocId,
-        repositoryPath: node.path,
+        workingDirectory: node.path,
         displayName: '${node.name} / $skillName',
-        skillName: skillName,
+        action: LauncherAction.claudeSkill(skillName: skillName),
       );
       ref.read(adhocRunViewModelProvider(args));
       ref.read(explorerSelectionProvider.notifier).selectAdhocSession(args);

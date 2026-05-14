@@ -1,8 +1,8 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-part 'skill_run_state.freezed.dart';
+part 'terminal_run_state.freezed.dart';
 
-/// `SkillRunner` の実行状態。
+/// `TerminalRunner` の実行状態。
 ///
 /// View は `state.when` や Dart 3 のパターンマッチングでハンドリングし、
 /// ヘッダー表示・終了ボタンの活性化などを切り替える。

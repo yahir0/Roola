@@ -4,12 +4,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:roola/core/storage/app_paths.dart';
+import 'package:roola/data/launcher_entry/launcher_action.dart';
 import 'package:roola/data/launcher_entry/launcher_entries_provider.dart';
 import 'package:roola/data/launcher_entry/launcher_entry.dart';
 import 'package:roola/data/launcher_entry/launcher_entry_repository.dart';
 import 'package:roola/data/launcher_entry/launcher_entry_repository_impl.dart';
-import 'package:roola/data/skill_runner/skill_run_state.dart';
 import 'package:roola/data/skill_session/active_sessions.dart';
+import 'package:roola/data/terminal_runner/terminal_run_state.dart';
 import 'package:roola/ui/run/run_view_model.dart';
 
 class _MockLauncherEntryRepository extends Mock
@@ -26,8 +27,8 @@ void main() {
     sampleEntry = LauncherEntry(
       id: 'a',
       displayName: 'Sample',
-      repositoryPath: '/path/does/not/exist',
-      skillName: 'demo',
+      workingDirectory: '/path/does/not/exist',
+      action: const LauncherAction.claudeSkill(skillName: 'demo'),
       createdAt: DateTime(2026),
     );
 
@@ -64,7 +65,7 @@ void main() {
   );
 
   test(
-    'runner reflects failed state when repository path is invalid',
+    'runner reflects failed state when working directory is invalid',
     () async {
       container.read(runViewModelProvider('a'));
       // microtask の register + start を進める

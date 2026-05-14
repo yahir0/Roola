@@ -10,28 +10,40 @@ part of 'run_view_model.dart';
 // ignore_for_file: type=lint, type=warning
 /// `RunPage` 用 ViewModel。
 ///
-/// build() で PtySkillRunner を 1 つ生成し、`session-registry` に登録した
+/// build() で PtyTerminalRunner を 1 つ生成し、`session-registry` に登録した
 /// うえで状態 Stream を購読しながらプロセスを start する。
 /// keepAlive のため、実行画面ウィジェットの離脱後もインスタンスは維持され、
 /// 明示的な `close()` か `restart()` まで生存する。
+///
+/// 動作タイプの分岐は `entry.action`（[LauncherAction]）に統合されており、
+/// runner 構築は [PtyTerminalRunner.fromAction] が一括で処理する
+/// （ADR-0016）。
 
 @ProviderFor(RunViewModel)
 final runViewModelProvider = RunViewModelFamily._();
 
 /// `RunPage` 用 ViewModel。
 ///
-/// build() で PtySkillRunner を 1 つ生成し、`session-registry` に登録した
+/// build() で PtyTerminalRunner を 1 つ生成し、`session-registry` に登録した
 /// うえで状態 Stream を購読しながらプロセスを start する。
 /// keepAlive のため、実行画面ウィジェットの離脱後もインスタンスは維持され、
 /// 明示的な `close()` か `restart()` まで生存する。
+///
+/// 動作タイプの分岐は `entry.action`（[LauncherAction]）に統合されており、
+/// runner 構築は [PtyTerminalRunner.fromAction] が一括で処理する
+/// （ADR-0016）。
 final class RunViewModelProvider
     extends $NotifierProvider<RunViewModel, RunPageState> {
   /// `RunPage` 用 ViewModel。
   ///
-  /// build() で PtySkillRunner を 1 つ生成し、`session-registry` に登録した
+  /// build() で PtyTerminalRunner を 1 つ生成し、`session-registry` に登録した
   /// うえで状態 Stream を購読しながらプロセスを start する。
   /// keepAlive のため、実行画面ウィジェットの離脱後もインスタンスは維持され、
   /// 明示的な `close()` か `restart()` まで生存する。
+  ///
+  /// 動作タイプの分岐は `entry.action`（[LauncherAction]）に統合されており、
+  /// runner 構築は [PtyTerminalRunner.fromAction] が一括で処理する
+  /// （ADR-0016）。
   RunViewModelProvider._({
     required RunViewModelFamily super.from,
     required String super.argument,
@@ -76,14 +88,18 @@ final class RunViewModelProvider
   }
 }
 
-String _$runViewModelHash() => r'883bdff827a0591ea0594e808c2ee10a93763c27';
+String _$runViewModelHash() => r'e31fc4ad52f1a03f26a9f6d1b492405a2f845883';
 
 /// `RunPage` 用 ViewModel。
 ///
-/// build() で PtySkillRunner を 1 つ生成し、`session-registry` に登録した
+/// build() で PtyTerminalRunner を 1 つ生成し、`session-registry` に登録した
 /// うえで状態 Stream を購読しながらプロセスを start する。
 /// keepAlive のため、実行画面ウィジェットの離脱後もインスタンスは維持され、
 /// 明示的な `close()` か `restart()` まで生存する。
+///
+/// 動作タイプの分岐は `entry.action`（[LauncherAction]）に統合されており、
+/// runner 構築は [PtyTerminalRunner.fromAction] が一括で処理する
+/// （ADR-0016）。
 
 final class RunViewModelFamily extends $Family
     with
@@ -105,10 +121,14 @@ final class RunViewModelFamily extends $Family
 
   /// `RunPage` 用 ViewModel。
   ///
-  /// build() で PtySkillRunner を 1 つ生成し、`session-registry` に登録した
+  /// build() で PtyTerminalRunner を 1 つ生成し、`session-registry` に登録した
   /// うえで状態 Stream を購読しながらプロセスを start する。
   /// keepAlive のため、実行画面ウィジェットの離脱後もインスタンスは維持され、
   /// 明示的な `close()` か `restart()` まで生存する。
+  ///
+  /// 動作タイプの分岐は `entry.action`（[LauncherAction]）に統合されており、
+  /// runner 構築は [PtyTerminalRunner.fromAction] が一括で処理する
+  /// （ADR-0016）。
 
   RunViewModelProvider call(String entryId) =>
       RunViewModelProvider._(argument: entryId, from: this);
@@ -119,10 +139,14 @@ final class RunViewModelFamily extends $Family
 
 /// `RunPage` 用 ViewModel。
 ///
-/// build() で PtySkillRunner を 1 つ生成し、`session-registry` に登録した
+/// build() で PtyTerminalRunner を 1 つ生成し、`session-registry` に登録した
 /// うえで状態 Stream を購読しながらプロセスを start する。
 /// keepAlive のため、実行画面ウィジェットの離脱後もインスタンスは維持され、
 /// 明示的な `close()` か `restart()` まで生存する。
+///
+/// 動作タイプの分岐は `entry.action`（[LauncherAction]）に統合されており、
+/// runner 構築は [PtyTerminalRunner.fromAction] が一括で処理する
+/// （ADR-0016）。
 
 abstract class _$RunViewModel extends $Notifier<RunPageState> {
   late final _$args = ref.$arg as String;

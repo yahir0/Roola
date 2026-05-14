@@ -1,40 +1,65 @@
 import 'package:json_annotation/json_annotation.dart';
+import 'package:roola/data/launcher_entry/launcher_action.dart';
 import 'package:roola/data/launcher_entry/launcher_entry.dart';
 
 part 'launcher_entry_dto.g.dart';
 
 /// `LauncherEntry` の JSON 永続化用 DTO。
 ///
-/// `DateTime` は ISO 8601 文字列で保持し、nullable な `iconPath` は
-/// JSON 上は null を許容する。`LauncherEntry` ↔ `LauncherEntryDto` の
-/// 変換は `toEntity` / `fromEntity` を介する。
+/// 永続化スキーマは `{"id", "displayName", "workingDirectory", "action",
+/// "iconPath", "createdAt"}`。`action` は [LauncherAction] の sealed union を
+/// `type` キー付き JSON で表現する。`createdAt` は ISO 8601 文字列、
+/// `iconPath` は null 許容。
+///
+/// 旧スキーマ（`repositoryPath` / `skillName` の 2 フィールド）も [fromJson]
+/// で受理する。`action` キーが無いか旧 key が存在する場合は新スキーマへ自動
+/// 変換する（ADR-0016 の lazy migration on read）。書き戻しは新スキーマ固定。
 @JsonSerializable()
 class LauncherEntryDto {
   LauncherEntryDto({
     required this.id,
     required this.displayName,
-    required this.repositoryPath,
-    required this.skillName,
+    required this.workingDirectory,
+    required this.action,
     required this.createdAt,
     this.iconPath,
   });
 
-  factory LauncherEntryDto.fromJson(Map<String, dynamic> json) =>
-      _$LauncherEntryDtoFromJson(json);
+  factory LauncherEntryDto.fromJson(Map<String, dynamic> json) {
+    // 旧スキーマ判定: 新スキーマなら必ず action / workingDirectory を持つ。
+    // 旧スキーマには repositoryPath / skillName がある。
+    final hasNewSchema = json.containsKey('action');
+    if (hasNewSchema) {
+      return _$LauncherEntryDtoFromJson(json);
+    }
+    final repositoryPath = json['repositoryPath'] as String? ?? '';
+    final skillName = (json['skillName'] as String? ?? '').trim();
+    final action = skillName.isEmpty
+        ? const LauncherAction.openHere()
+        : LauncherAction.claudeSkill(skillName: skillName);
+    return LauncherEntryDto(
+      id: json['id'] as String,
+      displayName: json['displayName'] as String,
+      workingDirectory: repositoryPath,
+      action: action,
+      iconPath: json['iconPath'] as String?,
+      createdAt: json['createdAt'] as String,
+    );
+  }
 
   factory LauncherEntryDto.fromEntity(LauncherEntry entity) => LauncherEntryDto(
     id: entity.id,
     displayName: entity.displayName,
-    repositoryPath: entity.repositoryPath,
-    skillName: entity.skillName,
+    workingDirectory: entity.workingDirectory,
+    action: entity.action,
     iconPath: entity.iconPath,
     createdAt: entity.createdAt.toIso8601String(),
   );
 
   final String id;
   final String displayName;
-  final String repositoryPath;
-  final String skillName;
+  final String workingDirectory;
+  final LauncherAction action;
   final String? iconPath;
   final String createdAt;
 
@@ -43,8 +68,8 @@ class LauncherEntryDto {
   LauncherEntry toEntity() => LauncherEntry(
     id: id,
     displayName: displayName,
-    repositoryPath: repositoryPath,
-    skillName: skillName,
+    workingDirectory: workingDirectory,
+    action: action,
     iconPath: iconPath,
     createdAt: DateTime.parse(createdAt),
   );

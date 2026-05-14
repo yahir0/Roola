@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:roola/core/storage/app_paths.dart';
+import 'package:roola/data/launcher_entry/launcher_action.dart';
 import 'package:roola/data/launcher_entry/launcher_entry.dart';
 import 'package:roola/data/launcher_entry/launcher_entry_repository_impl.dart';
 
@@ -23,8 +24,8 @@ void main() {
   LauncherEntry buildEntry(String id) => LauncherEntry(
     id: id,
     displayName: 'Entry $id',
-    repositoryPath: tempDir.path,
-    skillName: 'demo',
+    workingDirectory: tempDir.path,
+    action: const LauncherAction.claudeSkill(skillName: 'demo'),
     createdAt: DateTime.utc(2026, 5, 12).add(Duration(minutes: id.hashCode)),
   );
 

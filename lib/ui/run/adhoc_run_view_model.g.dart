@@ -14,6 +14,10 @@ part of 'adhoc_run_view_model.dart';
 /// `RunViewModel` との違い。`ActiveSessions` には `adhocLabel` 付きで
 /// 登録され、chip 列での表示名はそこから fallback で取得される。
 /// 設計の背景は ADR-0009 を参照。
+///
+/// 動作タイプの分岐は `args.action`（[LauncherAction]）に統合されており、
+/// runner 構築は [PtyTerminalRunner.fromAction] が一括で処理する
+/// （ADR-0016）。
 
 @ProviderFor(AdhocRunViewModel)
 final adhocRunViewModelProvider = AdhocRunViewModelFamily._();
@@ -24,6 +28,10 @@ final adhocRunViewModelProvider = AdhocRunViewModelFamily._();
 /// `RunViewModel` との違い。`ActiveSessions` には `adhocLabel` 付きで
 /// 登録され、chip 列での表示名はそこから fallback で取得される。
 /// 設計の背景は ADR-0009 を参照。
+///
+/// 動作タイプの分岐は `args.action`（[LauncherAction]）に統合されており、
+/// runner 構築は [PtyTerminalRunner.fromAction] が一括で処理する
+/// （ADR-0016）。
 final class AdhocRunViewModelProvider
     extends $NotifierProvider<AdhocRunViewModel, RunPageState> {
   /// エクスプローラ右クリックから起動する一時セッションの ViewModel。
@@ -32,6 +40,10 @@ final class AdhocRunViewModelProvider
   /// `RunViewModel` との違い。`ActiveSessions` には `adhocLabel` 付きで
   /// 登録され、chip 列での表示名はそこから fallback で取得される。
   /// 設計の背景は ADR-0009 を参照。
+  ///
+  /// 動作タイプの分岐は `args.action`（[LauncherAction]）に統合されており、
+  /// runner 構築は [PtyTerminalRunner.fromAction] が一括で処理する
+  /// （ADR-0016）。
   AdhocRunViewModelProvider._({
     required AdhocRunViewModelFamily super.from,
     required AdhocRunArgs super.argument,
@@ -76,7 +88,7 @@ final class AdhocRunViewModelProvider
   }
 }
 
-String _$adhocRunViewModelHash() => r'bfd66699fed4f651751c428e6f5e6b6b007c9cc7';
+String _$adhocRunViewModelHash() => r'0e28dd7d29fbb02af0dfaa289ba1c866cee4c46b';
 
 /// エクスプローラ右クリックから起動する一時セッションの ViewModel。
 ///
@@ -84,6 +96,10 @@ String _$adhocRunViewModelHash() => r'bfd66699fed4f651751c428e6f5e6b6b007c9cc7';
 /// `RunViewModel` との違い。`ActiveSessions` には `adhocLabel` 付きで
 /// 登録され、chip 列での表示名はそこから fallback で取得される。
 /// 設計の背景は ADR-0009 を参照。
+///
+/// 動作タイプの分岐は `args.action`（[LauncherAction]）に統合されており、
+/// runner 構築は [PtyTerminalRunner.fromAction] が一括で処理する
+/// （ADR-0016）。
 
 final class AdhocRunViewModelFamily extends $Family
     with
@@ -109,6 +125,10 @@ final class AdhocRunViewModelFamily extends $Family
   /// `RunViewModel` との違い。`ActiveSessions` には `adhocLabel` 付きで
   /// 登録され、chip 列での表示名はそこから fallback で取得される。
   /// 設計の背景は ADR-0009 を参照。
+  ///
+  /// 動作タイプの分岐は `args.action`（[LauncherAction]）に統合されており、
+  /// runner 構築は [PtyTerminalRunner.fromAction] が一括で処理する
+  /// （ADR-0016）。
 
   AdhocRunViewModelProvider call(AdhocRunArgs args) =>
       AdhocRunViewModelProvider._(argument: args, from: this);
@@ -123,6 +143,10 @@ final class AdhocRunViewModelFamily extends $Family
 /// `RunViewModel` との違い。`ActiveSessions` には `adhocLabel` 付きで
 /// 登録され、chip 列での表示名はそこから fallback で取得される。
 /// 設計の背景は ADR-0009 を参照。
+///
+/// 動作タイプの分岐は `args.action`（[LauncherAction]）に統合されており、
+/// runner 構築は [PtyTerminalRunner.fromAction] が一括で処理する
+/// （ADR-0016）。
 
 abstract class _$AdhocRunViewModel extends $Notifier<RunPageState> {
   late final _$args = ref.$arg as AdhocRunArgs;

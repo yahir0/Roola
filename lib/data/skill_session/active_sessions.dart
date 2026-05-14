@@ -1,6 +1,6 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:roola/data/skill_runner/skill_run_state.dart';
 import 'package:roola/data/skill_session/adhoc_run_args.dart';
+import 'package:roola/data/terminal_runner/terminal_run_state.dart';
 
 part 'active_sessions.g.dart';
 

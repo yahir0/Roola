@@ -1,18 +1,22 @@
 import 'dart:async';
 import 'dart:typed_data';
 
-import 'package:roola/data/skill_runner/skill_run_state.dart';
+import 'package:roola/data/terminal_runner/terminal_run_state.dart';
 import 'package:xterm/xterm.dart';
 
-/// PTY 上で `claude` プロセスを起動し、Skill を実行するための抽象。
+/// PTY 上で `LauncherAction` に応じたプロセス（素のシェル / 任意コマンド /
+/// `claude /<skill>`）を起動するための抽象。
 ///
 /// View 層は `state` を購読し、保有する `terminal` を `TerminalView` に渡す
 /// だけで描画が完結する。PTY との双方向配線（出力 → terminal.write、
 /// terminal.onOutput → PTY.write、terminal.onResize → PTY.resize）は
 /// 実装側に閉じる。
-abstract interface class SkillRunner {
-  /// PTY 上で `claude <skill>` を起動する。複数回呼び出された場合の
-  /// 挙動は実装依存（`PtySkillRunner` は二度目以降を no-op とする）。
+///
+/// `SkillRunState` などの内部クラス名は段階的リネーム方針の前半段階のため
+/// 現行のまま維持する（ADR-0016 / tasks 3.3）。
+abstract interface class TerminalRunner {
+  /// PTY 上で対応するプロセスを起動する。複数回呼び出された場合の挙動は
+  /// 実装依存（`PtyTerminalRunner` は二度目以降を no-op とする）。
   Future<void> start();
 
   /// プロセスの実行状態を時系列で配信する Stream。
@@ -26,7 +30,7 @@ abstract interface class SkillRunner {
   Stream<Uint8List> get output;
 
   /// `TerminalView` で描画するためのターミナルバッファ。実装側でスクロール
-  /// バックを保持するため、`SkillRunner` の生存期間 = `Terminal` の生存期間。
+  /// バックを保持するため、`TerminalRunner` の生存期間 = `Terminal` の生存期間。
   Terminal get terminal;
 
   /// PTY への入力（ユーザーのキー入力など）を書き込む。
@@ -41,6 +45,6 @@ abstract interface class SkillRunner {
   Future<void> cancel();
 
   /// セッションの明示破棄。`Terminal` と内部 Stream を完全に解放する。
-  /// 一度呼ぶと再起動できない（新しい `SkillRunner` を生成する必要がある）。
+  /// 一度呼ぶと再起動できない（新しい `TerminalRunner` を生成する必要がある）。
   Future<void> dispose();
 }

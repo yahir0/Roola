@@ -4,16 +4,21 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter_pty/flutter_pty.dart';
-import 'package:roola/data/skill_runner/skill_run_state.dart';
-import 'package:roola/data/skill_runner/skill_runner.dart';
+import 'package:roola/data/launcher_entry/launcher_action.dart';
+import 'package:roola/data/terminal_runner/terminal_run_state.dart';
+import 'package:roola/data/terminal_runner/terminal_runner.dart';
 import 'package:xterm/xterm.dart';
 
-/// `flutter_pty` の `Pty.start` で `claude` を擬似端末上に起動する実装。
-class PtySkillRunner implements SkillRunner {
-  PtySkillRunner({
-    required this.repositoryPath,
-    required this.skillName,
-    this.executable = 'claude',
+/// `flutter_pty` の `Pty.start` で任意プロセスを擬似端末上に起動する実装。
+///
+/// 動作タイプ別の起動コマンド組み立ては [PtyTerminalRunner.fromAction] が
+/// 行う。本クラス自体は `executable` / `arguments` を引数として受け取る
+/// 汎用 PTY runner。
+class PtyTerminalRunner implements TerminalRunner {
+  PtyTerminalRunner({
+    required this.workingDirectory,
+    required this.executable,
+    this.arguments = const [],
     this.idleThreshold = const Duration(seconds: 2),
     Terminal? terminal,
   }) : terminal = terminal ?? Terminal() {
@@ -24,14 +29,38 @@ class PtySkillRunner implements SkillRunner {
     this.terminal.onResize = _onTerminalResize;
   }
 
-  /// 子プロセスの作業ディレクトリ。
-  final String repositoryPath;
+  /// `LauncherAction` を解釈して runner を組み立てる factory。
+  ///
+  /// - [OpenHereAction] → `$SHELL`（無ければ `/bin/zsh`）を引数なしで起動
+  /// - [RunCommandAction] → `$SHELL -lc "<built-command>"`。`keepShellAfterExit`
+  ///   が true のときは末尾に `; exec $SHELL -i` を後置し、コマンド完了後に
+  ///   ログインシェルが立ち上がる
+  /// - [ClaudeSkillAction] → `claude /<skillName>`（旧 `PtySkillRunner` の
+  ///   `_buildArguments` と同等の挙動。先頭の `/` 自動付与もここで行う）
+  factory PtyTerminalRunner.fromAction({
+    required String workingDirectory,
+    required LauncherAction action,
+    Duration idleThreshold = const Duration(seconds: 2),
+    Terminal? terminal,
+  }) {
+    final (executable, arguments) = _resolveExecutable(action);
+    return PtyTerminalRunner(
+      workingDirectory: workingDirectory,
+      executable: executable,
+      arguments: arguments,
+      idleThreshold: idleThreshold,
+      terminal: terminal,
+    );
+  }
 
-  /// 実行する Skill 名（`claude` への引数として渡す）。
-  final String skillName;
+  /// 子プロセスの作業ディレクトリ。
+  final String workingDirectory;
 
   /// 起動するコマンド名。テストでは `bash` など差し替え可。
   final String executable;
+
+  /// `executable` に渡す引数列。
+  final List<String> arguments;
 
   /// PTY 出力が止まってから `waitingInput` 状態へ遷移するまでの時間。
   /// 短すぎると claude の通常思考中も「入力待ち」と表示されてしまうため、
@@ -71,16 +100,16 @@ class PtySkillRunner implements SkillRunner {
     _started = true;
     _emit(const SkillRunState.starting());
 
-    if (!Directory(repositoryPath).existsSync()) {
-      _emit(SkillRunState.failed('リポジトリディレクトリが見つかりません: $repositoryPath'));
+    if (!Directory(workingDirectory).existsSync()) {
+      _emit(SkillRunState.failed('作業ディレクトリが見つかりません: $workingDirectory'));
       return;
     }
 
     try {
       _pty = Pty.start(
         executable,
-        arguments: _buildArguments(),
-        workingDirectory: repositoryPath,
+        arguments: arguments,
+        workingDirectory: workingDirectory,
       );
     } on Object catch (e) {
       _emit(SkillRunState.failed(_formatStartError(e)));
@@ -180,23 +209,6 @@ class PtySkillRunner implements SkillRunner {
     _pty?.resize(rows, cols);
   }
 
-  List<String> _buildArguments() {
-    // skillName が空文字 = エクスプローラから「このディレクトリで Claude
-    // Code を開く」を選んだケース。引数なしで `claude` を起動して通常の
-    // 対話モードに入る。
-    if (skillName.isEmpty) {
-      return const [];
-    }
-    // Claude Code Skills はスラッシュコマンド `/skill-name` として resolve
-    // される（`claude --help` の `--bare` 説明: "Skills still resolve via
-    // /skill-name"）。引数として `/<name>` を渡すと claude CLI が起動直後の
-    // 最初のメッセージとして処理し、スラッシュコマンド経由で skill を発火
-    // する。`/` を付けずに渡すと自然言語入力扱いになり、Claude が文脈推測で
-    // 別の動作をする（例: cwd 内の似た名前のスクリプトを探して実行する等）。
-    final normalized = skillName.startsWith('/') ? skillName : '/$skillName';
-    return [normalized];
-  }
-
   String _formatStartError(Object error) {
     final message = error.toString();
     if (message.contains('No such file or directory') ||
@@ -212,5 +224,42 @@ class PtySkillRunner implements SkillRunner {
     if (!_stateController.isClosed) {
       _stateController.add(next);
     }
+  }
+
+  static (String, List<String>) _resolveExecutable(LauncherAction action) {
+    return switch (action) {
+      OpenHereAction() => (_userShell(), const <String>[]),
+      RunCommandAction(:final command, :final keepShellAfterExit) => (
+        _userShell(),
+        ['-lc', _buildShellCommand(command, keepShellAfterExit)],
+      ),
+      // Claude Code Skills はスラッシュコマンド `/skill-name` として resolve
+      // される（`claude --help` の `--bare` 説明: "Skills still resolve via
+      // /skill-name"）。引数として `/<name>` を渡すと claude CLI が起動直後の
+      // 最初のメッセージとして処理し、スラッシュコマンド経由で skill を発火
+      // する。`/` を付けずに渡すと自然言語入力扱いになり、Claude が文脈推測で
+      // 別の動作をする（例: cwd 内の似た名前のスクリプトを探して実行する等）。
+      ClaudeSkillAction(:final skillName) => (
+        'claude',
+        [skillName.startsWith('/') ? skillName : '/$skillName'],
+      ),
+    };
+  }
+
+  static String _userShell() {
+    final shell = Platform.environment['SHELL'];
+    return (shell != null && shell.isNotEmpty) ? shell : '/bin/zsh';
+  }
+
+  /// `keepShellAfterExit=true` のときは末尾に `; exec $SHELL -i` を後置する。
+  ///
+  /// `;` で繋ぐのはコマンド失敗時にもシェルが残る挙動のため（`&&` だと失敗時
+  /// に PTY が即終了して結果が見えない）。`exec` でプロセスを置換するので、
+  /// ユーザーから見るとコマンド完了後にプロンプトが現れる体験になる。
+  static String _buildShellCommand(String command, bool keepShellAfterExit) {
+    if (!keepShellAfterExit) {
+      return command;
+    }
+    return '$command; exec \$SHELL -i';
   }
 }

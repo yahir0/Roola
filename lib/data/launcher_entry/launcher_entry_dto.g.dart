@@ -10,8 +10,8 @@ LauncherEntryDto _$LauncherEntryDtoFromJson(Map<String, dynamic> json) =>
     LauncherEntryDto(
       id: json['id'] as String,
       displayName: json['displayName'] as String,
-      repositoryPath: json['repositoryPath'] as String,
-      skillName: json['skillName'] as String,
+      workingDirectory: json['workingDirectory'] as String,
+      action: LauncherAction.fromJson(json['action'] as Map<String, dynamic>),
       createdAt: json['createdAt'] as String,
       iconPath: json['iconPath'] as String?,
     );
@@ -20,8 +20,8 @@ Map<String, dynamic> _$LauncherEntryDtoToJson(LauncherEntryDto instance) =>
     <String, dynamic>{
       'id': instance.id,
       'displayName': instance.displayName,
-      'repositoryPath': instance.repositoryPath,
-      'skillName': instance.skillName,
+      'workingDirectory': instance.workingDirectory,
+      'action': instance.action,
       'iconPath': instance.iconPath,
       'createdAt': instance.createdAt,
     };

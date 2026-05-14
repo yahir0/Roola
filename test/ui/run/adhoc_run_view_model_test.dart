@@ -2,8 +2,9 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:roola/data/skill_runner/skill_run_state.dart';
+import 'package:roola/data/launcher_entry/launcher_action.dart';
 import 'package:roola/data/skill_session/active_sessions.dart';
+import 'package:roola/data/terminal_runner/terminal_run_state.dart';
 import 'package:roola/ui/run/adhoc_run_view_model.dart';
 
 void main() {
@@ -27,8 +28,12 @@ void main() {
     () async {
       final args = AdhocRunArgs(
         adhocId: 'adhoc-1',
-        repositoryPath: tempDir.path,
+        workingDirectory: tempDir.path,
         displayName: '${tempDir.path.split('/').last} (Claude)',
+        action: const LauncherAction.runCommand(
+          command: 'claude',
+          keepShellAfterExit: false,
+        ),
       );
       container.read(adhocRunViewModelProvider(args));
       await Future<void>.delayed(Duration.zero);
@@ -44,8 +49,9 @@ void main() {
   test('terminateAdhocSession unregisters and invalidates', () async {
     final args = AdhocRunArgs(
       adhocId: 'adhoc-2',
-      repositoryPath: tempDir.path,
-      displayName: 'foo (Claude)',
+      workingDirectory: tempDir.path,
+      displayName: 'foo (Terminal)',
+      action: const LauncherAction.openHere(),
     );
     container.read(adhocRunViewModelProvider(args));
     await Future<void>.delayed(Duration.zero);
@@ -64,11 +70,12 @@ void main() {
     );
   });
 
-  test('build runs failed state when repository path is invalid', () async {
+  test('build runs failed state when working directory is invalid', () async {
     const args = AdhocRunArgs(
       adhocId: 'adhoc-3',
-      repositoryPath: '/path/does/not/exist',
+      workingDirectory: '/path/does/not/exist',
       displayName: 'invalid',
+      action: LauncherAction.openHere(),
     );
     container.read(adhocRunViewModelProvider(args));
     await Future<void>.delayed(Duration.zero);

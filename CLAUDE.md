@@ -1,6 +1,6 @@
 # Roola — Project Guide
 
-Mac 向けの Claude Code Skills ランチャーアプリ（Flutter Desktop / macOS）。設定済みのリポジトリ + Skill の組み合わせをアイコンとして登録し、ワンクリックで対象ディレクトリで Skill 実行まで到達することを目的にする。
+Mac 向けの汎用ターミナルランチャーアプリ（Flutter Desktop / macOS）。エクスプローラ機能をメインに、設定済みのディレクトリ + 動作（素のシェル / 任意コマンド / Claude Code Skill）をアイコンとして登録し、ワンクリックで起動できる。Claude Skill 起動はサポート動作の 1 つ（ADR-0014 / ADR-0016）。
 
 ## このドキュメントの位置付け
 
@@ -77,6 +77,7 @@ Mac 向けの Claude Code Skills ランチャーアプリ（Flutter Desktop / ma
 - ADR-0013: Bundle ID を `tech.yahiro.Roola` に、Debug / Profile は `dev.` プレフィックスで分離
 - ADR-0014: Explorer をメイン UI に格上げ、Skills ランチャーをサブ機能へ降格
 - ADR-0015: Explorer の root ceiling を廃止、rootPath は「起動時の開始位置」に弱める
+- ADR-0016: ランチャーを Claude Skill 専用から汎用ターミナルランチャーへ
 
 ## ディレクトリ構成
 

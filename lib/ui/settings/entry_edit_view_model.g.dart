@@ -9,14 +9,29 @@ part of 'entry_edit_view_model.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 /// エントリ編集 ViewModel。`entryId == null` で新規、それ以外で既存編集。
+///
+/// 動作タイプは [LauncherActionType] のセグメント切替で変わる。各タイプの
+/// 入力値は [EntryEditState] の `editedXxx` 一時フィールドに保持し、
+/// アクティブタイプを示す `state.action` と双方向に同期する（ユーザーが
+/// 別タイプへ切り替えた後に戻ったときに値が消えないようにする）。
 
 @ProviderFor(EntryEditViewModel)
 final entryEditViewModelProvider = EntryEditViewModelFamily._();
 
 /// エントリ編集 ViewModel。`entryId == null` で新規、それ以外で既存編集。
+///
+/// 動作タイプは [LauncherActionType] のセグメント切替で変わる。各タイプの
+/// 入力値は [EntryEditState] の `editedXxx` 一時フィールドに保持し、
+/// アクティブタイプを示す `state.action` と双方向に同期する（ユーザーが
+/// 別タイプへ切り替えた後に戻ったときに値が消えないようにする）。
 final class EntryEditViewModelProvider
     extends $NotifierProvider<EntryEditViewModel, EntryEditState> {
   /// エントリ編集 ViewModel。`entryId == null` で新規、それ以外で既存編集。
+  ///
+  /// 動作タイプは [LauncherActionType] のセグメント切替で変わる。各タイプの
+  /// 入力値は [EntryEditState] の `editedXxx` 一時フィールドに保持し、
+  /// アクティブタイプを示す `state.action` と双方向に同期する（ユーザーが
+  /// 別タイプへ切り替えた後に戻ったときに値が消えないようにする）。
   EntryEditViewModelProvider._({
     required EntryEditViewModelFamily super.from,
     required String? super.argument,
@@ -62,9 +77,14 @@ final class EntryEditViewModelProvider
 }
 
 String _$entryEditViewModelHash() =>
-    r'0f766e900a59c31e75f6b20ee42f738ce7a92ffa';
+    r'9aeb9260d32a13258e72c49382bbacdefc3c00d8';
 
 /// エントリ編集 ViewModel。`entryId == null` で新規、それ以外で既存編集。
+///
+/// 動作タイプは [LauncherActionType] のセグメント切替で変わる。各タイプの
+/// 入力値は [EntryEditState] の `editedXxx` 一時フィールドに保持し、
+/// アクティブタイプを示す `state.action` と双方向に同期する（ユーザーが
+/// 別タイプへ切り替えた後に戻ったときに値が消えないようにする）。
 
 final class EntryEditViewModelFamily extends $Family
     with
@@ -85,6 +105,11 @@ final class EntryEditViewModelFamily extends $Family
       );
 
   /// エントリ編集 ViewModel。`entryId == null` で新規、それ以外で既存編集。
+  ///
+  /// 動作タイプは [LauncherActionType] のセグメント切替で変わる。各タイプの
+  /// 入力値は [EntryEditState] の `editedXxx` 一時フィールドに保持し、
+  /// アクティブタイプを示す `state.action` と双方向に同期する（ユーザーが
+  /// 別タイプへ切り替えた後に戻ったときに値が消えないようにする）。
 
   EntryEditViewModelProvider call(String? entryId) =>
       EntryEditViewModelProvider._(argument: entryId, from: this);
@@ -94,6 +119,11 @@ final class EntryEditViewModelFamily extends $Family
 }
 
 /// エントリ編集 ViewModel。`entryId == null` で新規、それ以外で既存編集。
+///
+/// 動作タイプは [LauncherActionType] のセグメント切替で変わる。各タイプの
+/// 入力値は [EntryEditState] の `editedXxx` 一時フィールドに保持し、
+/// アクティブタイプを示す `state.action` と双方向に同期する（ユーザーが
+/// 別タイプへ切り替えた後に戻ったときに値が消えないようにする）。
 
 abstract class _$EntryEditViewModel extends $Notifier<EntryEditState> {
   late final _$args = ref.$arg as String?;

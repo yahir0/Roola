@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:developer' as developer;
 import 'dart:io';
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -38,13 +39,22 @@ class LauncherEntryRepositoryImpl implements LauncherEntryRepository {
       if (entriesJson is! List) {
         return const [];
       }
-      final entries =
-          entriesJson
-              .whereType<Map<String, dynamic>>()
-              .map(LauncherEntryDto.fromJson)
-              .map((dto) => dto.toEntity())
-              .toList()
-            ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
+      // 個別エントリの parse 失敗はそのエントリだけ読み飛ばす。
+      // 不正な action.type 値（spec: launcher-config / 動作タイプの相互排他性）
+      // や旧スキーマの欠落フィールドで 1 件壊れても、残り全件は復元できる。
+      final entries = <LauncherEntry>[];
+      for (final raw in entriesJson.whereType<Map<String, dynamic>>()) {
+        try {
+          entries.add(LauncherEntryDto.fromJson(raw).toEntity());
+        } on Object catch (e) {
+          developer.log(
+            'launcher entry parse failed, skipping: $e',
+            name: 'LauncherEntryRepository',
+            error: e,
+          );
+        }
+      }
+      entries.sort((a, b) => a.createdAt.compareTo(b.createdAt));
       return entries;
     } on FormatException {
       // JSON として不正: 空として扱う

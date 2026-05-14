@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:roola/core/storage/app_paths.dart';
+import 'package:roola/data/launcher_entry/launcher_action.dart';
 import 'package:roola/data/launcher_entry/launcher_entry.dart';
 import 'package:roola/data/launcher_entry/launcher_entry_repository.dart';
 import 'package:roola/data/launcher_entry/launcher_entry_repository_impl.dart';
@@ -75,7 +76,10 @@ void main() {
         entryEditViewModelProvider(null).notifier,
       );
 
-      notifier.setRepositoryPath(repoA.path);
+      // Skill 候補プルダウンは ClaudeSkill セグメント配下にしか出ない
+      // ので、まずアクションタイプを切り替える。
+      notifier.setActionType(LauncherActionType.claudeSkill);
+      notifier.setWorkingDirectory(repoA.path);
       await tester.pumpAndSettle();
 
       // suffix の dropdown を開いて中身を確認
@@ -89,7 +93,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // 2 回目のパスを設定（連続して別ディレクトリへ）
-      notifier.setRepositoryPath(repoB.path);
+      notifier.setWorkingDirectory(repoB.path);
       await tester.pumpAndSettle();
 
       await tester.tap(find.byIcon(Icons.arrow_drop_down));

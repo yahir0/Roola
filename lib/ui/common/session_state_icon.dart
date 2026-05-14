@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:roola/data/skill_runner/skill_run_state.dart';
+import 'package:roola/data/terminal_runner/terminal_run_state.dart';
 import 'package:roola/ui/common/pulsing_icon.dart';
 
 /// 状態に応じたアイコン形状と色のペア。`Chip.avatar` の `Icon` や、

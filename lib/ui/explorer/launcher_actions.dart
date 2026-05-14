@@ -35,14 +35,15 @@ void launchLauncherEntry(WidgetRef ref, LauncherEntry entry) {
     return;
   }
 
-  // ケース 2: すでに動いている → ad-hoc で連番起動。
+  // ケース 2: すでに動いている → ad-hoc で連番起動。entry の動作タイプを
+  // そのまま継承する（ADR-0016: 動作タイプは AdhocRunArgs.action に統合）。
   final used = _collectActiveDisplayNames(ref, sessions.keys);
   final displayName = generateUniqueDisplayName(entry.displayName, used);
   final args = AdhocRunArgs(
     adhocId: 'adhoc-${_uuid.v4()}',
-    repositoryPath: entry.repositoryPath,
+    workingDirectory: entry.workingDirectory,
     displayName: displayName,
-    skillName: entry.skillName,
+    action: entry.action,
   );
   ref.read(adhocRunViewModelProvider(args));
   selection.selectAdhocSession(args);

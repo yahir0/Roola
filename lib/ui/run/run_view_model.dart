@@ -4,14 +4,14 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:roola/data/launcher_entry/launcher_entries_provider.dart';
 import 'package:roola/data/launcher_entry/launcher_entry.dart';
-import 'package:roola/data/skill_runner/pty_skill_runner.dart';
-import 'package:roola/data/skill_runner/skill_run_state.dart';
-import 'package:roola/data/skill_runner/skill_runner.dart';
 import 'package:roola/data/skill_session/active_sessions.dart';
+import 'package:roola/data/terminal_runner/pty_terminal_runner.dart';
+import 'package:roola/data/terminal_runner/terminal_run_state.dart';
+import 'package:roola/data/terminal_runner/terminal_runner.dart';
 
 part 'run_view_model.g.dart';
 
-/// 実行画面の表示用 State（表示名・実行状態・SkillRunner 参照）。
+/// 実行画面の表示用 State（表示名・実行状態・TerminalRunner 参照）。
 class RunPageState {
   RunPageState({
     required this.entry,
@@ -21,15 +21,19 @@ class RunPageState {
 
   final LauncherEntry entry;
   final SkillRunState runState;
-  final SkillRunner runner;
+  final TerminalRunner runner;
 }
 
 /// `RunPage` 用 ViewModel。
 ///
-/// build() で PtySkillRunner を 1 つ生成し、`session-registry` に登録した
+/// build() で PtyTerminalRunner を 1 つ生成し、`session-registry` に登録した
 /// うえで状態 Stream を購読しながらプロセスを start する。
 /// keepAlive のため、実行画面ウィジェットの離脱後もインスタンスは維持され、
 /// 明示的な `close()` か `restart()` まで生存する。
+///
+/// 動作タイプの分岐は `entry.action`（[LauncherAction]）に統合されており、
+/// runner 構築は [PtyTerminalRunner.fromAction] が一括で処理する
+/// （ADR-0016）。
 @Riverpod(keepAlive: true)
 class RunViewModel extends _$RunViewModel {
   @override
@@ -39,9 +43,9 @@ class RunViewModel extends _$RunViewModel {
       (e) => e.id == entryId,
       orElse: () => throw StateError('Entry not found: $entryId'),
     );
-    final runner = PtySkillRunner(
-      repositoryPath: entry.repositoryPath,
-      skillName: entry.skillName,
+    final runner = PtyTerminalRunner.fromAction(
+      workingDirectory: entry.workingDirectory,
+      action: entry.action,
     );
 
     final registry = ref.read(activeSessionsProvider.notifier);

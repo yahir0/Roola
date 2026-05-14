@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:roola/app/router.dart';
 import 'package:roola/core/health/claude_health_check.dart';
+import 'package:roola/data/launcher_entry/launcher_action.dart';
 import 'package:roola/data/launcher_entry/launcher_entries_provider.dart';
 import 'package:roola/data/launcher_entry/launcher_entry.dart';
 import 'package:roola/ui/common/macos_window_app_bar.dart';
@@ -95,7 +96,7 @@ class _EntryList extends ConsumerWidget {
           leading: _EntryIcon(iconPath: entry.iconPath),
           title: Text(entry.displayName),
           subtitle: Text(
-            '${entry.repositoryPath}\nSkill: ${entry.skillName}',
+            '${entry.workingDirectory}\n${_actionLabel(entry.action)}',
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
@@ -138,6 +139,13 @@ class _EntryList extends ConsumerWidget {
     }
   }
 }
+
+/// 設定画面の subtitle に表示する 1 行分の動作説明。
+String _actionLabel(LauncherAction action) => switch (action) {
+  OpenHereAction() => '動作: 開くだけ',
+  RunCommandAction(:final command) => '動作: コマンド実行 — $command',
+  ClaudeSkillAction(:final skillName) => '動作: Claude Skill — $skillName',
+};
 
 class _EntryIcon extends StatelessWidget {
   const _EntryIcon({required this.iconPath});

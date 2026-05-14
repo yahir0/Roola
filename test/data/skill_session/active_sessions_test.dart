@@ -1,8 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:roola/data/skill_runner/skill_run_state.dart';
+import 'package:roola/data/launcher_entry/launcher_action.dart';
 import 'package:roola/data/skill_session/active_sessions.dart';
 import 'package:roola/data/skill_session/adhoc_run_args.dart';
+import 'package:roola/data/terminal_runner/terminal_run_state.dart';
 
 void main() {
   late ProviderContainer container;
@@ -111,8 +112,9 @@ void main() {
       final notifier = container.read(activeSessionsProvider.notifier);
       const args = AdhocRunArgs(
         adhocId: 'adhoc-1',
-        repositoryPath: '/Users/foo/repos/demo',
+        workingDirectory: '/Users/foo/repos/demo',
         displayName: 'demo (Claude)',
+        action: LauncherAction.openHere(),
       );
       notifier.register(
         entryId: 'adhoc-1',

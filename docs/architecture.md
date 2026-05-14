@@ -48,7 +48,8 @@ lib/
 ├── data/                                # Model + Repository
 │   ├── launcher_entry/
 │   │   ├── launcher_entry.dart                  # Freezed モデル
-│   │   ├── launcher_entry_dto.dart              # JSON DTO（json_serializable）
+│   │   ├── launcher_action.dart                 # Freezed sealed union (openHere / runCommand / claudeSkill)
+│   │   ├── launcher_entry_dto.dart              # JSON DTO（json_serializable）+ 旧スキーマ migration
 │   │   ├── launcher_entry_repository.dart       # interface
 │   │   └── launcher_entry_repository_impl.dart  # ローカル JSON ファイル実装
 │   ├── appearance/
@@ -56,10 +57,10 @@ lib/
 │   │   ├── appearance_settings_dto.dart
 │   │   ├── appearance_settings_repository.dart
 │   │   └── appearance_settings_repository_impl.dart
-│   └── skill_runner/
-│       ├── skill_run_state.dart                 # Freezed Union（idle/starting/running/completed/failed/cancelled）
-│       ├── skill_runner.dart                    # interface
-│       └── pty_skill_runner.dart                # flutter_pty 実装
+│   └── terminal_runner/
+│       ├── terminal_run_state.dart              # Freezed Union（idle/starting/running/completed/failed/cancelled）
+│       ├── terminal_runner.dart                 # interface
+│       └── pty_terminal_runner.dart             # flutter_pty 実装。fromAction(LauncherAction) で 3 動作タイプを起動
 │
 └── core/                                # 横断ユーティリティ
     ├── storage/
@@ -122,7 +123,7 @@ lib/
 
 **Repository pattern の適用基準**:
 - 差し替え可能性がある: interface + impl の二段構え
-  - 例: `SkillRunner` interface → `PtySkillRunner` 実装。将来 PTY ライブラリを差し替える可能性
+  - 例: `TerminalRunner` interface → `PtyTerminalRunner` 実装。将来 PTY ライブラリを差し替える可能性
   - 例: `LauncherEntryRepository` interface → ローカル JSON 実装。将来 sqlite に乗り換える可能性
 - 差し替え可能性が無い: クラス 1 つで OK（無理に interface を作らない）
 
@@ -196,7 +197,7 @@ ui 内のフィーチャー間 import も避ける。共通 Widget は `ui/commo
 - **Repository（data 層）**: 一時ディレクトリで実 I/O 検証。モックしない
 - **ViewModel（ui 層）**: Repository / Service を Mocktail でモックし、`ProviderContainer.test()` で検証
 - **Widget（ui 層）**: ViewModel Provider をオーバーライドしてゴールデンパス + 例外系を検証
-- **`PtySkillRunner`**: 軽量コマンド（`bash -lc "echo hello"` 等）で実 PTY 経路を検証
+- **`PtyTerminalRunner`**: 軽量コマンド（`bash -lc "echo hello"` 等）で実 PTY 経路を検証
 
 ## コード生成
 

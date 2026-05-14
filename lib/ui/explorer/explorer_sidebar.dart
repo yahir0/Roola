@@ -9,8 +9,8 @@ import 'package:roola/data/launcher_entry/launcher_entries_provider.dart';
 import 'package:roola/data/launcher_entry/launcher_entry.dart';
 import 'package:roola/data/repo_explorer/explorer_settings.dart';
 import 'package:roola/data/repo_explorer/explorer_settings_repository_impl.dart';
-import 'package:roola/data/skill_runner/skill_run_state.dart';
 import 'package:roola/data/skill_session/active_sessions.dart';
+import 'package:roola/data/terminal_runner/terminal_run_state.dart';
 import 'package:roola/ui/common/prompt_name_dialog.dart';
 import 'package:roola/ui/common/session_state_icon.dart';
 import 'package:roola/ui/explorer/explorer_node_tile.dart'

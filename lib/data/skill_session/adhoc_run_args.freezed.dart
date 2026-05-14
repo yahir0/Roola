@@ -14,11 +14,10 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$AdhocRunArgs {
 
- String get adhocId; String get repositoryPath;/// chip 列でのラベル。「ディレクトリ名 / Skill 名」または
+ String get adhocId; String get workingDirectory;/// chip 列でのラベル。「ディレクトリ名 / Skill 名」または
 /// 「ディレクトリ名 (Claude)」など、呼び出し側が組み立てて渡す。
- String get displayName;/// 空文字なら Skill 指定なし（`claude` 単独起動）。
- String get skillName;/// 実行種別。既定は `claudeCode`（既存呼び出しの互換）。
- AdhocRunKind get kind;
+ String get displayName;/// 起動時にやること（[LauncherAction] の sealed union を再利用）。
+ LauncherAction get action;
 /// Create a copy of AdhocRunArgs
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -29,16 +28,16 @@ $AdhocRunArgsCopyWith<AdhocRunArgs> get copyWith => _$AdhocRunArgsCopyWithImpl<A
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdhocRunArgs&&(identical(other.adhocId, adhocId) || other.adhocId == adhocId)&&(identical(other.repositoryPath, repositoryPath) || other.repositoryPath == repositoryPath)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.skillName, skillName) || other.skillName == skillName)&&(identical(other.kind, kind) || other.kind == kind));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdhocRunArgs&&(identical(other.adhocId, adhocId) || other.adhocId == adhocId)&&(identical(other.workingDirectory, workingDirectory) || other.workingDirectory == workingDirectory)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.action, action) || other.action == action));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,adhocId,repositoryPath,displayName,skillName,kind);
+int get hashCode => Object.hash(runtimeType,adhocId,workingDirectory,displayName,action);
 
 @override
 String toString() {
-  return 'AdhocRunArgs(adhocId: $adhocId, repositoryPath: $repositoryPath, displayName: $displayName, skillName: $skillName, kind: $kind)';
+  return 'AdhocRunArgs(adhocId: $adhocId, workingDirectory: $workingDirectory, displayName: $displayName, action: $action)';
 }
 
 
@@ -49,11 +48,11 @@ abstract mixin class $AdhocRunArgsCopyWith<$Res>  {
   factory $AdhocRunArgsCopyWith(AdhocRunArgs value, $Res Function(AdhocRunArgs) _then) = _$AdhocRunArgsCopyWithImpl;
 @useResult
 $Res call({
- String adhocId, String repositoryPath, String displayName, String skillName, AdhocRunKind kind
+ String adhocId, String workingDirectory, String displayName, LauncherAction action
 });
 
 
-
+$LauncherActionCopyWith<$Res> get action;
 
 }
 /// @nodoc
@@ -66,17 +65,25 @@ class _$AdhocRunArgsCopyWithImpl<$Res>
 
 /// Create a copy of AdhocRunArgs
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? adhocId = null,Object? repositoryPath = null,Object? displayName = null,Object? skillName = null,Object? kind = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? adhocId = null,Object? workingDirectory = null,Object? displayName = null,Object? action = null,}) {
   return _then(_self.copyWith(
 adhocId: null == adhocId ? _self.adhocId : adhocId // ignore: cast_nullable_to_non_nullable
-as String,repositoryPath: null == repositoryPath ? _self.repositoryPath : repositoryPath // ignore: cast_nullable_to_non_nullable
+as String,workingDirectory: null == workingDirectory ? _self.workingDirectory : workingDirectory // ignore: cast_nullable_to_non_nullable
 as String,displayName: null == displayName ? _self.displayName : displayName // ignore: cast_nullable_to_non_nullable
-as String,skillName: null == skillName ? _self.skillName : skillName // ignore: cast_nullable_to_non_nullable
-as String,kind: null == kind ? _self.kind : kind // ignore: cast_nullable_to_non_nullable
-as AdhocRunKind,
+as String,action: null == action ? _self.action : action // ignore: cast_nullable_to_non_nullable
+as LauncherAction,
   ));
 }
-
+/// Create a copy of AdhocRunArgs
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$LauncherActionCopyWith<$Res> get action {
+  
+  return $LauncherActionCopyWith<$Res>(_self.action, (value) {
+    return _then(_self.copyWith(action: value));
+  });
+}
 }
 
 
@@ -158,10 +165,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String adhocId,  String repositoryPath,  String displayName,  String skillName,  AdhocRunKind kind)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String adhocId,  String workingDirectory,  String displayName,  LauncherAction action)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _AdhocRunArgs() when $default != null:
-return $default(_that.adhocId,_that.repositoryPath,_that.displayName,_that.skillName,_that.kind);case _:
+return $default(_that.adhocId,_that.workingDirectory,_that.displayName,_that.action);case _:
   return orElse();
 
 }
@@ -179,10 +186,10 @@ return $default(_that.adhocId,_that.repositoryPath,_that.displayName,_that.skill
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String adhocId,  String repositoryPath,  String displayName,  String skillName,  AdhocRunKind kind)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String adhocId,  String workingDirectory,  String displayName,  LauncherAction action)  $default,) {final _that = this;
 switch (_that) {
 case _AdhocRunArgs():
-return $default(_that.adhocId,_that.repositoryPath,_that.displayName,_that.skillName,_that.kind);case _:
+return $default(_that.adhocId,_that.workingDirectory,_that.displayName,_that.action);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -199,10 +206,10 @@ return $default(_that.adhocId,_that.repositoryPath,_that.displayName,_that.skill
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String adhocId,  String repositoryPath,  String displayName,  String skillName,  AdhocRunKind kind)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String adhocId,  String workingDirectory,  String displayName,  LauncherAction action)?  $default,) {final _that = this;
 switch (_that) {
 case _AdhocRunArgs() when $default != null:
-return $default(_that.adhocId,_that.repositoryPath,_that.displayName,_that.skillName,_that.kind);case _:
+return $default(_that.adhocId,_that.workingDirectory,_that.displayName,_that.action);case _:
   return null;
 
 }
@@ -214,18 +221,16 @@ return $default(_that.adhocId,_that.repositoryPath,_that.displayName,_that.skill
 
 
 class _AdhocRunArgs implements AdhocRunArgs {
-  const _AdhocRunArgs({required this.adhocId, required this.repositoryPath, required this.displayName, this.skillName = '', this.kind = AdhocRunKind.claudeCode});
+  const _AdhocRunArgs({required this.adhocId, required this.workingDirectory, required this.displayName, required this.action});
   
 
 @override final  String adhocId;
-@override final  String repositoryPath;
+@override final  String workingDirectory;
 /// chip 列でのラベル。「ディレクトリ名 / Skill 名」または
 /// 「ディレクトリ名 (Claude)」など、呼び出し側が組み立てて渡す。
 @override final  String displayName;
-/// 空文字なら Skill 指定なし（`claude` 単独起動）。
-@override@JsonKey() final  String skillName;
-/// 実行種別。既定は `claudeCode`（既存呼び出しの互換）。
-@override@JsonKey() final  AdhocRunKind kind;
+/// 起動時にやること（[LauncherAction] の sealed union を再利用）。
+@override final  LauncherAction action;
 
 /// Create a copy of AdhocRunArgs
 /// with the given fields replaced by the non-null parameter values.
@@ -237,16 +242,16 @@ _$AdhocRunArgsCopyWith<_AdhocRunArgs> get copyWith => __$AdhocRunArgsCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdhocRunArgs&&(identical(other.adhocId, adhocId) || other.adhocId == adhocId)&&(identical(other.repositoryPath, repositoryPath) || other.repositoryPath == repositoryPath)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.skillName, skillName) || other.skillName == skillName)&&(identical(other.kind, kind) || other.kind == kind));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdhocRunArgs&&(identical(other.adhocId, adhocId) || other.adhocId == adhocId)&&(identical(other.workingDirectory, workingDirectory) || other.workingDirectory == workingDirectory)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.action, action) || other.action == action));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,adhocId,repositoryPath,displayName,skillName,kind);
+int get hashCode => Object.hash(runtimeType,adhocId,workingDirectory,displayName,action);
 
 @override
 String toString() {
-  return 'AdhocRunArgs(adhocId: $adhocId, repositoryPath: $repositoryPath, displayName: $displayName, skillName: $skillName, kind: $kind)';
+  return 'AdhocRunArgs(adhocId: $adhocId, workingDirectory: $workingDirectory, displayName: $displayName, action: $action)';
 }
 
 
@@ -257,11 +262,11 @@ abstract mixin class _$AdhocRunArgsCopyWith<$Res> implements $AdhocRunArgsCopyWi
   factory _$AdhocRunArgsCopyWith(_AdhocRunArgs value, $Res Function(_AdhocRunArgs) _then) = __$AdhocRunArgsCopyWithImpl;
 @override @useResult
 $Res call({
- String adhocId, String repositoryPath, String displayName, String skillName, AdhocRunKind kind
+ String adhocId, String workingDirectory, String displayName, LauncherAction action
 });
 
 
-
+@override $LauncherActionCopyWith<$Res> get action;
 
 }
 /// @nodoc
@@ -274,18 +279,26 @@ class __$AdhocRunArgsCopyWithImpl<$Res>
 
 /// Create a copy of AdhocRunArgs
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? adhocId = null,Object? repositoryPath = null,Object? displayName = null,Object? skillName = null,Object? kind = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? adhocId = null,Object? workingDirectory = null,Object? displayName = null,Object? action = null,}) {
   return _then(_AdhocRunArgs(
 adhocId: null == adhocId ? _self.adhocId : adhocId // ignore: cast_nullable_to_non_nullable
-as String,repositoryPath: null == repositoryPath ? _self.repositoryPath : repositoryPath // ignore: cast_nullable_to_non_nullable
+as String,workingDirectory: null == workingDirectory ? _self.workingDirectory : workingDirectory // ignore: cast_nullable_to_non_nullable
 as String,displayName: null == displayName ? _self.displayName : displayName // ignore: cast_nullable_to_non_nullable
-as String,skillName: null == skillName ? _self.skillName : skillName // ignore: cast_nullable_to_non_nullable
-as String,kind: null == kind ? _self.kind : kind // ignore: cast_nullable_to_non_nullable
-as AdhocRunKind,
+as String,action: null == action ? _self.action : action // ignore: cast_nullable_to_non_nullable
+as LauncherAction,
   ));
 }
 
-
+/// Create a copy of AdhocRunArgs
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$LauncherActionCopyWith<$Res> get action {
+  
+  return $LauncherActionCopyWith<$Res>(_self.action, (value) {
+    return _then(_self.copyWith(action: value));
+  });
+}
 }
 
 // dart format on

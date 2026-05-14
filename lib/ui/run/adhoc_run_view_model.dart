@@ -1,13 +1,12 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:roola/data/launcher_entry/launcher_entry.dart';
-import 'package:roola/data/skill_runner/pty_skill_runner.dart';
-import 'package:roola/data/skill_runner/skill_run_state.dart';
 import 'package:roola/data/skill_session/active_sessions.dart';
 import 'package:roola/data/skill_session/adhoc_run_args.dart';
+import 'package:roola/data/terminal_runner/pty_terminal_runner.dart';
+import 'package:roola/data/terminal_runner/terminal_run_state.dart';
 import 'package:roola/ui/run/run_view_model.dart';
 
 export 'package:roola/data/skill_session/adhoc_run_args.dart';
@@ -20,29 +19,23 @@ part 'adhoc_run_view_model.g.dart';
 /// `RunViewModel` との違い。`ActiveSessions` には `adhocLabel` 付きで
 /// 登録され、chip 列での表示名はそこから fallback で取得される。
 /// 設計の背景は ADR-0009 を参照。
+///
+/// 動作タイプの分岐は `args.action`（[LauncherAction]）に統合されており、
+/// runner 構築は [PtyTerminalRunner.fromAction] が一括で処理する
+/// （ADR-0016）。
 @Riverpod(keepAlive: true)
 class AdhocRunViewModel extends _$AdhocRunViewModel {
   @override
   RunPageState build(AdhocRunArgs args) {
-    final runner = switch (args.kind) {
-      AdhocRunKind.claudeCode => PtySkillRunner(
-        repositoryPath: args.repositoryPath,
-        skillName: args.skillName,
-      ),
-      // ターミナルセッションはユーザーのログインシェルを起動する。
-      // 環境変数 SHELL が無いケースは macOS 既定の zsh にフォールバック。
-      // skillName は使わないため空文字を渡す（PtySkillRunner 側で引数なし起動）。
-      AdhocRunKind.terminal => PtySkillRunner(
-        repositoryPath: args.repositoryPath,
-        skillName: '',
-        executable: Platform.environment['SHELL'] ?? '/bin/zsh',
-      ),
-    };
+    final runner = PtyTerminalRunner.fromAction(
+      workingDirectory: args.workingDirectory,
+      action: args.action,
+    );
     final entry = LauncherEntry(
       id: args.adhocId,
       displayName: args.displayName,
-      repositoryPath: args.repositoryPath,
-      skillName: args.skillName,
+      workingDirectory: args.workingDirectory,
+      action: args.action,
       createdAt: DateTime.now(),
     );
 
