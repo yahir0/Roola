@@ -13,4 +13,4 @@ PRODUCT_NAME = Roola
 PRODUCT_BUNDLE_IDENTIFIER = tech.yahiro.Roola
 
 // The copyright displayed in application information
-PRODUCT_COPYRIGHT = Copyright © 2026 yahiro.tech. All rights reserved.
+PRODUCT_COPYRIGHT = Copyright © 2026 Yahiro. All rights reserved.
