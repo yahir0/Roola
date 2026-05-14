@@ -229,9 +229,14 @@ class PtyTerminalRunner implements TerminalRunner {
   static (String, List<String>) _resolveExecutable(LauncherAction action) {
     return switch (action) {
       OpenHereAction() => (_userShell(), const <String>[]),
+      // `$SHELL -ilc '<command>'` で起動。`-i -l` の両方が必要なのは
+      // ClaudeSkillAction と同じ理由（`.zshrc` に PATH を書いているユーザー
+      // 環境で `-l` だけだと PATH が伸びず claude / node 等が `command not
+      // found` になる）。エクスプローラ右クリックの「Claude Code を開く」も
+      // この経路で `claude` を起動するため、`-lc` だと GUI 起動経路で落ちる。
       RunCommandAction(:final command, :final keepShellAfterExit) => (
         _userShell(),
-        ['-lc', _buildShellCommand(command, keepShellAfterExit)],
+        ['-ilc', _buildShellCommand(command, keepShellAfterExit)],
       ),
       // Claude Code Skills はスラッシュコマンド `/skill-name` として resolve
       // される（`claude --help` の `--bare` 説明: "Skills still resolve via
