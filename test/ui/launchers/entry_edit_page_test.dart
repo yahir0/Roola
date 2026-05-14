@@ -9,8 +9,8 @@ import 'package:roola/data/launcher_entry/launcher_action.dart';
 import 'package:roola/data/launcher_entry/launcher_entry.dart';
 import 'package:roola/data/launcher_entry/launcher_entry_repository.dart';
 import 'package:roola/data/launcher_entry/launcher_entry_repository_impl.dart';
-import 'package:roola/ui/settings/entry_edit_page.dart';
-import 'package:roola/ui/settings/entry_edit_view_model.dart';
+import 'package:roola/ui/launchers/entry_edit_page.dart';
+import 'package:roola/ui/launchers/entry_edit_view_model.dart';
 
 class _MockLauncherEntryRepository extends Mock
     implements LauncherEntryRepository {}

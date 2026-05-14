@@ -6,7 +6,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:roola/data/launcher_entry/launcher_action.dart';
 import 'package:roola/ui/common/macos_window_app_bar.dart';
-import 'package:roola/ui/settings/entry_edit_view_model.dart';
+import 'package:roola/ui/launchers/entry_edit_view_model.dart';
 
 /// エントリ追加・編集画面。
 ///

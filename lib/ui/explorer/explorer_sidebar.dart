@@ -90,6 +90,7 @@ class ExplorerSidebar extends ConsumerWidget {
             const _EmptyLauncherHint()
           else
             for (final e in entries) _LauncherTile(entry: e),
+          const _LauncherManageTile(),
           const SizedBox(height: 8),
           const Divider(height: 1),
 
@@ -489,9 +490,44 @@ class _EmptyLauncherHint extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
       child: Text(
-        '上の + で Skill エントリを登録',
+        '上の + でエントリを登録',
         style: Theme.of(context).textTheme.bodySmall?.copyWith(
           color: Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
+      ),
+    );
+  }
+}
+
+/// ランチャーセクション末尾の「管理…」タイル。クリックで
+/// [LauncherManagementRoute] を push し、一覧 / 編集 / 削除画面に遷移する。
+/// 旧来 SettingsPage に置かれていた一覧 UI を独立画面へ移したため（ADR-0018）、
+/// その導線をサイドバー内に持つ。
+class _LauncherManageTile extends StatelessWidget {
+  const _LauncherManageTile();
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return InkWell(
+      onTap: () => const LauncherManagementRoute().push<void>(context),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        child: Row(
+          children: [
+            Icon(Icons.tune, size: 18, color: colors.onSurfaceVariant),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                'ランチャーを管理…',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: colors.onSurfaceVariant,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
         ),
       ),
     );

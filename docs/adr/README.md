@@ -23,6 +23,7 @@
 | [0015](./0015-drop-explorer-root-ceiling.md) | Explorer の root ceiling を廃止、rootPath は「起動時の開始位置」に弱める | Accepted |
 | [0016](./0016-generalize-launcher-action.md) | ランチャーを Claude Skill 専用から汎用ターミナルランチャーへ | Accepted |
 | [0017](./0017-sarasa-term-j-bundled-font.md) | ターミナル描画フォントに Sarasa Term J を同梱する | Accepted |
+| [0018](./0018-launcher-management-out-of-settings.md) | ランチャー管理 UI を Settings から独立画面へ分離 | Accepted |
 
 ## フォーマット
 

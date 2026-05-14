@@ -6,7 +6,11 @@ part of 'router.dart';
 // GoRouterGenerator
 // **************************************************************************
 
-List<RouteBase> get $appRoutes => [$explorerRoute, $settingsRoute];
+List<RouteBase> get $appRoutes => [
+  $explorerRoute,
+  $settingsRoute,
+  $launcherManagementRoute,
+];
 
 RouteBase get $explorerRoute =>
     GoRouteData.$route(path: '/explorer', factory: $ExplorerRoute._fromState);
@@ -31,23 +35,44 @@ mixin $ExplorerRoute on GoRouteData {
   void replace(BuildContext context) => context.replace(location);
 }
 
-RouteBase get $settingsRoute => GoRouteData.$route(
-  path: '/settings',
-  factory: $SettingsRoute._fromState,
-  routes: [
-    GoRouteData.$route(path: 'entries/new', factory: $EntryNewRoute._fromState),
-    GoRouteData.$route(
-      path: 'entries/:entryId',
-      factory: $EntryEditRoute._fromState,
-    ),
-  ],
-);
+RouteBase get $settingsRoute =>
+    GoRouteData.$route(path: '/settings', factory: $SettingsRoute._fromState);
 
 mixin $SettingsRoute on GoRouteData {
   static SettingsRoute _fromState(GoRouterState state) => const SettingsRoute();
 
   @override
   String get location => GoRouteData.$location('/settings');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+RouteBase get $launcherManagementRoute => GoRouteData.$route(
+  path: '/launchers',
+  factory: $LauncherManagementRoute._fromState,
+  routes: [
+    GoRouteData.$route(path: 'new', factory: $EntryNewRoute._fromState),
+    GoRouteData.$route(path: ':entryId', factory: $EntryEditRoute._fromState),
+  ],
+);
+
+mixin $LauncherManagementRoute on GoRouteData {
+  static LauncherManagementRoute _fromState(GoRouterState state) =>
+      const LauncherManagementRoute();
+
+  @override
+  String get location => GoRouteData.$location('/launchers');
 
   @override
   void go(BuildContext context) => context.go(location);
@@ -73,7 +98,7 @@ mixin $EntryNewRoute on GoRouteData {
 
   @override
   String get location => GoRouteData.$location(
-    '/settings/entries/new',
+    '/launchers/new',
     queryParams: {
       if (_self.initialRepositoryPath != null)
         'initial-repository-path': _self.initialRepositoryPath,
@@ -103,9 +128,8 @@ mixin $EntryEditRoute on GoRouteData {
   EntryEditRoute get _self => this as EntryEditRoute;
 
   @override
-  String get location => GoRouteData.$location(
-    '/settings/entries/${Uri.encodeComponent(_self.entryId)}',
-  );
+  String get location =>
+      GoRouteData.$location('/launchers/${Uri.encodeComponent(_self.entryId)}');
 
   @override
   void go(BuildContext context) => context.go(location);
