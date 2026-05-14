@@ -3,6 +3,15 @@ import FlutterMacOS
 
 @main
 class AppDelegate: FlutterAppDelegate {
+  override init() {
+    // GUI 起動経路 (Dock / Finder / open) では stdout/stderr の宛先が早期に
+    // クローズされる場合があり、Dart / Flutter Engine が write した瞬間に
+    // SIGPIPE で即死する。ターミナル直起動だと TTY に繋がるため再現しない。
+    // 詳細・代替案は ADR-0025 を参照。
+    signal(SIGPIPE, SIG_IGN)
+    super.init()
+  }
+
   override func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
     return true
   }

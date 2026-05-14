@@ -85,6 +85,8 @@ Mac 向けの汎用ターミナルランチャーアプリ（Flutter Desktop / m
 - ADR-0021: エクスプローラの操作モデルをダブルクリック化 + CC でパスコピー
 - ADR-0022: Claude Code 関連機能を optional 化する
 - ADR-0023: カスタムアイコン機能を廃止する
+- ADR-0024: エクスプローラのタイル表示密度を切替え可能にする
+- ADR-0025: GUI 起動経路の SIGPIPE 即死を AppDelegate で抑止する
 
 ## ディレクトリ構成
 
