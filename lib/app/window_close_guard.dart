@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:roola/app/router.dart';
 import 'package:roola/data/skill_session/active_sessions.dart';
 import 'package:window_manager/window_manager.dart';
 
@@ -18,7 +19,7 @@ class WindowCloseGuard extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     useEffect(() {
-      final listener = _Listener(onClose: () => _handleClose(context, ref));
+      final listener = _Listener(onClose: () => _handleClose(ref));
       windowManager.addListener(listener);
       return () => windowManager.removeListener(listener);
     }, const []);
@@ -26,18 +27,24 @@ class WindowCloseGuard extends HookConsumerWidget {
     return child;
   }
 
-  Future<void> _handleClose(BuildContext context, WidgetRef ref) async {
+  /// 終了確認ダイアログは root Navigator の context 上で出す必要がある
+  /// （`MaterialApp.router` の `builder` 内の context は Navigator の外側で、
+  /// `showDialog` が空回りするため）。
+  Future<void> _handleClose(WidgetRef ref) async {
     final sessions = ref.read(activeSessionsProvider);
     if (sessions.isEmpty) {
       await windowManager.destroy();
       return;
     }
 
-    if (!context.mounted) {
+    final dialogContext = rootNavigatorKey.currentContext;
+    if (dialogContext == null) {
+      // Navigator がまだ用意されていない異常系。確認なしで閉じると PTY を
+      // 取りこぼすので、フォールバックとして閉じないでおく。
       return;
     }
     final confirmed = await showSessionCloseConfirmation(
-      context,
+      dialogContext,
       sessions.length,
     );
     if (confirmed != true) {

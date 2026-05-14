@@ -8,13 +8,26 @@ import 'package:roola/ui/settings/settings_page.dart';
 
 part 'router.g.dart';
 
+/// 全画面共通の root Navigator キー。
+///
+/// `MaterialApp.router` の `builder` で配置している `WindowCloseGuard` の
+/// `BuildContext` は Navigator の外側にいるため、そのまま `showDialog` を
+/// 呼んでも何も表示されない（route 系のダイアログは Navigator 配下の context
+/// を要求するため）。このキー経由で Navigator の `currentContext` を取得して
+/// 終了確認ダイアログを表示できるようにする。
+final rootNavigatorKey = GlobalKey<NavigatorState>();
+
 /// アプリの go_router インスタンス。
 ///
 /// ADR-0014 で Home タブ廃止・Explorer メイン化したため、初期ロケーションは
 /// `/explorer`。Settings / LauncherManagement / EntryEdit は `.push()` で上に
 /// 重ねる top-level / nested route。
 final routerProvider = Provider<GoRouter>((ref) {
-  return GoRouter(initialLocation: '/explorer', routes: $appRoutes);
+  return GoRouter(
+    initialLocation: '/explorer',
+    navigatorKey: rootNavigatorKey,
+    routes: $appRoutes,
+  );
 });
 
 /// エクスプローラ画面ルート (`/explorer`)。Roola のメイン UI。
