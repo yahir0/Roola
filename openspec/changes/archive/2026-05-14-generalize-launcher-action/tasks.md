@@ -11,7 +11,7 @@
 - [x] 2.2 `LauncherEntryDto.fromJson` に旧スキーマ判定ロジックを追加: `json.containsKey('action')` で新 / 旧を分岐し、旧スキーマは `repositoryPath` → `workingDirectory`、`skillName` 空 → `OpenHere`、非空 → `ClaudeSkill(skillName)` に変換
 - [x] 2.3 `test/data/launcher_entry/launcher_entry_dto_test.dart` に migration テストを追加（旧スキーマ skillName 空 / 旧スキーマ skillName 非空 / 新スキーマそのまま / 不正 type 値の各ケース）
 - [x] 2.4 不正な `action.type` 値を持つエントリは読み飛ばす分岐を `launcher_entry_repository_impl.dart` 側に実装し、ログ警告を出す
-- [ ] 2.5 旧スキーマファイルを `~/Library/Application Support/dev.tech.yahiro.Roola/launcher_entries.json` に手動配置 → アプリ起動 → 1 件編集して保存 → JSON が新スキーマで書き戻されることを目視確認 _（task 10.4 で実施）_
+- [x] 2.5 旧スキーマファイルを `~/Library/Application Support/dev.tech.yahiro.Roola/launcher_entries.json` に手動配置 → アプリ起動 → 1 件編集して保存 → JSON が新スキーマで書き戻されることを目視確認（ユーザー確認済み）
 
 ## 3. PTY runner の汎用化
 
@@ -82,9 +82,9 @@
 
 - [x] 10.1 `fvm flutter analyze` がクリーンであることを確認
 - [x] 10.2 `fvm flutter test` で全テスト緑であることを確認（110/110 pass）
-- [ ] 10.3 `make FLUTTER="fvm flutter" DART="fvm dart" run` でアプリを起動し、3 タイプそれぞれのエントリを新規作成 → 起動 → 期待動作を目視確認 _（ユーザー実施）_
+- [x] 10.3 `make FLUTTER="fvm flutter" DART="fvm dart" run` でアプリを起動し、3 タイプそれぞれのエントリを新規作成 → 起動 → 期待動作を目視確認（ユーザー確認済み）
   - 「📂 開くだけ」: zsh プロンプトが出る
   - 「⚡ コマンド」: `echo hello && ls` を登録 → 出力後シェルが残る
   - 「🤖 Claude Skill」: 既存エントリと同様に `claude /<name>` が起動
-- [ ] 10.4 旧スキーマで保存された既存エントリ（手元の永続化ファイル）を起動 → 旧挙動が維持されることを目視確認 → 1 件編集 → JSON が新スキーマに書き換わることを目視確認 _（ユーザー実施）_
-- [ ] 10.5 OpenSpec change を archive: `openspec archive generalize-launcher-action` _（10.3 / 10.4 確認後に実施）_
+- [x] 10.4 旧スキーマで保存された既存エントリ（手元の永続化ファイル）を起動 → 旧挙動が維持されることを目視確認 → 1 件編集 → JSON が新スキーマに書き換わることを目視確認（ユーザー確認済み）
+- [x] 10.5 OpenSpec change を archive: `openspec archive generalize-launcher-action`
