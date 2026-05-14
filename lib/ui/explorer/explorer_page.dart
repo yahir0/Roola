@@ -12,7 +12,6 @@ import 'package:roola/ui/explorer/explorer_path_bar.dart';
 import 'package:roola/ui/explorer/explorer_selection.dart';
 import 'package:roola/ui/explorer/explorer_sidebar.dart';
 import 'package:roola/ui/explorer/explorer_view_model.dart';
-import 'package:roola/ui/explorer/launcher_grid.dart';
 import 'package:roola/ui/explorer/session_view.dart';
 import 'package:super_drag_and_drop/super_drag_and_drop.dart';
 
@@ -20,7 +19,7 @@ import 'package:super_drag_and_drop/super_drag_and_drop.dart';
 ///
 /// レイアウト:
 /// ```
-/// AppBar (戻る / 進む / ⚡ / 起動時のディレクトリ / ⚙)
+/// AppBar (戻る / 進む / 起動時のディレクトリ / ⚙)
 /// [path bar — selection が directory のときだけ]
 /// ┌─ sidebar ─┬─ body ─────────────────────────┐
 /// │           │ directory listing               │
@@ -33,7 +32,10 @@ import 'package:super_drag_and_drop/super_drag_and_drop.dart';
 /// いずれかをエクスプローラ body に排他的に描画する（ADR-0014）。
 /// PTY 自体は keep-alive provider 側で保持されているので、selection 切替
 /// で widget が unmount されても出力は失われない。
-class ExplorerPage extends HookConsumerWidget {
+///
+/// 登録済みランチャーへの導線はサイドバーに集約しているため、AppBar 側に
+/// は重複する quick-launch popover を置かない。
+class ExplorerPage extends ConsumerWidget {
   const ExplorerPage({super.key});
 
   @override
@@ -41,30 +43,12 @@ class ExplorerPage extends HookConsumerWidget {
     final state = ref.watch(explorerViewModelProvider);
     final selection = ref.watch(explorerSelectionProvider);
     final isDirectory = selection is ExplorerSelectionDirectory;
-    final menuController = useMemoized(MenuController.new);
     return Scaffold(
       appBar: MacosWindowAppBar(
         bottom: const LogoAccentLine(),
         onBack: _onBack(ref, state, selection),
         onForward: _onForward(ref, selection),
         actions: [
-          MenuAnchor(
-            controller: menuController,
-            alignmentOffset: const Offset(0, 8),
-            style: const MenuStyle(
-              backgroundColor: WidgetStatePropertyAll(Colors.transparent),
-              padding: WidgetStatePropertyAll(EdgeInsets.zero),
-              elevation: WidgetStatePropertyAll(0),
-            ),
-            menuChildren: const [LauncherGrid()],
-            child: IconButton(
-              icon: const Icon(Icons.bolt),
-              tooltip: 'ランチャー',
-              onPressed: () => menuController.isOpen
-                  ? menuController.close()
-                  : menuController.open(),
-            ),
-          ),
           IconButton(
             icon: const Icon(Icons.drive_folder_upload),
             tooltip: '起動時のディレクトリを変更',
