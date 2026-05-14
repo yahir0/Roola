@@ -53,6 +53,13 @@ class ExplorerSidebar extends ConsumerWidget {
     final entries = ref.watch(launcherEntriesProvider).value ?? const [];
     final sessions = ref.watch(activeSessionsProvider);
 
+    // お気に入りに current path と同じパスがあると、場所セクション
+    // （ホーム等）とお気に入り側が同時に highlight されて「二重選択」
+    // 状態に見える。場所と被ったらお気に入り側を勝たせる方が UX 的に
+    // 自然なので、場所セクション側を Set lookup で抑制する。
+    final favoritePaths = {for (final f in favorites) f.path};
+    final hasFavoriteAtCurrent = favoritePaths.contains(currentPath);
+
     return Container(
       width: width,
       decoration: BoxDecoration(
@@ -66,7 +73,11 @@ class ExplorerSidebar extends ConsumerWidget {
           // 場所
           const _SectionHeader('場所'),
           for (final place in _defaultPlaces)
-            _PlaceTile(place: place, currentPath: currentPath),
+            _PlaceTile(
+              place: place,
+              currentPath: currentPath,
+              suppressHighlight: hasFavoriteAtCurrent,
+            ),
           _OpenOtherFolderTile(),
           const SizedBox(height: 8),
           const Divider(height: 1),
@@ -171,16 +182,26 @@ const _defaultPlaces = <_Place>[
 ];
 
 class _PlaceTile extends ConsumerWidget {
-  const _PlaceTile({required this.place, required this.currentPath});
+  const _PlaceTile({
+    required this.place,
+    required this.currentPath,
+    required this.suppressHighlight,
+  });
 
   final _Place place;
   final String currentPath;
+
+  /// 同じパスのお気に入りが現在地と一致しているとき true。場所と
+  /// お気に入りの highlight が同時に出るのを避けるためお気に入り側を
+  /// 勝たせる目的で、true なら場所側の highlight を抑制する。
+  final bool suppressHighlight;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = Theme.of(context).colorScheme;
     final path = place.envVar == '__abs__' ? place.relPath : place.resolve();
-    final isCurrent = path != null && path == currentPath;
+    final isCurrent =
+        path != null && path == currentPath && !suppressHighlight;
     return InkWell(
       onTap: path == null
           ? null
