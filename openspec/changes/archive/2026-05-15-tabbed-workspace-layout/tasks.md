@@ -68,4 +68,4 @@
 - [x] 7.1 `docs/architecture.md` を更新（ワークスペース / ペイン / タブの層構成、family + scoped tabId の注意点を明記）
 - [x] 7.2 `flutter analyze` と `dart format` を通す
 - [x] 7.3 全テスト green を確認
-- [ ] 7.4 手動確認: 初回起動 3 ペイン / 崩し / タブ DnD / 再起動復元
+- [x] 7.4 手動確認: 初回起動 3 ペイン / 崩し / タブ DnD / 再起動復元
