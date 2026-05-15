@@ -90,21 +90,18 @@ void main() {
     expect(await entryRepo.loadAll(), hasLength(1));
   });
 
-  test(
-    'delete clears folderId of contained entries (中身は root に戻る)',
-    () async {
-      await folderRepo.add(buildFolder('f1'));
-      await entryRepo.add(buildEntry('e1', folderId: 'f1'));
-      await entryRepo.add(buildEntry('e2', folderId: 'f1'));
-      await entryRepo.add(buildEntry('e3'));
+  test('delete clears folderId of contained entries (中身は root に戻る)', () async {
+    await folderRepo.add(buildFolder('f1'));
+    await entryRepo.add(buildEntry('e1', folderId: 'f1'));
+    await entryRepo.add(buildEntry('e2', folderId: 'f1'));
+    await entryRepo.add(buildEntry('e3'));
 
-      await folderRepo.delete('f1');
+    await folderRepo.delete('f1');
 
-      final entries = await entryRepo.loadAll();
-      expect(entries, hasLength(3));
-      expect(entries.every((e) => e.folderId == null), isTrue);
-    },
-  );
+    final entries = await entryRepo.loadAll();
+    expect(entries, hasLength(3));
+    expect(entries.every((e) => e.folderId == null), isTrue);
+  });
 
   test(
     'entry repository が folders を上書きで失わない (cross-repo preservation)',

@@ -13,38 +13,38 @@ import 'package:roola/data/repo_explorer/explorer_settings.dart';
 import 'package:roola/data/repo_explorer/explorer_settings_repository_impl.dart';
 import 'package:roola/data/skill_session/active_sessions.dart';
 import 'package:roola/data/terminal_runner/terminal_run_state.dart';
+import 'package:roola/data/workspace/workspace_layout.dart';
+import 'package:roola/data/workspace/workspace_tab.dart';
 import 'package:roola/ui/common/prompt_name_dialog.dart';
 import 'package:roola/ui/common/session_state_icon.dart';
 import 'package:roola/ui/explorer/explorer_node_tile.dart'
     show decideDropOperation, performFileDrop;
-import 'package:roola/ui/explorer/explorer_selection.dart';
-import 'package:roola/ui/explorer/explorer_view_model.dart';
 import 'package:roola/ui/explorer/launcher_actions.dart';
 import 'package:roola/ui/run/adhoc_run_view_model.dart';
-import 'package:roola/ui/run/run_view_model.dart';
+import 'package:roola/ui/workspace/focused_tab_provider.dart';
+import 'package:roola/ui/workspace/workspace_navigation.dart';
+import 'package:roola/ui/workspace/workspace_provider.dart';
 import 'package:super_drag_and_drop/super_drag_and_drop.dart';
 import 'package:uuid/uuid.dart';
 
 const _uuid = Uuid();
 
-/// エクスプローラ左側のサイドバー。Finder のサイドバー相当。
+/// ワークスペース左側のサイドバー。Finder のサイドバー相当（ウィンドウ共通・
+/// ペインに属さない / ADR-0026）。
 ///
 /// 4 セクション構成（上から）:
 /// - **場所**: ホーム / ダウンロード / デスクトップ / ドキュメント /
 ///   アプリケーション + 「別のフォルダを開く…」
-/// - **お気に入り**: ユーザー登録のフォルダ。クリックで navigate、右クリック
-///   でリネーム / 削除、ドラッグ受け（`moveOrCopyInto`）
-/// - **ランチャー**: 登録済み LauncherEntry。クリックで Skill セッション起動
-/// - **実行中**: active session。空のときは「なし」プレースホルダ
+/// - **お気に入り**: ユーザー登録のフォルダ
+/// - **ランチャー**: 登録済み LauncherEntry
+/// - **実行中**: active session
 ///
-/// 各セクションは見出し + 中身の縦並びで、サイドバー全体は `ListView` で
-/// スクロール可能。
+/// 場所 / お気に入りのクリックや「現在のディレクトリを登録」は、最後に
+/// フォーカスされたエクスプローラタブを対象に動作する（`workspace_navigation`）。
 class ExplorerSidebar extends HookConsumerWidget {
-  const ExplorerSidebar({required this.currentPath, super.key});
+  const ExplorerSidebar({super.key});
 
   static const double width = 220;
-
-  final String currentPath;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -56,14 +56,18 @@ class ExplorerSidebar extends HookConsumerWidget {
     final folders = ref.watch(launcherFoldersProvider).value ?? const [];
     final sessions = ref.watch(activeSessionsProvider);
 
-    // フォルダの展開状態をセッション内で保持する。デフォルトは全フォルダ
-    // 展開（フォルダを作ってもクリックしないと中身が見えない状態を避ける）。
-    // 永続化はしない: 再起動でリセットされても影響が小さく、永続化用の
-    // スキーマを増やすコストに見合わないため（ADR-0019）。
-    final expandedFolderIds = useState<Set<String>>(
-      {for (final f in folders) f.id},
-    );
-    // folders が追加されたら、新しい folder も初期 expanded として混ぜる。
+    // フォーカス中エクスプローラタブのカレントパス。場所 / お気に入りの
+    // ハイライト判定に使う。エクスプローラタブが無ければ null。
+    final focusedExplorerId = ref.watch(focusedTabProvider).lastExplorerTabId;
+    final focusedTab = ref.watch(workspaceProvider).tabById(focusedExplorerId);
+    final currentPath = focusedTab is ExplorerTab
+        ? focusedTab.currentPath
+        : null;
+
+    // フォルダの展開状態をセッション内で保持する（永続化しない / ADR-0019）。
+    final expandedFolderIds = useState<Set<String>>({
+      for (final f in folders) f.id,
+    });
     useEffect(() {
       final missing = folders
           .where((f) => !expandedFolderIds.value.contains(f.id))
@@ -75,12 +79,9 @@ class ExplorerSidebar extends HookConsumerWidget {
       return null;
     }, [folders]);
 
-    // お気に入りに current path と同じパスがあると、場所セクション
-    // （ホーム等）とお気に入り側が同時に highlight されて「二重選択」
-    // 状態に見える。場所と被ったらお気に入り側を勝たせる方が UX 的に
-    // 自然なので、場所セクション側を Set lookup で抑制する。
     final favoritePaths = {for (final f in favorites) f.path};
-    final hasFavoriteAtCurrent = favoritePaths.contains(currentPath);
+    final hasFavoriteAtCurrent =
+        currentPath != null && favoritePaths.contains(currentPath);
 
     return Container(
       width: width,
@@ -110,10 +111,7 @@ class ExplorerSidebar extends HookConsumerWidget {
             const _EmptyFavoritesHint()
           else
             for (final fav in favorites)
-              _FavoriteTile(
-                favorite: fav,
-                isCurrent: fav.path == currentPath,
-              ),
+              _FavoriteTile(favorite: fav, isCurrent: fav.path == currentPath),
           const SizedBox(height: 8),
           const Divider(height: 1),
 
@@ -122,7 +120,6 @@ class ExplorerSidebar extends HookConsumerWidget {
           if (entries.isEmpty && folders.isEmpty)
             const _EmptyLauncherHint()
           else ...[
-            // 各フォルダ + その配下のエントリを縦に並べる。
             for (final folder in folders) ...[
               _LauncherFolderTile(
                 folder: folder,
@@ -139,10 +136,7 @@ class ExplorerSidebar extends HookConsumerWidget {
                 for (final e in entries.where((e) => e.folderId == folder.id))
                   _LauncherTile(entry: e, indented: true),
             ],
-            // フォルダがあるときは「未分類」mini-header を出して、フォルダ
-            // → root への drop 動線を確保する（ADR-0019 Phase 4）。
             if (folders.isNotEmpty) const _LauncherRootDropZone(),
-            // フォルダに属さない (root) エントリを下に並べる。
             for (final e in entries.where((e) => e.folderId == null))
               _LauncherTile(entry: e),
           ],
@@ -166,7 +160,6 @@ class ExplorerSidebar extends HookConsumerWidget {
 
 // ----- 共通 -----
 
-/// セクション見出し（小さめ・控えめなラベル）。
 class _SectionHeader extends StatelessWidget {
   const _SectionHeader(this.label);
 
@@ -190,20 +183,14 @@ class _SectionHeader extends StatelessWidget {
 
 // ----- 場所セクション -----
 
-/// 場所セクションの固定エントリ定義。
 class _Place {
   const _Place(this.label, this.icon, this.envVar, this.relPath);
 
   final String label;
   final IconData icon;
-
-  /// 環境変数名（通常は HOME）。
   final String envVar;
-
-  /// HOME 配下の相対パス。空文字なら HOME 直下を指す。
   final String relPath;
 
-  /// 解決済みの絶対パス。`HOME` 未設定時は `null`。
   String? resolve() {
     final base = Platform.environment[envVar];
     if (base == null || base.isEmpty) {
@@ -216,13 +203,11 @@ class _Place {
   }
 }
 
-/// 場所セクションに並ぶ固定 5 件 + 「アプリケーション」は絶対パス固定。
 const _defaultPlaces = <_Place>[
   _Place('ホーム', Icons.home_outlined, 'HOME', ''),
   _Place('ダウンロード', Icons.download_outlined, 'HOME', 'Downloads'),
   _Place('デスクトップ', Icons.desktop_mac_outlined, 'HOME', 'Desktop'),
   _Place('ドキュメント', Icons.description_outlined, 'HOME', 'Documents'),
-  // アプリケーションは HOME 配下ではなく `/Applications` 固定。
   _Place('アプリケーション', Icons.apps, '__abs__', '/Applications'),
 ];
 
@@ -234,24 +219,16 @@ class _PlaceTile extends ConsumerWidget {
   });
 
   final _Place place;
-  final String currentPath;
-
-  /// 同じパスのお気に入りが現在地と一致しているとき true。場所と
-  /// お気に入りの highlight が同時に出るのを避けるためお気に入り側を
-  /// 勝たせる目的で、true なら場所側の highlight を抑制する。
+  final String? currentPath;
   final bool suppressHighlight;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = Theme.of(context).colorScheme;
     final path = place.envVar == '__abs__' ? place.relPath : place.resolve();
-    final isCurrent =
-        path != null && path == currentPath && !suppressHighlight;
+    final isCurrent = path != null && path == currentPath && !suppressHighlight;
     return InkWell(
-      onTap: path == null
-          ? null
-          : () =>
-                ref.read(explorerViewModelProvider.notifier).navigateTo(path),
+      onTap: path == null ? null : () => navigateInFocusedExplorer(ref, path),
       child: Container(
         color: isCurrent ? colors.primary.withValues(alpha: 0.1) : null,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
@@ -278,8 +255,7 @@ class _PlaceTile extends ConsumerWidget {
   }
 }
 
-/// 「別のフォルダを開く…」エントリ。file_picker でディレクトリを選ばせ、
-/// `navigateTo` する。場所セクションの末尾に置く。
+/// 「別のフォルダを開く…」エントリ。
 class _OpenOtherFolderTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -287,20 +263,16 @@ class _OpenOtherFolderTile extends ConsumerWidget {
     return InkWell(
       onTap: () async {
         final picked = await FilePicker.getDirectoryPath();
-        if (picked == null || !context.mounted) {
+        if (picked == null) {
           return;
         }
-        ref.read(explorerViewModelProvider.notifier).navigateTo(picked);
+        navigateInFocusedExplorer(ref, picked);
       },
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
         child: Row(
           children: [
-            Icon(
-              Icons.more_horiz,
-              size: 18,
-              color: colors.onSurfaceVariant,
-            ),
+            Icon(Icons.more_horiz, size: 18, color: colors.onSurfaceVariant),
             const SizedBox(width: 10),
             Expanded(
               child: Text(
@@ -322,11 +294,12 @@ class _OpenOtherFolderTile extends ConsumerWidget {
 class _FavoritesHeader extends ConsumerWidget {
   const _FavoritesHeader({required this.currentPath});
 
-  final String currentPath;
+  final String? currentPath;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = Theme.of(context).colorScheme;
+    final path = currentPath;
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 12, 8, 4),
       child: Row(
@@ -342,24 +315,29 @@ class _FavoritesHeader extends ConsumerWidget {
           ),
           IconButton(
             icon: const Icon(Icons.add, size: 18),
-            tooltip: '現在のディレクトリを登録',
+            tooltip: 'フォーカス中のディレクトリを登録',
             visualDensity: VisualDensity.compact,
-            onPressed: () => _addCurrent(context, ref),
+            onPressed: path == null
+                ? null
+                : () => _addCurrent(context, ref, path),
           ),
         ],
       ),
     );
   }
 
-  Future<void> _addCurrent(BuildContext context, WidgetRef ref) async {
-    final defaultName = _basename(currentPath);
+  Future<void> _addCurrent(
+    BuildContext context,
+    WidgetRef ref,
+    String path,
+  ) async {
     final name = await promptName(
       context,
       title: '表示名',
-      initialValue: defaultName,
+      initialValue: _basename(path),
       hintText: 'お気に入りの表示名',
     );
-    if (name == null || name.trim().isEmpty || !context.mounted) {
+    if (name == null || name.trim().isEmpty) {
       return;
     }
     await ref
@@ -367,7 +345,7 @@ class _FavoritesHeader extends ConsumerWidget {
         .addFavorite(
           ExplorerFavorite(
             id: 'fav-${_uuid.v4()}',
-            path: currentPath,
+            path: path,
             name: name.trim(),
           ),
         );
@@ -387,7 +365,7 @@ class _EmptyFavoritesHint extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
       child: Text(
-        '上の + で現在のディレクトリを登録',
+        '上の + でフォーカス中のディレクトリを登録',
         style: Theme.of(context).textTheme.bodySmall?.copyWith(
           color: Theme.of(context).colorScheme.onSurfaceVariant,
         ),
@@ -406,9 +384,6 @@ class _FavoriteTile extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = Theme.of(context).colorScheme;
     final isHovering = useState(false);
-    // 「現在地」「ドラッグホバー中」の二状態をまとめる。両方とも
-    // primary 色のうっすら背景。ホバーの方が濃く見えるよう alpha を
-    // 大きめに取る。
     final Color? backgroundColor = isHovering.value
         ? colors.primary.withValues(alpha: 0.18)
         : isCurrent
@@ -417,11 +392,7 @@ class _FavoriteTile extends HookConsumerWidget {
     return DropRegion(
       formats: const [Formats.fileUri],
       hitTestBehavior: HitTestBehavior.opaque,
-      // 内部 drag は自身・自身の祖先への drop を弾く（loop 防止）。
-      // modifier とボリューム判定は decideDropOperation 内で済ませて
-      // move / copy を返す。
-      onDropOver: (event) =>
-          decideDropOperation(event.session, favorite.path),
+      onDropOver: (event) => decideDropOperation(event.session, favorite.path),
       onDropEnter: (_) => isHovering.value = true,
       onDropLeave: (_) => isHovering.value = false,
       onPerformDrop: (event) async {
@@ -433,9 +404,7 @@ class _FavoriteTile extends HookConsumerWidget {
         onSecondaryTapDown: (details) =>
             _showMenu(context, ref, details.globalPosition),
         child: InkWell(
-          onTap: () => ref
-              .read(explorerViewModelProvider.notifier)
-              .navigateTo(favorite.path),
+          onTap: () => navigateInFocusedExplorer(ref, favorite.path),
           child: Container(
             color: backgroundColor,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
@@ -518,8 +487,6 @@ enum _FavoriteAction { rename, remove }
 
 // ----- ランチャーセクション -----
 
-/// ランチャーセクションのヘッダ。「+」ボタンで新規エントリ追加、右クリックで
-/// 「新しいフォルダ」「新しいエントリ」のコンテキストメニューを出す（Phase 4）。
 class _LauncherHeader extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -622,10 +589,7 @@ class _EmptyLauncherHint extends StatelessWidget {
   }
 }
 
-/// ランチャーセクション末尾の「管理…」タイル。クリックで
-/// [LauncherManagementRoute] を push し、一覧 / 編集 / 削除画面に遷移する。
-/// 旧来 SettingsPage に置かれていた一覧 UI を独立画面へ移したため（ADR-0018）、
-/// その導線をサイドバー内に持つ。
+/// ランチャーセクション末尾の「管理…」タイル（ADR-0018）。
 class _LauncherManageTile extends StatelessWidget {
   const _LauncherManageTile();
 
@@ -643,9 +607,9 @@ class _LauncherManageTile extends StatelessWidget {
             Expanded(
               child: Text(
                 'ランチャーを管理…',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: colors.onSurfaceVariant,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -658,16 +622,7 @@ class _LauncherManageTile extends StatelessWidget {
 }
 
 /// ランチャー登録エントリ 1 件のタイル。クリックで `launchLauncherEntry`
-/// を呼ぶ。初回は永続セッション、すでに動いていれば連番付きの ad-hoc
-/// セッションが起動する。selection も合わせて切替わるので body が PTY
-/// ターミナルになる。
-///
-/// [indented] が true のとき、左端パディングを増やしてフォルダ配下である
-/// ことを視覚的に示す（ADR-0019）。
-///
-/// 管理画面と同じく、`LongPressDraggable<LauncherEntry>` でドラッグ可能。
-/// フォルダタイル / 「未分類」mini-header の `DragTarget` へドロップすると
-/// folderId が切り替わる（Phase 4）。
+/// を呼び、bottom ペインにターミナルタブとして開く（ADR-0026）。
 class _LauncherTile extends ConsumerWidget {
   const _LauncherTile({required this.entry, this.indented = false});
 
@@ -719,12 +674,7 @@ class _LauncherTile extends ConsumerWidget {
   }
 }
 
-/// フォルダ 1 件分のヘッダタイル。caret + フォルダアイコン + 名前。
-/// クリックで配下エントリの inline 展開/折りたたみをトグルする（ADR-0019）。
-///
-/// Phase 4 で `DragTarget<LauncherEntry>` 化。エントリをドロップすると
-/// folderId をこのフォルダに切り替える。右クリックで「リネーム / 削除」
-/// コンテキストメニューも表示する（管理画面のフォルダヘッダと挙動を揃える）。
+/// フォルダ 1 件分のヘッダタイル（ADR-0019 / Phase 4）。
 class _LauncherFolderTile extends ConsumerWidget {
   const _LauncherFolderTile({
     required this.folder,
@@ -799,10 +749,7 @@ class _LauncherFolderTile extends ConsumerWidget {
         Offset.zero & overlay.size,
       ),
       items: const [
-        PopupMenuItem(
-          value: _LauncherFolderAction.rename,
-          child: Text('リネーム'),
-        ),
+        PopupMenuItem(value: _LauncherFolderAction.rename, child: Text('リネーム')),
         PopupMenuItem(
           value: _LauncherFolderAction.delete,
           child: Text('削除（中身は未分類に戻る）'),
@@ -833,9 +780,7 @@ class _LauncherFolderTile extends ConsumerWidget {
           context: context,
           builder: (context) => AlertDialog(
             title: const Text('フォルダを削除しますか？'),
-            content: Text(
-              '「${folder.name}」を削除します。中身のエントリは未分類に戻ります。',
-            ),
+            content: Text('「${folder.name}」を削除します。中身のエントリは未分類に戻ります。'),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(false),
@@ -857,9 +802,7 @@ class _LauncherFolderTile extends ConsumerWidget {
 
 enum _LauncherFolderAction { rename, delete }
 
-/// フォルダがあるとき、フォルダ群と root エントリの間に挟む「未分類」
-/// mini-header 兼 drop zone。エントリをドロップすると folderId=null に
-/// 戻して root に移動する（Phase 4）。
+/// フォルダ群と root エントリの間に挟む「未分類」mini-header 兼 drop zone。
 class _LauncherRootDropZone extends ConsumerWidget {
   const _LauncherRootDropZone();
 
@@ -893,8 +836,8 @@ class _LauncherRootDropZone extends ConsumerWidget {
 
 // ----- 実行中セクション -----
 
-/// 実行中セッション 1 件のタイル。クリックで body をその PTY ターミナル
-/// に切替える。✕ で完全破棄。
+/// 実行中セッション 1 件のタイル。クリックで該当ターミナルタブにフォーカス
+/// （無ければ bottom ペインに再作成）。✕ でタブごと破棄する（ADR-0026）。
 class _RunningTile extends ConsumerWidget {
   const _RunningTile({required this.sessionId, required this.state});
 
@@ -903,23 +846,22 @@ class _RunningTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final entries = ref.watch(launcherEntriesProvider).value ?? const [];
-    final entry = entries.where((e) => e.id == sessionId).firstOrNull;
-    final adhocArgs = entry == null
-        ? ref.read(activeSessionsProvider.notifier).adhocArgsFor(sessionId)
-        : null;
-    if (entry == null && adhocArgs == null) {
+    final adhocArgs = ref
+        .read(activeSessionsProvider.notifier)
+        .adhocArgsFor(sessionId);
+    if (adhocArgs == null) {
       // 整合性が崩れている。表示しない。
       return const SizedBox.shrink();
     }
-    final label = entry?.displayName ?? adhocArgs!.displayName;
+    final layout = ref.watch(workspaceProvider);
+    final tab = _terminalTabFor(layout, sessionId);
     return InkWell(
       onTap: () {
-        final selection = ref.read(explorerSelectionProvider.notifier);
-        if (entry != null) {
-          selection.selectEntrySession(sessionId);
+        final workspace = ref.read(workspaceProvider.notifier);
+        if (tab != null) {
+          workspace.activateTab(tab.id);
         } else {
-          selection.selectAdhocSession(adhocArgs!);
+          workspace.addTerminalTab(PaneSlotId.bottom, args: adhocArgs);
         }
       },
       child: Padding(
@@ -930,7 +872,7 @@ class _RunningTile extends ConsumerWidget {
             const SizedBox(width: 10),
             Expanded(
               child: Text(
-                label,
+                adhocArgs.displayName,
                 style: Theme.of(context).textTheme.bodyMedium,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -943,29 +885,14 @@ class _RunningTile extends ConsumerWidget {
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
               onPressed: () {
-                // 破棄対象が「いま body に表示されているセッション」と
-                // 同じ場合、先に selection をディレクトリに切替えて
-                // SessionView を unmount しないと、invalidate 直後の
-                // rebuild で provider が再評価されて新しい runner が
-                // build される（PTY が「破棄されない」ように見える）。
-                final selection = ref.read(explorerSelectionProvider);
-                final isCurrentlyViewed = switch (selection) {
-                  ExplorerSelectionEntrySession(:final entryId) =>
-                    entry != null && entryId == sessionId,
-                  ExplorerSelectionAdhocSession(:final args) =>
-                    adhocArgs != null && args.adhocId == adhocArgs.adhocId,
-                  _ => false,
-                };
-                if (isCurrentlyViewed) {
-                  final st = ref.read(explorerViewModelProvider);
+                if (tab != null) {
+                  ref.read(workspaceProvider.notifier).closeTab(tab.id);
+                } else {
+                  // タブを持たない孤立セッション。直接破棄する。
                   ref
-                      .read(explorerSelectionProvider.notifier)
-                      .selectDirectory(st.currentPath);
-                }
-                if (entry != null) {
-                  terminateSkillSession(ref, sessionId);
-                } else if (adhocArgs != null) {
-                  terminateAdhocSession(ref, adhocArgs);
+                      .read(activeSessionsProvider.notifier)
+                      .unregister(sessionId);
+                  ref.invalidate(adhocRunViewModelProvider(adhocArgs));
                 }
               },
             ),
@@ -973,6 +900,21 @@ class _RunningTile extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  /// `sessionId`（= adhocId）に対応するターミナルタブを workspace から探す。
+  static TerminalTab? _terminalTabFor(
+    WorkspaceLayout layout,
+    String sessionId,
+  ) {
+    for (final slotId in PaneSlotId.values) {
+      for (final t in layout.slot(slotId).tabs) {
+        if (t is TerminalTab && t.args.adhocId == sessionId) {
+          return t;
+        }
+      }
+    }
+    return null;
   }
 }
 

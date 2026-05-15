@@ -15,13 +15,15 @@ import 'package:roola/data/launcher_entry/launcher_action.dart';
 import 'package:roola/data/repo_explorer/explorer_node.dart';
 import 'package:roola/data/repo_explorer/explorer_settings.dart';
 import 'package:roola/data/repo_explorer/explorer_settings_repository_impl.dart';
+import 'package:roola/data/workspace/workspace_layout.dart';
 import 'package:roola/ui/common/prompt_name_dialog.dart';
 import 'package:roola/ui/explorer/explorer_clipboard_provider.dart';
 import 'package:roola/ui/explorer/explorer_item_selection.dart';
 import 'package:roola/ui/explorer/explorer_properties_dialog.dart';
-import 'package:roola/ui/explorer/explorer_selection.dart';
 import 'package:roola/ui/explorer/explorer_view_model.dart';
 import 'package:roola/ui/run/adhoc_run_view_model.dart';
+import 'package:roola/ui/workspace/current_tab_id_provider.dart';
+import 'package:roola/ui/workspace/workspace_provider.dart';
 import 'package:super_drag_and_drop/super_drag_and_drop.dart';
 import 'package:uuid/uuid.dart';
 
@@ -127,10 +129,7 @@ Future<void> showExplorerContextMenu(
       PopupMenuDivider(),
       PopupMenuItem(
         value: _ActionMoveToTrash(),
-        child: ListTile(
-          leading: Icon(Icons.delete_outline),
-          title: Text('削除'),
-        ),
+        child: ListTile(leading: Icon(Icons.delete_outline), title: Text('削除')),
       ),
     ],
     const PopupMenuDivider(),
@@ -239,10 +238,7 @@ Future<void> showFileContextMenu(
       PopupMenuDivider(),
       PopupMenuItem(
         value: _FileAction.moveToTrash,
-        child: ListTile(
-          leading: Icon(Icons.delete_outline),
-          title: Text('削除'),
-        ),
+        child: ListTile(leading: Icon(Icons.delete_outline), title: Text('削除')),
       ),
       PopupMenuDivider(),
       PopupMenuItem(
@@ -319,10 +315,10 @@ Future<void> _handleDirectoryAction(
           keepShellAfterExit: false,
         ),
       );
-      // PTY を起動してから selection を切替える（順序逆だと body が
-      // build される前に Notifier 側で runner が無くて空表示になる）。
-      ref.read(adhocRunViewModelProvider(args));
-      ref.read(explorerSelectionProvider.notifier).selectAdhocSession(args);
+      // bottom ペインに新規ターミナルタブとして開く（ADR-0026）。
+      ref
+          .read(workspaceProvider.notifier)
+          .addTerminalTab(PaneSlotId.bottom, args: args);
     case _ActionOpenTerminal():
       final adhocId = 'adhoc-${_uuid.v4()}';
       final args = AdhocRunArgs(
@@ -331,8 +327,9 @@ Future<void> _handleDirectoryAction(
         displayName: '${node.name} (Terminal)',
         action: const LauncherAction.openHere(),
       );
-      ref.read(adhocRunViewModelProvider(args));
-      ref.read(explorerSelectionProvider.notifier).selectAdhocSession(args);
+      ref
+          .read(workspaceProvider.notifier)
+          .addTerminalTab(PaneSlotId.bottom, args: args);
     case _ActionRevealInFinder():
       await ref.read(fileOpenerProvider).open(node.path);
     case _ActionAddToFavorite():
@@ -387,8 +384,9 @@ Future<void> _handleDirectoryAction(
         displayName: '${node.name} / $skillName',
         action: LauncherAction.claudeSkill(skillName: skillName),
       );
-      ref.read(adhocRunViewModelProvider(args));
-      ref.read(explorerSelectionProvider.notifier).selectAdhocSession(args);
+      ref
+          .read(workspaceProvider.notifier)
+          .addTerminalTab(PaneSlotId.bottom, args: args);
     case _ActionRegisterSkill(:final skillName):
       unawaited(
         EntryNewRoute(
@@ -424,7 +422,11 @@ Future<void> _createNew(
     } else {
       await ops.createFile(parentPath, name.trim());
     }
-    ref.read(explorerViewModelProvider.notifier).refresh();
+    ref
+        .read(
+          explorerViewModelProvider(ref.read(currentTabIdProvider)).notifier,
+        )
+        .refresh();
   } on FileSystemException catch (e) {
     if (!context.mounted) {
       return;
@@ -457,7 +459,11 @@ Future<void> _renameAndRefresh(
   final ops = ref.read(explorerFileOpsProvider);
   try {
     await ops.rename(oldPath, newName.trim());
-    ref.read(explorerViewModelProvider.notifier).refresh();
+    ref
+        .read(
+          explorerViewModelProvider(ref.read(currentTabIdProvider)).notifier,
+        )
+        .refresh();
   } on FileSystemException catch (e) {
     if (!context.mounted) {
       return;
@@ -495,7 +501,9 @@ Future<void> _pasteInto(
       lastError = e.message;
     }
   }
-  ref.read(explorerViewModelProvider.notifier).refresh();
+  ref
+      .read(explorerViewModelProvider(ref.read(currentTabIdProvider)).notifier)
+      .refresh();
   if (!context.mounted) {
     return;
   }
@@ -542,7 +550,11 @@ Future<void> _moveToTrash(
   }
   try {
     await ref.read(trashServiceProvider).moveToTrash(path);
-    ref.read(explorerViewModelProvider.notifier).refresh();
+    ref
+        .read(
+          explorerViewModelProvider(ref.read(currentTabIdProvider)).notifier,
+        )
+        .refresh();
     if (!context.mounted) {
       return;
     }
@@ -556,9 +568,9 @@ Future<void> _moveToTrash(
     if (!context.mounted) {
       return;
     }
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text('ゴミ箱に移動できませんでした: ${e.message ?? e.code}')));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('ゴミ箱に移動できませんでした: ${e.message ?? e.code}')),
+    );
   }
 }
 
@@ -631,7 +643,11 @@ Future<void> moveOrCopyInto(
     } else {
       await ops.moveInto(sourcePath, targetDir);
     }
-    ref.read(explorerViewModelProvider.notifier).refresh();
+    ref
+        .read(
+          explorerViewModelProvider(ref.read(currentTabIdProvider)).notifier,
+        )
+        .refresh();
   } on FileSystemException catch (e) {
     if (!context.mounted) {
       return;
@@ -655,7 +671,9 @@ Future<void> moveOrCopyInto(
 /// まま終わった場合はキャンセル扱いなので refresh しない。リスナは一度だけ
 /// 発火させて自分自身を外す。
 void _refreshOnDragCompleted(WidgetRef ref, DragSession session) {
-  final notifier = ref.read(explorerViewModelProvider.notifier);
+  final notifier = ref.read(
+    explorerViewModelProvider(ref.read(currentTabIdProvider)).notifier,
+  );
   void listener() {
     if (session.dragCompleted.value == null) {
       return;
@@ -706,6 +724,7 @@ class ExplorerParentDropTile extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final tabId = ref.watch(currentTabIdProvider);
     final parentPath = parentOfPath(currentPath);
     final colors = Theme.of(context).colorScheme;
     final isHovering = useState(false);
@@ -728,8 +747,9 @@ class ExplorerParentDropTile extends HookConsumerWidget {
         await performFileDrop(context, ref, event, parentPath);
       },
       child: InkWell(
-        onTap: () =>
-            ref.read(explorerViewModelProvider.notifier).navigateTo(parentPath),
+        onTap: () => ref
+            .read(explorerViewModelProvider(tabId).notifier)
+            .navigateTo(parentPath),
         child: Container(
           color: isHovering.value
               ? colors.primary.withValues(alpha: 0.12)
@@ -866,16 +886,13 @@ class _DirectoryTile extends HookConsumerWidget {
         await performFileDrop(context, ref, event, node.path);
       },
       child: DragItemWidget(
-        allowedOperations: () =>
-            const [DropOperation.move, DropOperation.copy],
+        allowedOperations: () => const [DropOperation.move, DropOperation.copy],
         dragItemProvider: (request) async {
           _refreshOnDragCompleted(ref, request.session);
           return DragItem(suggestedName: node.name, localData: node.path)
             ..add(Formats.fileUri(Uri.file(node.path)));
         },
-        child: DraggableWidget(
-          child: _content(context, ref, isHovering.value),
-        ),
+        child: DraggableWidget(child: _content(context, ref, isHovering.value)),
       ),
     );
   }
@@ -885,7 +902,9 @@ class _DirectoryTile extends HookConsumerWidget {
     final claudeAvailable = ref.watch(claudeAvailableProvider);
     final hasSkill = claudeAvailable && node.skillNames.isNotEmpty;
     final colors = Theme.of(context).colorScheme;
-    final isSelected = ref.watch(explorerItemSelectionProvider) == node.path;
+    final tabId = ref.watch(currentTabIdProvider);
+    final isSelected =
+        ref.watch(explorerItemSelectionProvider(tabId)) == node.path;
     // ADR-0024: compact ではサイドバーと同じ縦幅・1 行表示にして Skill 表示を省略する。
     final density =
         ref.watch(explorerSettingsProvider).value?.listDensity ??
@@ -899,10 +918,11 @@ class _DirectoryTile extends HookConsumerWidget {
       child: InkWell(
         // ADR-0021: シングルクリックで選択、ダブルクリックで遷移。
         onTap: () => ref
-            .read(explorerItemSelectionProvider.notifier)
+            .read(explorerItemSelectionProvider(tabId).notifier)
             .select(node.path),
-        onDoubleTap: () =>
-            ref.read(explorerViewModelProvider.notifier).navigateTo(node.path),
+        onDoubleTap: () => ref
+            .read(explorerViewModelProvider(tabId).notifier)
+            .navigateTo(node.path),
         child: Container(
           color: isDropHovering
               ? colors.primary.withValues(alpha: 0.12)
@@ -962,7 +982,9 @@ class _FileTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = Theme.of(context).colorScheme;
     final icon = _iconForName(node.name);
-    final isSelected = ref.watch(explorerItemSelectionProvider) == node.path;
+    final tabId = ref.watch(currentTabIdProvider);
+    final isSelected =
+        ref.watch(explorerItemSelectionProvider(tabId)) == node.path;
     // ADR-0024: ディレクトリタイルと同じく compact ではサイドバーと同じ縦幅。
     final density =
         ref.watch(explorerSettingsProvider).value?.listDensity ??
@@ -975,7 +997,7 @@ class _FileTile extends ConsumerWidget {
       child: InkWell(
         // ADR-0021: シングルクリックで選択、ダブルクリックで開く。
         onTap: () => ref
-            .read(explorerItemSelectionProvider.notifier)
+            .read(explorerItemSelectionProvider(tabId).notifier)
             .select(node.path),
         onDoubleTap: () => ref.read(fileOpenerProvider).open(node.path),
         child: Container(
@@ -1097,8 +1119,7 @@ DropOperation decideDropOperation(
   if (keyboard.isMetaPressed) {
     return DropOperation.move;
   }
-  if (source is String &&
-      _volumeKey(source) != _volumeKey(targetPath)) {
+  if (source is String && _volumeKey(source) != _volumeKey(targetPath)) {
     return DropOperation.copy;
   }
   return DropOperation.move;

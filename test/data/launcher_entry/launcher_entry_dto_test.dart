@@ -142,7 +142,10 @@ void main() {
 
       // CheckedFromJsonException が投げられる。repository_impl 側の try/catch で
       // 当該エントリだけ読み飛ばし、残り全件は復元できる仕様。
-      expect(() => LauncherEntryDto.fromJson(json).toEntity(), throwsA(anything));
+      expect(
+        () => LauncherEntryDto.fromJson(json).toEntity(),
+        throwsA(anything),
+      );
     });
 
     test('toJson は常に新スキーマで書き出す（jsonEncode 経由）', () {

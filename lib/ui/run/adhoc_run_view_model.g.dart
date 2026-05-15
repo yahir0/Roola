@@ -8,42 +8,42 @@ part of 'adhoc_run_view_model.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
-/// エクスプローラ右クリックから起動する一時セッションの ViewModel。
+/// ターミナルタブ 1 つ分の ViewModel（`family(AdhocRunArgs)` / keepAlive）。
 ///
-/// 永続エントリを持たない（`launcherEntriesProvider` に乗らない）点が
-/// `RunViewModel` との違い。`ActiveSessions` には `adhocLabel` 付きで
-/// 登録され、chip 列での表示名はそこから fallback で取得される。
-/// 設計の背景は ADR-0009 を参照。
+/// build() で `PtyTerminalRunner` を 1 つ生成し、`ActiveSessions` に登録した
+/// うえで状態 Stream を購読しながらプロセスを start する。keepAlive のため、
+/// タブを別ペインへ DnD 移動して widget が remount されても PTY と出力履歴
+/// は保持される。破棄はタブを閉じたときに `Workspace.closeTab` から明示
+/// invalidate される。
 ///
-/// 動作タイプの分岐は `args.action`（[LauncherAction]）に統合されており、
-/// runner 構築は [PtyTerminalRunner.fromAction] が一括で処理する
-/// （ADR-0016）。
+/// 動作タイプの分岐は `args.action`（`LauncherAction`）に統合されており、
+/// runner 構築は `PtyTerminalRunner.fromAction` が一括で処理する（ADR-0016）。
 
 @ProviderFor(AdhocRunViewModel)
 final adhocRunViewModelProvider = AdhocRunViewModelFamily._();
 
-/// エクスプローラ右クリックから起動する一時セッションの ViewModel。
+/// ターミナルタブ 1 つ分の ViewModel（`family(AdhocRunArgs)` / keepAlive）。
 ///
-/// 永続エントリを持たない（`launcherEntriesProvider` に乗らない）点が
-/// `RunViewModel` との違い。`ActiveSessions` には `adhocLabel` 付きで
-/// 登録され、chip 列での表示名はそこから fallback で取得される。
-/// 設計の背景は ADR-0009 を参照。
+/// build() で `PtyTerminalRunner` を 1 つ生成し、`ActiveSessions` に登録した
+/// うえで状態 Stream を購読しながらプロセスを start する。keepAlive のため、
+/// タブを別ペインへ DnD 移動して widget が remount されても PTY と出力履歴
+/// は保持される。破棄はタブを閉じたときに `Workspace.closeTab` から明示
+/// invalidate される。
 ///
-/// 動作タイプの分岐は `args.action`（[LauncherAction]）に統合されており、
-/// runner 構築は [PtyTerminalRunner.fromAction] が一括で処理する
-/// （ADR-0016）。
+/// 動作タイプの分岐は `args.action`（`LauncherAction`）に統合されており、
+/// runner 構築は `PtyTerminalRunner.fromAction` が一括で処理する（ADR-0016）。
 final class AdhocRunViewModelProvider
     extends $NotifierProvider<AdhocRunViewModel, RunPageState> {
-  /// エクスプローラ右クリックから起動する一時セッションの ViewModel。
+  /// ターミナルタブ 1 つ分の ViewModel（`family(AdhocRunArgs)` / keepAlive）。
   ///
-  /// 永続エントリを持たない（`launcherEntriesProvider` に乗らない）点が
-  /// `RunViewModel` との違い。`ActiveSessions` には `adhocLabel` 付きで
-  /// 登録され、chip 列での表示名はそこから fallback で取得される。
-  /// 設計の背景は ADR-0009 を参照。
+  /// build() で `PtyTerminalRunner` を 1 つ生成し、`ActiveSessions` に登録した
+  /// うえで状態 Stream を購読しながらプロセスを start する。keepAlive のため、
+  /// タブを別ペインへ DnD 移動して widget が remount されても PTY と出力履歴
+  /// は保持される。破棄はタブを閉じたときに `Workspace.closeTab` から明示
+  /// invalidate される。
   ///
-  /// 動作タイプの分岐は `args.action`（[LauncherAction]）に統合されており、
-  /// runner 構築は [PtyTerminalRunner.fromAction] が一括で処理する
-  /// （ADR-0016）。
+  /// 動作タイプの分岐は `args.action`（`LauncherAction`）に統合されており、
+  /// runner 構築は `PtyTerminalRunner.fromAction` が一括で処理する（ADR-0016）。
   AdhocRunViewModelProvider._({
     required AdhocRunViewModelFamily super.from,
     required AdhocRunArgs super.argument,
@@ -90,16 +90,16 @@ final class AdhocRunViewModelProvider
 
 String _$adhocRunViewModelHash() => r'0e28dd7d29fbb02af0dfaa289ba1c866cee4c46b';
 
-/// エクスプローラ右クリックから起動する一時セッションの ViewModel。
+/// ターミナルタブ 1 つ分の ViewModel（`family(AdhocRunArgs)` / keepAlive）。
 ///
-/// 永続エントリを持たない（`launcherEntriesProvider` に乗らない）点が
-/// `RunViewModel` との違い。`ActiveSessions` には `adhocLabel` 付きで
-/// 登録され、chip 列での表示名はそこから fallback で取得される。
-/// 設計の背景は ADR-0009 を参照。
+/// build() で `PtyTerminalRunner` を 1 つ生成し、`ActiveSessions` に登録した
+/// うえで状態 Stream を購読しながらプロセスを start する。keepAlive のため、
+/// タブを別ペインへ DnD 移動して widget が remount されても PTY と出力履歴
+/// は保持される。破棄はタブを閉じたときに `Workspace.closeTab` から明示
+/// invalidate される。
 ///
-/// 動作タイプの分岐は `args.action`（[LauncherAction]）に統合されており、
-/// runner 構築は [PtyTerminalRunner.fromAction] が一括で処理する
-/// （ADR-0016）。
+/// 動作タイプの分岐は `args.action`（`LauncherAction`）に統合されており、
+/// runner 構築は `PtyTerminalRunner.fromAction` が一括で処理する（ADR-0016）。
 
 final class AdhocRunViewModelFamily extends $Family
     with
@@ -119,16 +119,16 @@ final class AdhocRunViewModelFamily extends $Family
         isAutoDispose: false,
       );
 
-  /// エクスプローラ右クリックから起動する一時セッションの ViewModel。
+  /// ターミナルタブ 1 つ分の ViewModel（`family(AdhocRunArgs)` / keepAlive）。
   ///
-  /// 永続エントリを持たない（`launcherEntriesProvider` に乗らない）点が
-  /// `RunViewModel` との違い。`ActiveSessions` には `adhocLabel` 付きで
-  /// 登録され、chip 列での表示名はそこから fallback で取得される。
-  /// 設計の背景は ADR-0009 を参照。
+  /// build() で `PtyTerminalRunner` を 1 つ生成し、`ActiveSessions` に登録した
+  /// うえで状態 Stream を購読しながらプロセスを start する。keepAlive のため、
+  /// タブを別ペインへ DnD 移動して widget が remount されても PTY と出力履歴
+  /// は保持される。破棄はタブを閉じたときに `Workspace.closeTab` から明示
+  /// invalidate される。
   ///
-  /// 動作タイプの分岐は `args.action`（[LauncherAction]）に統合されており、
-  /// runner 構築は [PtyTerminalRunner.fromAction] が一括で処理する
-  /// （ADR-0016）。
+  /// 動作タイプの分岐は `args.action`（`LauncherAction`）に統合されており、
+  /// runner 構築は `PtyTerminalRunner.fromAction` が一括で処理する（ADR-0016）。
 
   AdhocRunViewModelProvider call(AdhocRunArgs args) =>
       AdhocRunViewModelProvider._(argument: args, from: this);
@@ -137,16 +137,16 @@ final class AdhocRunViewModelFamily extends $Family
   String toString() => r'adhocRunViewModelProvider';
 }
 
-/// エクスプローラ右クリックから起動する一時セッションの ViewModel。
+/// ターミナルタブ 1 つ分の ViewModel（`family(AdhocRunArgs)` / keepAlive）。
 ///
-/// 永続エントリを持たない（`launcherEntriesProvider` に乗らない）点が
-/// `RunViewModel` との違い。`ActiveSessions` には `adhocLabel` 付きで
-/// 登録され、chip 列での表示名はそこから fallback で取得される。
-/// 設計の背景は ADR-0009 を参照。
+/// build() で `PtyTerminalRunner` を 1 つ生成し、`ActiveSessions` に登録した
+/// うえで状態 Stream を購読しながらプロセスを start する。keepAlive のため、
+/// タブを別ペインへ DnD 移動して widget が remount されても PTY と出力履歴
+/// は保持される。破棄はタブを閉じたときに `Workspace.closeTab` から明示
+/// invalidate される。
 ///
-/// 動作タイプの分岐は `args.action`（[LauncherAction]）に統合されており、
-/// runner 構築は [PtyTerminalRunner.fromAction] が一括で処理する
-/// （ADR-0016）。
+/// 動作タイプの分岐は `args.action`（`LauncherAction`）に統合されており、
+/// runner 構築は `PtyTerminalRunner.fromAction` が一括で処理する（ADR-0016）。
 
 abstract class _$AdhocRunViewModel extends $Notifier<RunPageState> {
   late final _$args = ref.$arg as AdhocRunArgs;

@@ -45,8 +45,7 @@ class _ExplorerSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(explorerSettingsProvider);
     final colors = Theme.of(context).colorScheme;
-    final density =
-        state.value?.listDensity ?? ExplorerListDensity.comfortable;
+    final density = state.value?.listDensity ?? ExplorerListDensity.comfortable;
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 8, 24, 8),
       child: Column(
@@ -54,9 +53,9 @@ class _ExplorerSection extends ConsumerWidget {
         children: [
           Text(
             'エクスプローラ',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 4),
           Text(
@@ -122,9 +121,9 @@ class _ClaudeIntegrationSection extends ConsumerWidget {
         children: [
           Text(
             'Claude Code 連携',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 4),
           Text(
@@ -370,9 +369,9 @@ class _ShortcutsSection extends StatelessWidget {
         children: [
           Text(
             'キーボードショートカット',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 4),
           Text(

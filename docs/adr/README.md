@@ -30,6 +30,10 @@
 | [0022](./0022-claude-features-optional.md) | Claude Code 関連機能を optional 化する | Accepted |
 | [0023](./0023-drop-custom-icon-support.md) | カスタムアイコン機能を廃止する | Accepted |
 | [0024](./0024-explorer-list-density.md) | エクスプローラのタイル表示密度を切替え可能にする | Accepted |
+| [0025](./0025-ignore-sigpipe-on-gui-launch.md) | GUI 起動経路の SIGPIPE 即死を AppDelegate で抑止する | Accepted |
+| [0026](./0026-three-pane-tabbed-workspace.md) | `/explorer` を 3 画面タブ式ワークスペースに刷新する | Accepted |
+| [0027](./0027-per-tab-state-via-family.md) | per-tab 状態を family(tabId) + scoped Provider で実現する | Accepted |
+| [0028](./0028-workspace-persistence-and-terminal-respawn.md) | ワークスペースレイアウトの永続化とターミナル再 spawn | Accepted |
 
 ## フォーマット
 

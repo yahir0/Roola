@@ -6,16 +6,24 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:roola/core/system/file_opener.dart';
 import 'package:roola/ui/explorer/explorer_view_model.dart';
 
-/// エクスプローラ上部の編集可能なパスバー。
+/// エクスプローラタブ上部の編集可能なパスバー。
 ///
 /// 表示中のパスをテキストフィールドに常時同期し、ユーザーが直接編集して
 /// Enter（または右側の矢印ボタン）で確定するとそのパスに移動する。
 /// 入力されたパスがディレクトリならそこに移動し、ファイルなら OS の
 /// デフォルトアプリで開く（ファイル一覧クリック時と同じ挙動）。
 /// パス自体が存在しない場合は SnackBar で通知して入力をリセット。
+///
+/// [tabId] は所属するエクスプローラタブの id。`explorerViewModelProvider`
+/// の family キーに使う（ADR-0027）。
 class ExplorerPathBar extends HookConsumerWidget {
-  const ExplorerPathBar({required this.currentPath, super.key});
+  const ExplorerPathBar({
+    required this.tabId,
+    required this.currentPath,
+    super.key,
+  });
 
+  final String tabId;
   final String currentPath;
 
   @override
@@ -40,7 +48,7 @@ class ExplorerPathBar extends HookConsumerWidget {
         return;
       }
       if (Directory(input).existsSync()) {
-        ref.read(explorerViewModelProvider.notifier).navigateTo(input);
+        ref.read(explorerViewModelProvider(tabId).notifier).navigateTo(input);
         focusNode.unfocus();
         return;
       }

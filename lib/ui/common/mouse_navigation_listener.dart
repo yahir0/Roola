@@ -3,7 +3,7 @@ import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:roola/app/router.dart';
-import 'package:roola/ui/explorer/explorer_view_model.dart';
+import 'package:roola/ui/workspace/workspace_navigation.dart';
 
 /// マウスのサイドボタン（戻る / 進む）でアプリ内ナビゲーションを操作する Listener。
 ///
@@ -54,17 +54,16 @@ class MouseNavigationListener extends ConsumerWidget {
       router.pop();
       return;
     }
-    // root レベル（シェル内のタブ）にいるとき:
-    // エクスプローラ → 履歴を 1 つ戻る。それ以外（ホーム）は no-op。
+    // メイン画面にいるとき: フォーカス中エクスプローラタブの履歴を 1 つ戻る。
     if (_isOnExplorer(router)) {
-      ref.read(explorerViewModelProvider.notifier).goBack();
+      goBackInFocusedExplorer(ref);
     }
   }
 
   void _handleForward(WidgetRef ref) {
     final router = ref.read(routerProvider);
     if (_isOnExplorer(router)) {
-      ref.read(explorerViewModelProvider.notifier).goForward();
+      goForwardInFocusedExplorer(ref);
     }
   }
 

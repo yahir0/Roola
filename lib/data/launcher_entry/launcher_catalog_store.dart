@@ -115,10 +115,7 @@ class LauncherCatalogStore {
 
 /// `LauncherCatalogStore.load()` の戻り値。
 class LauncherCatalogSnapshot {
-  const LauncherCatalogSnapshot({
-    required this.folders,
-    required this.entries,
-  });
+  const LauncherCatalogSnapshot({required this.folders, required this.entries});
 
   final List<LauncherFolder> folders;
   final List<LauncherEntry> entries;

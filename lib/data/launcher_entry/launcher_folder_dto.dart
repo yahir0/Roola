@@ -33,9 +33,6 @@ class LauncherFolderDto {
 
   Map<String, dynamic> toJson() => _$LauncherFolderDtoToJson(this);
 
-  LauncherFolder toEntity() => LauncherFolder(
-    id: id,
-    name: name,
-    createdAt: DateTime.parse(createdAt),
-  );
+  LauncherFolder toEntity() =>
+      LauncherFolder(id: id, name: name, createdAt: DateTime.parse(createdAt));
 }

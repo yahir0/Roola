@@ -57,10 +57,18 @@ lib/
 │   │   ├── appearance_settings_dto.dart
 │   │   ├── appearance_settings_repository.dart
 │   │   └── appearance_settings_repository_impl.dart
-│   └── terminal_runner/
-│       ├── terminal_run_state.dart              # Freezed Union（idle/starting/running/completed/failed/cancelled）
-│       ├── terminal_runner.dart                 # interface
-│       └── pty_terminal_runner.dart             # flutter_pty 実装。fromAction(LauncherAction) で 3 動作タイプを起動
+│   ├── terminal_runner/
+│   │   ├── terminal_run_state.dart              # Freezed Union（idle/starting/running/completed/failed/cancelled）
+│   │   ├── terminal_runner.dart                 # interface
+│   │   └── pty_terminal_runner.dart             # flutter_pty 実装。fromAction(LauncherAction) で 3 動作タイプを起動
+│   └── workspace/                               # 3 ペインタブ式ワークスペース（ADR-0026〜0028）
+│       ├── workspace_tab.dart                   # Freezed sealed（ExplorerTab / TerminalTab）
+│       ├── pane_slot.dart                       # Freezed（タブ群 + activeIndex）
+│       ├── workspace_layout.dart                # Freezed（3 スロット + スプリッタ比率）
+│       ├── workspace_layout_mode.dart           # 崩し再フローの純粋関数
+│       ├── workspace_layout_dto.dart            # JSON DTO（json_serializable）
+│       ├── workspace_repository.dart            # interface
+│       └── workspace_repository_impl.dart       # workspace.json 実装
 │
 └── core/                                # 横断ユーティリティ
     ├── storage/
@@ -183,6 +191,17 @@ ui 内のフィーチャー間 import も避ける。共通 Widget は `ui/commo
 
 - **ローカル**: フォームの一時値、トグル状態、テキスト入力中の値、表示モード（タブ選択など）→ `useState` / `useTextEditingController` 等の Hook
 - **グローバル**: 永続化が必要、複数画面で共有、ライフサイクルを跨いで保持 → Riverpod Provider
+
+### ワークスペースと per-tab 状態（ADR-0026 / 0027）
+
+メイン画面 `/explorer` は 3 ペインスロット（`topLeft` / `topRight` / `bottom`）× タブ群のワークスペース。状態構成は次のとおり:
+
+- **`workspaceProvider`**（`Notifier`, keepAlive）: レイアウトの単一の真実。タブの生成 / 閉じる / アクティブ化 / 移動・スプリッタ比率・タブのカレントパスをすべてここで扱う。`data/workspace/` のモデル（`WorkspaceLayout` / `PaneSlot` / `WorkspaceTab`）を state に持つ。
+- **per-tab 状態は `family(tabId)`**: `ExplorerViewModel` / `explorerItemSelectionProvider` はタブ id をキーに family 化する。タブごとに独立した履歴・カレントパス・選択を持つ。
+- **family 本体はルートスコープに置く**: `keepAlive` family をルートスコープに置き、タブを閉じたときだけ `workspaceProvider.closeTab` から明示 `ref.invalidate` する。タブを別ペインへ DnD 移動しても tabId が変わらないため履歴 / PTY は無損失。
+  - ⚠️ **family 本体を nested `ProviderScope` に置いてはならない**。scope の unmount で状態が破棄され、タブ移動で履歴 / PTY を失う。
+- **tabId の配布は `currentTabIdProvider`**: 既定で `throw` する `Provider<String>`。各タブ body を包む `ProviderScope` で `overrideWithValue(tabId)` し、子 widget は `ref.watch(currentTabIdProvider)` で tabId を得る。override するのはこの id 配布用 Provider のみで、family 本体はルートスコープのまま。
+- **永続化**: `workspaceProvider` の全変更経路は `_apply()` を通り `workspace.json` へ保存（ADR-0028）。ターミナルタブは PTY をプロセス跨ぎで復元できないため、作業ディレクトリ + action を保存して起動時に再 spawn する。
 
 ## エラーハンドリング
 

@@ -6,10 +6,7 @@ part 'explorer_settings.freezed.dart';
 ///
 /// - [compact]: サイドバーと同等の縦幅。1 行表示、Skill subtitle と chip は省略
 /// - [comfortable]: 従来の 3 行レイアウト。Skill subtitle / chip を含む
-enum ExplorerListDensity {
-  compact,
-  comfortable,
-}
+enum ExplorerListDensity { compact, comfortable }
 
 /// エクスプローラ画面の永続化対象状態。
 ///

@@ -29,6 +29,10 @@ class AppPaths {
   File get repoExplorerSettingsFile =>
       File('${root.path}/repo_explorer_settings.json');
 
+  /// ワークスペースレイアウト（3 ペイン構成・タブ・スプリッタ比率）の
+  /// 永続化先（ADR-0028）。
+  File get workspaceFile => File('${root.path}/workspace.json');
+
   /// 背景画像の保存先。
   File get backgroundImageFile => File('${root.path}/background.png');
 

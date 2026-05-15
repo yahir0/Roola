@@ -95,8 +95,7 @@ class _Body extends ConsumerWidget {
             const SizedBox(height: 16),
             _CenterImagePicker(
               imagePath: settings.transparentCenterImagePath,
-              onPick: () =>
-                  _pickAndSaveCenterImage(context, ref, notifier),
+              onPick: () => _pickAndSaveCenterImage(context, ref, notifier),
               onClear: () => notifier.setTransparentCenterImagePath(null),
             ),
           ],

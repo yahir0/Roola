@@ -1,10 +1,10 @@
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:roola/ui/explorer/explorer_page.dart';
 import 'package:roola/ui/launchers/entry_edit_page.dart';
 import 'package:roola/ui/launchers/launcher_management_page.dart';
 import 'package:roola/ui/settings/settings_page.dart';
+import 'package:roola/ui/workspace/workspace_page.dart';
 
 part 'router.g.dart';
 
@@ -30,14 +30,16 @@ final routerProvider = Provider<GoRouter>((ref) {
   );
 });
 
-/// エクスプローラ画面ルート (`/explorer`)。Roola のメイン UI。
+/// メイン画面ルート (`/explorer`)。3 ペインタブ式ワークスペース（ADR-0026）。
+///
+/// パスは互換性のため `/explorer` のまま。描画するのは [WorkspacePage]。
 @TypedGoRoute<ExplorerRoute>(path: '/explorer')
 class ExplorerRoute extends GoRouteData with $ExplorerRoute {
   const ExplorerRoute();
 
   @override
   Widget build(BuildContext context, GoRouterState state) =>
-      const ExplorerPage();
+      const WorkspacePage();
 }
 
 /// 設定画面ルート (`/settings`)。外観 / claude ヘルスのみ。

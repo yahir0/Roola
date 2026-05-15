@@ -1,28 +1,44 @@
 import 'dart:async';
 
-import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:roola/data/launcher_entry/launcher_entry.dart';
 import 'package:roola/data/skill_session/active_sessions.dart';
 import 'package:roola/data/skill_session/adhoc_run_args.dart';
 import 'package:roola/data/terminal_runner/pty_terminal_runner.dart';
 import 'package:roola/data/terminal_runner/terminal_run_state.dart';
-import 'package:roola/ui/run/run_view_model.dart';
+import 'package:roola/data/terminal_runner/terminal_runner.dart';
 
 export 'package:roola/data/skill_session/adhoc_run_args.dart';
 
 part 'adhoc_run_view_model.g.dart';
 
-/// エクスプローラ右クリックから起動する一時セッションの ViewModel。
+/// ターミナルセッションの表示用 State（表示名・実行状態・runner 参照）。
 ///
-/// 永続エントリを持たない（`launcherEntriesProvider` に乗らない）点が
-/// `RunViewModel` との違い。`ActiveSessions` には `adhocLabel` 付きで
-/// 登録され、chip 列での表示名はそこから fallback で取得される。
-/// 設計の背景は ADR-0009 を参照。
+/// ワークスペースのターミナルタブはすべて ad-hoc セッションに正規化されて
+/// いる（ADR-0026 design Decision 5）。`entry` は表示名取得のための
+/// 軽量ラッパで、永続化された `LauncherEntry` とは限らない。
+class RunPageState {
+  RunPageState({
+    required this.entry,
+    required this.runState,
+    required this.runner,
+  });
+
+  final LauncherEntry entry;
+  final SkillRunState runState;
+  final TerminalRunner runner;
+}
+
+/// ターミナルタブ 1 つ分の ViewModel（`family(AdhocRunArgs)` / keepAlive）。
 ///
-/// 動作タイプの分岐は `args.action`（[LauncherAction]）に統合されており、
-/// runner 構築は [PtyTerminalRunner.fromAction] が一括で処理する
-/// （ADR-0016）。
+/// build() で `PtyTerminalRunner` を 1 つ生成し、`ActiveSessions` に登録した
+/// うえで状態 Stream を購読しながらプロセスを start する。keepAlive のため、
+/// タブを別ペインへ DnD 移動して widget が remount されても PTY と出力履歴
+/// は保持される。破棄はタブを閉じたときに `Workspace.closeTab` から明示
+/// invalidate される。
+///
+/// 動作タイプの分岐は `args.action`（`LauncherAction`）に統合されており、
+/// runner 構築は `PtyTerminalRunner.fromAction` が一括で処理する（ADR-0016）。
 @Riverpod(keepAlive: true)
 class AdhocRunViewModel extends _$AdhocRunViewModel {
   @override
@@ -72,16 +88,9 @@ class AdhocRunViewModel extends _$AdhocRunViewModel {
     );
   }
 
-  /// PTY を SIGTERM で終了する。chip と出力履歴は保持される。
+  /// PTY を SIGTERM で終了する。タブと出力履歴は保持される。
   Future<void> cancelRun() => state.runner.cancel();
 
   /// 再実行。同じ args で provider を作り直す。
   void restart() => ref.invalidateSelf();
-}
-
-/// ad-hoc セッションの明示破棄。`launcherEntriesProvider` を触らない以外は
-/// 永続版 `terminateSkillSession` と同じ責務。
-void terminateAdhocSession(WidgetRef ref, AdhocRunArgs args) {
-  ref.read(activeSessionsProvider.notifier).unregister(args.adhocId);
-  ref.invalidate(adhocRunViewModelProvider(args));
 }

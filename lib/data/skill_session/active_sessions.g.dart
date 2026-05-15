@@ -12,7 +12,7 @@ part of 'active_sessions.dart';
 ///
 /// ライフサイクルは `RunViewModel.build()` での `register` から
 /// 明示的な `unregister`（「閉じる」操作）まで。state 変化は `updateState`
-/// で都度反映する。ホーム画面の chip 列とエントリアイコンのバッジは
+/// で都度反映する。サイドバーの chip 列とエントリアイコンのバッジは
 /// この Notifier を購読することで状態変化を受け取る。
 
 @ProviderFor(ActiveSessions)
@@ -22,7 +22,7 @@ final activeSessionsProvider = ActiveSessionsProvider._();
 ///
 /// ライフサイクルは `RunViewModel.build()` での `register` から
 /// 明示的な `unregister`（「閉じる」操作）まで。state 変化は `updateState`
-/// で都度反映する。ホーム画面の chip 列とエントリアイコンのバッジは
+/// で都度反映する。サイドバーの chip 列とエントリアイコンのバッジは
 /// この Notifier を購読することで状態変化を受け取る。
 final class ActiveSessionsProvider
     extends $NotifierProvider<ActiveSessions, Map<String, SkillRunState>> {
@@ -30,7 +30,7 @@ final class ActiveSessionsProvider
   ///
   /// ライフサイクルは `RunViewModel.build()` での `register` から
   /// 明示的な `unregister`（「閉じる」操作）まで。state 変化は `updateState`
-  /// で都度反映する。ホーム画面の chip 列とエントリアイコンのバッジは
+  /// で都度反映する。サイドバーの chip 列とエントリアイコンのバッジは
   /// この Notifier を購読することで状態変化を受け取る。
   ActiveSessionsProvider._()
     : super(
@@ -65,7 +65,7 @@ String _$activeSessionsHash() => r'33b3a3099758f3fa94df545993a39195e120718d';
 ///
 /// ライフサイクルは `RunViewModel.build()` での `register` から
 /// 明示的な `unregister`（「閉じる」操作）まで。state 変化は `updateState`
-/// で都度反映する。ホーム画面の chip 列とエントリアイコンのバッジは
+/// で都度反映する。サイドバーの chip 列とエントリアイコンのバッジは
 /// この Notifier を購読することで状態変化を受け取る。
 
 abstract class _$ActiveSessions extends $Notifier<Map<String, SkillRunState>> {

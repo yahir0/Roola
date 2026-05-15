@@ -17,8 +17,7 @@ class OsClipboardService {
     if (clipboard == null) {
       return;
     }
-    final item = DataWriterItem()
-      ..add(Formats.fileUri(Uri.file(path)));
+    final item = DataWriterItem()..add(Formats.fileUri(Uri.file(path)));
     await clipboard.write([item]);
   }
 

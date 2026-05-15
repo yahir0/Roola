@@ -4,17 +4,16 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:roola/data/repo_explorer/explorer_directory_loader.dart';
 import 'package:roola/data/repo_explorer/explorer_node.dart';
-import 'package:roola/data/repo_explorer/explorer_settings_repository_impl.dart';
-import 'package:roola/ui/explorer/explorer_selection.dart';
+import 'package:roola/data/workspace/workspace_tab.dart';
+import 'package:roola/ui/workspace/workspace_provider.dart';
+import 'package:roola/ui/workspace/workspace_seed.dart';
 
 part 'explorer_view_model.freezed.dart';
 part 'explorer_view_model.g.dart';
 
-/// エクスプローラ画面の表示状態。
+/// エクスプローラタブ 1 つ分の表示状態。
 ///
-/// `root` は起動時の開始位置として永続化された絶対パス。ADR-0015 で
-/// ceiling（上限）としての役割は撤去され、`currentPath` は root より
-/// 上にも自由に navigate できる。`currentPath` は現在表示中の絶対パス。
+/// `root` はタブ生成時の開始位置。`currentPath` は現在表示中の絶対パス。
 /// `children` は currentPath 直下のディレクトリ + ファイル（ディレクトリ
 /// が先、各ブロック内は名前順）。
 @freezed
@@ -26,18 +25,22 @@ abstract class ExplorerState with _$ExplorerState {
   }) = _ExplorerState;
 }
 
-/// エクスプローラの ViewModel。
+/// エクスプローラタブの ViewModel（`family(tabId)` / ADR-0027）。
 ///
-/// ルートディレクトリは `explorerSettingsProvider` を購読して取得する。
-/// `navigateTo` で任意の絶対パスに移動し、その都度直下を再ロードする。
-/// `changeRoot` ではルート自体を永続化したうえでカレントも合わせて更新する。
+/// 初期パスは `workspaceProvider` のタブ状態から `ref.read` で 1 度だけ取得
+/// する（watch しない＝起動ディレクトリ変更で全タブがリセットされない）。
+/// `navigateTo` で任意の絶対パスに移動し、その都度直下を再ロードして
+/// `workspaceProvider.updateTabPath` でカレントパスを永続化用に反映する。
 ///
 /// マウスのサイドボタン（戻る / 進む）でブラウザのような履歴ナビゲーション
 /// ができるよう、訪問パスを `_history` に保持し、`_historyCursor` で現在
 /// 位置を指す。`navigateTo` は cursor 以降の forward 履歴を破棄して新しい
 /// パスを末尾に積む。`goBack` / `goForward` は cursor を上下させるだけで
 /// 履歴自体は変更しない。
-@riverpod
+///
+/// `keepAlive` のため、タブを別ペインへ DnD 移動しても履歴は保持される。
+/// 破棄はタブを閉じたときに `Workspace.closeTab` から明示 invalidate する。
+@Riverpod(keepAlive: true)
 class ExplorerViewModel extends _$ExplorerViewModel {
   static const _loader = ExplorerDirectoryLoader();
 
@@ -45,91 +48,68 @@ class ExplorerViewModel extends _$ExplorerViewModel {
   int _historyCursor = -1;
 
   @override
-  ExplorerState build() {
-    final settings = ref.watch(explorerSettingsProvider).value;
-    final root = settings?.rootPath ?? _defaultRoot();
+  ExplorerState build(String tabId) {
+    final tab = ref.read(workspaceProvider.notifier).tabById(tabId);
+    final start = (tab is ExplorerTab)
+        ? tab.currentPath
+        : defaultWorkspaceHome();
     _history
       ..clear()
-      ..add(root);
+      ..add(start);
     _historyCursor = 0;
     return ExplorerState(
-      root: root,
-      currentPath: root,
-      children: _loader.load(root),
+      root: start,
+      currentPath: start,
+      children: _loader.load(start),
     );
   }
 
   /// 任意の絶対パスへ移動する。存在しないパスは無視。
   /// パスバー入力 / お気に入りクリック / 子ディレクトリの enter / 親への
   /// `goUp` などすべてのユーザー起点ナビゲーションがここを通り、履歴に
-  /// 積まれる。同時に `explorerSelectionProvider` を directory に切替えて
-  /// セッションビュー表示中だった場合もディレクトリビューに戻す。
+  /// 積まれる。カレントパスは `workspaceProvider` にも反映する（永続化用）。
   void navigateTo(String path) {
     if (!Directory(path).existsSync()) {
       return;
     }
-    // 現在位置より forward 側の履歴は破棄して、新しいパスを末尾に追加。
-    if (state.currentPath != path) {
-      if (_historyCursor < _history.length - 1) {
-        _history.removeRange(_historyCursor + 1, _history.length);
-      }
-      _history.add(path);
-      _historyCursor = _history.length - 1;
-      state = state.copyWith(currentPath: path, children: _loader.load(path));
+    if (state.currentPath == path) {
+      return;
     }
-    ref.read(explorerSelectionProvider.notifier).selectDirectory(path);
+    // 現在位置より forward 側の履歴は破棄して、新しいパスを末尾に追加。
+    if (_historyCursor < _history.length - 1) {
+      _history.removeRange(_historyCursor + 1, _history.length);
+    }
+    _history.add(path);
+    _historyCursor = _history.length - 1;
+    _applyPath(path);
   }
 
   /// 履歴を 1 つ戻る。先頭にいる場合は何もしない。
-  /// マウスの戻るボタン（[MouseNavigationListener]）から呼ばれる。
   void goBack() {
     if (_historyCursor <= 0) {
       return;
     }
     _historyCursor--;
-    final path = _history[_historyCursor];
-    state = state.copyWith(currentPath: path, children: _loader.load(path));
-    ref.read(explorerSelectionProvider.notifier).selectDirectory(path);
+    _applyPath(_history[_historyCursor]);
   }
 
   /// 履歴を 1 つ進む。末尾にいる場合は何もしない。
-  /// マウスの進むボタンから呼ばれる。
   void goForward() {
     if (_historyCursor >= _history.length - 1) {
       return;
     }
     _historyCursor++;
-    final path = _history[_historyCursor];
-    state = state.copyWith(currentPath: path, children: _loader.load(path));
-    ref.read(explorerSelectionProvider.notifier).selectDirectory(path);
+    _applyPath(_history[_historyCursor]);
   }
 
   bool get canGoBack => _historyCursor > 0;
 
   bool get canGoForward => _historyCursor < _history.length - 1;
 
-  /// 親ディレクトリへ移動する（履歴にも積む）。AppBar の back 矢印 /
-  /// `ExplorerParentDropTile` から呼ばれる。ADR-0015 で root ceiling は
-  /// 廃止済みのため、root より上にも登れる。filesystem root (`/`) では
+  /// 親ディレクトリへ移動する（履歴にも積む）。filesystem root (`/`) では
   /// `_parentOf` が `/` を返し、`navigateTo` の existsSync で no-op になる。
   void goUp() {
-    final parent = _parentOf(state.currentPath);
-    navigateTo(parent);
-  }
-
-  /// ルートを変更し、永続化する。履歴も新しいルートを起点に作り直す。
-  Future<void> changeRoot(String newRoot) async {
-    await ref.read(explorerSettingsProvider.notifier).setRootPath(newRoot);
-    _history
-      ..clear()
-      ..add(newRoot);
-    _historyCursor = 0;
-    state = ExplorerState(
-      root: newRoot,
-      currentPath: newRoot,
-      children: _loader.load(newRoot),
-    );
-    ref.read(explorerSelectionProvider.notifier).selectDirectory(newRoot);
+    navigateTo(_parentOf(state.currentPath));
   }
 
   /// テスト用の手動リフレッシュ。実機では使用しない。
@@ -137,9 +117,10 @@ class ExplorerViewModel extends _$ExplorerViewModel {
     state = state.copyWith(children: _loader.load(state.currentPath));
   }
 
-  static String _defaultRoot() {
-    final home = Platform.environment['HOME'];
-    return (home != null && home.isNotEmpty) ? home : '/';
+  /// state と `workspaceProvider` のタブパスを path に揃える共通処理。
+  void _applyPath(String path) {
+    state = state.copyWith(currentPath: path, children: _loader.load(path));
+    ref.read(workspaceProvider.notifier).updateTabPath(tabId, path);
   }
 
   static String _parentOf(String path) {

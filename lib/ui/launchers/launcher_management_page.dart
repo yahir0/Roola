@@ -191,9 +191,9 @@ class _FolderHeader extends ConsumerWidget {
               Expanded(
                 child: Text(
                   folder.name,
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
                 ),
               ),
               PopupMenuButton<_FolderAction>(
@@ -244,9 +244,7 @@ class _FolderHeader extends ConsumerWidget {
           context: context,
           builder: (context) => AlertDialog(
             title: const Text('フォルダを削除しますか？'),
-            content: Text(
-              '「${folder.name}」を削除します。中身のエントリは未分類に戻ります。',
-            ),
+            content: Text('「${folder.name}」を削除します。中身のエントリは未分類に戻ります。'),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(false),

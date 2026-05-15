@@ -3,18 +3,8 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:roola/data/terminal_runner/terminal_run_state.dart';
 import 'package:roola/ui/common/session_state_icon.dart';
 import 'package:roola/ui/run/adhoc_run_view_model.dart';
-import 'package:roola/ui/run/run_view_model.dart';
 import 'package:xterm/xterm.dart';
 
-/// xterm 用のロゴ準拠テーマ。`TerminalView` 側で `backgroundOpacity: 0`
-/// を指定して描画レイヤーの Container を透過させるため、ここでの
-/// `background` は cell 単位の塗りや IME composing 等のフォールバック
-/// 用途でのみ使われる。`Color(0x00000000)` を渡すと内部の
-/// `withOpacity(1.0)` で alpha が 255 に再付与され opaque black に
-/// なってしまうため、必ず非ゼロ alpha の色（ここでは LogoTheme の
-/// deep background）を渡すこと。cursor / selection はロゴアクセント
-/// ブルー。ANSI 16 色は xterm defaultTheme を継承（VS Code 系配色で
-/// Claude Code の出力が崩れない）。
 /// ターミナル描画フォント。pubspec.yaml に登録した Sarasa Term J を主に使う。
 ///
 /// Sarasa Term J は Iosevka Term（ASCII）と Source Han Sans JP（CJK）を
@@ -24,8 +14,7 @@ import 'package:xterm/xterm.dart';
 ///
 /// `fontFamilyFallback` は絵文字と最終フォールバックのみ残す。Sarasa Term J
 /// が CJK・記号類をほぼカバーするので、Menlo 等のフォールバックは挟まない
-/// 方が見た目の一貫性が出る（フォールバックが効く＝そこだけ別フォントに
-/// なるので、丸っこさが混ざってちぐはぐになる）。
+/// 方が見た目の一貫性が出る。
 const TerminalStyle _terminalStyle = TerminalStyle(
   fontFamily: 'SarasaTermJ',
   fontFamilyFallback: [
@@ -62,69 +51,31 @@ const TerminalTheme _terminalTheme = TerminalTheme(
   searchHitForeground: Color(0xFF000000),
 );
 
-/// セッション 1 件分のビュー（Scaffold を含まない埋め込み形 widget）。
+/// ターミナルセッション 1 件分のビュー（ターミナルタブの body）。
 ///
-/// ヘッダ行（状態 chip + キャンセル / 再実行 / 閉じる）と、その下の
-/// `TerminalView` の縦並び。エクスプローラの body に直接埋め込んで使う。
+/// ヘッダ行（状態 chip + キャンセル / 再実行）と、その下の `TerminalView`
+/// の縦並び。タブを閉じる操作はタブストリップの × が担うため、ここには
+/// 閉じるボタンを置かない（ADR-0026）。
 ///
-/// 永続エントリと ad-hoc セッションの両方を扱えるよう、`fromEntry` /
-/// `fromAdhoc` の 2 つの名前付きコンストラクタを持つ。watch する Provider と
-/// 破棄ヘルパーだけ切り替わる。
-///
-/// PTY 自体は keep-alive provider 側に保持されているので、この widget が
-/// dispose されても出力は失われない（再度表示すると復元される）。
+/// PTY は `adhocRunViewModelProvider` 側で keep-alive 保持されるので、この
+/// widget が dispose されても出力は失われない。
 class SessionView extends ConsumerWidget {
-  const SessionView.fromEntry(String entryId, {this.onClosed, super.key})
-    : _entryId = entryId,
-      _adhocArgs = null;
+  const SessionView(this.args, {super.key});
 
-  const SessionView.fromAdhoc(AdhocRunArgs args, {this.onClosed, super.key})
-    : _entryId = null,
-      _adhocArgs = args;
-
-  final String? _entryId;
-  final AdhocRunArgs? _adhocArgs;
-
-  /// 閉じるボタン押下時に呼ばれるコールバック。selection をディレクトリ
-  /// ビューに戻すなど、呼び出し側の都合に応じて処理する。
-  final VoidCallback? onClosed;
+  final AdhocRunArgs args;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isAdhoc = _entryId == null;
-    final pageState = isAdhoc
-        ? ref.watch(adhocRunViewModelProvider(_adhocArgs!))
-        : ref.watch(runViewModelProvider(_entryId));
-
-    final cancelRun = isAdhoc
-        ? ref.read(adhocRunViewModelProvider(_adhocArgs!).notifier).cancelRun
-        : ref.read(runViewModelProvider(_entryId).notifier).cancelRun;
-    final restart = isAdhoc
-        ? ref.read(adhocRunViewModelProvider(_adhocArgs!).notifier).restart
-        : ref.read(runViewModelProvider(_entryId).notifier).restart;
+    final pageState = ref.watch(adhocRunViewModelProvider(args));
+    final notifier = ref.read(adhocRunViewModelProvider(args).notifier);
 
     return Column(
       children: [
         _SessionHeader(
           title: pageState.entry.displayName,
           state: pageState.runState,
-          onCancel: cancelRun,
-          onRestart: restart,
-          onClose: () {
-            final adhocArgs = _adhocArgs;
-            final entryId = _entryId;
-            // selection を先に切替えてからセッションを破棄する。逆順だと
-            // SessionView 自身が watch している RunViewModel /
-            // AdhocRunViewModel を invalidate 直後に再評価してしまい、
-            // build() が新しい runner を作り直して PTY が再起動する
-            // （「破棄したのに残っている」ように見える）。
-            onClosed?.call();
-            if (adhocArgs != null) {
-              terminateAdhocSession(ref, adhocArgs);
-            } else if (entryId != null) {
-              terminateSkillSession(ref, entryId);
-            }
-          },
+          onCancel: notifier.cancelRun,
+          onRestart: notifier.restart,
         ),
         const Divider(height: 1),
         Expanded(
@@ -133,8 +84,7 @@ class SessionView extends ConsumerWidget {
             theme: _terminalTheme,
             textStyle: _terminalStyle,
             // 内部 Container を完全透過にし、`_AppearanceLayer` の暗幕を
-            // そのまま見せる。デフォルトの 1.0 のままだと theme.background
-            // の色が opaque で塗られてターミナル領域だけ不透明になる。
+            // そのまま見せる。
             backgroundOpacity: 0,
             padding: const EdgeInsets.all(8),
           ),
@@ -145,22 +95,19 @@ class SessionView extends ConsumerWidget {
 }
 
 /// セッションビューの上端に置くヘッダ。表示名・状態 chip・操作ボタンを
-/// 横一列に並べる。AppBar とは独立して body 内に置くので、AppBar の actions
-/// と被らないように軽めの装飾にする。
+/// 横一列に並べる。
 class _SessionHeader extends StatelessWidget {
   const _SessionHeader({
     required this.title,
     required this.state,
     required this.onCancel,
     required this.onRestart,
-    required this.onClose,
   });
 
   final String title;
   final SkillRunState state;
   final Future<void> Function() onCancel;
   final VoidCallback onRestart;
-  final VoidCallback onClose;
 
   @override
   Widget build(BuildContext context) {
@@ -211,11 +158,6 @@ class _SessionHeader extends StatelessWidget {
               tooltip: '再実行',
               onPressed: onRestart,
             ),
-          IconButton(
-            icon: const Icon(Icons.close),
-            tooltip: 'セッションを閉じる',
-            onPressed: onClose,
-          ),
           if (state is SkillRunFailed) ...[
             const SizedBox(width: 4),
             Tooltip(

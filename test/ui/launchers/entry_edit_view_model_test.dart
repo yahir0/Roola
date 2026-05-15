@@ -66,64 +66,79 @@ void main() {
     },
   );
 
-  test('submit fails validation when working directory does not exist', () async {
-    final notifier = container.read(entryEditViewModelProvider(null).notifier);
-    notifier
-      ..setDisplayName('My App')
-      ..setWorkingDirectory('/path/does/not/exist')
-      ..setActionType(LauncherActionType.claudeSkill)
-      ..setSkillName('demo');
-    final ok = await notifier.submit();
-    expect(ok, isFalse);
-    final state = container.read(entryEditViewModelProvider(null));
-    expect(state.errors['workingDirectory'], contains('見つかりません'));
-  });
+  test(
+    'submit fails validation when working directory does not exist',
+    () async {
+      final notifier = container.read(
+        entryEditViewModelProvider(null).notifier,
+      );
+      notifier
+        ..setDisplayName('My App')
+        ..setWorkingDirectory('/path/does/not/exist')
+        ..setActionType(LauncherActionType.claudeSkill)
+        ..setSkillName('demo');
+      final ok = await notifier.submit();
+      expect(ok, isFalse);
+      final state = container.read(entryEditViewModelProvider(null));
+      expect(state.errors['workingDirectory'], contains('見つかりません'));
+    },
+  );
 
-  test('submit succeeds and calls repository.add for new entry (Claude Skill)', () async {
-    await container.read(launcherEntriesProvider.future);
+  test(
+    'submit succeeds and calls repository.add for new entry (Claude Skill)',
+    () async {
+      await container.read(launcherEntriesProvider.future);
 
-    final notifier = container.read(entryEditViewModelProvider(null).notifier);
-    notifier
-      ..setDisplayName('My App')
-      ..setWorkingDirectory(tempDir.path)
-      ..setActionType(LauncherActionType.claudeSkill)
-      ..setSkillName('demo');
-    final ok = await notifier.submit();
-    expect(ok, isTrue);
-    verify(
-      () => repo.add(
-        any(
-          that: isA<LauncherEntry>().having(
-            (e) => e.action,
-            'action',
-            const LauncherAction.claudeSkill(skillName: 'demo'),
+      final notifier = container.read(
+        entryEditViewModelProvider(null).notifier,
+      );
+      notifier
+        ..setDisplayName('My App')
+        ..setWorkingDirectory(tempDir.path)
+        ..setActionType(LauncherActionType.claudeSkill)
+        ..setSkillName('demo');
+      final ok = await notifier.submit();
+      expect(ok, isTrue);
+      verify(
+        () => repo.add(
+          any(
+            that: isA<LauncherEntry>().having(
+              (e) => e.action,
+              'action',
+              const LauncherAction.claudeSkill(skillName: 'demo'),
+            ),
           ),
         ),
-      ),
-    ).called(1);
-  });
+      ).called(1);
+    },
+  );
 
-  test('submit succeeds for OpenHere action (no command/skillName needed)', () async {
-    await container.read(launcherEntriesProvider.future);
-    final notifier = container.read(entryEditViewModelProvider(null).notifier);
-    notifier
-      ..setDisplayName('Just open')
-      ..setWorkingDirectory(tempDir.path);
-    // setActionType は呼ばない（初期値が OpenHereAction）
-    final ok = await notifier.submit();
-    expect(ok, isTrue);
-    verify(
-      () => repo.add(
-        any(
-          that: isA<LauncherEntry>().having(
-            (e) => e.action,
-            'action',
-            const LauncherAction.openHere(),
+  test(
+    'submit succeeds for OpenHere action (no command/skillName needed)',
+    () async {
+      await container.read(launcherEntriesProvider.future);
+      final notifier = container.read(
+        entryEditViewModelProvider(null).notifier,
+      );
+      notifier
+        ..setDisplayName('Just open')
+        ..setWorkingDirectory(tempDir.path);
+      // setActionType は呼ばない（初期値が OpenHereAction）
+      final ok = await notifier.submit();
+      expect(ok, isTrue);
+      verify(
+        () => repo.add(
+          any(
+            that: isA<LauncherEntry>().having(
+              (e) => e.action,
+              'action',
+              const LauncherAction.openHere(),
+            ),
           ),
         ),
-      ),
-    ).called(1);
-  });
+      ).called(1);
+    },
+  );
 
   test('submit succeeds for RunCommand action', () async {
     await container.read(launcherEntriesProvider.future);

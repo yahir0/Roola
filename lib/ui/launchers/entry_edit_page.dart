@@ -168,7 +168,10 @@ class EntryEditPage extends HookConsumerWidget {
 /// 「フォルダなし（未分類）」 + 既存フォルダ一覧から 1 つ選ぶ。フォルダ自体の
 /// 追加・編集はここでは行わず、管理画面の「+ フォルダ」ボタン経由とする。
 class _FolderSelector extends ConsumerWidget {
-  const _FolderSelector({required this.selectedFolderId, required this.onChanged});
+  const _FolderSelector({
+    required this.selectedFolderId,
+    required this.onChanged,
+  });
 
   final String? selectedFolderId;
   final ValueChanged<String?> onChanged;
@@ -183,9 +186,7 @@ class _FolderSelector extends ConsumerWidget {
         border: OutlineInputBorder(),
       ),
       items: [
-        const DropdownMenuItem<String?>(
-          child: Text('フォルダなし（未分類）'),
-        ),
+        const DropdownMenuItem<String?>(child: Text('フォルダなし（未分類）')),
         for (final f in folders)
           DropdownMenuItem<String?>(value: f.id, child: Text(f.name)),
       ],
@@ -200,10 +201,7 @@ class _FolderSelector extends ConsumerWidget {
 /// ただし、既に編集中エントリが ClaudeSkillAction の場合は残す——強制的に
 /// タイプ切替を要求するのは破壊的なので、状態維持と warning 表示で運用する。
 class _ActionTypeSelector extends ConsumerWidget {
-  const _ActionTypeSelector({
-    required this.selected,
-    required this.onChanged,
-  });
+  const _ActionTypeSelector({required this.selected, required this.onChanged});
 
   final LauncherActionType selected;
   final ValueChanged<LauncherActionType> onChanged;
@@ -333,8 +331,10 @@ class _OpenHereSection extends StatelessWidget {
             Icon(Icons.info_outline),
             SizedBox(width: 12),
             Expanded(
-              child: Text(r'指定した作業ディレクトリでログインシェル ($SHELL) を起動し、'
-                  'プロンプトで停止します。'),
+              child: Text(
+                r'指定した作業ディレクトリでログインシェル ($SHELL) を起動し、'
+                'プロンプトで停止します。',
+              ),
             ),
           ],
         ),
@@ -495,10 +495,7 @@ class _ClaudeSkillSectionState extends State<_ClaudeSkillSection> {
                 icon: const Icon(Icons.arrow_drop_down),
                 tooltip: '候補から選択',
                 itemBuilder: (context) => widget.availableSkills
-                    .map(
-                      (s) =>
-                          PopupMenuItem<String>(value: s, child: Text(s)),
-                    )
+                    .map((s) => PopupMenuItem<String>(value: s, child: Text(s)))
                     .toList(),
                 onSelected: widget.onChanged,
               ),
@@ -507,4 +504,3 @@ class _ClaudeSkillSectionState extends State<_ClaudeSkillSection> {
     );
   }
 }
-

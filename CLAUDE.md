@@ -87,6 +87,9 @@ Mac 向けの汎用ターミナルランチャーアプリ（Flutter Desktop / m
 - ADR-0023: カスタムアイコン機能を廃止する
 - ADR-0024: エクスプローラのタイル表示密度を切替え可能にする
 - ADR-0025: GUI 起動経路の SIGPIPE 即死を AppDelegate で抑止する
+- ADR-0026: `/explorer` を 3 画面タブ式ワークスペースに刷新する
+- ADR-0027: per-tab 状態を family(tabId) + scoped Provider で実現する
+- ADR-0028: ワークスペースレイアウトの永続化とターミナル再 spawn
 
 ## ディレクトリ構成
 

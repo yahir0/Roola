@@ -101,19 +101,22 @@ void main() {
       await dir.delete(recursive: true);
     });
 
-    test(r'OpenHereAction → executable は $SHELL（無ければ /bin/zsh）, arguments は空', () {
-      final runner = PtyTerminalRunner.fromAction(
-        workingDirectory: dir.path,
-        action: const LauncherAction.openHere(),
-      );
-      addTearDown(runner.dispose);
-      final expectedShell = Platform.environment['SHELL'] ?? '/bin/zsh';
-      expect(runner.executable, expectedShell);
-      expect(runner.arguments, isEmpty);
-    });
+    test(
+      r'OpenHereAction → executable は $SHELL（無ければ /bin/zsh）, arguments は空',
+      () {
+        final runner = PtyTerminalRunner.fromAction(
+          workingDirectory: dir.path,
+          action: const LauncherAction.openHere(),
+        );
+        addTearDown(runner.dispose);
+        final expectedShell = Platform.environment['SHELL'] ?? '/bin/zsh';
+        expect(runner.executable, expectedShell);
+        expect(runner.arguments, isEmpty);
+      },
+    );
 
     test(
-      'RunCommandAction(keepShellAfterExit: true) → \$SHELL -lc "<cmd>; exec \$SHELL -i"',
+      'RunCommandAction(keepShellAfterExit: true) → \$SHELL -ilc "<cmd>; exec \$SHELL -i"',
       () {
         final runner = PtyTerminalRunner.fromAction(
           workingDirectory: dir.path,
@@ -123,7 +126,7 @@ void main() {
         final expectedShell = Platform.environment['SHELL'] ?? '/bin/zsh';
         expect(runner.executable, expectedShell);
         expect(runner.arguments.length, 2);
-        expect(runner.arguments[0], '-lc');
+        expect(runner.arguments[0], '-ilc');
         expect(runner.arguments[1], r'echo hi; exec $SHELL -i');
       },
     );
@@ -143,14 +146,25 @@ void main() {
       },
     );
 
-    test('ClaudeSkillAction → claude /<skillName>（先頭に `/` を自動付与）', () {
+    test('ClaudeSkillAction → login shell 経由で claude /<skillName> を起動', () {
       final runner = PtyTerminalRunner.fromAction(
         workingDirectory: dir.path,
         action: const LauncherAction.claudeSkill(skillName: 'my-skill'),
       );
       addTearDown(runner.dispose);
-      expect(runner.executable, 'claude');
-      expect(runner.arguments, ['/my-skill']);
+      // GUI 起動経路の PATH 継承のため login + interactive shell 経由
+      // （`$SHELL -i -l -c 'exec "$@"' _ claude /<skill>`）。
+      final expectedShell = Platform.environment['SHELL'] ?? '/bin/zsh';
+      expect(runner.executable, expectedShell);
+      expect(runner.arguments, [
+        '-i',
+        '-l',
+        '-c',
+        r'exec "$@"',
+        '_',
+        'claude',
+        '/my-skill',
+      ]);
     });
 
     test('ClaudeSkillAction で既に `/` 始まりの skillName はそのまま使う', () {
@@ -159,7 +173,7 @@ void main() {
         action: const LauncherAction.claudeSkill(skillName: '/already-slashed'),
       );
       addTearDown(runner.dispose);
-      expect(runner.arguments, ['/already-slashed']);
+      expect(runner.arguments.last, '/already-slashed');
     });
   });
 }
