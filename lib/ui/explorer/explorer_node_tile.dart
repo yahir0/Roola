@@ -213,6 +213,13 @@ Future<void> showFileContextMenu(
         ),
       ),
       PopupMenuItem(
+        value: _FileAction.openInVim,
+        child: ListTile(
+          leading: Icon(Icons.edit_note),
+          title: Text('vim で開く'),
+        ),
+      ),
+      PopupMenuItem(
         value: _FileAction.revealInFinder,
         child: ListTile(
           leading: Icon(Icons.folder_open),
@@ -258,6 +265,27 @@ Future<void> showFileContextMenu(
       await ref.read(fileOpenerProvider).open(node.path);
     case _FileAction.openWith:
       await _openWith(context, node.path);
+    case _FileAction.openInVim:
+      // vim はターミナルアプリのため、新規ターミナルタブを開いて起動する
+      // （ADR-0026）。vim 終了時にシェルも閉じる
+      // （keepShellAfterExit: false）。
+      // タブは操作元のエクスプローラと同じペインに開き、追加と同時に
+      // アクティブ化される（addTerminalTab が末尾を activeIndex にする）。
+      final adhocId = 'adhoc-${_uuid.v4()}';
+      final args = AdhocRunArgs(
+        adhocId: adhocId,
+        workingDirectory: parentOfPath(node.path),
+        displayName: '${node.name} (vim)',
+        action: LauncherAction.runCommand(
+          command: 'vim ${_shellQuote(node.path)}',
+          keepShellAfterExit: false,
+        ),
+      );
+      final slotId = _slotContainingTab(
+        ref.read(workspaceProvider),
+        ref.read(currentTabIdProvider),
+      );
+      ref.read(workspaceProvider.notifier).addTerminalTab(slotId, args: args);
     case _FileAction.revealInFinder:
       await ref.read(fileOpenerProvider).revealInFinder(node.path);
     case _FileAction.rename:
@@ -285,6 +313,7 @@ Future<void> showFileContextMenu(
 enum _FileAction {
   open,
   openWith,
+  openInVim,
   revealInFinder,
   rename,
   copy,
@@ -588,6 +617,27 @@ Future<void> _copyPathToClipboard(BuildContext context, String path) async {
       duration: const Duration(seconds: 2),
     ),
   );
+}
+
+/// [tabId] のタブが属するペインスロットを返す。見つからなければ
+/// `PaneSlotId.bottom` にフォールバックする。
+/// 右クリック起点のタブ（vim 等）を、操作元のエクスプローラと同じペインに
+/// 開くために使う。
+PaneSlotId _slotContainingTab(WorkspaceLayout layout, String tabId) {
+  for (final slotId in PaneSlotId.values) {
+    if (layout.slot(slotId).tabs.any((tab) => tab.id == tabId)) {
+      return slotId;
+    }
+  }
+  return PaneSlotId.bottom;
+}
+
+/// シェルコマンド文字列に埋め込む引数を安全にクォートする。
+/// `RunCommandAction` は `$SHELL -ilc '<command>'` の単一文字列として
+/// コマンドを渡すため、スペースや特殊文字を含むパスはそのままだと壊れる。
+/// シングルクォートで囲み、内部の `'` は `'\''` でエスケープする。
+String _shellQuote(String value) {
+  return "'${value.replaceAll("'", r"'\''")}'";
 }
 
 /// macOS の `open -a` でファイルを指定アプリで開く。アプリ選択は
