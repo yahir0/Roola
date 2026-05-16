@@ -797,7 +797,8 @@ class ExplorerParentDropTile extends HookConsumerWidget {
         await performFileDrop(context, ref, event, parentPath);
       },
       child: InkWell(
-        onTap: () => ref
+        // ADR-0021: 他ディレクトリと同様にダブルクリックで遷移する。
+        onDoubleTap: () => ref
             .read(explorerViewModelProvider(tabId).notifier)
             .navigateTo(parentPath),
         child: Container(
