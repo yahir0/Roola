@@ -16,6 +16,7 @@ class AppearanceSection extends ConsumerWidget {
 
   // ロゴ（AppIcon）の配色に揃えたプリセット。
   static const _presetColors = <Color>[
+    Color(0xFF000000), // 真っ黒（Windows 端末の黒）
     Color(0xFF1E232A), // ロゴ背景（deep gunmetal）
     Color(0xFF2F353D), // ロゴ surface
     Color(0xFF0A0A14), // pure midnight
