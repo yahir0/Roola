@@ -120,6 +120,69 @@ class ExplorerSettingsNotifier extends AsyncNotifier<ExplorerSettings> {
     });
   }
 
+  /// id 一致のお気に入りの所属フォルダを変更する（ADR-0029）。
+  /// [folderId] が `null` なら未分類に戻す。
+  Future<void> moveFavoriteToFolder(String id, String? folderId) async {
+    final current = state.value ?? ExplorerSettings.defaults();
+    final next = current.copyWith(
+      favorites: [
+        for (final f in current.favorites)
+          if (f.id == id) f.copyWith(folderId: folderId) else f,
+      ],
+    );
+    state = await AsyncValue.guard(() async {
+      await _repository.save(next);
+      return next;
+    });
+  }
+
+  /// お気に入りフォルダを末尾に追加する（ADR-0029）。
+  Future<void> addFavoriteFolder(ExplorerFavoriteFolder folder) async {
+    final current = state.value ?? ExplorerSettings.defaults();
+    final next = current.copyWith(
+      favoriteFolders: [...current.favoriteFolders, folder],
+    );
+    state = await AsyncValue.guard(() async {
+      await _repository.save(next);
+      return next;
+    });
+  }
+
+  /// id 一致のお気に入りフォルダの名前を更新する（ADR-0029）。
+  Future<void> renameFavoriteFolder(String id, String newName) async {
+    final current = state.value ?? ExplorerSettings.defaults();
+    final next = current.copyWith(
+      favoriteFolders: [
+        for (final f in current.favoriteFolders)
+          if (f.id == id) f.copyWith(name: newName) else f,
+      ],
+    );
+    state = await AsyncValue.guard(() async {
+      await _repository.save(next);
+      return next;
+    });
+  }
+
+  /// id 一致のお気に入りフォルダを削除する（ADR-0029）。
+  /// 配下のお気に入りは `folderId` を `null` に戻して未分類に移す
+  /// （ランチャーフォルダ削除と同じ挙動 / ADR-0019）。
+  Future<void> deleteFavoriteFolder(String id) async {
+    final current = state.value ?? ExplorerSettings.defaults();
+    final next = current.copyWith(
+      favoriteFolders: current.favoriteFolders
+          .where((f) => f.id != id)
+          .toList(growable: false),
+      favorites: [
+        for (final f in current.favorites)
+          if (f.folderId == id) f.copyWith(folderId: null) else f,
+      ],
+    );
+    state = await AsyncValue.guard(() async {
+      await _repository.save(next);
+      return next;
+    });
+  }
+
   /// ファイルリストの表示密度を切替える（ADR-0024）。
   Future<void> setListDensity(ExplorerListDensity density) async {
     final current = state.value ?? ExplorerSettings.defaults();

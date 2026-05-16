@@ -52,6 +52,7 @@ class ExplorerSidebar extends HookConsumerWidget {
         ref.watch(explorerSettingsProvider).value ??
         ExplorerSettings.defaults();
     final favorites = settings.favorites;
+    final favoriteFolders = settings.favoriteFolders;
     final entries = ref.watch(launcherEntriesProvider).value ?? const [];
     final folders = ref.watch(launcherFoldersProvider).value ?? const [];
     final sessions = ref.watch(activeSessionsProvider);
@@ -78,6 +79,24 @@ class ExplorerSidebar extends HookConsumerWidget {
       }
       return null;
     }, [folders]);
+
+    // お気に入りフォルダの展開状態（同上 / ADR-0029）。
+    final expandedFavoriteFolderIds = useState<Set<String>>({
+      for (final f in favoriteFolders) f.id,
+    });
+    useEffect(() {
+      final missing = favoriteFolders
+          .where((f) => !expandedFavoriteFolderIds.value.contains(f.id))
+          .map((f) => f.id)
+          .toSet();
+      if (missing.isNotEmpty) {
+        expandedFavoriteFolderIds.value = {
+          ...expandedFavoriteFolderIds.value,
+          ...missing,
+        };
+      }
+      return null;
+    }, [favoriteFolders]);
 
     final favoritePaths = {for (final f in favorites) f.path};
     final hasFavoriteAtCurrent =
@@ -107,11 +126,37 @@ class ExplorerSidebar extends HookConsumerWidget {
 
           // お気に入り
           _FavoritesHeader(currentPath: currentPath),
-          if (favorites.isEmpty)
+          if (favorites.isEmpty && favoriteFolders.isEmpty)
             const _EmptyFavoritesHint()
-          else
-            for (final fav in favorites)
+          else ...[
+            for (final folder in favoriteFolders) ...[
+              _FavoriteFolderTile(
+                folder: folder,
+                expanded: expandedFavoriteFolderIds.value.contains(folder.id),
+                onToggle: () {
+                  final next = Set<String>.from(
+                    expandedFavoriteFolderIds.value,
+                  );
+                  if (!next.add(folder.id)) {
+                    next.remove(folder.id);
+                  }
+                  expandedFavoriteFolderIds.value = next;
+                },
+              ),
+              if (expandedFavoriteFolderIds.value.contains(folder.id))
+                for (final fav in favorites.where(
+                  (f) => f.folderId == folder.id,
+                ))
+                  _FavoriteTile(
+                    favorite: fav,
+                    isCurrent: fav.path == currentPath,
+                    indented: true,
+                  ),
+            ],
+            if (favoriteFolders.isNotEmpty) const _FavoriteRootDropZone(),
+            for (final fav in favorites.where((f) => f.folderId == null))
               _FavoriteTile(favorite: fav, isCurrent: fav.path == currentPath),
+          ],
           const SizedBox(height: 8),
           const Divider(height: 1),
 
@@ -291,6 +336,14 @@ class _OpenOtherFolderTile extends ConsumerWidget {
 
 // ----- お気に入りセクション -----
 
+/// セクションヘッダの「+」ボタン直下にポップアップメニューを出すための
+/// グローバル座標を返す。[buttonContext] はボタン自身を指す `Builder`
+/// のコンテキスト。
+Offset _menuAnchorBelowButton(BuildContext buttonContext) {
+  final box = buttonContext.findRenderObject() as RenderBox;
+  return box.localToGlobal(Offset(0, box.size.height));
+}
+
 class _FavoritesHeader extends ConsumerWidget {
   const _FavoritesHeader({required this.currentPath});
 
@@ -299,31 +352,92 @@ class _FavoritesHeader extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = Theme.of(context).colorScheme;
-    final path = currentPath;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 12, 8, 4),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(
-              'お気に入り',
-              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: colors.onSurfaceVariant,
-                fontWeight: FontWeight.w600,
+    return GestureDetector(
+      onSecondaryTapDown: (details) =>
+          _showContextMenu(context, ref, details.globalPosition),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 12, 8, 4),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                'お気に入り',
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: colors.onSurfaceVariant,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.add, size: 18),
-            tooltip: 'フォーカス中のディレクトリを登録',
-            visualDensity: VisualDensity.compact,
-            onPressed: path == null
-                ? null
-                : () => _addCurrent(context, ref, path),
-          ),
-        ],
+            Builder(
+              builder: (buttonContext) => IconButton(
+                icon: const Icon(Icons.add, size: 18),
+                tooltip: 'お気に入りを追加 / フォルダを作成',
+                visualDensity: VisualDensity.compact,
+                onPressed: () => _showContextMenu(
+                  context,
+                  ref,
+                  _menuAnchorBelowButton(buttonContext),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
+  }
+
+  Future<void> _showContextMenu(
+    BuildContext context,
+    WidgetRef ref,
+    Offset globalPosition,
+  ) async {
+    final overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
+    final path = currentPath;
+    final action = await showMenu<_FavoritesHeaderAction>(
+      context: context,
+      position: RelativeRect.fromRect(
+        Rect.fromLTWH(globalPosition.dx, globalPosition.dy, 0, 0),
+        Offset.zero & overlay.size,
+      ),
+      items: [
+        PopupMenuItem(
+          value: _FavoritesHeaderAction.addCurrent,
+          enabled: path != null,
+          child: const Text('フォーカス中のディレクトリを登録'),
+        ),
+        const PopupMenuItem(
+          value: _FavoritesHeaderAction.newFolder,
+          child: Text('新しいフォルダ'),
+        ),
+      ],
+    );
+    if (action == null || !context.mounted) {
+      return;
+    }
+    switch (action) {
+      case _FavoritesHeaderAction.newFolder:
+        final name = await promptName(
+          context,
+          title: 'フォルダ名',
+          hintText: '例: work / personal',
+        );
+        if (name == null || name.trim().isEmpty) {
+          return;
+        }
+        await ref
+            .read(explorerSettingsProvider.notifier)
+            .addFavoriteFolder(
+              ExplorerFavoriteFolder(
+                id: _uuid.v4(),
+                name: name.trim(),
+                createdAt: DateTime.now(),
+              ),
+            );
+      case _FavoritesHeaderAction.addCurrent:
+        if (path != null && context.mounted) {
+          await _addCurrent(context, ref, path);
+        }
+    }
   }
 
   Future<void> _addCurrent(
@@ -375,10 +489,17 @@ class _EmptyFavoritesHint extends StatelessWidget {
 }
 
 class _FavoriteTile extends HookConsumerWidget {
-  const _FavoriteTile({required this.favorite, required this.isCurrent});
+  const _FavoriteTile({
+    required this.favorite,
+    required this.isCurrent,
+    this.indented = false,
+  });
 
   final ExplorerFavorite favorite;
   final bool isCurrent;
+
+  /// フォルダ配下のお気に入りなら `true`。先頭インデントを深くする。
+  final bool indented;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -389,45 +510,69 @@ class _FavoriteTile extends HookConsumerWidget {
         : isCurrent
         ? colors.primary.withValues(alpha: 0.1)
         : null;
-    return DropRegion(
-      formats: const [Formats.fileUri],
-      hitTestBehavior: HitTestBehavior.opaque,
-      onDropOver: (event) => decideDropOperation(event.session, favorite.path),
-      onDropEnter: (_) => isHovering.value = true,
-      onDropLeave: (_) => isHovering.value = false,
-      onPerformDrop: (event) async {
-        isHovering.value = false;
-        await performFileDrop(context, ref, event, favorite.path);
-      },
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onSecondaryTapDown: (details) =>
-            _showMenu(context, ref, details.globalPosition),
-        child: InkWell(
-          onTap: () => navigateInFocusedExplorer(ref, favorite.path),
-          child: Container(
-            color: backgroundColor,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.folder_outlined,
-                  size: 18,
-                  color: isCurrent ? colors.primary : colors.onSurfaceVariant,
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    favorite.name,
-                    style: Theme.of(context).textTheme.bodyMedium,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
+    // フォルダへ移動するための内部 DnD（ADR-0029、ランチャーと同パターン）。
+    // OS ファイルドロップ用の DropRegion を内側に保持したまま、外側を
+    // LongPressDraggable で包む。
+    return LongPressDraggable<ExplorerFavorite>(
+      data: favorite,
+      feedback: Material(
+        elevation: 4,
+        borderRadius: BorderRadius.circular(2),
+        child: SizedBox(
+          width: ExplorerSidebar.width - 16,
+          child: _row(context, backgroundColor: null),
+        ),
+      ),
+      childWhenDragging: Opacity(
+        opacity: 0.4,
+        child: _row(context, backgroundColor: backgroundColor),
+      ),
+      child: DropRegion(
+        formats: const [Formats.fileUri],
+        hitTestBehavior: HitTestBehavior.opaque,
+        onDropOver: (event) =>
+            decideDropOperation(event.session, favorite.path),
+        onDropEnter: (_) => isHovering.value = true,
+        onDropLeave: (_) => isHovering.value = false,
+        onPerformDrop: (event) async {
+          isHovering.value = false;
+          await performFileDrop(context, ref, event, favorite.path);
+        },
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onSecondaryTapDown: (details) =>
+              _showMenu(context, ref, details.globalPosition),
+          child: InkWell(
+            onTap: () => navigateInFocusedExplorer(ref, favorite.path),
+            child: _row(context, backgroundColor: backgroundColor),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _row(BuildContext context, {required Color? backgroundColor}) {
+    final colors = Theme.of(context).colorScheme;
+    return Container(
+      color: backgroundColor,
+      padding: EdgeInsets.fromLTRB(indented ? 32 : 16, 6, 16, 6),
+      child: Row(
+        children: [
+          Icon(
+            Icons.folder_outlined,
+            size: 18,
+            color: isCurrent ? colors.primary : colors.onSurfaceVariant,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              favorite.name,
+              style: Theme.of(context).textTheme.bodyMedium,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -485,6 +630,176 @@ class _FavoriteTile extends HookConsumerWidget {
 
 enum _FavoriteAction { rename, remove }
 
+enum _FavoritesHeaderAction { newFolder, addCurrent }
+
+/// お気に入りフォルダ 1 件分のヘッダタイル（ADR-0029）。
+///
+/// ランチャーフォルダの `_LauncherFolderTile` と同じ構造。お気に入りタイル
+/// を drop で受け入れて配下に取り込む。
+class _FavoriteFolderTile extends ConsumerWidget {
+  const _FavoriteFolderTile({
+    required this.folder,
+    required this.expanded,
+    required this.onToggle,
+  });
+
+  final ExplorerFavoriteFolder folder;
+  final bool expanded;
+  final VoidCallback onToggle;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return DragTarget<ExplorerFavorite>(
+      onWillAcceptWithDetails: (details) => details.data.folderId != folder.id,
+      onAcceptWithDetails: (details) async {
+        await ref
+            .read(explorerSettingsProvider.notifier)
+            .moveFavoriteToFolder(details.data.id, folder.id);
+      },
+      builder: (context, candidate, rejected) {
+        final colors = Theme.of(context).colorScheme;
+        final hover = candidate.isNotEmpty;
+        return GestureDetector(
+          onSecondaryTapDown: (details) =>
+              _showContextMenu(context, ref, details.globalPosition),
+          child: InkWell(
+            onTap: onToggle,
+            child: Container(
+              color: hover ? colors.primary.withValues(alpha: 0.12) : null,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              child: Row(
+                children: [
+                  Icon(
+                    expanded ? Icons.arrow_drop_down : Icons.arrow_right,
+                    size: 20,
+                    color: colors.onSurfaceVariant,
+                  ),
+                  Icon(
+                    Icons.folder_outlined,
+                    size: 18,
+                    color: colors.secondary,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      folder.name,
+                      style: Theme.of(context).textTheme.bodyMedium,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _showContextMenu(
+    BuildContext context,
+    WidgetRef ref,
+    Offset globalPosition,
+  ) async {
+    final overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
+    final action = await showMenu<_FavoriteFolderAction>(
+      context: context,
+      position: RelativeRect.fromRect(
+        Rect.fromLTWH(globalPosition.dx, globalPosition.dy, 0, 0),
+        Offset.zero & overlay.size,
+      ),
+      items: const [
+        PopupMenuItem(
+          value: _FavoriteFolderAction.rename,
+          child: Text('リネーム'),
+        ),
+        PopupMenuItem(
+          value: _FavoriteFolderAction.delete,
+          child: Text('削除（中身は未分類に戻る）'),
+        ),
+      ],
+    );
+    if (action == null || !context.mounted) {
+      return;
+    }
+    final notifier = ref.read(explorerSettingsProvider.notifier);
+    switch (action) {
+      case _FavoriteFolderAction.rename:
+        final newName = await promptName(
+          context,
+          title: 'フォルダ名',
+          initialValue: folder.name,
+        );
+        if (newName == null || newName.trim().isEmpty) {
+          return;
+        }
+        await notifier.renameFavoriteFolder(folder.id, newName.trim());
+      case _FavoriteFolderAction.delete:
+        if (!context.mounted) {
+          return;
+        }
+        final confirmed = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('フォルダを削除しますか？'),
+            content: Text(
+              '「${folder.name}」を削除します。中身のお気に入りは未分類に戻ります。',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text('キャンセル'),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: const Text('削除'),
+              ),
+            ],
+          ),
+        );
+        if (confirmed ?? false) {
+          await notifier.deleteFavoriteFolder(folder.id);
+        }
+    }
+  }
+}
+
+enum _FavoriteFolderAction { rename, delete }
+
+/// お気に入りフォルダ群と未分類お気に入りの間に挟む「未分類」mini-header
+/// 兼 drop zone（ADR-0029）。
+class _FavoriteRootDropZone extends ConsumerWidget {
+  const _FavoriteRootDropZone();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final colors = Theme.of(context).colorScheme;
+    return DragTarget<ExplorerFavorite>(
+      onWillAcceptWithDetails: (details) => details.data.folderId != null,
+      onAcceptWithDetails: (details) async {
+        await ref
+            .read(explorerSettingsProvider.notifier)
+            .moveFavoriteToFolder(details.data.id, null);
+      },
+      builder: (context, candidate, rejected) {
+        final hover = candidate.isNotEmpty;
+        return Container(
+          color: hover ? colors.primary.withValues(alpha: 0.12) : null,
+          padding: const EdgeInsets.fromLTRB(16, 6, 16, 4),
+          child: Text(
+            '未分類',
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: colors.onSurfaceVariant,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
 // ----- ランチャーセクション -----
 
 class _LauncherHeader extends ConsumerWidget {
@@ -507,11 +822,17 @@ class _LauncherHeader extends ConsumerWidget {
                 ),
               ),
             ),
-            IconButton(
-              icon: const Icon(Icons.add, size: 18),
-              tooltip: '新規エントリを登録（右クリックでフォルダも作成）',
-              visualDensity: VisualDensity.compact,
-              onPressed: () => const EntryNewRoute().push<void>(context),
+            Builder(
+              builder: (buttonContext) => IconButton(
+                icon: const Icon(Icons.add, size: 18),
+                tooltip: 'エントリを追加 / フォルダを作成',
+                visualDensity: VisualDensity.compact,
+                onPressed: () => _showContextMenu(
+                  context,
+                  ref,
+                  _menuAnchorBelowButton(buttonContext),
+                ),
+              ),
             ),
           ],
         ),
@@ -533,12 +854,12 @@ class _LauncherHeader extends ConsumerWidget {
       ),
       items: const [
         PopupMenuItem(
-          value: _LauncherHeaderAction.newFolder,
-          child: Text('新しいフォルダ'),
-        ),
-        PopupMenuItem(
           value: _LauncherHeaderAction.newEntry,
           child: Text('新しいエントリ'),
+        ),
+        PopupMenuItem(
+          value: _LauncherHeaderAction.newFolder,
+          child: Text('新しいフォルダ'),
         ),
       ],
     );

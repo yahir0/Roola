@@ -11,7 +11,8 @@ enum ExplorerListDensity { compact, comfortable }
 /// エクスプローラ画面の永続化対象状態。
 ///
 /// 最後に開いたルートパスと、ユーザーが登録したお気に入り（サイドバー
-/// に表示する「よく使う場所」）、ファイルリストの表示密度を持つ。
+/// に表示する「よく使う場所」）、お気に入りのグループフォルダ、
+/// ファイルリストの表示密度を持つ。
 @freezed
 abstract class ExplorerSettings with _$ExplorerSettings {
   const factory ExplorerSettings({
@@ -21,6 +22,11 @@ abstract class ExplorerSettings with _$ExplorerSettings {
 
     /// サイドバーに並べるお気に入り。先頭から順に表示する。
     @Default(<ExplorerFavorite>[]) List<ExplorerFavorite> favorites,
+
+    /// お気に入りをグループ化するフォルダ（ADR-0029）。ランチャーフォルダ
+    /// （ADR-0019）と同じく 1 階層のみ。
+    @Default(<ExplorerFavoriteFolder>[])
+    List<ExplorerFavoriteFolder> favoriteFolders,
 
     /// ファイル / フォルダのタイル表示密度（ADR-0024）。新規ユーザーには
     /// comfortable がデフォルト（Skill サブタイトル / チップを含む 3 要素レイアウト）。
@@ -35,11 +41,33 @@ abstract class ExplorerSettings with _$ExplorerSettings {
 /// を保証するための識別子（uuid を想定）、`path` は対象の絶対パス、
 /// `name` は表示名（既定では path の basename を採用するが、ユーザー
 /// が編集できることを想定して別フィールドにしている）。
+///
+/// `folderId` は所属する [ExplorerFavoriteFolder] の id。`null` なら
+/// 未分類（フォルダ群の下に直接並ぶ / ADR-0029）。
 @freezed
 abstract class ExplorerFavorite with _$ExplorerFavorite {
   const factory ExplorerFavorite({
     required String id,
     required String path,
     required String name,
+    String? folderId,
   }) = _ExplorerFavorite;
+}
+
+/// お気に入りをグループ化するフォルダ（ADR-0029）。
+///
+/// ランチャーフォルダ（[ADR-0019] の `LauncherFolder`）と同じ構造で、
+/// ネストは 1 階層のみ（フォルダの中にフォルダは作らない）。
+@freezed
+abstract class ExplorerFavoriteFolder with _$ExplorerFavoriteFolder {
+  const factory ExplorerFavoriteFolder({
+    /// 一意 ID（uuid v4）。
+    required String id,
+
+    /// ユーザーが付けたフォルダ名。
+    required String name,
+
+    /// フォルダ作成日時。同セクション内での並び順に使う。
+    required DateTime createdAt,
+  }) = _ExplorerFavoriteFolder;
 }
