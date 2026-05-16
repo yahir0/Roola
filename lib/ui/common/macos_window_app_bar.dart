@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:window_manager/window_manager.dart';
 
 /// macOS の信号灯ボタン（close / minimize / maximize）と AppBar の
 /// leading が位置で競合しないよう、左側に余白を確保した AppBar。
@@ -21,6 +22,9 @@ import 'package:flutter/material.dart';
 /// [title] は省略可能で、Home / Explorer のようにタブで現在地が示せる
 /// 画面ではタイトル文字列を出さずに [AppTabSegments] のような widget を
 /// 直接置く前提。
+///
+/// 空のヘッダ領域は `DragToMoveArea` でドラッグによるウィンドウ移動と
+/// ダブルクリックによる最大化に対応する（タイトルバー非表示の代替）。
 class MacosWindowAppBar extends StatelessWidget implements PreferredSizeWidget {
   const MacosWindowAppBar({
     this.title,
@@ -77,6 +81,12 @@ class MacosWindowAppBar extends StatelessWidget implements PreferredSizeWidget {
       actions: actions,
       bottom: bottom,
       automaticallyImplyLeading: false,
+      // `TitleBarStyle.hidden` でネイティブのタイトルバーを消しているため、
+      // OS 標準の「タイトルバーをドラッグで移動 / ダブルクリックで最大化」が
+      // 効かない。`flexibleSpace` は leading / title / actions の背面に敷かれ、
+      // ボタン等が消費しなかったジェスチャだけを受け取るので、ここに
+      // `DragToMoveArea` を置いて空のヘッダ領域でその挙動を再現する。
+      flexibleSpace: const DragToMoveArea(child: SizedBox.expand()),
       leadingWidth: _trafficLightsWidth + navButtonsWidth,
       leading: navButtonsWidth == 0
           ? const SizedBox(width: _trafficLightsWidth)
