@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/scheduler.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:roola/data/skill_session/active_sessions.dart';
 import 'package:roola/data/workspace/workspace_layout.dart';
@@ -215,10 +216,16 @@ class Workspace extends _$Workspace {
         ref.invalidate(explorerViewModelProvider(tab.id));
         ref.invalidate(explorerItemSelectionProvider(tab.id));
       case TerminalTab(:final args):
-        // selection を切替えてからではなく、タブはすでに state から除去
-        // 済みなので SessionView は unmount 済み。ここで安全に破棄できる。
         ref.read(activeSessionsProvider.notifier).unregister(args.adhocId);
-        ref.invalidate(adhocRunViewModelProvider(args));
+        // adhocRunViewModelProvider は keepAlive。state からタブを除去した
+        // 直後の同期実行内ではまだ IndexedStack の SessionView が mount
+        // されており、listener が残っている。この状態で invalidate すると
+        // provider は dispose されず rebuild され、build() が新しい PTY を
+        // spawn してしまう（閉じたターミナルが再出現する）。SessionView が
+        // unmount する次フレーム後に invalidate して確実に dispose させる。
+        SchedulerBinding.instance.addPostFrameCallback((_) {
+          ref.invalidate(adhocRunViewModelProvider(args));
+        });
     }
   }
 
