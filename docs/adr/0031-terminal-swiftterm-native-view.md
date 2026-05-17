@@ -62,6 +62,7 @@ xterm.dart の再発明であり工数は数ヶ月。しかも①③ の IME 問
 - **`AppKitView` の hybrid composition は iOS の `UiKitView` ほど枯れていない** — Flutter 公式も「macOS ビュー埋め込みは重い処理、Flutter で代替できるなら避けよ」と注意。透過ウィンドウとの合成、プラットフォームビューの上に Flutter オーバーレイ（タブ DnD フィードバック等）を重ねる際の z-order に注意。**実装最初のスパイクでここを実測し、致命的なら再検討する**
 - **macOS 専用に固定される** — Roola はもともと macOS 専用（ADR-0001）なので許容
 - **最小 macOS バージョンが 13.0 に上がる** — SwiftTerm の最小デプロイメントターゲットが macOS 13.0 のため、Roola の下限を 10.15 から 13.0（Ventura）へ引き上げる。10.15〜12 のサポートを落とすが、開発者向けツールとして許容
+- **ビルドに Xcode の Metal Toolchain が必要** — SwiftTerm は Metal シェーダ（`.metal`）を含むため、ビルド時に Metal Toolchain コンポーネントが要る。新しい Xcode ではこれが別ダウンロード扱いになっており、未導入の環境では `cannot execute tool 'metal'` でビルドが失敗する。`xcodebuild -downloadComponent MetalToolchain` で一度導入すればよい（新しい開発環境のセットアップ時の前提）
 - **`xterm` パッケージ依存を削除** — pub 依存は減るが、SwiftTerm を Xcode `Runner` の SPM 依存（またはベンダリング）として追加する
 - **タブあたり 1 NSView** — マルチウィンドウ（ADR-0012、別プロセス起動）では各プロセスが自前の NSView 群を持つだけで問題ない
 
