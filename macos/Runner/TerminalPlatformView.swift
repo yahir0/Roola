@@ -35,7 +35,7 @@ class TerminalViewFactory: NSObject, FlutterPlatformViewFactory {
     return FlutterStandardMessageCodec.sharedInstance()
   }
 
-  func create(viewIdentifier viewId: Int64, arguments args: Any?) -> NSView {
+  func create(withViewIdentifier viewId: Int64, arguments args: Any?) -> NSView {
     let params = args as? [String: Any]
     let channelId = (params?["channelId"] as? String) ?? "\(viewId)"
     return RoolaTerminalView(
