@@ -36,6 +36,7 @@
 | [0028](./0028-workspace-persistence-and-terminal-respawn.md) | ワークスペースレイアウトの永続化とターミナル再 spawn | Accepted |
 | [0029](./0029-favorite-folders-single-level.md) | エクスプローラのお気に入りをフォルダで 1 階層グループ化する | Accepted |
 | [0030](./0030-git-tab.md) | Git ビューをワークスペースタブとして追加する | Accepted |
+| [0031](./0031-terminal-swiftterm-native-view.md) | ターミナル描画を xterm.dart から SwiftTerm ネイティブビューへ移行する | Accepted |
 
 ## フォーマット
 
