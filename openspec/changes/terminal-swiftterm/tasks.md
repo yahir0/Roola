@@ -63,7 +63,7 @@
 - [x] 8.1 `pubspec.yaml` から `xterm` を削除
 - [x] 8.2 `xterm` の import 残りがないことを `flutter analyze` で確認（No issues found）
 - [ ] 8.3 `docs/architecture.md` のターミナル節を ADR-0031 を踏まえて更新
-- [ ] 8.4 SwiftTerm を post-1.13.0 の `main` commit に pin（v1.13.0 はインライン IME 描画を欠くため。design D8）。**出口: v1.14.0 リリース時にバージョンタグへ戻す（design D9）**
+- [x] 8.4 SwiftTerm を post-1.13.0 の `main` commit に pin（v1.13.0 はインライン IME 描画を欠くため。design D8）。**出口: v1.14.0 リリース時にバージョンタグへ戻す（design D9、issue #2 で追跡）**
 
 ## 9. テスト
 
