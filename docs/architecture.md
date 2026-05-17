@@ -43,6 +43,17 @@ lib/
 │   ├── run/
 │   │   ├── run_page.dart                # ターミナルビュー
 │   │   └── run_view_model.dart
+│   ├── git/                             # Git ビュー（GitTab）/ ADR-0030
+│   │   ├── git_tab.dart                 # View（GitTabBody）
+│   │   ├── git_view_model.dart          # ViewModel（AsyncNotifier.family(tabId)）
+│   │   ├── git_view_state.dart          # 表示状態（Freezed）
+│   │   ├── git_toolbar.dart             # ブランチ / 同期ボタン
+│   │   ├── git_changes_section.dart     # ステージング / コミット
+│   │   ├── git_history_section.dart     # 履歴グラフ + コミット詳細
+│   │   ├── git_graph_painter.dart       # コミットグラフの CustomPainter
+│   │   ├── git_branch_menu.dart         # ブランチ操作ダイアログ
+│   │   ├── git_diff_view.dart           # ファイル単位 diff ダイアログ
+│   │   └── git_dialogs.dart             # 確認 / 入力ダイアログの共通ヘルパ
 │   └── common/                          # 共通 Widget（ボタン・ダイアログ等）
 │
 ├── data/                                # Model + Repository
@@ -61,6 +72,16 @@ lib/
 │   │   ├── terminal_run_state.dart              # Freezed Union（idle/starting/running/completed/failed/cancelled）
 │   │   ├── terminal_runner.dart                 # interface
 │   │   └── pty_terminal_runner.dart             # flutter_pty 実装。fromAction(LauncherAction) で 3 動作タイプを起動
+│   ├── git/                                     # Git 通信層（ADR-0030）
+│   │   ├── git_status.dart                      # Freezed（GitStatus / GitFileChange）
+│   │   ├── git_commit.dart                      # Freezed（GitCommit）
+│   │   ├── git_branch.dart                      # Freezed（GitBranch）
+│   │   ├── git_stash_entry.dart                 # Freezed（GitStashEntry）
+│   │   ├── git_graph_row.dart                   # Freezed（GitGraphRow / GitGraphRoute）
+│   │   ├── git_graph_layout.dart                # コミット列 → グラフ行の純粋関数
+│   │   ├── git_diff.dart                        # Freezed（GitDiff / GitDiffLine）
+│   │   ├── git_repository.dart                  # interface
+│   │   └── process_git_repository.dart          # `git` CLI を dart:io Process で実行
 │   └── workspace/                               # 3 ペインタブ式ワークスペース（ADR-0026〜0028）
 │       ├── workspace_tab.dart                   # Freezed sealed（ExplorerTab / TerminalTab）
 │       ├── pane_slot.dart                       # Freezed（タブ群 + activeIndex）

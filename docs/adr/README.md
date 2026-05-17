@@ -35,6 +35,7 @@
 | [0027](./0027-per-tab-state-via-family.md) | per-tab 状態を family(tabId) + scoped Provider で実現する | Accepted |
 | [0028](./0028-workspace-persistence-and-terminal-respawn.md) | ワークスペースレイアウトの永続化とターミナル再 spawn | Accepted |
 | [0029](./0029-favorite-folders-single-level.md) | エクスプローラのお気に入りをフォルダで 1 階層グループ化する | Accepted |
+| [0030](./0030-git-tab.md) | Git ビューをワークスペースタブとして追加する | Accepted |
 
 ## フォーマット
 

@@ -91,6 +91,7 @@ Mac 向けの汎用ターミナルランチャーアプリ（Flutter Desktop / m
 - ADR-0027: per-tab 状態を family(tabId) + scoped Provider で実現する
 - ADR-0028: ワークスペースレイアウトの永続化とターミナル再 spawn
 - ADR-0029: エクスプローラのお気に入りをフォルダで 1 階層グループ化する
+- ADR-0030: Git ビューをワークスペースタブとして追加する
 
 ## ディレクトリ構成
 

@@ -86,12 +86,13 @@ extension WorkspaceTabPatterns on WorkspaceTab {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( ExplorerTab value)?  explorer,TResult Function( TerminalTab value)?  terminal,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( ExplorerTab value)?  explorer,TResult Function( TerminalTab value)?  terminal,TResult Function( GitTab value)?  git,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
 case ExplorerTab() when explorer != null:
 return explorer(_that);case TerminalTab() when terminal != null:
-return terminal(_that);case _:
+return terminal(_that);case GitTab() when git != null:
+return git(_that);case _:
   return orElse();
 
 }
@@ -109,12 +110,13 @@ return terminal(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( ExplorerTab value)  explorer,required TResult Function( TerminalTab value)  terminal,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( ExplorerTab value)  explorer,required TResult Function( TerminalTab value)  terminal,required TResult Function( GitTab value)  git,}){
 final _that = this;
 switch (_that) {
 case ExplorerTab():
 return explorer(_that);case TerminalTab():
-return terminal(_that);}
+return terminal(_that);case GitTab():
+return git(_that);}
 }
 /// A variant of `map` that fallback to returning `null`.
 ///
@@ -128,12 +130,13 @@ return terminal(_that);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( ExplorerTab value)?  explorer,TResult? Function( TerminalTab value)?  terminal,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( ExplorerTab value)?  explorer,TResult? Function( TerminalTab value)?  terminal,TResult? Function( GitTab value)?  git,}){
 final _that = this;
 switch (_that) {
 case ExplorerTab() when explorer != null:
 return explorer(_that);case TerminalTab() when terminal != null:
-return terminal(_that);case _:
+return terminal(_that);case GitTab() when git != null:
+return git(_that);case _:
   return null;
 
 }
@@ -150,11 +153,12 @@ return terminal(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( String id,  String currentPath)?  explorer,TResult Function( String id,  AdhocRunArgs args)?  terminal,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( String id,  String currentPath)?  explorer,TResult Function( String id,  AdhocRunArgs args)?  terminal,TResult Function( String id,  String repoRoot)?  git,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case ExplorerTab() when explorer != null:
 return explorer(_that.id,_that.currentPath);case TerminalTab() when terminal != null:
-return terminal(_that.id,_that.args);case _:
+return terminal(_that.id,_that.args);case GitTab() when git != null:
+return git(_that.id,_that.repoRoot);case _:
   return orElse();
 
 }
@@ -172,11 +176,12 @@ return terminal(_that.id,_that.args);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( String id,  String currentPath)  explorer,required TResult Function( String id,  AdhocRunArgs args)  terminal,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( String id,  String currentPath)  explorer,required TResult Function( String id,  AdhocRunArgs args)  terminal,required TResult Function( String id,  String repoRoot)  git,}) {final _that = this;
 switch (_that) {
 case ExplorerTab():
 return explorer(_that.id,_that.currentPath);case TerminalTab():
-return terminal(_that.id,_that.args);}
+return terminal(_that.id,_that.args);case GitTab():
+return git(_that.id,_that.repoRoot);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -190,11 +195,12 @@ return terminal(_that.id,_that.args);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( String id,  String currentPath)?  explorer,TResult? Function( String id,  AdhocRunArgs args)?  terminal,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( String id,  String currentPath)?  explorer,TResult? Function( String id,  AdhocRunArgs args)?  terminal,TResult? Function( String id,  String repoRoot)?  git,}) {final _that = this;
 switch (_that) {
 case ExplorerTab() when explorer != null:
 return explorer(_that.id,_that.currentPath);case TerminalTab() when terminal != null:
-return terminal(_that.id,_that.args);case _:
+return terminal(_that.id,_that.args);case GitTab() when git != null:
+return git(_that.id,_that.repoRoot);case _:
   return null;
 
 }
@@ -345,6 +351,74 @@ $AdhocRunArgsCopyWith<$Res> get args {
     return _then(_self.copyWith(args: value));
   });
 }
+}
+
+/// @nodoc
+
+
+class GitTab implements WorkspaceTab {
+  const GitTab({required this.id, required this.repoRoot});
+  
+
+@override final  String id;
+ final  String repoRoot;
+
+/// Create a copy of WorkspaceTab
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$GitTabCopyWith<GitTab> get copyWith => _$GitTabCopyWithImpl<GitTab>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is GitTab&&(identical(other.id, id) || other.id == id)&&(identical(other.repoRoot, repoRoot) || other.repoRoot == repoRoot));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,id,repoRoot);
+
+@override
+String toString() {
+  return 'WorkspaceTab.git(id: $id, repoRoot: $repoRoot)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $GitTabCopyWith<$Res> implements $WorkspaceTabCopyWith<$Res> {
+  factory $GitTabCopyWith(GitTab value, $Res Function(GitTab) _then) = _$GitTabCopyWithImpl;
+@override @useResult
+$Res call({
+ String id, String repoRoot
+});
+
+
+
+
+}
+/// @nodoc
+class _$GitTabCopyWithImpl<$Res>
+    implements $GitTabCopyWith<$Res> {
+  _$GitTabCopyWithImpl(this._self, this._then);
+
+  final GitTab _self;
+  final $Res Function(GitTab) _then;
+
+/// Create a copy of WorkspaceTab
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? repoRoot = null,}) {
+  return _then(GitTab(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,repoRoot: null == repoRoot ? _self.repoRoot : repoRoot // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+
 }
 
 // dart format on

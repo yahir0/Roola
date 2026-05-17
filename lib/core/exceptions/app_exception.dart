@@ -24,4 +24,11 @@ sealed class AppException with _$AppException implements Exception {
 
   /// PTY プロセスの起動・実行で失敗した。
   const factory AppException.processFailure(String message) = ProcessFailure;
+
+  /// `git` コマンドが PATH 上に見つからない（ADR-0030）。
+  const factory AppException.gitNotFound() = GitNotFound;
+
+  /// `git` コマンドが非ゼロ終了した。[message] は stderr の要約。
+  const factory AppException.gitCommandFailure(String message) =
+      GitCommandFailure;
 }

@@ -8,6 +8,7 @@ import 'package:roola/data/workspace/workspace_repository_impl.dart';
 import 'package:roola/data/workspace/workspace_tab.dart';
 import 'package:roola/ui/explorer/explorer_item_selection.dart';
 import 'package:roola/ui/explorer/explorer_view_model.dart';
+import 'package:roola/ui/git/git_view_model.dart';
 import 'package:roola/ui/run/adhoc_run_view_model.dart';
 import 'package:roola/ui/workspace/workspace_seed.dart';
 
@@ -73,6 +74,25 @@ class Workspace extends _$Workspace {
     );
     _appendTab(slotId, tab);
     return tab.id;
+  }
+
+  /// 指定リポジトリの Git ビュータブを開く（ADR-0030）。
+  ///
+  /// 同一 `repoRoot` の [GitTab] が既に存在する場合は新規生成せず、その
+  /// タブをアクティブにする。新規の場合は右上ペインに追加する。
+  void openGitTab(String repoRoot) {
+    for (final slotId in PaneSlotId.values) {
+      for (final tab in state.slot(slotId).tabs) {
+        if (tab is GitTab && tab.repoRoot == repoRoot) {
+          activateTab(tab.id);
+          return;
+        }
+      }
+    }
+    _appendTab(
+      PaneSlotId.topRight,
+      WorkspaceTab.git(id: newTabId(), repoRoot: repoRoot),
+    );
   }
 
   void _appendTab(PaneSlotId slotId, WorkspaceTab tab) {
@@ -215,6 +235,8 @@ class Workspace extends _$Workspace {
       case ExplorerTab():
         ref.invalidate(explorerViewModelProvider(tab.id));
         ref.invalidate(explorerItemSelectionProvider(tab.id));
+      case GitTab():
+        ref.invalidate(gitViewModelProvider(tab.id));
       case TerminalTab(:final args):
         ref.read(activeSessionsProvider.notifier).unregister(args.adhocId);
         // adhocRunViewModelProvider は keepAlive。state からタブを除去した

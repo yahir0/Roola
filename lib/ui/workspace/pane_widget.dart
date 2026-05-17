@@ -4,6 +4,7 @@ import 'package:roola/data/workspace/workspace_layout.dart';
 import 'package:roola/data/workspace/workspace_tab.dart';
 import 'package:roola/ui/explorer/explorer_tab_body.dart';
 import 'package:roola/ui/explorer/session_view.dart';
+import 'package:roola/ui/git/git_tab.dart';
 import 'package:roola/ui/workspace/current_tab_id_provider.dart';
 import 'package:roola/ui/workspace/focused_tab_provider.dart';
 import 'package:roola/ui/workspace/pane_tab_strip.dart';
@@ -71,11 +72,14 @@ class _TabContent extends ConsumerWidget {
               focus.focusExplorer(tab.id);
             case TerminalTab():
               focus.focusTerminal(tab.id);
+            case GitTab():
+              focus.focusGit(tab.id);
           }
         },
         child: switch (tab) {
           ExplorerTab() => const ExplorerTabBody(),
           TerminalTab(:final args) => SessionView(args),
+          GitTab() => const GitTabBody(),
         },
       ),
     );

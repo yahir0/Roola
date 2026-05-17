@@ -47,7 +47,7 @@ final class FocusedTabProvider
   }
 }
 
-String _$focusedTabHash() => r'0f4deae17d576749a1662c3a2e336b5654fa6df6';
+String _$focusedTabHash() => r'7380bd46fff72bf296930e51ed8778504a493c74';
 
 /// フォーカス中タブを保持する Notifier。各ペイン body 最上位の操作検出から
 /// `focusExplorer` / `focusTerminal` が呼ばれる。

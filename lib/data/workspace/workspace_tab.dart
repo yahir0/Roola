@@ -5,8 +5,9 @@ part 'workspace_tab.freezed.dart';
 
 /// ワークスペースのペインに置かれるタブ 1 件。
 ///
-/// タブは種別固定で、エクスプローラ（[ExplorerTab]）かターミナル
-/// （[TerminalTab]）のいずれか。生成後に種別は変化しない（ADR-0026）。
+/// タブは種別固定で、エクスプローラ（[ExplorerTab]）・ターミナル
+/// （[TerminalTab]）・Git ビュー（[GitTab]）のいずれか。生成後に種別は
+/// 変化しない（ADR-0026 / ADR-0030）。
 ///
 /// `id` はワークスペース内で一意。`ExplorerViewModel` / `AdhocRunViewModel`
 /// など per-tab 状態の family キーに使われ、タブをペイン間で DnD 移動しても
@@ -27,4 +28,13 @@ sealed class WorkspaceTab with _$WorkspaceTab {
     required String id,
     required AdhocRunArgs args,
   }) = TerminalTab;
+
+  /// Git ビュータブ（ADR-0030）。[repoRoot] は `git rev-parse --show-toplevel`
+  /// で正規化した Git リポジトリのルート絶対パス。per-tab 状態
+  /// （`gitViewModelProvider`）は他タブ同様 `family(id)` で保持され、ペイン間
+  /// DnD 移動でも無損失で引き継がれる。
+  const factory WorkspaceTab.git({
+    required String id,
+    required String repoRoot,
+  }) = GitTab;
 }
