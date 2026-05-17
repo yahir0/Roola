@@ -153,7 +153,11 @@ class _TabChip extends ConsumerWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(
-                tab is ExplorerTab ? Icons.folder_outlined : Icons.terminal,
+                switch (tab) {
+                  ExplorerTab() => Icons.folder_outlined,
+                  TerminalTab() => Icons.terminal,
+                  GitTab() => Icons.account_tree_outlined,
+                },
                 size: 14,
                 color: colors.onSurfaceVariant,
               ),
@@ -247,6 +251,7 @@ class _TabChip extends ConsumerWidget {
   static String _label(WorkspaceTab tab) => switch (tab) {
     ExplorerTab(:final currentPath) => _basename(currentPath),
     TerminalTab(:final args) => args.displayName,
+    GitTab(:final repoRoot) => 'Git: ${_basename(repoRoot)}',
   };
 
   static String _basename(String path) {

@@ -36,4 +36,13 @@ class FocusedTab extends _$FocusedTab {
       lastExplorerTabId: state.lastExplorerTabId,
     );
   }
+
+  /// Git ビュータブにフォーカスが入ったことを記録する（ADR-0030）。
+  /// `lastExplorerTabId` は据え置く。
+  void focusGit(String tabId) {
+    state = FocusedTabState(
+      focusedTabId: tabId,
+      lastExplorerTabId: state.lastExplorerTabId,
+    );
+  }
 }

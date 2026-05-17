@@ -1,0 +1,462 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:roola/data/git/git_status.dart';
+import 'package:roola/ui/git/git_dialogs.dart';
+import 'package:roola/ui/git/git_diff_view.dart';
+import 'package:roola/ui/git/git_view_model.dart';
+import 'package:roola/ui/git/git_view_state.dart';
+
+/// 変更種別を表す 1 文字バッジ。
+String gitChangeLetter(GitChangeType type) => switch (type) {
+  GitChangeType.modified => 'M',
+  GitChangeType.added => 'A',
+  GitChangeType.deleted => 'D',
+  GitChangeType.renamed => 'R',
+  GitChangeType.copied => 'C',
+  GitChangeType.untracked => 'U',
+  GitChangeType.conflicted => '!',
+  GitChangeType.typeChanged => 'T',
+};
+
+/// 変更種別の色。
+Color gitChangeColor(GitChangeType type) => switch (type) {
+  GitChangeType.modified => const Color(0xFFE0A030),
+  GitChangeType.added => const Color(0xFF4CAF50),
+  GitChangeType.deleted => const Color(0xFFC0504D),
+  GitChangeType.renamed => const Color(0xFF5080C0),
+  GitChangeType.copied => const Color(0xFF5080C0),
+  GitChangeType.untracked => const Color(0xFF4CAF50),
+  GitChangeType.conflicted => const Color(0xFFC0504D),
+  GitChangeType.typeChanged => const Color(0xFFE0A030),
+};
+
+/// Git ビューの「Changes」セクション本体。
+///
+/// Staged / Unstaged のファイル一覧、stage / unstage / discard 操作、コミット
+/// メッセージ入力欄と Commit ボタンを持つ（ADR-0030）。
+class GitChangesSection extends HookConsumerWidget {
+  const GitChangesSection({
+    required this.tabId,
+    required this.state,
+    super.key,
+  });
+
+  final String tabId;
+  final GitViewState state;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final notifier = ref.read(gitViewModelProvider(tabId).notifier);
+    final messageController = useTextEditingController();
+    // メッセージ欄の入力で Commit ボタンの活性を切り替えるため再ビルドさせる。
+    useListenable(messageController);
+
+    final status = state.status;
+    if (status == null) {
+      return const SizedBox.shrink();
+    }
+    final conflicts = [
+      ...status.staged.where((c) => c.type == GitChangeType.conflicted),
+      ...status.unstaged.where((c) => c.type == GitChangeType.conflicted),
+    ];
+    final unstaged = status.unstaged
+        .where((c) => c.type != GitChangeType.conflicted)
+        .toList();
+
+    final canCommit =
+        status.staged.isNotEmpty &&
+        messageController.text.trim().isNotEmpty &&
+        !state.isBusy;
+
+    Future<void> doCommit({bool amend = false, bool thenPush = false}) async {
+      final message = messageController.text.trim();
+      await notifier.commit(message, amend: amend);
+      // 失敗していなければメッセージ欄をクリアする。
+      final latest = ref.read(gitViewModelProvider(tabId)).value;
+      if (latest != null && latest.notice == null) {
+        messageController.clear();
+        if (thenPush) {
+          await notifier.push();
+        }
+      }
+    }
+
+    return Column(
+      children: [
+        Expanded(
+          child: status.isClean
+              ? const _CleanPlaceholder()
+              : ListView(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  children: [
+                    if (conflicts.isNotEmpty)
+                      _ChangeGroup(
+                        tabId: tabId,
+                        title: 'Conflicts',
+                        changes: conflicts,
+                        state: state,
+                      ),
+                    if (status.staged.isNotEmpty)
+                      _ChangeGroup(
+                        tabId: tabId,
+                        title: 'Staged',
+                        changes: status.staged,
+                        state: state,
+                        onUnstageAll: notifier.unstageAll,
+                      ),
+                    if (unstaged.isNotEmpty)
+                      _ChangeGroup(
+                        tabId: tabId,
+                        title: 'Changes',
+                        changes: unstaged,
+                        state: state,
+                        onStageAll: notifier.stageAll,
+                        onDiscardAll: () async {
+                          final ok = await gitConfirm(
+                            context,
+                            title: '変更を破棄',
+                            message:
+                                '${unstaged.length} 件のファイルの変更を破棄します。'
+                                'この操作は取り消せません。',
+                            confirmLabel: '破棄',
+                          );
+                          if (ok) {
+                            await notifier.discard(unstaged);
+                          }
+                        },
+                      ),
+                  ],
+                ),
+        ),
+        const Divider(height: 1),
+        _CommitBox(
+          controller: messageController,
+          canCommit: canCommit,
+          busy: state.isBusy,
+          onCommit: doCommit,
+          onCommitAndPush: () => doCommit(thenPush: true),
+          onAmend: () => doCommit(amend: true),
+        ),
+      ],
+    );
+  }
+}
+
+class _CleanPlaceholder extends StatelessWidget {
+  const _CleanPlaceholder();
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.check_circle_outline, size: 36, color: colors.primary),
+          const SizedBox(height: 8),
+          const Text('作業ツリーはクリーンです'),
+        ],
+      ),
+    );
+  }
+}
+
+class _ChangeGroup extends ConsumerWidget {
+  const _ChangeGroup({
+    required this.tabId,
+    required this.title,
+    required this.changes,
+    required this.state,
+    this.onStageAll,
+    this.onUnstageAll,
+    this.onDiscardAll,
+  });
+
+  final String tabId;
+  final String title;
+  final List<GitFileChange> changes;
+  final GitViewState state;
+  final VoidCallback? onStageAll;
+  final VoidCallback? onUnstageAll;
+  final VoidCallback? onDiscardAll;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final colors = Theme.of(context).colorScheme;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Container(
+          height: 26,
+          padding: const EdgeInsets.only(left: 12, right: 4),
+          color: colors.surfaceContainerHighest.withValues(alpha: 0.4),
+          child: Row(
+            children: [
+              Text(
+                '$title (${changes.length})',
+                style: Theme.of(context).textTheme.labelSmall,
+              ),
+              const Spacer(),
+              if (onStageAll != null)
+                _GroupAction(
+                  icon: Icons.add,
+                  tooltip: 'すべて stage',
+                  enabled: !state.isBusy,
+                  onPressed: onStageAll!,
+                ),
+              if (onDiscardAll != null)
+                _GroupAction(
+                  icon: Icons.undo,
+                  tooltip: 'すべて破棄',
+                  enabled: !state.isBusy,
+                  onPressed: onDiscardAll!,
+                ),
+              if (onUnstageAll != null)
+                _GroupAction(
+                  icon: Icons.remove,
+                  tooltip: 'すべて unstage',
+                  enabled: !state.isBusy,
+                  onPressed: onUnstageAll!,
+                ),
+            ],
+          ),
+        ),
+        for (final change in changes)
+          _ChangeRow(tabId: tabId, change: change, busy: state.isBusy),
+      ],
+    );
+  }
+}
+
+class _GroupAction extends StatelessWidget {
+  const _GroupAction({
+    required this.icon,
+    required this.tooltip,
+    required this.enabled,
+    required this.onPressed,
+  });
+
+  final IconData icon;
+  final String tooltip;
+  final bool enabled;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      icon: Icon(icon, size: 15),
+      tooltip: tooltip,
+      visualDensity: VisualDensity.compact,
+      padding: EdgeInsets.zero,
+      constraints: const BoxConstraints(minWidth: 26, minHeight: 26),
+      onPressed: enabled ? onPressed : null,
+    );
+  }
+}
+
+class _ChangeRow extends ConsumerWidget {
+  const _ChangeRow({
+    required this.tabId,
+    required this.change,
+    required this.busy,
+  });
+
+  final String tabId;
+  final GitFileChange change;
+  final bool busy;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final notifier = ref.read(gitViewModelProvider(tabId).notifier);
+    final colors = Theme.of(context).colorScheme;
+
+    return InkWell(
+      onDoubleTap: change.type == GitChangeType.untracked
+          ? null
+          : () => showGitDiffDialog(
+              context,
+              title: change.displayPath,
+              load: () =>
+                  notifier.workingFileDiff(change.path, staged: change.staged),
+            ),
+      child: Padding(
+        padding: const EdgeInsets.only(left: 12, right: 4),
+        child: Row(
+          children: [
+            SizedBox(
+              width: 16,
+              child: Text(
+                gitChangeLetter(change.type),
+                style: TextStyle(
+                  color: gitChangeColor(change.type),
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                ),
+              ),
+            ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 5),
+                child: Text(
+                  change.displayPath,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ),
+            ),
+            if (!change.staged) ...[
+              _RowAction(
+                icon: Icons.undo,
+                tooltip: '変更を破棄',
+                color: colors.error,
+                enabled: !busy,
+                onPressed: () async {
+                  final ok = await gitConfirm(
+                    context,
+                    title: '変更を破棄',
+                    message: '${change.displayPath} の変更を破棄します。',
+                    confirmLabel: '破棄',
+                  );
+                  if (ok) {
+                    await notifier.discard([change]);
+                  }
+                },
+              ),
+              _RowAction(
+                icon: Icons.add,
+                tooltip: 'stage',
+                enabled: !busy,
+                onPressed: () => notifier.stage([change]),
+              ),
+            ] else
+              _RowAction(
+                icon: Icons.remove,
+                tooltip: 'unstage',
+                enabled: !busy,
+                onPressed: () => notifier.unstage([change]),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _RowAction extends StatelessWidget {
+  const _RowAction({
+    required this.icon,
+    required this.tooltip,
+    required this.enabled,
+    required this.onPressed,
+    this.color,
+  });
+
+  final IconData icon;
+  final String tooltip;
+  final bool enabled;
+  final VoidCallback onPressed;
+  final Color? color;
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      icon: Icon(icon, size: 15),
+      tooltip: tooltip,
+      color: color,
+      visualDensity: VisualDensity.compact,
+      padding: EdgeInsets.zero,
+      constraints: const BoxConstraints(minWidth: 26, minHeight: 26),
+      onPressed: enabled ? onPressed : null,
+    );
+  }
+}
+
+/// コミットメッセージ入力欄と Commit ボタン。
+class _CommitBox extends StatelessWidget {
+  const _CommitBox({
+    required this.controller,
+    required this.canCommit,
+    required this.busy,
+    required this.onCommit,
+    required this.onCommitAndPush,
+    required this.onAmend,
+  });
+
+  final TextEditingController controller;
+  final bool canCommit;
+  final bool busy;
+  final VoidCallback onCommit;
+  final VoidCallback onCommitAndPush;
+  final VoidCallback onAmend;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(8, 6, 8, 8),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          TextField(
+            controller: controller,
+            minLines: 1,
+            maxLines: 3,
+            style: Theme.of(context).textTheme.bodySmall,
+            decoration: const InputDecoration(
+              hintText: 'コミットメッセージ',
+              isDense: true,
+              contentPadding: EdgeInsets.all(8),
+            ),
+          ),
+          const SizedBox(height: 6),
+          Row(
+            children: [
+              Expanded(
+                child: FilledButton.icon(
+                  icon: const Icon(Icons.check, size: 16),
+                  label: const Text('Commit'),
+                  onPressed: canCommit ? onCommit : null,
+                ),
+              ),
+              const SizedBox(width: 4),
+              PopupMenuButton<_CommitMenu>(
+                enabled: !busy,
+                tooltip: 'コミットオプション',
+                onSelected: (value) => switch (value) {
+                  _CommitMenu.commitAndPush => onCommitAndPush(),
+                  _CommitMenu.amend => onAmend(),
+                },
+                itemBuilder: (context) => [
+                  PopupMenuItem(
+                    value: _CommitMenu.commitAndPush,
+                    enabled: canCommit,
+                    child: const ListTile(
+                      leading: Icon(Icons.upload),
+                      title: Text('Commit & Push'),
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ),
+                  PopupMenuItem(
+                    value: _CommitMenu.amend,
+                    enabled: canCommit,
+                    child: const ListTile(
+                      leading: Icon(Icons.edit_note),
+                      title: Text('直前のコミットを修正（amend）'),
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+enum _CommitMenu { commitAndPush, amend }

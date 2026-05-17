@@ -49,6 +49,7 @@ WorkspaceTabDto _$WorkspaceTabDtoFromJson(Map<String, dynamic> json) =>
       action: json['action'] == null
           ? null
           : LauncherAction.fromJson(json['action'] as Map<String, dynamic>),
+      repoRoot: json['repoRoot'] as String?,
     );
 
 Map<String, dynamic> _$WorkspaceTabDtoToJson(WorkspaceTabDto instance) =>
@@ -59,4 +60,5 @@ Map<String, dynamic> _$WorkspaceTabDtoToJson(WorkspaceTabDto instance) =>
       'workingDirectory': instance.workingDirectory,
       'displayName': instance.displayName,
       'action': instance.action?.toJson(),
+      'repoRoot': instance.repoRoot,
     };

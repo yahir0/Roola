@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:json_annotation/json_annotation.dart';
 import 'package:roola/data/launcher_entry/launcher_action.dart';
 import 'package:roola/data/skill_session/adhoc_run_args.dart';
@@ -72,7 +74,11 @@ class PaneSlotDto {
   Map<String, dynamic> toJson() => _$PaneSlotDtoToJson(this);
 
   PaneSlot toEntity() => PaneSlot(
-    tabs: tabs.map((t) => t.toEntity()).toList(growable: false),
+    // `toEntity` が null を返すタブ（復元不能な GitTab 等）は除外する。
+    tabs: tabs
+        .map((t) => t.toEntity())
+        .whereType<WorkspaceTab>()
+        .toList(growable: false),
     activeIndex: activeIndex,
   );
 }
@@ -80,7 +86,9 @@ class PaneSlotDto {
 /// `WorkspaceTab` の JSON 永続化 DTO。
 ///
 /// `kind` で種別を判別する。`explorer` は `currentPath`、`terminal` は
-/// `workingDirectory` / `displayName` / `action` を持つ。
+/// `workingDirectory` / `displayName` / `action`、`git` は `repoRoot` を
+/// 持つ（ADR-0030）。未知の `kind` は `toEntity` でエクスプローラタブに
+/// フォールバックし、旧スキーマとの後方互換を保つ。
 @JsonSerializable(explicitToJson: true)
 class WorkspaceTabDto {
   WorkspaceTabDto({
@@ -90,6 +98,7 @@ class WorkspaceTabDto {
     this.workingDirectory,
     this.displayName,
     this.action,
+    this.repoRoot,
   });
 
   factory WorkspaceTabDto.fromJson(Map<String, dynamic> json) =>
@@ -108,6 +117,11 @@ class WorkspaceTabDto {
       displayName: args.displayName,
       action: args.action,
     ),
+    GitTab(:final id, :final repoRoot) => WorkspaceTabDto(
+      kind: 'git',
+      id: id,
+      repoRoot: repoRoot,
+    ),
   };
 
   final String kind;
@@ -116,10 +130,15 @@ class WorkspaceTabDto {
   final String? workingDirectory;
   final String? displayName;
   final LauncherAction? action;
+  final String? repoRoot;
 
   Map<String, dynamic> toJson() => _$WorkspaceTabDtoToJson(this);
 
-  WorkspaceTab toEntity() {
+  /// DTO をドメインモデルへ変換する。
+  ///
+  /// 復元できない `git` タブ（`repoRoot` が無い / 現存しない / Git 管理下で
+  /// なくなっている）は `null` を返し、呼び出し側で除外される（ADR-0030）。
+  WorkspaceTab? toEntity() {
     if (kind == 'terminal') {
       return WorkspaceTab.terminal(
         id: id,
@@ -132,6 +151,23 @@ class WorkspaceTabDto {
         ),
       );
     }
+    if (kind == 'git') {
+      final root = repoRoot;
+      if (root == null || !_isGitRepository(root)) {
+        return null;
+      }
+      return WorkspaceTab.git(id: id, repoRoot: root);
+    }
     return WorkspaceTab.explorer(id: id, currentPath: currentPath ?? '/');
+  }
+
+  /// [root] が現存し、Git リポジトリ（`.git` を持つ）かを同期判定する。
+  static bool _isGitRepository(String root) {
+    if (!Directory(root).existsSync()) {
+      return false;
+    }
+    final dotGit = '$root/.git';
+    // `.git` は通常ディレクトリ。worktree / submodule ではファイル。
+    return Directory(dotGit).existsSync() || File(dotGit).existsSync();
   }
 }

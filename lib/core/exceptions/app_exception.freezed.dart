@@ -55,7 +55,7 @@ extension AppExceptionPatterns on AppException {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( InvariantViolation value)?  invariant,TResult Function( RepositoryNotFound value)?  repositoryNotFound,TResult Function( ClaudeNotFound value)?  claudeNotFound,TResult Function( PersistenceFailure value)?  persistenceFailure,TResult Function( ProcessFailure value)?  processFailure,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( InvariantViolation value)?  invariant,TResult Function( RepositoryNotFound value)?  repositoryNotFound,TResult Function( ClaudeNotFound value)?  claudeNotFound,TResult Function( PersistenceFailure value)?  persistenceFailure,TResult Function( ProcessFailure value)?  processFailure,TResult Function( GitNotFound value)?  gitNotFound,TResult Function( GitCommandFailure value)?  gitCommandFailure,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
 case InvariantViolation() when invariant != null:
@@ -63,7 +63,9 @@ return invariant(_that);case RepositoryNotFound() when repositoryNotFound != nul
 return repositoryNotFound(_that);case ClaudeNotFound() when claudeNotFound != null:
 return claudeNotFound(_that);case PersistenceFailure() when persistenceFailure != null:
 return persistenceFailure(_that);case ProcessFailure() when processFailure != null:
-return processFailure(_that);case _:
+return processFailure(_that);case GitNotFound() when gitNotFound != null:
+return gitNotFound(_that);case GitCommandFailure() when gitCommandFailure != null:
+return gitCommandFailure(_that);case _:
   return orElse();
 
 }
@@ -81,7 +83,7 @@ return processFailure(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( InvariantViolation value)  invariant,required TResult Function( RepositoryNotFound value)  repositoryNotFound,required TResult Function( ClaudeNotFound value)  claudeNotFound,required TResult Function( PersistenceFailure value)  persistenceFailure,required TResult Function( ProcessFailure value)  processFailure,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( InvariantViolation value)  invariant,required TResult Function( RepositoryNotFound value)  repositoryNotFound,required TResult Function( ClaudeNotFound value)  claudeNotFound,required TResult Function( PersistenceFailure value)  persistenceFailure,required TResult Function( ProcessFailure value)  processFailure,required TResult Function( GitNotFound value)  gitNotFound,required TResult Function( GitCommandFailure value)  gitCommandFailure,}){
 final _that = this;
 switch (_that) {
 case InvariantViolation():
@@ -89,7 +91,9 @@ return invariant(_that);case RepositoryNotFound():
 return repositoryNotFound(_that);case ClaudeNotFound():
 return claudeNotFound(_that);case PersistenceFailure():
 return persistenceFailure(_that);case ProcessFailure():
-return processFailure(_that);}
+return processFailure(_that);case GitNotFound():
+return gitNotFound(_that);case GitCommandFailure():
+return gitCommandFailure(_that);}
 }
 /// A variant of `map` that fallback to returning `null`.
 ///
@@ -103,7 +107,7 @@ return processFailure(_that);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( InvariantViolation value)?  invariant,TResult? Function( RepositoryNotFound value)?  repositoryNotFound,TResult? Function( ClaudeNotFound value)?  claudeNotFound,TResult? Function( PersistenceFailure value)?  persistenceFailure,TResult? Function( ProcessFailure value)?  processFailure,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( InvariantViolation value)?  invariant,TResult? Function( RepositoryNotFound value)?  repositoryNotFound,TResult? Function( ClaudeNotFound value)?  claudeNotFound,TResult? Function( PersistenceFailure value)?  persistenceFailure,TResult? Function( ProcessFailure value)?  processFailure,TResult? Function( GitNotFound value)?  gitNotFound,TResult? Function( GitCommandFailure value)?  gitCommandFailure,}){
 final _that = this;
 switch (_that) {
 case InvariantViolation() when invariant != null:
@@ -111,7 +115,9 @@ return invariant(_that);case RepositoryNotFound() when repositoryNotFound != nul
 return repositoryNotFound(_that);case ClaudeNotFound() when claudeNotFound != null:
 return claudeNotFound(_that);case PersistenceFailure() when persistenceFailure != null:
 return persistenceFailure(_that);case ProcessFailure() when processFailure != null:
-return processFailure(_that);case _:
+return processFailure(_that);case GitNotFound() when gitNotFound != null:
+return gitNotFound(_that);case GitCommandFailure() when gitCommandFailure != null:
+return gitCommandFailure(_that);case _:
   return null;
 
 }
@@ -128,14 +134,16 @@ return processFailure(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( String message)?  invariant,TResult Function( String path)?  repositoryNotFound,TResult Function()?  claudeNotFound,TResult Function( String message)?  persistenceFailure,TResult Function( String message)?  processFailure,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( String message)?  invariant,TResult Function( String path)?  repositoryNotFound,TResult Function()?  claudeNotFound,TResult Function( String message)?  persistenceFailure,TResult Function( String message)?  processFailure,TResult Function()?  gitNotFound,TResult Function( String message)?  gitCommandFailure,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case InvariantViolation() when invariant != null:
 return invariant(_that.message);case RepositoryNotFound() when repositoryNotFound != null:
 return repositoryNotFound(_that.path);case ClaudeNotFound() when claudeNotFound != null:
 return claudeNotFound();case PersistenceFailure() when persistenceFailure != null:
 return persistenceFailure(_that.message);case ProcessFailure() when processFailure != null:
-return processFailure(_that.message);case _:
+return processFailure(_that.message);case GitNotFound() when gitNotFound != null:
+return gitNotFound();case GitCommandFailure() when gitCommandFailure != null:
+return gitCommandFailure(_that.message);case _:
   return orElse();
 
 }
@@ -153,14 +161,16 @@ return processFailure(_that.message);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( String message)  invariant,required TResult Function( String path)  repositoryNotFound,required TResult Function()  claudeNotFound,required TResult Function( String message)  persistenceFailure,required TResult Function( String message)  processFailure,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( String message)  invariant,required TResult Function( String path)  repositoryNotFound,required TResult Function()  claudeNotFound,required TResult Function( String message)  persistenceFailure,required TResult Function( String message)  processFailure,required TResult Function()  gitNotFound,required TResult Function( String message)  gitCommandFailure,}) {final _that = this;
 switch (_that) {
 case InvariantViolation():
 return invariant(_that.message);case RepositoryNotFound():
 return repositoryNotFound(_that.path);case ClaudeNotFound():
 return claudeNotFound();case PersistenceFailure():
 return persistenceFailure(_that.message);case ProcessFailure():
-return processFailure(_that.message);}
+return processFailure(_that.message);case GitNotFound():
+return gitNotFound();case GitCommandFailure():
+return gitCommandFailure(_that.message);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -174,14 +184,16 @@ return processFailure(_that.message);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( String message)?  invariant,TResult? Function( String path)?  repositoryNotFound,TResult? Function()?  claudeNotFound,TResult? Function( String message)?  persistenceFailure,TResult? Function( String message)?  processFailure,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( String message)?  invariant,TResult? Function( String path)?  repositoryNotFound,TResult? Function()?  claudeNotFound,TResult? Function( String message)?  persistenceFailure,TResult? Function( String message)?  processFailure,TResult? Function()?  gitNotFound,TResult? Function( String message)?  gitCommandFailure,}) {final _that = this;
 switch (_that) {
 case InvariantViolation() when invariant != null:
 return invariant(_that.message);case RepositoryNotFound() when repositoryNotFound != null:
 return repositoryNotFound(_that.path);case ClaudeNotFound() when claudeNotFound != null:
 return claudeNotFound();case PersistenceFailure() when persistenceFailure != null:
 return persistenceFailure(_that.message);case ProcessFailure() when processFailure != null:
-return processFailure(_that.message);case _:
+return processFailure(_that.message);case GitNotFound() when gitNotFound != null:
+return gitNotFound();case GitCommandFailure() when gitCommandFailure != null:
+return gitCommandFailure(_that.message);case _:
   return null;
 
 }
@@ -477,6 +489,104 @@ class _$ProcessFailureCopyWithImpl<$Res>
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') $Res call({Object? message = null,}) {
   return _then(ProcessFailure(
+null == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+
+}
+
+/// @nodoc
+
+
+class GitNotFound implements AppException {
+  const GitNotFound();
+  
+
+
+
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is GitNotFound);
+}
+
+
+@override
+int get hashCode => runtimeType.hashCode;
+
+@override
+String toString() {
+  return 'AppException.gitNotFound()';
+}
+
+
+}
+
+
+
+
+/// @nodoc
+
+
+class GitCommandFailure implements AppException {
+  const GitCommandFailure(this.message);
+  
+
+ final  String message;
+
+/// Create a copy of AppException
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$GitCommandFailureCopyWith<GitCommandFailure> get copyWith => _$GitCommandFailureCopyWithImpl<GitCommandFailure>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is GitCommandFailure&&(identical(other.message, message) || other.message == message));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,message);
+
+@override
+String toString() {
+  return 'AppException.gitCommandFailure(message: $message)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $GitCommandFailureCopyWith<$Res> implements $AppExceptionCopyWith<$Res> {
+  factory $GitCommandFailureCopyWith(GitCommandFailure value, $Res Function(GitCommandFailure) _then) = _$GitCommandFailureCopyWithImpl;
+@useResult
+$Res call({
+ String message
+});
+
+
+
+
+}
+/// @nodoc
+class _$GitCommandFailureCopyWithImpl<$Res>
+    implements $GitCommandFailureCopyWith<$Res> {
+  _$GitCommandFailureCopyWithImpl(this._self, this._then);
+
+  final GitCommandFailure _self;
+  final $Res Function(GitCommandFailure) _then;
+
+/// Create a copy of AppException
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? message = null,}) {
+  return _then(GitCommandFailure(
 null == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
 as String,
   ));

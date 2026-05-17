@@ -8,7 +8,9 @@ import 'package:roola/ui/explorer/explorer_item_selection.dart';
 import 'package:roola/ui/explorer/explorer_node_tile.dart';
 import 'package:roola/ui/explorer/explorer_path_bar.dart';
 import 'package:roola/ui/explorer/explorer_view_model.dart';
+import 'package:roola/ui/git/git_view_model.dart';
 import 'package:roola/ui/workspace/current_tab_id_provider.dart';
+import 'package:roola/ui/workspace/workspace_provider.dart';
 import 'package:super_drag_and_drop/super_drag_and_drop.dart';
 
 /// エクスプローラタブ 1 つ分の body（ADR-0026）。
@@ -72,8 +74,34 @@ class _PaneHeader extends ConsumerWidget {
           Expanded(
             child: ExplorerPathBar(tabId: tabId, currentPath: currentPath),
           ),
+          const SizedBox(width: 4),
+          _OpenGitButton(currentPath: currentPath),
         ],
       ),
+    );
+  }
+}
+
+/// カレントパスが Git 管理下のとき Git ビューを開くツールバーボタン
+/// （ADR-0030 / tasks 7.4）。Git 管理下でなければ無効表示。
+class _OpenGitButton extends ConsumerWidget {
+  const _OpenGitButton({required this.currentPath});
+
+  final String currentPath;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    // 結果は gitRepositoryRootProvider が family(パス)単位でキャッシュする。
+    final repoRoot = ref
+        .watch(gitRepositoryRootProvider(currentPath))
+        .value;
+    return IconButton(
+      icon: const Icon(Icons.account_tree_outlined, size: 16),
+      tooltip: repoRoot != null ? 'Git ビューを開く' : 'Git 管理下ではありません',
+      visualDensity: VisualDensity.compact,
+      onPressed: repoRoot == null
+          ? null
+          : () => ref.read(workspaceProvider.notifier).openGitTab(repoRoot),
     );
   }
 }
