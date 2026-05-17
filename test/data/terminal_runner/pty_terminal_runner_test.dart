@@ -42,7 +42,7 @@ void main() {
     await runner.dispose();
   });
 
-  test('terminal is available before start and survives cancel', () async {
+  test('output stream survives cancel (closed only on dispose)', () async {
     final dir = await Directory.systemTemp.createTemp('roola_pty_term_');
     addTearDown(() => dir.delete(recursive: true));
 
@@ -51,18 +51,19 @@ void main() {
       executable: 'true',
     );
 
-    // 構築直後に terminal が存在する（View が即購読できる）
-    final terminalBefore = runner.terminal;
-    expect(terminalBefore, isNotNull);
+    // SwiftTerm へ流す output Stream は描画の唯一の供給源（ADR-0031）。
+    // cancel（PTY を SIGTERM 終了）してもセッション参照は残るため、
+    // output Stream は閉じない。
+    var done = false;
+    final sub = runner.output.listen((_) {}, onDone: () => done = true);
 
-    // cancel しても terminal インスタンスは保持される
     await runner.cancel();
-    expect(identical(runner.terminal, terminalBefore), isTrue);
+    await Future<void>.delayed(const Duration(milliseconds: 50));
+    expect(done, isFalse);
 
-    // dispose 後も terminal 参照自体は残るが onOutput / onResize は外れる
+    // dispose で初めて output Stream が閉じる。
+    await sub.cancel();
     await runner.dispose();
-    expect(runner.terminal.onOutput, isNull);
-    expect(runner.terminal.onResize, isNull);
   });
 
   test(
@@ -70,8 +71,8 @@ void main() {
     () async {
       // 回帰: 以前は `output` getter が `_pty?.output ?? Stream.empty()` を
       // 返していたため、構築直後に subscribe するとすぐに完了済みの空 Stream に
-      // 紐づいてしまい、PTY 生成後の出力が xterm に流れなかった。
-      // RunPage の useEffect は build 時点で subscribe するため、この順序を
+      // 紐づいてしまい、PTY 生成後の出力がターミナルに流れなかった。
+      // `TerminalSurface` は build 時点で subscribe するため、この順序を
       // ロックするテスト。
       final dir = await Directory.systemTemp.createTemp('roola_pty_out_');
       addTearDown(() => dir.delete(recursive: true));

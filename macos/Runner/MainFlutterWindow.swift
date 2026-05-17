@@ -20,6 +20,17 @@ class MainFlutterWindow: NSWindow {
 
     RegisterGeneratedPlugins(registry: flutterViewController)
 
+    // ターミナル描画用の SwiftTerm ネイティブビュー（ADR-0031）。
+    // Dart 側 `TerminalSurface` の `AppKitView`（viewType `roola/terminal-view`）
+    // から生成される。
+    let terminalRegistrar = flutterViewController.registrar(
+      forPlugin: "RoolaTerminalView"
+    )
+    terminalRegistrar.register(
+      TerminalViewFactory(registrar: terminalRegistrar),
+      withId: "roola/terminal-view"
+    )
+
     // ゴミ箱への移動。Dart 側からは `roola/trash` の
     // `moveToTrash` を呼ぶ。NSWorkspace 経由ではなく FileManager
     // .trashItem を使うことで、Finder の Cmd+Delete と同じ挙動になる。
