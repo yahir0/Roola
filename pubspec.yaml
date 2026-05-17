@@ -43,7 +43,6 @@ dependencies:
   dio: ^5.9.2
   path_provider: ^2.1.5
   file_picker: ^11.0.2
-  xterm: ^4.0.0
   flutter_pty: ^0.4.2
   window_manager: ^0.5.1
   uuid: ^4.5.3
@@ -83,7 +82,7 @@ flutter:
   uses-material-design: true
 
   fonts:
-    # ターミナル (xterm) 描画用。Sarasa Term J は Iosevka Term と Source Han
+    # ターミナル描画用。Sarasa Term J は Iosevka Term と Source Han
     # Sans JP を合成した CJK 対応モノスペース。ASCII は Iosevka Term と同一
     # グリフのまま、日本語も同じ細さ・シャープさのゴシック体で描画できる
     # （Hiragino フォールバックだと丸さが混ざってちぐはぐになるのを避ける）。

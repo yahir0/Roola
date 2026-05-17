@@ -2,60 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:roola/data/terminal_runner/terminal_run_state.dart';
 import 'package:roola/ui/common/session_state_icon.dart';
+import 'package:roola/ui/explorer/terminal_surface.dart';
 import 'package:roola/ui/run/adhoc_run_view_model.dart';
-import 'package:xterm/xterm.dart';
-
-/// ターミナル描画フォント。pubspec.yaml に登録した Sarasa Term J を主に使う。
-///
-/// Sarasa Term J は Iosevka Term（ASCII）と Source Han Sans JP（CJK）を
-/// 合成した CJK 対応モノスペース。ASCII グリフは Iosevka Term と同一で
-/// 細くシャープ、日本語も同じテイストのゴシック体で描画される。
-/// 「Arch Linux の素のターミナル」寄りの見た目を狙う（ADR-0017）。
-///
-/// `fontFamilyFallback` は絵文字と最終フォールバックのみ残す。Sarasa Term J
-/// が CJK・記号類をほぼカバーするので、Menlo 等のフォールバックは挟まない
-/// 方が見た目の一貫性が出る。
-const TerminalStyle _terminalStyle = TerminalStyle(
-  fontFamily: 'SarasaTermJ',
-  fontFamilyFallback: [
-    'Apple Color Emoji',
-    'Noto Color Emoji',
-    'monospace',
-    'sans-serif',
-  ],
-);
-
-const TerminalTheme _terminalTheme = TerminalTheme(
-  cursor: Color(0xFF90C0F0),
-  selection: Color(0x665080C0),
-  foreground: Color(0xFFE0E0E0),
-  background: Color(0xFF1E232A),
-  black: Color(0xFF000000),
-  red: Color(0xFFCD3131),
-  green: Color(0xFF0DBC79),
-  yellow: Color(0xFFE5E510),
-  blue: Color(0xFF2472C8),
-  magenta: Color(0xFFBC3FBC),
-  cyan: Color(0xFF11A8CD),
-  white: Color(0xFFE5E5E5),
-  brightBlack: Color(0xFF666666),
-  brightRed: Color(0xFFF14C4C),
-  brightGreen: Color(0xFF23D18B),
-  brightYellow: Color(0xFFF5F543),
-  brightBlue: Color(0xFF3B8EEA),
-  brightMagenta: Color(0xFFD670D6),
-  brightCyan: Color(0xFF29B8DB),
-  brightWhite: Color(0xFFFFFFFF),
-  searchHitBackground: Color(0xFFFFFF2B),
-  searchHitBackgroundCurrent: Color(0xFF31FF26),
-  searchHitForeground: Color(0xFF000000),
-);
 
 /// ターミナルセッション 1 件分のビュー（ターミナルタブの body）。
 ///
-/// ヘッダ行（状態 chip + キャンセル / 再実行）と、その下の `TerminalView`
-/// の縦並び。タブを閉じる操作はタブストリップの × が担うため、ここには
-/// 閉じるボタンを置かない（ADR-0026）。
+/// ヘッダ行（状態 chip + キャンセル / 再実行）と、その下の SwiftTerm
+/// ネイティブビュー（[TerminalSurface]）の縦並び。タブを閉じる操作はタブ
+/// ストリップの × が担うため、ここには閉じるボタンを置かない（ADR-0026）。
+///
+/// 描画・入力は SwiftTerm（ネイティブ NSView）が担う（ADR-0031）。配色・
+/// フォントは native 側（`TerminalView` ファクトリ）に定義する。
 ///
 /// PTY は `adhocRunViewModelProvider` 側で keep-alive 保持されるので、この
 /// widget が dispose されても出力は失われない。
@@ -79,14 +36,10 @@ class SessionView extends ConsumerWidget {
         ),
         const Divider(height: 1),
         Expanded(
-          child: TerminalView(
-            pageState.runner.terminal,
-            theme: _terminalTheme,
-            textStyle: _terminalStyle,
-            // 内部 Container を完全透過にし、`_AppearanceLayer` の暗幕を
-            // そのまま見せる。
-            backgroundOpacity: 0,
-            padding: const EdgeInsets.all(8),
+          child: TerminalSurface(
+            // ad-hoc セッション id をタブ固有のチャネル id として使う。
+            channelId: args.adhocId,
+            runner: pageState.runner,
           ),
         ),
       ],

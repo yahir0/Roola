@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -7,27 +6,23 @@ import 'package:flutter_pty/flutter_pty.dart';
 import 'package:roola/data/launcher_entry/launcher_action.dart';
 import 'package:roola/data/terminal_runner/terminal_run_state.dart';
 import 'package:roola/data/terminal_runner/terminal_runner.dart';
-import 'package:xterm/xterm.dart';
 
 /// `flutter_pty` の `Pty.start` で任意プロセスを擬似端末上に起動する実装。
 ///
 /// 動作タイプ別の起動コマンド組み立ては [PtyTerminalRunner.fromAction] が
 /// 行う。本クラス自体は `executable` / `arguments` を引数として受け取る
 /// 汎用 PTY runner。
+///
+/// 描画は SwiftTerm（ネイティブ NSView）が担い、本クラスは PTY 出力を
+/// バイト列のまま [output] Stream で配信する（ADR-0031）。UTF-8 デコードは
+/// 行わない。
 class PtyTerminalRunner implements TerminalRunner {
   PtyTerminalRunner({
     required this.workingDirectory,
     required this.executable,
     this.arguments = const [],
     this.idleThreshold = const Duration(seconds: 2),
-    Terminal? terminal,
-  }) : terminal = terminal ?? Terminal() {
-    // Terminal → PTY 方向の配線。`start` で PTY が生成されてから書き込みが
-    // 走るよう、_pty を late に参照する。`start` 前のキー入力は破棄される
-    // （まだプロセスが居ない正常な状態）。
-    this.terminal.onOutput = _onTerminalOutput;
-    this.terminal.onResize = _onTerminalResize;
-  }
+  });
 
   /// `LauncherAction` を解釈して runner を組み立てる factory。
   ///
@@ -41,7 +36,6 @@ class PtyTerminalRunner implements TerminalRunner {
     required String workingDirectory,
     required LauncherAction action,
     Duration idleThreshold = const Duration(seconds: 2),
-    Terminal? terminal,
   }) {
     final (executable, arguments) = _resolveExecutable(action);
     return PtyTerminalRunner(
@@ -49,7 +43,6 @@ class PtyTerminalRunner implements TerminalRunner {
       executable: executable,
       arguments: arguments,
       idleThreshold: idleThreshold,
-      terminal: terminal,
     );
   }
 
@@ -66,9 +59,6 @@ class PtyTerminalRunner implements TerminalRunner {
   /// 短すぎると claude の通常思考中も「入力待ち」と表示されてしまうため、
   /// 既定 2 秒。出力が再開すれば即 `running` に戻る。
   final Duration idleThreshold;
-
-  @override
-  final Terminal terminal;
 
   Pty? _pty;
   Timer? _idleTimer;
@@ -120,7 +110,6 @@ class PtyTerminalRunner implements TerminalRunner {
       if (!_outputController.isClosed) {
         _outputController.add(bytes);
       }
-      terminal.write(utf8.decode(bytes, allowMalformed: true));
       // 新しい出力が来た = 「処理中」と判定。waitingInput からも復帰
       if (_currentState is SkillRunWaitingInput) {
         _emit(const SkillRunState.running());
@@ -197,16 +186,6 @@ class PtyTerminalRunner implements TerminalRunner {
     _ptyOutputSub = null;
     await _outputController.close();
     await _stateController.close();
-    terminal.onOutput = null;
-    terminal.onResize = null;
-  }
-
-  void _onTerminalOutput(String data) {
-    _pty?.write(Uint8List.fromList(utf8.encode(data)));
-  }
-
-  void _onTerminalResize(int cols, int rows, int pixelWidth, int pixelHeight) {
-    _pty?.resize(rows, cols);
   }
 
   String _formatStartError(Object error) {
