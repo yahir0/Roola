@@ -41,8 +41,8 @@ lib/
 │   │   ├── entry_edit_view_model.dart
 │   │   └── appearance_section.dart      # 設定画面の外観セクション（Widget 分割）
 │   ├── run/
-│   │   ├── run_page.dart                # ターミナルビュー
-│   │   └── run_view_model.dart
+│   │   └── adhoc_run_view_model.dart    # ターミナルセッションの ViewModel（AsyncNotifier.family）
+│   │                                   # View は ui/explorer/{session_view,terminal_surface}.dart
 │   ├── git/                             # Git ビュー（GitTab）/ ADR-0030
 │   │   ├── git_tab.dart                 # View（GitTabBody）
 │   │   ├── git_view_model.dart          # ViewModel（AsyncNotifier.family(tabId)）
@@ -70,8 +70,9 @@ lib/
 │   │   └── appearance_settings_repository_impl.dart
 │   ├── terminal_runner/
 │   │   ├── terminal_run_state.dart              # Freezed Union（idle/starting/running/completed/failed/cancelled）
-│   │   ├── terminal_runner.dart                 # interface
-│   │   └── pty_terminal_runner.dart             # flutter_pty 実装。fromAction(LauncherAction) で 3 動作タイプを起動
+│   │   ├── terminal_runner.dart                 # interface（レンダラ非依存。byte stream output + write/resize）
+│   │   ├── pty_terminal_runner.dart             # flutter_pty 実装。fromAction(LauncherAction) で 3 動作タイプを起動
+│   │   └── terminal_channel.dart                # SwiftTerm ネイティブビューとの per-tab バイトブリッジ（ADR-0031）
 │   ├── git/                                     # Git 通信層（ADR-0030）
 │   │   ├── git_status.dart                      # Freezed（GitStatus / GitFileChange）
 │   │   ├── git_commit.dart                      # Freezed（GitCommit）
@@ -238,6 +239,7 @@ ui 内のフィーチャー間 import も避ける。共通 Widget は `ui/commo
 - **ViewModel（ui 層）**: Repository / Service を Mocktail でモックし、`ProviderContainer.test()` で検証
 - **Widget（ui 層）**: ViewModel Provider をオーバーライドしてゴールデンパス + 例外系を検証
 - **`PtyTerminalRunner`**: 軽量コマンド（`bash -lc "echo hello"` 等）で実 PTY 経路を検証
+- **ターミナル描画（SwiftTerm / `AppKitView`）**: ネイティブ（Swift）コードと `AppKitView` を含む View（`session_view.dart` / `terminal_surface.dart`）はユニット / ウィジェットテスト対象外。`TerminalChannel` などブリッジの Dart 側ロジックはユニットテストし、描画は実機（macOS）で確認する（ADR-0031）
 
 ## コード生成
 
@@ -266,5 +268,5 @@ dart run build_runner watch --delete-conflicting-outputs
 - flutter_hooks: https://pub.dev/packages/flutter_hooks
 - Freezed: https://pub.dev/packages/freezed
 - go_router: https://pub.dev/packages/go_router
-- xterm: https://pub.dev/packages/xterm
+- SwiftTerm（ターミナル描画。AppKitView で埋め込む / ADR-0031）: https://github.com/migueldeicaza/SwiftTerm
 - flutter_pty: https://pub.dev/packages/flutter_pty
