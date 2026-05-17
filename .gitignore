@@ -47,3 +47,8 @@ dart_defines/*.local.json
 
 # Logs
 *.log
+
+# Editor swap files (vim 等)
+*.swp
+*.swo
+*~
