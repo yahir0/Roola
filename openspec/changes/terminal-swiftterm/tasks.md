@@ -34,13 +34,13 @@
 
 ## 4. native（Swift）: SwiftTerm ホスト
 
-- [ ] 4.1 SwiftTerm `TerminalView` を載せた `NSView` ＋ `FlutterPlatformViewFactory` を `macos/Runner/` に実装し、`creationParams` の `channelId` でチャネルを開く（viewType `roola/terminal-view`）
-- [ ] 4.2 `TerminalViewDelegate` を実装し `send`（入力）/ `sizeChanged`（リサイズ）を Dart へ転送
-- [ ] 4.3 チャネル受信 → `terminalView.feed(byteArray:)` で描画
-- [ ] 4.4 テーマを適用: 16 ANSI ＋ fg/bg/cursor/selection をネイティブ色型にマップ
-- [ ] 4.5 フォントを適用: バンドル済み `SarasaTermJ-Regular.ttf` を `registrar.lookupKey(forAsset:)` 経由で native 登録し `NSFont` を生成（O3）。失敗時はデフォルト等幅にフォールバック
-- [ ] 4.6 背景透過を設定し、Flutter 側の暗幕を透かす構成にする
-- [ ] 4.7 `MainFlutterWindow` で `NSViewFactory` を registrar に登録
+- [x] 4.1 SwiftTerm `TerminalView` を載せた `NSView` ＋ `FlutterPlatformViewFactory` を `macos/Runner/` に実装し、`creationParams` の `channelId` でチャネルを開く（viewType `roola/terminal-view`）
+- [x] 4.2 `TerminalViewDelegate` を実装し `send`（入力）/ `sizeChanged`（リサイズ）を Dart へ転送
+- [x] 4.3 チャネル受信 → `terminalView.feed(byteArray:)` で描画
+- [x] 4.4 テーマを適用: 16 ANSI ＋ fg/bg/cursor/selection をネイティブ色型にマップ
+- [x] 4.5 フォントを適用: バンドル済み `SarasaTermJ-Regular.ttf` を `registrar.lookupKey(forAsset:)` 経由で native 登録し `NSFont` を生成（O3）。失敗時はデフォルト等幅にフォールバック
+- [x] 4.6 背景透過を設定し、Flutter 側の暗幕を透かす構成にする
+- [x] 4.7 `MainFlutterWindow` で `NSViewFactory` を registrar に登録
 
 ## 5. Dart 層: ターミナル面ウィジェット
 
@@ -50,7 +50,7 @@
 ## 6. View 層の置換
 
 - [x] 6.1 `session_view.dart` の `TerminalView`(xterm.dart) を `TerminalSurface` に置換
-- [ ] 6.2 配色・フォントは native 側（4.4 / 4.5）に定義。旧 `_terminalTheme` 定数値を Swift へ移設
+- [x] 6.2 配色・フォントは native 側（4.4 / 4.5）に定義。旧 `_terminalTheme` 定数値を Swift（`TerminalTheme`）へ移設
 - [x] 6.3 タブ破棄時に `AdhocRunViewModel` 経由で `PtyTerminalRunner.dispose`、`TerminalSurface` dispose で `TerminalChannel` 解放が連動
 
 ## 7. ショートカット
