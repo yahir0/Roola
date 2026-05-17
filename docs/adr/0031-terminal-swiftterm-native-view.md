@@ -64,6 +64,16 @@ xterm.dart の再発明であり工数は数ヶ月。しかも①③ の IME 問
 - **`xterm` パッケージ依存を削除** — pub 依存は減るが、SwiftTerm を Xcode `Runner` の SPM 依存（またはベンダリング）として追加する
 - **タブあたり 1 NSView** — マルチウィンドウ（ADR-0012、別プロセス起動）では各プロセスが自前の NSView 群を持つだけで問題ない
 
+## 将来 macOS 以外への対応が必要になった場合（参考）
+
+本 ADR は ADR-0001（macOS 専用）を前提に C（SwiftTerm）を選んでいる。将来 Windows 等への対応が要件化したときに判断を再構築できるよう、検討経緯を残す。
+
+- **macOS 専用の現スコープでは C が最適** — 代替案 B（xterm.js + WebView）に対し C は (1) JS ブリッジが不要で Dart ⇄ Swift を 1 層シンプルに直結できる (2) NSView が WKWebView より軽量（Web コンテンツプロセスを持たない）(3) アプリショートカット（`NSMenu` key equivalent）がターミナルフォーカス時も自然に効く、という優位を持つ。B 唯一の優位（xterm.js の累積実戦量）は SwiftTerm の production 実績で相殺される。
+- **対応 OS が増えると B 有利に逆転する** — C はターミナルエミュレータ本体（VT パーサ・レンダラ・IME）が OS 固有で、SwiftTerm は macOS/iOS 専用。OS ごとに同格の埋め込み可能なネイティブレンダラを調達する必要があるが、Windows には SwiftTerm 級のものが事実上存在せず、却下した代替案 D（レンダラ自作）に逆戻りするリスクがある。B はエミュレータ本体（xterm.js）を全 OS で共有でき、OS ごとに足すのは WebView ホストの薄いグルーのみ。**B の弱点（JS ブリッジ等）は一度書けば共有される固定費、C の弱点は OS ごとに増える変動費** という非対称がある。
+- **今回は B の足場を作らない（YAGNI）** — Windows 対応は現時点では不確実な仮定であり、保険として B を先行実装するとレンダラ 2 本の二重保守が確定してしまう。現スコープに対し C を採用する。
+- **将来の拡張経路は 2 つ** — Windows 対応が現実のスコープに入った時点で、(a) B を per-OS 実装として追加（macOS=C / Windows=B、レンダラ 2 本を併存保守）、または (b) 全面 B 移行（macOS も B に寄せて 1 本化、本 ADR の C 実装は部分的に破棄）のいずれかを、その時点の Flutter Windows プラットフォームビューの成熟度を見て選ぶ。出し分けは dart-define フレーバーではなく実行 OS 分岐（`Platform` 判定 / conditional import）で行う（OS 分岐は環境分岐ではないため ADR-0004「単一環境」とは無関係）。
+- **そのための布石** — `TerminalRunner` をレンダラ非依存（byte stream `output` + `write` / `resize`）に保ち、View 層が `AppKitView` を直接持たず抽象ターミナル面ウィジェット越しに依存する設計（次節「実装の出発点」参照）が、将来のレンダラ差し替えコストを最小化する。ただしこれは「差し替えやすくする」布石であって「Windows レンダラを調達するコスト自体を消す」ものではない。
+
 ## 実装の出発点（次セッションへの引き継ぎ）
 
 実装時は OpenSpec change `terminal-swiftterm` を起こして proposal / design / tasks を整理すること。要点:
