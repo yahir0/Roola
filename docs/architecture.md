@@ -54,6 +54,10 @@ lib/
 │   │   ├── git_branch_menu.dart         # ブランチ操作ダイアログ
 │   │   ├── git_diff_view.dart           # ファイル単位 diff ダイアログ
 │   │   └── git_dialogs.dart             # 確認 / 入力ダイアログの共通ヘルパ
+│   ├── notepad/                         # ノートパッド（フローティングパネル）/ ADR-0036
+│   │   ├── notepad_panel.dart           # View（パネル本体 + 編集領域）
+│   │   ├── notepad_line_gutter.dart     # 左端の行番号ルーラ
+│   │   └── notepad_view_model.dart      # ViewModel（本文の保持 + 永続化）
 │   └── common/                          # 共通 Widget（ボタン・ダイアログ等）
 │
 ├── data/                                # Model + Repository
@@ -95,6 +99,9 @@ lib/
 │   │   ├── git_diff.dart                        # Freezed（GitDiff / GitDiffLine）
 │   │   ├── git_repository.dart                  # interface
 │   │   └── process_git_repository.dart          # `git` CLI を dart:io Process で実行
+│   ├── notepad/                                 # ノートパッド本文の永続化（ADR-0036）
+│   │   ├── notepad_repository.dart              # interface
+│   │   └── notepad_repository_impl.dart         # notepad.json 実装
 │   └── workspace/                               # 3 ペインタブ式ワークスペース（ADR-0026〜0028）
 │       ├── workspace_tab.dart                   # Freezed sealed（ExplorerTab / TerminalTab）
 │       ├── pane_slot.dart                       # Freezed（タブ群 + activeIndex）

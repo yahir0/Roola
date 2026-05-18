@@ -408,6 +408,10 @@
   "paneTabCloseTooltip": "Close tab",
   "paneTabAddTooltip": "Add tab",
 
+  "notepadButtonTooltip": "Notepad",
+  "notepadTitle": "Notepad",
+  "notepadHint": "Jot a note…",
+
   "buttonDiscard": "Discard",
   "buttonRename": "Rename",
 

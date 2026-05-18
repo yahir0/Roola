@@ -947,6 +947,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get paneTabAddTooltip => 'Add tab';
 
   @override
+  String get notepadButtonTooltip => 'Notepad';
+
+  @override
+  String get notepadTitle => 'Notepad';
+
+  @override
+  String get notepadHint => 'Jot a note…';
+
+  @override
   String get buttonDiscard => 'Discard';
 
   @override

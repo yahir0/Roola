@@ -928,6 +928,15 @@ class AppLocalizationsJa extends AppLocalizations {
   String get paneTabAddTooltip => 'タブを追加';
 
   @override
+  String get notepadButtonTooltip => 'ノートパッド';
+
+  @override
+  String get notepadTitle => 'ノートパッド';
+
+  @override
+  String get notepadHint => 'メモを入力…';
+
+  @override
   String get buttonDiscard => '破棄';
 
   @override

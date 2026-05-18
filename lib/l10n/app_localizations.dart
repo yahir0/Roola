@@ -1754,6 +1754,24 @@ abstract class AppLocalizations {
   /// **'タブを追加'**
   String get paneTabAddTooltip;
 
+  /// No description provided for @notepadButtonTooltip.
+  ///
+  /// In ja, this message translates to:
+  /// **'ノートパッド'**
+  String get notepadButtonTooltip;
+
+  /// No description provided for @notepadTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'ノートパッド'**
+  String get notepadTitle;
+
+  /// No description provided for @notepadHint.
+  ///
+  /// In ja, this message translates to:
+  /// **'メモを入力…'**
+  String get notepadHint;
+
   /// No description provided for @buttonDiscard.
   ///
   /// In ja, this message translates to:

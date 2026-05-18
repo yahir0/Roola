@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:roola/app/router.dart';
 import 'package:roola/data/workspace/workspace_layout.dart';
@@ -7,6 +8,7 @@ import 'package:roola/l10n/app_localizations.dart';
 import 'package:roola/ui/common/app_bar_divider.dart';
 import 'package:roola/ui/common/macos_window_app_bar.dart';
 import 'package:roola/ui/explorer/explorer_sidebar.dart';
+import 'package:roola/ui/notepad/notepad_panel.dart';
 import 'package:roola/ui/workspace/pane_widget.dart';
 import 'package:roola/ui/workspace/workspace_provider.dart';
 import 'package:roola/ui/workspace/workspace_split.dart';
@@ -16,26 +18,52 @@ import 'package:roola/ui/workspace/workspace_split.dart';
 /// ウィンドウ AppBar + サイドバー + 3 ペインタブ式ワークスペース（ADR-0026）。
 /// 戻る / 進むはエクスプローラタブのペインヘッダへ移設したため、ここの
 /// AppBar には置かない。
-class WorkspacePage extends StatelessWidget {
+///
+/// ノートパッド（ADR-0036）の開閉はワークスペース内に閉じた一時的な
+/// UI 状態のため、Provider ではなく Hook のローカル状態で持つ。
+class WorkspacePage extends HookWidget {
   const WorkspacePage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final notepadOpen = useState(false);
+
     return Scaffold(
       appBar: MacosWindowAppBar(
         bottom: const AppBarDivider(),
         actions: [
           IconButton(
+            icon: const Icon(Icons.sticky_note_2_outlined),
+            tooltip: l10n.notepadButtonTooltip,
+            isSelected: notepadOpen.value,
+            onPressed: () => notepadOpen.value = !notepadOpen.value,
+          ),
+          IconButton(
             icon: const Icon(Icons.settings),
-            tooltip: AppLocalizations.of(context).settingsButtonTooltip,
+            tooltip: l10n.settingsButtonTooltip,
             onPressed: () => const SettingsRoute().push<void>(context),
           ),
         ],
       ),
-      body: const Row(
+      body: Row(
         children: [
-          ExplorerSidebar(),
-          Expanded(child: _WorkspaceArea()),
+          const ExplorerSidebar(),
+          Expanded(
+            child: Stack(
+              children: [
+                const _WorkspaceArea(),
+                if (notepadOpen.value)
+                  Positioned(
+                    right: 12,
+                    bottom: 12,
+                    child: NotepadPanel(
+                      onClose: () => notepadOpen.value = false,
+                    ),
+                  ),
+              ],
+            ),
+          ),
         ],
       ),
     );

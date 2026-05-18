@@ -4,6 +4,7 @@ import 'package:roola/app/app.dart';
 import 'package:roola/core/storage/app_paths.dart';
 import 'package:roola/data/launcher_entry/launcher_entry_repository_impl.dart';
 import 'package:roola/data/locale/locale_settings_repository_impl.dart';
+import 'package:roola/data/notepad/notepad_repository_impl.dart';
 import 'package:roola/data/workspace/workspace_repository_impl.dart';
 import 'package:roola/ui/workspace/workspace_seed.dart';
 import 'package:window_manager/window_manager.dart';
@@ -45,8 +46,11 @@ Future<void> main() async {
 
   // 表示言語も起動時に 1 度だけ読み込む。`MaterialApp` は初回フレームから
   // 確定したロケールで描画する必要があるため、Provider に注入する（ADR-0034）。
-  final initialLocale =
-      await LocaleSettingsRepositoryImpl(paths: paths).load();
+  final initialLocale = await LocaleSettingsRepositoryImpl(paths: paths).load();
+
+  // ノートパッド本文も起動時に読み込み、初回オープン時に即表示できるよう
+  // Provider に注入する（ADR-0036）。
+  final initialNotepad = await NotepadRepositoryImpl(paths: paths).load();
 
   runApp(
     ProviderScope(
@@ -54,6 +58,7 @@ Future<void> main() async {
         appPathsProvider.overrideWithValue(paths),
         workspaceInitialLayoutProvider.overrideWithValue(initialWorkspace),
         localeSettingsInitialProvider.overrideWithValue(initialLocale),
+        notepadInitialContentProvider.overrideWithValue(initialNotepad),
       ],
       child: const App(),
     ),
