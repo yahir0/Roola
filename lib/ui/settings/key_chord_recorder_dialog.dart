@@ -72,6 +72,8 @@ class _KeyChordRecorderDialog extends HookConsumerWidget {
     if (chord != null) {
       if (!isAssignableChord(chord)) {
         error = l10n.keyChordErrorMissingModifier;
+      } else if (isReservedChord(chord)) {
+        error = l10n.keyChordErrorReserved;
       } else {
         final conflict = conflictingCommand(
           effective: effective,

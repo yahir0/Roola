@@ -136,6 +136,7 @@
   "keybindingsResetAllConfirmMessage": "すべてのショートカットを既定のキーコンビに戻します。",
   "keybindingsResetOneTooltip": "デフォルトに戻す",
   "keyChordErrorMissingModifier": "修飾キー（⌘ ⌥ ⌃ ⇧）を 1 つ以上含めてください。",
+  "keyChordErrorReserved": "⌘C / ⌘V / ⌘X / ⌘A / ⌘Z はコピー & ペースト等のテキスト編集用に予約されています。",
   "keyChordErrorAlreadyAssigned": "「{label}」に割り当て済みです。",
   "@keyChordErrorAlreadyAssigned": {
     "placeholders": { "label": { "type": "String" } }

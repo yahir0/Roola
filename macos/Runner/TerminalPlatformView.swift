@@ -109,7 +109,7 @@ class RoolaTerminalView: NSView, TerminalViewDelegate {
       reply(nil)
     }
 
-    installShiftEnterMonitor()
+    installKeyMonitor()
   }
 
   required init?(coder: NSCoder) {
@@ -123,24 +123,53 @@ class RoolaTerminalView: NSView, TerminalViewDelegate {
     }
   }
 
-  // MARK: Shift+Enter による改行入力
+  // MARK: キーボード横取り（Shift+Enter / コピー & ペースト）
 
-  /// Shift+Enter を LF(`\n`) として送るローカル keyDown モニタを張る。
+  /// ローカル keyDown モニタを張り、SwiftTerm 既定処理より前にキーを
+  /// 横取りする（ADR-0032 / ADR-0035）。
   ///
-  /// 通常の Enter は SwiftTerm 既定の CR(`\r`)＝行確定のまま。Shift+Enter は
-  /// LF を送り、Claude Code 等の TUI に「改行の挿入」として解釈させる
-  /// （iTerm2 の Claude 用キーマップと同じ挙動）。
+  /// - Shift+Enter → LF(`\n`)。通常 Enter は SwiftTerm 既定の CR(`\r`)＝行
+  ///   確定のまま。Shift+Enter は LF を送り、Claude Code 等の TUI に
+  ///   「改行の挿入」として解釈させる（iTerm2 の Claude 用キーマップと同じ）。
+  /// - ⌘C / ⌘V → ターミナルのコピー / ペースト（ADR-0035）。
   ///
   /// SwiftTerm の `keyDown` は `public` 止まりでモジュール外から override
   /// できないため、サブクラス化ではなくローカルイベントモニタで横取りする。
-  private func installShiftEnterMonitor() {
+  private func installKeyMonitor() {
     keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) {
       [weak self] event in
-      guard let self = self, self.shouldSendLineFeed(for: event) else {
-        return event
+      guard let self = self else { return event }
+      if self.shouldSendLineFeed(for: event) {
+        self.dataChannel.sendMessage(RoolaTerminalView.lineFeed)
+        return nil  // keyDown へ伝播させない（CR を送らせない）。
       }
-      self.dataChannel.sendMessage(RoolaTerminalView.lineFeed)
-      return nil  // keyDown へ伝播させない（CR を送らせない）。
+      if self.handleClipboardShortcut(event) {
+        return nil  // SwiftTerm 既定処理へ伝播させない。
+      }
+      return event
+    }
+  }
+
+  /// 素の ⌘C / ⌘V をターミナルのコピー / ペーストとして処理する（ADR-0035）。
+  ///
+  /// このターミナルにフォーカスがあるときだけ反応する（タブ複数対応）。
+  /// ⇧/⌃/⌥ が混じるコンビ（⌘⇧C 等のアプリコマンド）はメニューバー側に
+  /// 委ねるため対象外。処理したら true を返す。
+  private func handleClipboardShortcut(_ event: NSEvent) -> Bool {
+    guard window?.firstResponder === terminal else { return false }
+    let flags = event.modifierFlags
+    guard flags.contains(.command),
+      flags.isDisjoint(with: [.shift, .control, .option])
+    else { return false }
+    switch event.charactersIgnoringModifiers {
+    case "c":
+      NSApp.sendAction(#selector(NSText.copy(_:)), to: terminal, from: self)
+      return true
+    case "v":
+      NSApp.sendAction(#selector(NSText.paste(_:)), to: terminal, from: self)
+      return true
+    default:
+      return false
     }
   }
 
@@ -175,11 +204,20 @@ class RoolaTerminalView: NSView, TerminalViewDelegate {
     )
   }
 
+  /// SwiftTerm が選択テキストのクリップボード書き出しを要求したときの実装
+  /// （ADR-0035）。⌘C → `copy:` アクション経由で呼ばれる。
+  func clipboardCopy(source: TerminalView, content: Data) {
+    guard let text = String(data: content, encoding: .utf8), !text.isEmpty
+    else { return }
+    let pasteboard = NSPasteboard.general
+    pasteboard.clearContents()
+    pasteboard.setString(text, forType: .string)
+  }
+
   // 以降は本アプリでは使わない `TerminalViewDelegate` 要件（空実装）。
   func scrolled(source: TerminalView, position: Double) {}
   func setTerminalTitle(source: TerminalView, title: String) {}
   func hostCurrentDirectoryUpdate(source: TerminalView, directory: String?) {}
-  func clipboardCopy(source: TerminalView, content: Data) {}
   func bell(source: TerminalView) {}
   func requestOpenLink(
     source: TerminalView, link: String, params: [String: String]

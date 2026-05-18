@@ -67,3 +67,25 @@ KeyChord? recordChord(KeyEvent event, {HardwareKeyboard? keyboard}) {
 
 /// 割り当て可能なキーコンビか。修飾キーを 1 つ以上含む必要がある（ADR-0033）。
 bool isAssignableChord(KeyChord chord) => !chord.hasNoModifier;
+
+/// テキスト編集の標準ショートカットとして予約されたトリガキー（ADR-0035）。
+/// コピー / ペースト / カット / 全選択 / 取り消しに対応する C / V / X / A / Z。
+final Set<int> _reservedTriggerKeyIds = {
+  LogicalKeyboardKey.keyC.keyId,
+  LogicalKeyboardKey.keyV.keyId,
+  LogicalKeyboardKey.keyX.keyId,
+  LogicalKeyboardKey.keyA.keyId,
+  LogicalKeyboardKey.keyZ.keyId,
+};
+
+/// [chord] がテキスト編集用に予約されたコンビか（ADR-0035）。
+///
+/// `⌘`（meta）単独 + {C, V, X, A, Z} の組だけを予約対象とする。⌘⇧C のように
+/// 修飾キーが増えたコンビは別物として割り当て可能（既定の copyPath 等）。
+/// 予約コンビはコマンドへ割り当てできず、コピー & ペースト等の標準動作に残す。
+bool isReservedChord(KeyChord chord) =>
+    chord.meta &&
+    !chord.control &&
+    !chord.shift &&
+    !chord.alt &&
+    _reservedTriggerKeyIds.contains(chord.triggerKeyId);
