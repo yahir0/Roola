@@ -68,6 +68,18 @@ lib/
 │   │   ├── appearance_settings_dto.dart
 │   │   ├── appearance_settings_repository.dart
 │   │   └── appearance_settings_repository_impl.dart
+│   ├── keybindings/                             # キーボードショートカット（ADR-0033）
+│   │   ├── key_chord.dart                       # Freezed（修飾キー + トリガキー）
+│   │   ├── key_chord_dto.dart                   # JSON DTO（json_serializable）
+│   │   ├── command_id.dart                      # enum CommandId（全コマンドの安定 ID）
+│   │   ├── command_category.dart                # enum CommandCategory
+│   │   ├── command_metadata.dart                # 1 コマンドの静的メタデータ
+│   │   ├── command_registry.dart                # CommandId → CommandMetadata の静的レジストリ
+│   │   ├── keybindings.dart                     # Freezed（ユーザー上書き Map）
+│   │   ├── keybindings_dto.dart                 # JSON DTO（json_serializable）
+│   │   ├── keybindings_repository.dart          # interface
+│   │   ├── keybindings_repository_impl.dart     # keybindings.json 実装 + Notifier
+│   │   └── effective_keybindings.dart           # 既定 + 上書きをマージする derived provider
 │   ├── terminal_runner/
 │   │   ├── terminal_run_state.dart              # Freezed Union（idle/starting/running/completed/failed/cancelled）
 │   │   ├── terminal_runner.dart                 # interface（レンダラ非依存。byte stream output + write/resize）
@@ -97,6 +109,10 @@ lib/
     │   └── app_paths.dart               # path_provider ラッパー
     ├── exceptions/
     │   └── app_exception.dart
+    ├── keybindings/                     # ショートカットの純粋ユーティリティ（ADR-0033）
+    │   ├── chord_formatter.dart         # KeyChord → 表示文字列 / SingleActivator 変換
+    │   ├── chord_conflict.dart          # キーコンビ衝突検出（純粋関数）
+    │   └── key_chord_recorder.dart      # 生 KeyEvent → KeyChord 組み立て
     └── utils/
         └── ...
 ```

@@ -38,6 +38,7 @@
 | [0030](./0030-git-tab.md) | Git ビューをワークスペースタブとして追加する | Accepted |
 | [0031](./0031-terminal-swiftterm-native-view.md) | ターミナル描画を xterm.dart から SwiftTerm ネイティブビューへ移行する | Accepted |
 | [0032](./0032-shift-enter-newline.md) | ターミナルで Shift+Enter を改行（LF）入力に割り当てる | Accepted |
+| [0033](./0033-customizable-keyboard-shortcuts.md) | コマンドレジストリとネイティブメニューバーによる統一ショートカット機構 | Accepted |
 
 ## フォーマット
 

@@ -1,6 +1,6 @@
 # ADR-0021: エクスプローラの操作モデルをダブルクリック化 + CC でパスコピー
 
-- **Status**: Accepted
+- **Status**: Accepted（`C` `C` 連打部分は ADR-0033 により Superseded。ダブルクリック式の操作モデルは有効）
 - **Date**: 2026-05-14
 
 ## Context
