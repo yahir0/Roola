@@ -236,14 +236,6 @@ abstract final class CommandRegistry {
       _chord(LogicalKeyboardKey.keyR, meta: true, shift: true),
       contextDependent: true,
     ),
-    CommandId.gitCommit: _meta(
-      CommandId.gitCommit,
-      CommandCategory.git,
-      'コミット',
-      Icons.check_circle_outline,
-      _chord(LogicalKeyboardKey.enter, meta: true),
-      contextDependent: true,
-    ),
     CommandId.gitFetch: _meta(
       CommandId.gitFetch,
       CommandCategory.git,

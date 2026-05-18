@@ -41,7 +41,6 @@ enum CommandId {
 
   // Git（フォーカス中 Git タブ対象）
   gitRefresh,
-  gitCommit,
   gitFetch,
   gitPull,
   gitPush,
