@@ -408,6 +408,10 @@
   "paneTabCloseTooltip": "タブを閉じる",
   "paneTabAddTooltip": "タブを追加",
 
+  "notepadButtonTooltip": "ノートパッド",
+  "notepadTitle": "ノートパッド",
+  "notepadHint": "メモを入力…",
+
   "buttonDiscard": "破棄",
   "buttonRename": "リネーム",
 
