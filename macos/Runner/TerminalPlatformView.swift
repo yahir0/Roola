@@ -109,6 +109,25 @@ class RoolaTerminalView: NSView, TerminalViewDelegate {
       reply(nil)
     }
 
+    // Dart→native: Flutter 側でターミナル面がフォーカスを得たとき、SwiftTerm を
+    // ウインドウの first responder にしてキー入力先を Flutter のフォーカスと
+    // 一致させる（ADR-0037）。
+    ctrlChannel.setMethodCallHandler { [weak self] call, result in
+      guard let self = self else {
+        result(nil)
+        return
+      }
+      switch call.method {
+      case "focusTerminal":
+        if self.window?.firstResponder !== self.terminal {
+          _ = self.window?.makeFirstResponder(self.terminal)
+        }
+        result(nil)
+      default:
+        result(FlutterMethodNotImplemented)
+      }
+    }
+
     installKeyMonitor()
   }
 
@@ -118,6 +137,7 @@ class RoolaTerminalView: NSView, TerminalViewDelegate {
 
   deinit {
     dataChannel.setMessageHandler(nil)
+    ctrlChannel.setMethodCallHandler(nil)
     if let keyMonitor = keyMonitor {
       NSEvent.removeMonitor(keyMonitor)
     }
