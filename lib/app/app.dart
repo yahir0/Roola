@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:roola/app/app_menu_bar.dart';
 import 'package:roola/app/router.dart';
 import 'package:roola/app/theme.dart';
 import 'package:roola/app/window_close_guard.dart';
@@ -31,11 +32,15 @@ class App extends ConsumerWidget {
       themeMode: ThemeMode.dark,
       routerConfig: router,
       debugShowCheckedModeBanner: false,
-      builder: (context, child) => WindowCloseGuard(
-        child: _AppearanceLayer(
-          appearance: appearance,
-          child: MouseNavigationListener(
-            child: child ?? const SizedBox.shrink(),
+      // ネイティブメニューバー（ADR-0033）。ショートカットの発火を
+      // PlatformMenuBar に一本化するため、最上位に配置する。
+      builder: (context, child) => AppMenuBar(
+        child: WindowCloseGuard(
+          child: _AppearanceLayer(
+            appearance: appearance,
+            child: MouseNavigationListener(
+              child: child ?? const SizedBox.shrink(),
+            ),
           ),
         ),
       ),
