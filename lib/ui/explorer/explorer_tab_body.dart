@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:roola/core/skill/skill_scanner.dart';
@@ -121,9 +120,6 @@ class _DirectoryListing extends HookConsumerWidget {
   /// 右クリック可能な空きエリアを残す。
   static const double _bottomBackdropHeight = 160;
 
-  /// CC 連打が同一シーケンスとみなされる猶予時間。
-  static const Duration _ccGap = Duration(milliseconds: 500);
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isEmpty = state.children.isEmpty;
@@ -138,34 +134,6 @@ class _DirectoryListing extends HookConsumerWidget {
         }
       },
     );
-
-    final lastCAt = useRef<DateTime?>(null);
-    final focusNode = useFocusNode();
-
-    void handleC() {
-      final selectedPath = ref.read(explorerItemSelectionProvider(tabId));
-      if (selectedPath == null) {
-        lastCAt.value = null;
-        return;
-      }
-      final now = DateTime.now();
-      final prev = lastCAt.value;
-      if (prev != null && now.difference(prev) <= _ccGap) {
-        Clipboard.setData(ClipboardData(text: selectedPath));
-        lastCAt.value = null;
-        final messenger = ScaffoldMessenger.maybeOf(context);
-        messenger?.removeCurrentSnackBar();
-        messenger?.showSnackBar(
-          SnackBar(
-            content: Text('パスをコピーしました: $selectedPath'),
-            duration: const Duration(seconds: 2),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      } else {
-        lastCAt.value = now;
-      }
-    }
 
     final body = CustomScrollView(
       // currentPath を含む ValueKey で、ディレクトリ切替時に再生成して
@@ -206,21 +174,9 @@ class _DirectoryListing extends HookConsumerWidget {
       ],
     );
 
-    return Focus(
-      focusNode: focusNode,
-      onKeyEvent: (node, event) {
-        if (event is! KeyDownEvent) {
-          return KeyEventResult.ignored;
-        }
-        if (event.logicalKey == LogicalKeyboardKey.keyC) {
-          handleC();
-          return KeyEventResult.handled;
-        }
-        lastCAt.value = null;
-        return KeyEventResult.ignored;
-      },
-      child: body,
-    );
+    // パスのコピーは `copyPath` コマンド（メニューバー / 設定でカスタマイズ
+    // 可能）に統合した（ADR-0033）。旧 C C 連打検出はここで廃止。
+    return body;
   }
 }
 
