@@ -215,21 +215,29 @@ class _RefChip extends StatelessWidget {
         color: bg,
         borderRadius: BorderRadius.circular(2),
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(isTag ? Icons.sell_outlined : Icons.commit, size: 11, color: fg),
-          const SizedBox(width: 3),
-          // 親 Flexible が幅を絞ったときはラベルを省略表示する。
-          Flexible(
-            child: Text(
-              text,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(fontSize: 10, color: fg),
+      // アイコンをインライン（WidgetSpan）にして Flex を持たせない。
+      // こうすると親 Flexible が幅を極端に絞っても、Row のように
+      // オーバーフローせず単に省略表示される。
+      child: Text.rich(
+        TextSpan(
+          children: [
+            WidgetSpan(
+              alignment: PlaceholderAlignment.middle,
+              child: Padding(
+                padding: const EdgeInsets.only(right: 3),
+                child: Icon(
+                  isTag ? Icons.sell_outlined : Icons.commit,
+                  size: 11,
+                  color: fg,
+                ),
+              ),
             ),
-          ),
-        ],
+            TextSpan(text: text),
+          ],
+        ),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(fontSize: 10, color: fg),
       ),
     );
   }

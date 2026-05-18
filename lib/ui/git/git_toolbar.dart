@@ -30,81 +30,78 @@ class GitToolbar extends ConsumerWidget {
           bottom: BorderSide(color: Theme.of(context).dividerColor),
         ),
       ),
-      child: Row(
-        children: [
-          // ブランチセレクタ。
-          Flexible(
-            child: OutlinedButton.icon(
-              icon: const Icon(Icons.account_tree_outlined, size: 15),
-              label: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Flexible(
-                    child: Text(
-                      state.branch ?? '(detached)',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          // 横幅が狭いときはアクションボタンをアイコンのみに切り替え、
+          // ブランチセレクタに十分な余地を残す。
+          final compact = constraints.maxWidth < 520;
+          return Row(
+            children: [
+              // ブランチセレクタ。
+              Flexible(
+                child: _BranchButton(
+                  label: state.branch ?? '(detached)',
+                  onPressed: state.isBusy
+                      ? null
+                      : () => showGitBranchMenu(context, tabId),
+                ),
+              ),
+              const SizedBox(width: 8),
+              if ((state.ahead > 0 || state.behind > 0) && !compact)
+                _AheadBehind(ahead: state.ahead, behind: state.behind),
+              const Spacer(),
+              _ToolbarButton(
+                icon: Icons.sync,
+                label: 'Fetch',
+                compact: compact,
+                busy: running == GitOperation.fetch,
+                enabled: !state.isBusy,
+                onPressed: notifier.fetch,
+              ),
+              _ToolbarButton(
+                icon: Icons.arrow_downward,
+                label: 'Pull',
+                compact: compact,
+                busy: running == GitOperation.pull,
+                enabled: !state.isBusy,
+                onPressed: notifier.pull,
+              ),
+              _ToolbarButton(
+                icon: Icons.arrow_upward,
+                label: 'Push',
+                compact: compact,
+                busy: running == GitOperation.push,
+                enabled: !state.isBusy,
+                onPressed: notifier.push,
+              ),
+              PopupMenuButton<_GitOverflow>(
+                enabled: !state.isBusy,
+                tooltip: 'その他の操作',
+                icon: Icon(Icons.more_vert, size: 18, color: colors.onSurface),
+                onSelected: (value) => _onOverflow(context, ref, value),
+                itemBuilder: (context) => [
+                  _overflowItem(_GitOverflow.refresh, Icons.refresh, '再読込'),
+                  _overflowItem(
+                    _GitOverflow.stashSave,
+                    Icons.inventory_2_outlined,
+                    '変更を stash に退避',
                   ),
-                  const Icon(Icons.arrow_drop_down, size: 16),
+                  _overflowItem(
+                    _GitOverflow.stashList,
+                    Icons.list_alt,
+                    'stash 一覧 (${state.stashes.length})',
+                  ),
+                  const PopupMenuDivider(),
+                  _overflowItem(
+                    _GitOverflow.forcePush,
+                    Icons.published_with_changes,
+                    'Push (--force-with-lease)',
+                  ),
                 ],
               ),
-              onPressed: state.isBusy
-                  ? null
-                  : () => showGitBranchMenu(context, tabId),
-            ),
-          ),
-          const SizedBox(width: 8),
-          if (state.ahead > 0 || state.behind > 0)
-            _AheadBehind(ahead: state.ahead, behind: state.behind),
-          const Spacer(),
-          _ToolbarButton(
-            icon: Icons.sync,
-            label: 'Fetch',
-            busy: running == GitOperation.fetch,
-            enabled: !state.isBusy,
-            onPressed: notifier.fetch,
-          ),
-          _ToolbarButton(
-            icon: Icons.arrow_downward,
-            label: 'Pull',
-            busy: running == GitOperation.pull,
-            enabled: !state.isBusy,
-            onPressed: notifier.pull,
-          ),
-          _ToolbarButton(
-            icon: Icons.arrow_upward,
-            label: 'Push',
-            busy: running == GitOperation.push,
-            enabled: !state.isBusy,
-            onPressed: notifier.push,
-          ),
-          PopupMenuButton<_GitOverflow>(
-            enabled: !state.isBusy,
-            tooltip: 'その他の操作',
-            icon: Icon(Icons.more_vert, size: 18, color: colors.onSurface),
-            onSelected: (value) => _onOverflow(context, ref, value),
-            itemBuilder: (context) => [
-              _overflowItem(_GitOverflow.refresh, Icons.refresh, '再読込'),
-              _overflowItem(
-                _GitOverflow.stashSave,
-                Icons.inventory_2_outlined,
-                '変更を stash に退避',
-              ),
-              _overflowItem(
-                _GitOverflow.stashList,
-                Icons.list_alt,
-                'stash 一覧 (${state.stashes.length})',
-              ),
-              const PopupMenuDivider(),
-              _overflowItem(
-                _GitOverflow.forcePush,
-                Icons.published_with_changes,
-                'Push (--force-with-lease)',
-              ),
             ],
-          ),
-        ],
+          );
+        },
       ),
     );
   }
@@ -163,6 +160,45 @@ class GitToolbar extends ConsumerWidget {
 
 enum _GitOverflow { refresh, stashSave, stashList, forcePush }
 
+/// ブランチセレクタボタン。
+///
+/// アイコンをインライン（`WidgetSpan`）にして子に `Row`（Flex）を持たせない。
+/// こうするとボタンが極端に狭い幅まで絞られても、`Row` のように
+/// オーバーフローのアサーションを出さず単に省略表示になる。
+class _BranchButton extends StatelessWidget {
+  const _BranchButton({required this.label, required this.onPressed});
+
+  final String label;
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return OutlinedButton(
+      style: OutlinedButton.styleFrom(
+        minimumSize: Size.zero,
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+      ),
+      onPressed: onPressed,
+      child: Text.rich(
+        TextSpan(
+          children: [
+            const WidgetSpan(
+              alignment: PlaceholderAlignment.middle,
+              child: Padding(
+                padding: EdgeInsets.only(right: 6),
+                child: Icon(Icons.account_tree_outlined, size: 15),
+              ),
+            ),
+            TextSpan(text: label),
+          ],
+        ),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+    );
+  }
+}
+
 class _AheadBehind extends StatelessWidget {
   const _AheadBehind({required this.ahead, required this.behind});
 
@@ -194,6 +230,7 @@ class _ToolbarButton extends StatelessWidget {
   const _ToolbarButton({
     required this.icon,
     required this.label,
+    required this.compact,
     required this.busy,
     required this.enabled,
     required this.onPressed,
@@ -201,22 +238,39 @@ class _ToolbarButton extends StatelessWidget {
 
   final IconData icon;
   final String label;
+  final bool compact;
   final bool busy;
   final bool enabled;
   final VoidCallback onPressed;
 
   @override
   Widget build(BuildContext context) {
+    final iconWidget = busy
+        ? const SizedBox(
+            width: 13,
+            height: 13,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          )
+        : Icon(icon, size: 15);
+
+    // 横幅が狭いときはラベルを省きアイコンのみのボタンにする。
+    // 高さ 40 のツールバーに収まるようサイズを明示的に絞る。
+    if (compact) {
+      return IconButton(
+        icon: iconWidget,
+        tooltip: label,
+        visualDensity: VisualDensity.compact,
+        padding: EdgeInsets.zero,
+        constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+        iconSize: 15,
+        onPressed: enabled ? onPressed : null,
+      );
+    }
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 2),
       child: TextButton.icon(
-        icon: busy
-            ? const SizedBox(
-                width: 13,
-                height: 13,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              )
-            : Icon(icon, size: 15),
+        icon: iconWidget,
         label: Text(label),
         onPressed: enabled ? onPressed : null,
       ),
