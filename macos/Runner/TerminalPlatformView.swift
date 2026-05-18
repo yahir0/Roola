@@ -51,9 +51,16 @@ class TerminalViewFactory: NSObject, FlutterPlatformViewFactory {
 /// SwiftTerm `TerminalView` を 1 枚ホストする `NSView`。チャネル配線と
 /// `TerminalViewDelegate` を兼ねる。
 class RoolaTerminalView: NSView, TerminalViewDelegate {
+  /// Return キー（36）/ テンキー Enter（76）の keyCode。
+  private static let returnKeyCodes: Set<UInt16> = [36, 76]
+  /// Shift+Enter で送る LF（`\n`）。
+  private static let lineFeed = Data([0x0a])
+
   private let terminal: TerminalView
   private let dataChannel: FlutterBasicMessageChannel
   private let ctrlChannel: FlutterMethodChannel
+  /// Shift+Enter を横取りするためのローカル keyDown モニタ。
+  private var keyMonitor: Any?
 
   init(
     channelId: String,
@@ -101,6 +108,8 @@ class RoolaTerminalView: NSView, TerminalViewDelegate {
       }
       reply(nil)
     }
+
+    installShiftEnterMonitor()
   }
 
   required init?(coder: NSCoder) {
@@ -109,6 +118,46 @@ class RoolaTerminalView: NSView, TerminalViewDelegate {
 
   deinit {
     dataChannel.setMessageHandler(nil)
+    if let keyMonitor = keyMonitor {
+      NSEvent.removeMonitor(keyMonitor)
+    }
+  }
+
+  // MARK: Shift+Enter による改行入力
+
+  /// Shift+Enter を LF(`\n`) として送るローカル keyDown モニタを張る。
+  ///
+  /// 通常の Enter は SwiftTerm 既定の CR(`\r`)＝行確定のまま。Shift+Enter は
+  /// LF を送り、Claude Code 等の TUI に「改行の挿入」として解釈させる
+  /// （iTerm2 の Claude 用キーマップと同じ挙動）。
+  ///
+  /// SwiftTerm の `keyDown` は `public` 止まりでモジュール外から override
+  /// できないため、サブクラス化ではなくローカルイベントモニタで横取りする。
+  private func installShiftEnterMonitor() {
+    keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) {
+      [weak self] event in
+      guard let self = self, self.shouldSendLineFeed(for: event) else {
+        return event
+      }
+      self.dataChannel.sendMessage(RoolaTerminalView.lineFeed)
+      return nil  // keyDown へ伝播させない（CR を送らせない）。
+    }
+  }
+
+  /// `event` が「このターミナル宛ての素の Shift+Enter」かを判定する。
+  private func shouldSendLineFeed(for event: NSEvent) -> Bool {
+    // フォーカスが自分のターミナルにあるときだけ反応する（タブ複数対応）。
+    guard window?.firstResponder === terminal else { return false }
+    // Kitty keyboard protocol 有効時は SwiftTerm が修飾キー込みで Enter を
+    // 報告できるため横取りしない。
+    guard terminal.getTerminal().keyboardEnhancementFlags.isEmpty else {
+      return false
+    }
+    let flags = event.modifierFlags
+    return RoolaTerminalView.returnKeyCodes.contains(event.keyCode)
+      && flags.contains(.shift)
+      // Ctrl / Cmd / Option との同時押しは SwiftTerm 既定処理に委ねる。
+      && flags.isDisjoint(with: [.control, .command, .option])
   }
 
   // MARK: TerminalViewDelegate
