@@ -8,6 +8,8 @@ import 'package:roola/app/theme.dart';
 import 'package:roola/app/window_close_guard.dart';
 import 'package:roola/data/appearance/appearance_settings.dart';
 import 'package:roola/data/appearance/appearance_settings_repository_impl.dart';
+import 'package:roola/data/locale/locale_settings_repository_impl.dart';
+import 'package:roola/l10n/app_localizations.dart';
 import 'package:roola/ui/common/mouse_navigation_listener.dart';
 
 /// アプリ最上位の Widget。
@@ -25,6 +27,7 @@ class App extends ConsumerWidget {
     final appearance =
         ref.watch(appearanceSettingsProvider).value ??
         AppearanceSettings.defaults();
+    final locale = ref.watch(appLocaleProvider);
     return MaterialApp.router(
       title: 'Roola',
       theme: AppTheme.light(),
@@ -32,6 +35,11 @@ class App extends ConsumerWidget {
       themeMode: ThemeMode.dark,
       routerConfig: router,
       debugShowCheckedModeBanner: false,
+      // 表示言語（ADR-0034）。設定値由来の locale を渡し、
+      // localizationsDelegates / supportedLocales は gen-l10n の生成物。
+      locale: locale.locale,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       // ネイティブメニューバー（ADR-0033）。ショートカットの発火を
       // PlatformMenuBar に一本化するため、最上位に配置する。
       builder: (context, child) => AppMenuBar(

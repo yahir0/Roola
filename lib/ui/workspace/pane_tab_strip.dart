@@ -7,6 +7,8 @@ import 'package:roola/data/keybindings/effective_keybindings.dart';
 import 'package:roola/data/workspace/pane_slot.dart';
 import 'package:roola/data/workspace/workspace_layout.dart';
 import 'package:roola/data/workspace/workspace_tab.dart';
+import 'package:roola/l10n/app_localizations.dart';
+import 'package:roola/ui/common/command_l10n.dart';
 import 'package:roola/ui/workspace/workspace_provider.dart';
 
 /// ペイン上端のタブストリップ。
@@ -177,7 +179,7 @@ class _TabChip extends ConsumerWidget {
               const SizedBox(width: 2),
               IconButton(
                 icon: const Icon(Icons.close, size: 14),
-                tooltip: 'タブを閉じる',
+                tooltip: AppLocalizations.of(context).paneTabCloseTooltip,
                 visualDensity: VisualDensity.compact,
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(minWidth: 22, minHeight: 22),
@@ -206,7 +208,7 @@ class _TabChip extends ConsumerWidget {
         value: action,
         child: ListTile(
           leading: Icon(metadata.icon),
-          title: Text(metadata.label),
+          title: Text(AppLocalizations.of(context).commandLabel(command)),
           trailing: Text(
             formatChord(effective[command]!),
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -315,7 +317,7 @@ class _AddTabButton extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return PopupMenuButton<_AddTabKind>(
       icon: const Icon(Icons.add, size: 18),
-      tooltip: 'タブを追加',
+      tooltip: AppLocalizations.of(context).paneTabAddTooltip,
       iconSize: 18,
       padding: EdgeInsets.zero,
       onSelected: (kind) {

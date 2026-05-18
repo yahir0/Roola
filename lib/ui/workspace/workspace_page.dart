@@ -3,6 +3,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:roola/app/router.dart';
 import 'package:roola/data/workspace/workspace_layout.dart';
 import 'package:roola/data/workspace/workspace_layout_mode.dart';
+import 'package:roola/l10n/app_localizations.dart';
 import 'package:roola/ui/common/app_bar_divider.dart';
 import 'package:roola/ui/common/macos_window_app_bar.dart';
 import 'package:roola/ui/explorer/explorer_sidebar.dart';
@@ -26,7 +27,7 @@ class WorkspacePage extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.settings),
-            tooltip: '設定',
+            tooltip: AppLocalizations.of(context).settingsButtonTooltip,
             onPressed: () => const SettingsRoute().push<void>(context),
           ),
         ],

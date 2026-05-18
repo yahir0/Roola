@@ -3,9 +3,10 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:roola/app/command_dispatcher.dart';
 import 'package:roola/core/keybindings/chord_formatter.dart';
 import 'package:roola/data/keybindings/command_id.dart';
-import 'package:roola/data/keybindings/command_registry.dart';
 import 'package:roola/data/keybindings/effective_keybindings.dart';
 import 'package:roola/data/keybindings/key_chord.dart';
+import 'package:roola/l10n/app_localizations.dart';
+import 'package:roola/ui/common/command_l10n.dart';
 import 'package:roola/ui/settings/key_chord_recorder_dialog.dart';
 
 /// macOS ネイティブメニューバー（ADR-0033）。
@@ -28,24 +29,26 @@ class AppMenuBar extends ConsumerWidget {
     // レコーダ表示中はメニューの key equivalent を外し、入力キーが
     // レコーダまで届くようにする（ADR-0033）。
     final recording = ref.watch(keybindingRecordingProvider);
+    final l10n = AppLocalizations.of(context);
     return PlatformMenuBar(
-      menus: _menus(ref, effective, recording: recording),
+      menus: _menus(ref, l10n, effective, recording: recording),
       child: child,
     );
   }
 
   List<PlatformMenuItem> _menus(
     WidgetRef ref,
+    AppLocalizations l10n,
     Map<CommandId, KeyChord> effective, {
     required bool recording,
   }) {
     PlatformMenuItem item(CommandId id) =>
-        _commandItem(ref, effective, id, recording: recording);
+        _commandItem(ref, l10n, effective, id, recording: recording);
 
     return [
       // macOS の先頭メニュー（アプリメニュー）。
       PlatformMenu(
-        label: 'Roola',
+        label: l10n.appMenuRoola,
         menus: [
           const PlatformProvidedMenuItem(
             type: PlatformProvidedMenuItemType.about,
@@ -86,7 +89,7 @@ class AppMenuBar extends ConsumerWidget {
         ],
       ),
       PlatformMenu(
-        label: 'ファイル',
+        label: l10n.appMenuFile,
         menus: [
           PlatformMenuItemGroup(
             members: [
@@ -104,7 +107,7 @@ class AppMenuBar extends ConsumerWidget {
         ],
       ),
       PlatformMenu(
-        label: '編集',
+        label: l10n.appMenuEdit,
         menus: [
           PlatformMenuItemGroup(
             members: [
@@ -122,7 +125,7 @@ class AppMenuBar extends ConsumerWidget {
         ],
       ),
       PlatformMenu(
-        label: '表示',
+        label: l10n.appMenuView,
         menus: [
           PlatformMenuItemGroup(
             members: [
@@ -146,14 +149,14 @@ class AppMenuBar extends ConsumerWidget {
         ],
       ),
       PlatformMenu(
-        label: 'ターミナル',
+        label: l10n.appMenuTerminal,
         menus: [
           item(CommandId.openTerminalHere),
           item(CommandId.openClaudeHere),
         ],
       ),
       PlatformMenu(
-        label: 'Git',
+        label: l10n.appMenuGit,
         menus: [
           PlatformMenuItemGroup(members: [item(CommandId.gitRefresh)]),
           PlatformMenuItemGroup(
@@ -166,7 +169,7 @@ class AppMenuBar extends ConsumerWidget {
         ],
       ),
       PlatformMenu(
-        label: 'ペイン',
+        label: l10n.appMenuPane,
         menus: [
           item(CommandId.moveTabTopLeft),
           item(CommandId.moveTabTopRight),
@@ -178,12 +181,13 @@ class AppMenuBar extends ConsumerWidget {
 
   PlatformMenuItem _commandItem(
     WidgetRef ref,
+    AppLocalizations l10n,
     Map<CommandId, KeyChord> effective,
     CommandId id, {
     required bool recording,
   }) {
     return PlatformMenuItem(
-      label: CommandRegistry.metadataFor(id).label,
+      label: l10n.commandLabel(id),
       shortcut: recording ? null : toSingleActivator(effective[id]!),
       onSelected: () => dispatchCommand(id, ref),
     );

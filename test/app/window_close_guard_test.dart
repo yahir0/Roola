@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:roola/app/window_close_guard.dart';
+import 'package:roola/l10n/app_localizations.dart';
 
 void main() {
   Future<void> pumpHarness(
@@ -10,6 +11,9 @@ void main() {
   }) async {
     await tester.pumpWidget(
       MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        locale: const Locale('ja'),
         home: Scaffold(
           body: Builder(
             builder: (context) => ElevatedButton(

@@ -6,6 +6,8 @@ import 'package:roola/data/keybindings/command_id.dart';
 import 'package:roola/data/keybindings/command_registry.dart';
 import 'package:roola/data/keybindings/effective_keybindings.dart';
 import 'package:roola/data/keybindings/keybindings_repository_impl.dart';
+import 'package:roola/l10n/app_localizations.dart';
+import 'package:roola/ui/common/command_l10n.dart';
 import 'package:roola/ui/common/macos_window_app_bar.dart';
 import 'package:roola/ui/settings/key_chord_recorder_dialog.dart';
 
@@ -19,7 +21,9 @@ class KeybindingsPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      appBar: const MacosWindowAppBar(title: Text('キーボードショートカット')),
+      appBar: MacosWindowAppBar(
+        title: Text(AppLocalizations.of(context).keybindingsPageTitle),
+      ),
       body: ListView(
         children: [
           const _Intro(),
@@ -41,6 +45,7 @@ class _Intro extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context);
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 20, 24, 8),
       child: Row(
@@ -48,9 +53,7 @@ class _Intro extends ConsumerWidget {
         children: [
           Expanded(
             child: Text(
-              '行をクリックしてショートカットを変更できます。'
-              '修飾キー（⌘ ⌥ ⌃ ⇧）を 1 つ以上含める必要があり、'
-              '他のコマンドと重複するキーは保存できません。',
+              l10n.keybindingsIntro,
               style: Theme.of(
                 context,
               ).textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant),
@@ -59,7 +62,7 @@ class _Intro extends ConsumerWidget {
           const SizedBox(width: 16),
           TextButton(
             onPressed: () => _confirmResetAll(context, ref),
-            child: const Text('すべてデフォルトに戻す'),
+            child: Text(l10n.keybindingsResetAllButton),
           ),
         ],
       ),
@@ -69,20 +72,23 @@ class _Intro extends ConsumerWidget {
   Future<void> _confirmResetAll(BuildContext context, WidgetRef ref) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('すべてデフォルトに戻しますか？'),
-        content: const Text('すべてのショートカットを既定のキーコンビに戻します。'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('キャンセル'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('戻す'),
-          ),
-        ],
-      ),
+      builder: (context) {
+        final l10n = AppLocalizations.of(context);
+        return AlertDialog(
+          title: Text(l10n.keybindingsResetAllConfirmTitle),
+          content: Text(l10n.keybindingsResetAllConfirmMessage),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text(l10n.buttonCancel),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: Text(l10n.buttonReset),
+            ),
+          ],
+        );
+      },
     );
     if (confirmed == true) {
       await ref.read(keybindingsProvider.notifier).resetAll();
@@ -100,7 +106,7 @@ class _CategoryHeader extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 20, 24, 4),
       child: Text(
-        category.label,
+        AppLocalizations.of(context).commandCategoryLabel(category),
         style: Theme.of(
           context,
         ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
@@ -130,13 +136,13 @@ class _KeybindingRow extends ConsumerWidget {
       dense: true,
       contentPadding: const EdgeInsets.symmetric(horizontal: 24),
       leading: Icon(metadata.icon),
-      title: Text(metadata.label),
+      title: Text(AppLocalizations.of(context).commandLabel(commandId)),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           if (overridden)
             IconButton(
-              tooltip: 'デフォルトに戻す',
+              tooltip: AppLocalizations.of(context).keybindingsResetOneTooltip,
               visualDensity: VisualDensity.compact,
               icon: const Icon(Icons.settings_backup_restore, size: 18),
               onPressed: () => ref

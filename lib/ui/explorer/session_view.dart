@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:roola/data/terminal_runner/terminal_run_state.dart';
+import 'package:roola/l10n/app_localizations.dart';
 import 'package:roola/ui/common/session_state_icon.dart';
 import 'package:roola/ui/explorer/terminal_surface.dart';
 import 'package:roola/ui/run/adhoc_run_view_model.dart';
@@ -72,15 +73,17 @@ class _SessionHeader extends StatelessWidget {
         state is SkillRunCompleted ||
         state is SkillRunFailed ||
         state is SkillRunCancelled;
+    final l10n = AppLocalizations.of(context);
     final label = switch (state) {
-      SkillRunIdle() => '待機中',
-      SkillRunStarting() => '起動中…',
-      SkillRunRunning() => '実行中',
-      SkillRunWaitingInput() => '入力待ち',
-      SkillRunCompleted(:final exitCode) =>
-        exitCode == 0 ? '完了 (0)' : '終了 ($exitCode)',
-      SkillRunFailed() => '失敗',
-      SkillRunCancelled() => 'キャンセル',
+      SkillRunIdle() => l10n.sessionStateIdle,
+      SkillRunStarting() => l10n.sessionStateStarting,
+      SkillRunRunning() => l10n.sessionStateRunning,
+      SkillRunWaitingInput() => l10n.sessionStateWaitingInput,
+      SkillRunCompleted(:final exitCode) => exitCode == 0
+          ? l10n.sessionStateCompleted(0)
+          : l10n.sessionStateExited(exitCode),
+      SkillRunFailed() => l10n.sessionStateFailed,
+      SkillRunCancelled() => l10n.sessionStateCancelled,
     };
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
@@ -102,13 +105,13 @@ class _SessionHeader extends StatelessWidget {
           if (isRunning)
             IconButton(
               icon: const Icon(Icons.stop),
-              tooltip: 'キャンセル (PTY を終了。出力履歴は残る)',
+              tooltip: AppLocalizations.of(context).sessionCancelTooltip,
               onPressed: onCancel,
             ),
           if (isTerminated)
             IconButton(
               icon: const Icon(Icons.refresh),
-              tooltip: '再実行',
+              tooltip: AppLocalizations.of(context).sessionRerunTooltip,
               onPressed: onRestart,
             ),
           if (state is SkillRunFailed) ...[

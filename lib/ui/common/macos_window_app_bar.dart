@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:roola/l10n/app_localizations.dart';
 import 'package:window_manager/window_manager.dart';
 
 /// macOS の信号灯ボタン（close / minimize / maximize）と AppBar の
@@ -67,6 +68,7 @@ class MacosWindowAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final navigator = Navigator.of(context);
     final canPop = navigator.canPop();
     // onBack 指定が無くて pop 可能なら、暗黙の Navigator.pop を行う
@@ -107,13 +109,13 @@ class MacosWindowAppBar extends StatelessWidget implements PreferredSizeWidget {
                   if (showBack)
                     IconButton(
                       icon: const Icon(Icons.arrow_back_ios_new_rounded),
-                      tooltip: '戻る',
+                      tooltip: l10n.navBack,
                       onPressed: effectiveOnBack,
                     ),
                   if (showForward)
                     IconButton(
                       icon: const Icon(Icons.arrow_forward_ios_rounded),
-                      tooltip: '進む',
+                      tooltip: l10n.navForward,
                       onPressed: onForward,
                     ),
                 ],

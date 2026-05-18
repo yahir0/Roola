@@ -10,6 +10,7 @@ import 'package:roola/data/launcher_entry/launcher_action.dart';
 import 'package:roola/data/repo_explorer/explorer_settings.dart';
 import 'package:roola/data/repo_explorer/explorer_settings_repository_impl.dart';
 import 'package:roola/data/workspace/workspace_layout.dart';
+import 'package:roola/l10n/app_localizations.dart';
 import 'package:roola/ui/common/prompt_name_dialog.dart';
 import 'package:roola/ui/explorer/explorer_clipboard_provider.dart';
 import 'package:roola/ui/explorer/explorer_properties_dialog.dart';
@@ -46,12 +47,17 @@ Future<void> runCreateEntry(
   required String explorerTabId,
   required bool isDirectory,
 }) async {
-  final defaultName = isDirectory ? '新規フォルダ' : '新規テキストファイル.txt';
+  final l10n = AppLocalizations.of(context);
+  final defaultName = isDirectory
+      ? l10n.explorerDefaultFolderName
+      : l10n.explorerDefaultFileName;
   final name = await promptName(
     context,
-    title: isDirectory ? '新規フォルダ名' : '新規ファイル名',
+    title: isDirectory
+        ? l10n.explorerNewFolderTitle
+        : l10n.explorerNewFileTitle,
     initialValue: defaultName,
-    confirmLabel: '作成',
+    confirmLabel: l10n.buttonCreate,
   );
   if (name == null || name.trim().isEmpty || !context.mounted) {
     return;
@@ -68,7 +74,7 @@ Future<void> runCreateEntry(
     if (!context.mounted) {
       return;
     }
-    _snack(context, '作成に失敗しました: ${e.message}');
+    _snack(context, l10n.explorerSnackbarCreateFailed(e.message));
   }
 }
 
@@ -80,11 +86,12 @@ Future<void> runRename(
   required String currentName,
   required String explorerTabId,
 }) async {
+  final l10n = AppLocalizations.of(context);
   final newName = await promptName(
     context,
-    title: '名前を変更',
+    title: l10n.explorerRenameTitle,
     initialValue: currentName,
-    confirmLabel: '変更',
+    confirmLabel: l10n.buttonChange,
   );
   if (newName == null ||
       newName.trim().isEmpty ||
@@ -102,7 +109,7 @@ Future<void> runRename(
     if (!context.mounted) {
       return;
     }
-    _snack(context, 'リネームに失敗しました: ${e.message}');
+    _snack(context, l10n.explorerSnackbarRenameFailed(e.message));
   }
 }
 
@@ -135,10 +142,11 @@ Future<void> runPaste(
   if (!context.mounted) {
     return;
   }
+  final l10n = AppLocalizations.of(context);
   if (lastError != null) {
-    _snack(context, 'ペーストに失敗しました: $lastError');
+    _snack(context, l10n.explorerSnackbarPasteFailed(lastError));
   } else if (missing.isNotEmpty) {
-    _snack(context, 'コピー元が見つかりません: ${missing.join(', ')}');
+    _snack(context, l10n.explorerSnackbarSourceNotFound(missing.join(', ')));
   }
 }
 
@@ -150,22 +158,26 @@ Future<void> runMoveToTrash(
   required String displayName,
   required String explorerTabId,
 }) async {
+  final l10n = AppLocalizations.of(context);
   final confirmed = await showDialog<bool>(
     context: context,
-    builder: (context) => AlertDialog(
-      title: const Text('削除しますか？'),
-      content: Text('「$displayName」をゴミ箱に移動します。'),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(false),
-          child: const Text('キャンセル'),
-        ),
-        FilledButton(
-          onPressed: () => Navigator.of(context).pop(true),
-          child: const Text('削除'),
-        ),
-      ],
-    ),
+    builder: (context) {
+      final l10n = AppLocalizations.of(context);
+      return AlertDialog(
+        title: Text(l10n.explorerDeleteConfirmTitle),
+        content: Text(l10n.explorerDeleteConfirmMessage(displayName)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(l10n.buttonCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(l10n.buttonDelete),
+          ),
+        ],
+      );
+    },
   );
   if (confirmed != true || !context.mounted) {
     return;
@@ -176,12 +188,15 @@ Future<void> runMoveToTrash(
     if (!context.mounted) {
       return;
     }
-    _snack(context, 'ゴミ箱に移動しました: $displayName');
+    _snack(context, l10n.explorerSnackbarMovedToTrash(displayName));
   } on PlatformException catch (e) {
     if (!context.mounted) {
       return;
     }
-    _snack(context, 'ゴミ箱に移動できませんでした: ${e.message ?? e.code}');
+    _snack(
+      context,
+      l10n.explorerSnackbarMoveToTrashFailed(e.message ?? e.code),
+    );
   }
 }
 
@@ -194,7 +209,7 @@ Future<void> runCopyPath(
   if (!context.mounted) {
     return;
   }
-  _snack(context, 'パスをコピーしました: $path');
+  _snack(context, AppLocalizations.of(context).explorerSnackbarPathCopied(path));
 }
 
 /// アイテムを OS クリップボードへファイルとしてコピーする。
@@ -208,7 +223,10 @@ Future<void> runCopyItem(
   if (!context.mounted) {
     return;
   }
-  _snack(context, 'コピーしました: $displayName');
+  _snack(
+    context,
+    AppLocalizations.of(context).explorerSnackbarItemCopied(displayName),
+  );
 }
 
 /// [path] を Finder で表示する。
@@ -244,7 +262,10 @@ Future<void> runAddToFavorite(
   if (!context.mounted) {
     return;
   }
-  _snack(context, 'お気に入りに追加しました: $name');
+  _snack(
+    context,
+    AppLocalizations.of(context).explorerSnackbarAddedFavorite(name),
+  );
 }
 
 /// [dirPath] でターミナルを開く（bottom ペインに新規ターミナルタブ）。

@@ -9,6 +9,7 @@ import 'package:roola/data/launcher_entry/launcher_action.dart';
 import 'package:roola/data/launcher_entry/launcher_entry.dart';
 import 'package:roola/data/launcher_entry/launcher_entry_repository.dart';
 import 'package:roola/data/launcher_entry/launcher_entry_repository_impl.dart';
+import 'package:roola/l10n/app_localizations.dart';
 import 'package:roola/ui/launchers/entry_edit_page.dart';
 import 'package:roola/ui/launchers/entry_edit_view_model.dart';
 
@@ -63,7 +64,12 @@ void main() {
             appPathsProvider.overrideWithValue(AppPaths(root: tempDir)),
             launcherEntryRepositoryProvider.overrideWith((ref) => repo),
           ],
-          child: const MaterialApp(home: EntryEditPage(entryId: null)),
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            locale: Locale('ja'),
+            home: EntryEditPage(entryId: null),
+          ),
         ),
       );
       await tester.pumpAndSettle();

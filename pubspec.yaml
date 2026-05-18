@@ -31,6 +31,13 @@ dependencies:
   flutter:
     sdk: flutter
 
+  # 多言語化（ADR-0034）。flutter_localizations は SDK 同梱、intl は
+  # gen-l10n が生成する AppLocalizations が依存する。バージョンは
+  # flutter_localizations のピンに従わせるため `any` とする。
+  flutter_localizations:
+    sdk: flutter
+  intl: any
+
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
@@ -80,6 +87,9 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+
+  # ARB から AppLocalizations を生成する（ADR-0034）。設定は l10n.yaml。
+  generate: true
 
   fonts:
     # ターミナル描画用。Sarasa Term J は Iosevka Term と Source Han

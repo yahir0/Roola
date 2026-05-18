@@ -3,6 +3,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:roola/app/router.dart';
 import 'package:roola/data/skill_session/active_sessions.dart';
+import 'package:roola/l10n/app_localizations.dart';
 import 'package:window_manager/window_manager.dart';
 
 /// ウィンドウ close 操作を捕まえ、アクティブセッションがあれば確認ダイアログを
@@ -66,23 +67,23 @@ Future<bool?> showSessionCloseConfirmation(
 ) {
   return showDialog<bool>(
     context: context,
-    builder: (dialogContext) => AlertDialog(
-      title: const Text('終了の確認'),
-      content: Text(
-        '$sessionCount 件のセッションが残っています。\n'
-        '終了するとすべての PTY が終了され、出力履歴も失われます。',
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(dialogContext).pop(false),
-          child: const Text('キャンセル'),
-        ),
-        FilledButton(
-          onPressed: () => Navigator.of(dialogContext).pop(true),
-          child: const Text('終了する'),
-        ),
-      ],
-    ),
+    builder: (dialogContext) {
+      final l10n = AppLocalizations.of(dialogContext);
+      return AlertDialog(
+        title: Text(l10n.windowCloseConfirmTitle),
+        content: Text(l10n.windowCloseConfirmMessage(sessionCount)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(l10n.buttonCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(l10n.windowCloseConfirmButton),
+          ),
+        ],
+      );
+    },
   );
 }
 

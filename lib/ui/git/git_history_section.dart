@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:roola/data/git/git_commit.dart';
 import 'package:roola/data/git/git_graph_row.dart';
+import 'package:roola/l10n/app_localizations.dart';
 import 'package:roola/ui/git/git_changes_section.dart';
 import 'package:roola/ui/git/git_diff_view.dart';
 import 'package:roola/ui/git/git_graph_painter.dart';
@@ -34,7 +35,7 @@ class GitHistorySection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     if (state.graph.isEmpty) {
-      return const Center(child: Text('コミットがありません'));
+      return Center(child: Text(AppLocalizations.of(context).gitNoCommits));
     }
     final notifier = ref.read(gitViewModelProvider(tabId).notifier);
     var maxLanes = 1;
@@ -91,7 +92,10 @@ class _LoadMoreRow extends StatelessWidget {
               height: 16,
               child: CircularProgressIndicator(strokeWidth: 2),
             )
-          : TextButton(onPressed: onPressed, child: const Text('さらに読み込む')),
+          : TextButton(
+              onPressed: onPressed,
+              child: Text(AppLocalizations.of(context).gitLoadMoreButton),
+            ),
     );
   }
 }
@@ -292,7 +296,7 @@ class _CommitDetail extends ConsumerWidget {
                 ),
                 IconButton(
                   icon: const Icon(Icons.close, size: 16),
-                  tooltip: '詳細を閉じる',
+                  tooltip: AppLocalizations.of(context).gitCloseDetailsTooltip,
                   visualDensity: VisualDensity.compact,
                   onPressed: notifier.clearSelection,
                 ),
@@ -302,10 +306,10 @@ class _CommitDetail extends ConsumerWidget {
           const Divider(height: 1),
           Expanded(
             child: state.selectedCommitFiles.isEmpty
-                ? const Center(
+                ? Center(
                     child: Text(
-                      '変更ファイルを読み込み中…',
-                      style: TextStyle(fontSize: 12),
+                      AppLocalizations.of(context).gitLoadingChangedFiles,
+                      style: const TextStyle(fontSize: 12),
                     ),
                   )
                 : ListView(

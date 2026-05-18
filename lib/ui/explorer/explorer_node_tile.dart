@@ -16,6 +16,7 @@ import 'package:roola/data/repo_explorer/explorer_node.dart';
 import 'package:roola/data/repo_explorer/explorer_settings.dart';
 import 'package:roola/data/repo_explorer/explorer_settings_repository_impl.dart';
 import 'package:roola/data/workspace/workspace_layout.dart';
+import 'package:roola/l10n/app_localizations.dart';
 import 'package:roola/ui/common/command_menu_item.dart';
 import 'package:roola/ui/explorer/explorer_clipboard_provider.dart';
 import 'package:roola/ui/explorer/explorer_commands.dart';
@@ -55,6 +56,7 @@ Future<void> showExplorerContextMenu(
   if (!context.mounted) {
     return;
   }
+  final l10n = AppLocalizations.of(context);
   final items = <PopupMenuEntry<ExplorerNodeAction>>[
     if (claudeAvailable)
       commandPopupMenuItem<ExplorerNodeAction>(
@@ -75,11 +77,11 @@ Future<void> showExplorerContextMenu(
       command: CommandId.revealInFinder,
       value: const _ActionRevealInFinder(),
     ),
-    const PopupMenuItem(
-      value: _ActionAddToFavorite(),
+    PopupMenuItem(
+      value: const _ActionAddToFavorite(),
       child: ListTile(
-        leading: Icon(Icons.star_outline),
-        title: Text('お気に入りに追加'),
+        leading: const Icon(Icons.star_outline),
+        title: Text(l10n.explorerContextMenuAddFavorite),
       ),
     ),
     const PopupMenuDivider(),
@@ -148,7 +150,7 @@ Future<void> showExplorerContextMenu(
           value: _ActionRunSkill(skill),
           child: ListTile(
             leading: const Icon(Icons.play_arrow),
-            title: Text('「$skill」を即実行'),
+            title: Text(l10n.explorerContextMenuRunSkill(skill)),
           ),
         ),
       );
@@ -160,7 +162,7 @@ Future<void> showExplorerContextMenu(
           value: _ActionRegisterSkill(skill),
           child: ListTile(
             leading: const Icon(Icons.add_circle_outline),
-            title: Text('「$skill」をランチャーに登録'),
+            title: Text(l10n.explorerContextMenuRegisterSkill(skill)),
           ),
         ),
       );
@@ -191,6 +193,7 @@ Future<void> showFileContextMenu(
   ExplorerFileNode node,
   Offset position,
 ) async {
+  final l10n = AppLocalizations.of(context);
   final selected = await showMenu<_FileAction>(
     context: context,
     position: RelativeRect.fromLTRB(
@@ -206,18 +209,18 @@ Future<void> showFileContextMenu(
         command: CommandId.openItem,
         value: _FileAction.open,
       ),
-      const PopupMenuItem(
+      PopupMenuItem(
         value: _FileAction.openWith,
         child: ListTile(
-          leading: Icon(Icons.apps),
-          title: Text('別のアプリケーションで開く…'),
+          leading: const Icon(Icons.apps),
+          title: Text(l10n.explorerContextMenuOpenWith),
         ),
       ),
-      const PopupMenuItem(
+      PopupMenuItem(
         value: _FileAction.openInVim,
         child: ListTile(
-          leading: Icon(Icons.edit_note),
-          title: Text('vim で開く'),
+          leading: const Icon(Icons.edit_note),
+          title: Text(l10n.explorerContextMenuOpenInVim),
         ),
       ),
       commandPopupMenuItem<_FileAction>(
@@ -301,7 +304,7 @@ Future<void> showFileContextMenu(
       }
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('コピーしました: ${node.name}'),
+          content: Text(l10n.explorerSnackbarItemCopied(node.name)),
           duration: const Duration(seconds: 2),
         ),
       );
@@ -380,7 +383,11 @@ Future<void> _handleDirectoryAction(
       }
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('お気に入りに追加しました: ${node.name}'),
+          content: Text(
+            AppLocalizations.of(context).explorerSnackbarAddedFavorite(
+              node.name,
+            ),
+          ),
           duration: const Duration(seconds: 2),
         ),
       );
@@ -397,7 +404,9 @@ Future<void> _handleDirectoryAction(
       }
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('コピーしました: ${node.name}'),
+          content: Text(
+            AppLocalizations.of(context).explorerSnackbarItemCopied(node.name),
+          ),
           duration: const Duration(seconds: 2),
         ),
       );
@@ -524,11 +533,12 @@ String _shellQuote(String value) {
 /// macOS の `open -a` でファイルを指定アプリで開く。アプリ選択は
 /// FilePicker で `/Applications` 配下の `.app` バンドルから選んでもらう。
 Future<void> _openWith(BuildContext context, String filePath) async {
+  final l10n = AppLocalizations.of(context);
   final picked = await FilePicker.pickFiles(
     type: FileType.custom,
     allowedExtensions: const ['app'],
     initialDirectory: '/Applications',
-    dialogTitle: '開くアプリを選択',
+    dialogTitle: l10n.explorerPickAppTitle,
   );
   if (picked == null || picked.files.isEmpty) {
     return;
@@ -539,9 +549,11 @@ Future<void> _openWith(BuildContext context, String filePath) async {
   }
   final result = await Process.run('open', ['-a', appPath, filePath]);
   if (result.exitCode != 0 && context.mounted) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text('開けませんでした: ${result.stderr}')));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(l10n.explorerSnackbarOpenFailed('${result.stderr}')),
+      ),
+    );
   }
 }
 
@@ -583,10 +595,13 @@ Future<void> moveOrCopyInto(
     if (!context.mounted) {
       return;
     }
-    final verb = shouldCopy ? 'コピー' : '移動';
+    final l10n = AppLocalizations.of(context);
+    final message = shouldCopy
+        ? l10n.explorerSnackbarCopyFailed(e.message)
+        : l10n.explorerSnackbarMoveFailed(e.message);
     ScaffoldMessenger.of(
       context,
-    ).showSnackBar(SnackBar(content: Text('$verbに失敗しました: ${e.message}')));
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 }
 
@@ -691,7 +706,10 @@ class ExplorerParentDropTile extends HookConsumerWidget {
             children: [
               Icon(Icons.arrow_upward, color: colors.onSurfaceVariant),
               const SizedBox(width: 16),
-              Text('上の階層へ', style: Theme.of(context).textTheme.bodyMedium),
+              Text(
+                AppLocalizations.of(context).explorerParentDirectoryLabel,
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
