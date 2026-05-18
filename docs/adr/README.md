@@ -37,6 +37,7 @@
 | [0029](./0029-favorite-folders-single-level.md) | エクスプローラのお気に入りをフォルダで 1 階層グループ化する | Accepted |
 | [0030](./0030-git-tab.md) | Git ビューをワークスペースタブとして追加する | Accepted |
 | [0031](./0031-terminal-swiftterm-native-view.md) | ターミナル描画を xterm.dart から SwiftTerm ネイティブビューへ移行する | Accepted |
+| [0032](./0032-shift-enter-newline.md) | ターミナルで Shift+Enter を改行（LF）入力に割り当てる | Accepted |
 
 ## フォーマット
 

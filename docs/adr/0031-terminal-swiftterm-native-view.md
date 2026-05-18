@@ -107,4 +107,4 @@ xterm.dart の再発明であり工数は数ヶ月。しかも①③ の IME 問
 
 実装着手・初回ビルド後、本 ADR の「①③ IME を根治 — SwiftTerm は CJK / 日本語入力を明示的に改善済み」という評価が不正確だったことが判明した。SwiftTerm の最新リリース v1.13.0 は変換中テキストのインライン描画を持たず（`setMarkedText` がフラグを立てるだけ）、その実装は v1.13.0 の 6 日後に merge された未リリースコミット（PR #501、主目的は dictation 修正）にのみ存在する。
 
-この事実を受け代替案 C（SwiftTerm）の採否を再検討し、次のとおり決めた: (1) SwiftTerm を post-1.13.0 commit に暫定 pin して実機検証する、(2) v1.14.0 リリース時にバージョンタグへ戻す、(3) インライン IME が `AppKitView` 埋め込みで実用に耐えなければ ADR-0032 を起こして本 ADR を supersede し代替案 B（xterm.js + WebView）へ移行する。詳細な経緯は OpenSpec change `terminal-swiftterm` の design.md「実装中の判断更新」節を参照。
+この事実を受け代替案 C（SwiftTerm）の採否を再検討し、次のとおり決めた: (1) SwiftTerm を post-1.13.0 commit に暫定 pin して実機検証する、(2) v1.14.0 リリース時にバージョンタグへ戻す、(3) インライン IME が `AppKitView` 埋め込みで実用に耐えなければ別途 ADR を起こして本 ADR を supersede し代替案 B（xterm.js + WebView）へ移行する。詳細な経緯は OpenSpec change `terminal-swiftterm` の design.md「実装中の判断更新」節を参照。
