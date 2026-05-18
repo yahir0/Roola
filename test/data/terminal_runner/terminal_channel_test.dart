@@ -106,6 +106,29 @@ void main() {
     });
   });
 
+  group('Dart → native 送信', () {
+    test('requestNativeFocus が ctrl チャネルへ focusTerminal を送る', () async {
+      final methods = <String>[];
+      _messenger.setMockMethodCallHandler(
+        const MethodChannel(ctrlChannelName),
+        (call) async {
+          methods.add(call.method);
+          return null;
+        },
+      );
+
+      channel.requestNativeFocus();
+      await pumpEventQueue();
+
+      expect(methods, ['focusTerminal']);
+
+      _messenger.setMockMethodCallHandler(
+        const MethodChannel(ctrlChannelName),
+        null,
+      );
+    });
+  });
+
   test('dispose 後はネイティブ受信で onInput が呼ばれない', () async {
     var called = false;
     channel.onInput = (_) => called = true;

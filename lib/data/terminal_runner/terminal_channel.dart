@@ -8,8 +8,8 @@ import 'package:flutter/services.dart';
 /// - `roola/terminal/<id>`（[BasicMessageChannel] + [BinaryCodec]）— ターミナル
 ///   のバイト列を双方向に直送する。Dart→native は PTY 出力、native→Dart は
 ///   ユーザー入力。バイト列をそのまま運ぶため base64 等の追加エンコードは不要
-/// - `roola/terminal/<id>/ctrl`（[MethodChannel]）— サイズ変更など構造化された
-///   制御メッセージ。現状は native→Dart の `resize` のみ
+/// - `roola/terminal/<id>/ctrl`（[MethodChannel]）— 構造化された制御メッセージ。
+///   native→Dart の `resize` と、Dart→native の `focusTerminal`（ADR-0037）
 ///
 /// プラットフォームビュー（`AppKitView`）の生成完了前に届いた PTY 出力は
 /// [markReady] が呼ばれるまでバッファし、生成後にまとめて flush する。
@@ -60,6 +60,14 @@ class TerminalChannel {
       return;
     }
     _data.send(data);
+  }
+
+  /// SwiftTerm のネイティブビューをウインドウの first responder にするよう
+  /// native へ要求する。Flutter 側でターミナル面がフォーカスを得たときに
+  /// 呼び、ネイティブのキー入力先と Flutter のフォーカスを一致させる
+  /// （ADR-0037）。
+  void requestNativeFocus() {
+    _ctrl.invokeMethod<void>('focusTerminal');
   }
 
   Future<ByteData?> _handleNativeData(ByteData? message) async {

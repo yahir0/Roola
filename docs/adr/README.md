@@ -42,6 +42,7 @@
 | [0034](./0034-internationalization.md) | 多言語化を Flutter 公式 gen-l10n（ARB）で実装する | Accepted |
 | [0035](./0035-reserve-text-editing-shortcuts.md) | ⌘C/⌘V/⌘X/⌘A/⌘Z をテキスト編集用に予約し、コマンド割り当て不可とする | Accepted |
 | [0036](./0036-notepad-floating-panel.md) | ノートパッドをワークスペース外のフローティングパネルとして実装する | Accepted |
+| [0037](./0037-terminal-focus-bridge.md) | ターミナルのプラットフォームビューと Flutter フォーカスを橋渡しする | Accepted |
 
 ## フォーマット
 
