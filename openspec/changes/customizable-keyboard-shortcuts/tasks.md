@@ -25,7 +25,7 @@
 
 - [ ] 4.1 `core/storage/app_paths.dart` に `keybindingsFile` getter を追加
 - [ ] 4.2 `data/keybindings/key_chord_dto.dart` / `keybindings_dto.dart` を json_serializable で定義（`CommandId` は `name` 文字列、未知キー読み飛ばし）
-- [ ] 4.3 `data/keybindings/keybindings_repository.dart`（interface）/ `keybindings_repository_impl.dart`（`<appSupport>/keybindings.json` 実装 + `keybindingsRepositoryProvider` + `KeybindingsNotifier` + `keybindingsProvider`）を実装
+- [ ] 4.3 `data/keybindings/keybindings_repository.dart`（interface）/ `keybindings_repository_impl.dart`（`<appSupport>/keybindings.json` 実装 + `keybindingsRepositoryProvider` + `KeybindingsNotifier`（`setChord` / `resetToDefault` / `resetAll`）+ `keybindingsProvider`）を実装。全コマンドは常に実効キーコンビを持つため未割り当て（unbind）は設けない
 - [ ] 4.4 `data/keybindings/effective_keybindings.dart` に既定 + 上書きをマージする `effectiveKeybindingsProvider` を実装
 - [ ] 4.5 `build_runner` を実行し json_serializable 生成物を出力
 
