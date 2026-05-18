@@ -365,6 +365,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get keyChordErrorMissingModifier => '修飾キー（⌘ ⌥ ⌃ ⇧）を 1 つ以上含めてください。';
 
   @override
+  String get keyChordErrorReserved =>
+      '⌘C / ⌘V / ⌘X / ⌘A / ⌘Z はコピー & ペースト等のテキスト編集用に予約されています。';
+
+  @override
   String keyChordErrorAlreadyAssigned(String label) {
     return '「$label」に割り当て済みです。';
   }

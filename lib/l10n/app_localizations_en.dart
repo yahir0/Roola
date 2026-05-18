@@ -374,6 +374,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Include at least one modifier key (⌘ ⌥ ⌃ ⇧).';
 
   @override
+  String get keyChordErrorReserved =>
+      '⌘C / ⌘V / ⌘X / ⌘A / ⌘Z are reserved for text editing (copy & paste, etc.).';
+
+  @override
   String keyChordErrorAlreadyAssigned(String label) {
     return 'Already assigned to \"$label\".';
   }

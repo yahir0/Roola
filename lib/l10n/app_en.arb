@@ -136,6 +136,7 @@
   "keybindingsResetAllConfirmMessage": "Resets every shortcut to its default key combination.",
   "keybindingsResetOneTooltip": "Reset to default",
   "keyChordErrorMissingModifier": "Include at least one modifier key (⌘ ⌥ ⌃ ⇧).",
+  "keyChordErrorReserved": "⌘C / ⌘V / ⌘X / ⌘A / ⌘Z are reserved for text editing (copy & paste, etc.).",
   "keyChordErrorAlreadyAssigned": "Already assigned to \"{label}\".",
   "@keyChordErrorAlreadyAssigned": {
     "placeholders": { "label": { "type": "String" } }

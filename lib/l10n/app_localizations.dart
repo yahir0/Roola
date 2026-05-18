@@ -770,6 +770,12 @@ abstract class AppLocalizations {
   /// **'修飾キー（⌘ ⌥ ⌃ ⇧）を 1 つ以上含めてください。'**
   String get keyChordErrorMissingModifier;
 
+  /// No description provided for @keyChordErrorReserved.
+  ///
+  /// In ja, this message translates to:
+  /// **'⌘C / ⌘V / ⌘X / ⌘A / ⌘Z はコピー & ペースト等のテキスト編集用に予約されています。'**
+  String get keyChordErrorReserved;
+
   /// No description provided for @keyChordErrorAlreadyAssigned.
   ///
   /// In ja, this message translates to:
