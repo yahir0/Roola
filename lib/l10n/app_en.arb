@@ -402,7 +402,6 @@
   },
   "gitOpenInTerminal": "Open in terminal",
 
-  "sessionCancelTooltip": "Cancel (terminates the PTY; output history is kept)",
   "sessionRerunTooltip": "Re-run",
 
   "settingsButtonTooltip": "Settings",

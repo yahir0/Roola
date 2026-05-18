@@ -8,9 +8,9 @@ import 'package:roola/ui/run/adhoc_run_view_model.dart';
 
 /// ターミナルセッション 1 件分のビュー（ターミナルタブの body）。
 ///
-/// ヘッダ行（状態 chip + キャンセル / 再実行）と、その下の SwiftTerm
-/// ネイティブビュー（[TerminalSurface]）の縦並び。タブを閉じる操作はタブ
-/// ストリップの × が担うため、ここには閉じるボタンを置かない（ADR-0026）。
+/// ヘッダ行（状態 chip + 再実行）と、その下の SwiftTerm ネイティブビュー
+/// （[TerminalSurface]）の縦並び。ターミナルの終了はタブストリップの × に
+/// 一本化しているため、ここには閉じる / 停止ボタンを置かない（ADR-0026）。
 ///
 /// 描画・入力は SwiftTerm（ネイティブ NSView）が担う（ADR-0031）。配色・
 /// フォントは native 側（`TerminalView` ファクトリ）に定義する。
@@ -32,7 +32,6 @@ class SessionView extends ConsumerWidget {
         _SessionHeader(
           title: pageState.entry.displayName,
           state: pageState.runState,
-          onCancel: notifier.cancelRun,
           onRestart: notifier.restart,
         ),
         const Divider(height: 1),
@@ -54,21 +53,15 @@ class _SessionHeader extends StatelessWidget {
   const _SessionHeader({
     required this.title,
     required this.state,
-    required this.onCancel,
     required this.onRestart,
   });
 
   final String title;
   final SkillRunState state;
-  final Future<void> Function() onCancel;
   final VoidCallback onRestart;
 
   @override
   Widget build(BuildContext context) {
-    final isRunning =
-        state is SkillRunStarting ||
-        state is SkillRunRunning ||
-        state is SkillRunWaitingInput;
     final isTerminated =
         state is SkillRunCompleted ||
         state is SkillRunFailed ||
@@ -102,12 +95,6 @@ class _SessionHeader extends StatelessWidget {
             label: Text(label),
             visualDensity: VisualDensity.compact,
           ),
-          if (isRunning)
-            IconButton(
-              icon: const Icon(Icons.stop),
-              tooltip: AppLocalizations.of(context).sessionCancelTooltip,
-              onPressed: onCancel,
-            ),
           if (isTerminated)
             IconButton(
               icon: const Icon(Icons.refresh),

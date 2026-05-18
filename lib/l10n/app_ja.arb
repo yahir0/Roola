@@ -402,7 +402,6 @@
   },
   "gitOpenInTerminal": "ターミナルで開く",
 
-  "sessionCancelTooltip": "キャンセル (PTY を終了。出力履歴は残る)",
   "sessionRerunTooltip": "再実行",
 
   "settingsButtonTooltip": "設定",

@@ -1730,12 +1730,6 @@ abstract class AppLocalizations {
   /// **'ターミナルで開く'**
   String get gitOpenInTerminal;
 
-  /// No description provided for @sessionCancelTooltip.
-  ///
-  /// In ja, this message translates to:
-  /// **'キャンセル (PTY を終了。出力履歴は残る)'**
-  String get sessionCancelTooltip;
-
   /// No description provided for @sessionRerunTooltip.
   ///
   /// In ja, this message translates to:

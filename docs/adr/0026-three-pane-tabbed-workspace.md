@@ -79,10 +79,29 @@ IDE のような自由分割。
 - **レイアウトモデルの保守コスト**: スロット × タブの二次元状態を扱う
   `workspaceProvider` が増える。崩し再フローは純粋関数に切り出してテスト可能にする
 
+## Update (2026-05-18): セッションヘッダの停止ボタンを廃止
+
+`session_view.dart` のセッションヘッダに置いていた停止ボタン（`Icons.stop` →
+`runner.cancel()` で PTY を SIGTERM）を削除した。
+
+- 停止ボタンは「実行中コマンドの中断」ではなく **PTY セッション丸ごとの終了** で、
+  素のシェル（`OpenHereAction`）では常時表示されていた。ADR-0016 でランチャーが
+  汎用ターミナル化し「run」が常駐シェルになった結果、「run をキャンセルする」と
+  いう操作モデル自体が実体と噛み合わなくなっていた
+- コマンドの中断はターミナル内で Ctrl+C を打てば PTY に伝わる。セッションの終了は
+  タブストリップの × で行える（× → `Workspace.closeTab` → provider invalidate →
+  `runner.dispose()` で PTY kill）。停止ボタンは後者と重複していた
+- よって「ターミナルの終了はタブの × に一本化する」という本 ADR のタブモデルに
+  沿って停止ボタンを撤去した。`SkillRunCancelled` 状態・`restart`（再実行）ボタン・
+  runner の `cancel()` メソッドは残す（`cancel()` はウィンドウクローズ時の
+  `ActiveSessions.cancelAll()` が一括 kill で使用するため）
+- l10n キー `sessionCancelTooltip`（ja / en）も未使用となり削除した
+
 ## References
 
 - ADR-0010（Home / Explorer のタブ式 `StatefulShellRoute`。あちらはルート単位の
   タブで、本 ADR のペイン内タブとは別物）
 - ADR-0014（Explorer をメイン UI に格上げ）
+- ADR-0016（ランチャーの汎用ターミナル化。停止ボタン廃止の前提）
 - ADR-0027（per-tab 状態の実現方法）
 - ADR-0028（ワークスペースレイアウトの永続化）

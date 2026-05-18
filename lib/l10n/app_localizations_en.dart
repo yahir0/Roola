@@ -935,10 +935,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get gitOpenInTerminal => 'Open in terminal';
 
   @override
-  String get sessionCancelTooltip =>
-      'Cancel (terminates the PTY; output history is kept)';
-
-  @override
   String get sessionRerunTooltip => 'Re-run';
 
   @override

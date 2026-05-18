@@ -88,9 +88,6 @@ class AdhocRunViewModel extends _$AdhocRunViewModel {
     );
   }
 
-  /// PTY を SIGTERM で終了する。タブと出力履歴は保持される。
-  Future<void> cancelRun() => state.runner.cancel();
-
   /// 再実行。同じ args で provider を作り直す。
   void restart() => ref.invalidateSelf();
 }

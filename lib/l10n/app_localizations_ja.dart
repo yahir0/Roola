@@ -916,9 +916,6 @@ class AppLocalizationsJa extends AppLocalizations {
   String get gitOpenInTerminal => 'ターミナルで開く';
 
   @override
-  String get sessionCancelTooltip => 'キャンセル (PTY を終了。出力履歴は残る)';
-
-  @override
   String get sessionRerunTooltip => '再実行';
 
   @override
