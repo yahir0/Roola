@@ -3,6 +3,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:roola/app/app.dart';
 import 'package:roola/core/storage/app_paths.dart';
 import 'package:roola/data/launcher_entry/launcher_entry_repository_impl.dart';
+import 'package:roola/data/locale/locale_settings_repository_impl.dart';
 import 'package:roola/data/workspace/workspace_repository_impl.dart';
 import 'package:roola/ui/workspace/workspace_seed.dart';
 import 'package:window_manager/window_manager.dart';
@@ -42,11 +43,17 @@ Future<void> main() async {
   final loadedWorkspace = await WorkspaceRepositoryImpl(paths: paths).load();
   final initialWorkspace = loadedWorkspace ?? seedDefaultWorkspace();
 
+  // 表示言語も起動時に 1 度だけ読み込む。`MaterialApp` は初回フレームから
+  // 確定したロケールで描画する必要があるため、Provider に注入する（ADR-0034）。
+  final initialLocale =
+      await LocaleSettingsRepositoryImpl(paths: paths).load();
+
   runApp(
     ProviderScope(
       overrides: [
         appPathsProvider.overrideWithValue(paths),
         workspaceInitialLayoutProvider.overrideWithValue(initialWorkspace),
+        localeSettingsInitialProvider.overrideWithValue(initialLocale),
       ],
       child: const App(),
     ),

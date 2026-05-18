@@ -4,6 +4,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:roola/data/keybindings/keybindings.dart';
 import 'package:roola/data/keybindings/keybindings_repository.dart';
 import 'package:roola/data/keybindings/keybindings_repository_impl.dart';
+import 'package:roola/l10n/app_localizations.dart';
 import 'package:roola/ui/settings/keybindings_page.dart';
 
 class _FakeKeybindingsRepository implements KeybindingsRepository {
@@ -28,7 +29,12 @@ void main() {
             _FakeKeybindingsRepository(),
           ),
         ],
-        child: const MaterialApp(home: KeybindingsPage()),
+        child: const MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          locale: Locale('ja'),
+          home: KeybindingsPage(),
+        ),
       ),
     );
     await tester.pumpAndSettle();

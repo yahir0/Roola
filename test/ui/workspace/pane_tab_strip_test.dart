@@ -6,6 +6,7 @@ import 'package:roola/data/workspace/workspace_layout.dart';
 import 'package:roola/data/workspace/workspace_repository.dart';
 import 'package:roola/data/workspace/workspace_repository_impl.dart';
 import 'package:roola/data/workspace/workspace_tab.dart';
+import 'package:roola/l10n/app_localizations.dart';
 import 'package:roola/ui/workspace/pane_tab_strip.dart';
 import 'package:roola/ui/workspace/workspace_provider.dart';
 import 'package:roola/ui/workspace/workspace_seed.dart';
@@ -36,7 +37,12 @@ void main() {
       workspaceInitialLayoutProvider.overrideWithValue(initial),
       workspaceRepositoryProvider.overrideWithValue(_FakeWorkspaceRepository()),
     ],
-    child: const MaterialApp(home: Scaffold(body: _Harness())),
+    child: const MaterialApp(
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      locale: Locale('ja'),
+      home: Scaffold(body: _Harness()),
+    ),
   );
 
   testWidgets('タブのラベル（パス basename）が描画される', (tester) async {

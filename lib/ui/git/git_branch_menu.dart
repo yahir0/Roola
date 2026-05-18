@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:roola/data/git/git_branch.dart';
+import 'package:roola/l10n/app_localizations.dart';
 import 'package:roola/ui/git/git_dialogs.dart';
 import 'package:roola/ui/git/git_view_model.dart';
 
@@ -23,6 +24,7 @@ class _GitBranchDialog extends HookConsumerWidget {
     final filter = useState('');
     final state = ref.watch(gitViewModelProvider(tabId)).value;
     final notifier = ref.read(gitViewModelProvider(tabId).notifier);
+    final l10n = AppLocalizations.of(context);
 
     final branches = state?.branches ?? const <GitBranch>[];
     final query = filter.value.toLowerCase();
@@ -48,17 +50,20 @@ class _GitBranchDialog extends HookConsumerWidget {
                 children: [
                   const Icon(Icons.account_tree_outlined, size: 18),
                   const SizedBox(width: 8),
-                  Text('ブランチ', style: Theme.of(context).textTheme.titleSmall),
+                  Text(
+                    l10n.gitBranchDialogTitle,
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
                   const Spacer(),
                   TextButton.icon(
                     icon: const Icon(Icons.add, size: 16),
-                    label: const Text('新規作成'),
+                    label: Text(l10n.gitBranchNewButton),
                     onPressed: () async {
                       final name = await gitPrompt(
                         context,
-                        title: 'ブランチを作成',
-                        label: 'ブランチ名',
-                        confirmLabel: '作成',
+                        title: l10n.gitBranchCreateTitle,
+                        label: l10n.gitBranchNameLabel,
+                        confirmLabel: l10n.buttonCreate,
                       );
                       if (name != null) {
                         await notifier.createBranch(name);
@@ -68,7 +73,7 @@ class _GitBranchDialog extends HookConsumerWidget {
                   ),
                   IconButton(
                     icon: const Icon(Icons.close, size: 18),
-                    tooltip: '閉じる',
+                    tooltip: l10n.buttonClose,
                     onPressed: close,
                   ),
                 ],
@@ -78,9 +83,9 @@ class _GitBranchDialog extends HookConsumerWidget {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: TextField(
                 autofocus: true,
-                decoration: const InputDecoration(
-                  prefixIcon: Icon(Icons.search, size: 18),
-                  hintText: 'ブランチを絞り込み',
+                decoration: InputDecoration(
+                  prefixIcon: const Icon(Icons.search, size: 18),
+                  hintText: l10n.gitBranchFilterHint,
                   isDense: true,
                 ),
                 onChanged: (v) => filter.value = v,
@@ -91,14 +96,16 @@ class _GitBranchDialog extends HookConsumerWidget {
             Expanded(
               child: ListView(
                 children: [
-                  if (local.isNotEmpty) const _SectionLabel(label: 'ローカル'),
+                  if (local.isNotEmpty)
+                    _SectionLabel(label: l10n.gitBranchLocalLabel),
                   for (final branch in local)
                     _BranchRow(
                       tabId: tabId,
                       branch: branch,
                       busy: state?.isBusy ?? true,
                     ),
-                  if (remote.isNotEmpty) const _SectionLabel(label: 'リモート'),
+                  if (remote.isNotEmpty)
+                    _SectionLabel(label: l10n.gitBranchRemoteLabel),
                   for (final branch in remote)
                     _BranchRow(
                       tabId: tabId,
@@ -150,6 +157,7 @@ class _BranchRow extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final notifier = ref.read(gitViewModelProvider(tabId).notifier);
     final colors = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context);
 
     Future<void> checkout() async {
       // リモートブランチは追跡名（remote/ を除いた部分）でチェックアウトする。
@@ -197,7 +205,7 @@ class _BranchRow extends ConsumerWidget {
             ),
       trailing: PopupMenuButton<_BranchMenu>(
         enabled: !busy,
-        tooltip: 'ブランチ操作',
+        tooltip: l10n.gitBranchOperationsTooltip,
         icon: const Icon(Icons.more_horiz, size: 18),
         onSelected: (value) async {
           switch (value) {
@@ -209,9 +217,9 @@ class _BranchRow extends ConsumerWidget {
             case _BranchMenu.delete:
               final ok = await gitConfirm(
                 context,
-                title: 'ブランチを削除',
-                message: 'ブランチ「${branch.name}」を削除します。',
-                confirmLabel: '削除',
+                title: l10n.gitBranchDeleteConfirmTitle,
+                message: l10n.gitBranchDeleteConfirmMessage(branch.name),
+                confirmLabel: l10n.buttonDelete,
               );
               if (ok) {
                 await notifier.deleteBranch(branch.name);
@@ -219,21 +227,21 @@ class _BranchRow extends ConsumerWidget {
           }
         },
         itemBuilder: (context) => [
-          const PopupMenuItem(
+          PopupMenuItem(
             value: _BranchMenu.merge,
             child: ListTile(
-              leading: Icon(Icons.merge_type),
-              title: Text('現在ブランチへマージ'),
+              leading: const Icon(Icons.merge_type),
+              title: Text(l10n.gitBranchMergeMenuItem),
               dense: true,
               contentPadding: EdgeInsets.zero,
             ),
           ),
           if (!branch.isRemote && !branch.isCurrent)
-            const PopupMenuItem(
+            PopupMenuItem(
               value: _BranchMenu.delete,
               child: ListTile(
-                leading: Icon(Icons.delete_outline),
-                title: Text('削除'),
+                leading: const Icon(Icons.delete_outline),
+                title: Text(l10n.gitBranchDeleteMenuItem),
                 dense: true,
                 contentPadding: EdgeInsets.zero,
               ),

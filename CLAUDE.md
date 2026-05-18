@@ -95,6 +95,7 @@ Mac 向けの汎用ターミナルランチャーアプリ（Flutter Desktop / m
 - ADR-0031: ターミナル描画を xterm.dart から SwiftTerm ネイティブビューへ移行する
 - ADR-0032: ターミナルで Shift+Enter を改行（LF）入力に割り当てる
 - ADR-0033: コマンドレジストリとネイティブメニューバーによる統一ショートカット機構
+- ADR-0034: 多言語化を Flutter 公式 gen-l10n（ARB）で実装する
 
 ## ディレクトリ構成
 

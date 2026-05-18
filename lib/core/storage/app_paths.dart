@@ -36,6 +36,9 @@ class AppPaths {
   /// キーボードショートカットのユーザー上書きの永続化先（ADR-0033）。
   File get keybindingsFile => File('${root.path}/keybindings.json');
 
+  /// 表示言語設定の永続化先（ADR-0034）。
+  File get localeSettingsFile => File('${root.path}/locale_settings.json');
+
   /// 背景画像の保存先。
   File get backgroundImageFile => File('${root.path}/background.png');
 

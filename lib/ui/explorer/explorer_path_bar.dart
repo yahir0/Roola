@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:roola/core/system/file_opener.dart';
+import 'package:roola/l10n/app_localizations.dart';
 import 'package:roola/ui/explorer/explorer_view_model.dart';
 
 /// エクスプローラタブ上部の編集可能なパスバー。
@@ -28,6 +29,7 @@ class ExplorerPathBar extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final controller = useTextEditingController(text: currentPath);
     final focusNode = useFocusNode();
 
@@ -63,9 +65,9 @@ class ExplorerPathBar extends HookConsumerWidget {
       if (!context.mounted) {
         return;
       }
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('パスが存在しません: $input')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.explorerPathNotFound(input))),
+      );
       controller.text = currentPath;
     }
 
@@ -85,7 +87,7 @@ class ExplorerPathBar extends HookConsumerWidget {
           ),
           suffixIcon: IconButton(
             icon: const Icon(Icons.subdirectory_arrow_left, size: 18),
-            tooltip: 'このパスに移動',
+            tooltip: l10n.explorerNavigateToPathTooltip,
             onPressed: submit,
           ),
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(2)),

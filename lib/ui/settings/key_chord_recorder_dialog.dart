@@ -5,9 +5,10 @@ import 'package:roola/core/keybindings/chord_conflict.dart';
 import 'package:roola/core/keybindings/chord_formatter.dart';
 import 'package:roola/core/keybindings/key_chord_recorder.dart';
 import 'package:roola/data/keybindings/command_id.dart';
-import 'package:roola/data/keybindings/command_registry.dart';
 import 'package:roola/data/keybindings/effective_keybindings.dart';
 import 'package:roola/data/keybindings/key_chord.dart';
+import 'package:roola/l10n/app_localizations.dart';
+import 'package:roola/ui/common/command_l10n.dart';
 
 /// キーレコーダ表示中フラグ（ADR-0033）。
 ///
@@ -65,11 +66,12 @@ class _KeyChordRecorderDialog extends HookConsumerWidget {
 
     final effective = ref.watch(effectiveKeybindingsProvider);
     final chord = captured.value;
+    final l10n = AppLocalizations.of(context);
 
     String? error;
     if (chord != null) {
       if (!isAssignableChord(chord)) {
-        error = '修飾キー（⌘ ⌥ ⌃ ⇧）を 1 つ以上含めてください。';
+        error = l10n.keyChordErrorMissingModifier;
       } else {
         final conflict = conflictingCommand(
           effective: effective,
@@ -77,9 +79,9 @@ class _KeyChordRecorderDialog extends HookConsumerWidget {
           candidate: chord,
         );
         if (conflict != null) {
-          error =
-              '「${CommandRegistry.metadataFor(conflict).label}」に'
-              '割り当て済みです。';
+          error = l10n.keyChordErrorAlreadyAssigned(
+            l10n.commandLabel(conflict),
+          );
         }
       }
     }
@@ -87,7 +89,7 @@ class _KeyChordRecorderDialog extends HookConsumerWidget {
     final colors = Theme.of(context).colorScheme;
 
     return AlertDialog(
-      title: Text('${CommandRegistry.metadataFor(target).label} のショートカット'),
+      title: Text(l10n.keyChordRecorderTitle(l10n.commandLabel(target))),
       content: Focus(
         focusNode: focusNode,
         autofocus: true,
@@ -104,7 +106,7 @@ class _KeyChordRecorderDialog extends HookConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('割り当てたいキーを押してください。'),
+            Text(l10n.keyChordRecorderInstructions),
             const SizedBox(height: 16),
             Container(
               width: double.infinity,
@@ -116,7 +118,9 @@ class _KeyChordRecorderDialog extends HookConsumerWidget {
               ),
               child: Center(
                 child: Text(
-                  chord == null ? '（未入力）' : formatChord(chord),
+                  chord == null
+                      ? l10n.keyChordPlaceholderUnselected
+                      : formatChord(chord),
                   style: Theme.of(context).textTheme.headlineSmall,
                 ),
               ),
@@ -136,13 +140,13 @@ class _KeyChordRecorderDialog extends HookConsumerWidget {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('キャンセル'),
+          child: Text(l10n.buttonCancel),
         ),
         FilledButton(
           onPressed: canConfirm
               ? () => Navigator.of(context).pop(chord)
               : null,
-          child: const Text('決定'),
+          child: Text(l10n.buttonConfirm),
         ),
       ],
     );

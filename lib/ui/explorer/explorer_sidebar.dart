@@ -15,6 +15,7 @@ import 'package:roola/data/skill_session/active_sessions.dart';
 import 'package:roola/data/terminal_runner/terminal_run_state.dart';
 import 'package:roola/data/workspace/workspace_layout.dart';
 import 'package:roola/data/workspace/workspace_tab.dart';
+import 'package:roola/l10n/app_localizations.dart';
 import 'package:roola/ui/common/prompt_name_dialog.dart';
 import 'package:roola/ui/common/session_state_icon.dart';
 import 'package:roola/ui/explorer/explorer_node_tile.dart'
@@ -48,6 +49,7 @@ class ExplorerSidebar extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final settings =
         ref.watch(explorerSettingsProvider).value ??
         ExplorerSettings.defaults();
@@ -113,7 +115,7 @@ class ExplorerSidebar extends HookConsumerWidget {
         padding: const EdgeInsets.symmetric(vertical: 4),
         children: [
           // 場所
-          const _SectionHeader('場所'),
+          _SectionHeader(l10n.explorerSidebarPlaces),
           for (final place in _defaultPlaces)
             _PlaceTile(
               place: place,
@@ -190,7 +192,7 @@ class ExplorerSidebar extends HookConsumerWidget {
           const Divider(height: 1),
 
           // 実行中
-          const _SectionHeader('実行中'),
+          _SectionHeader(l10n.explorerSidebarRunning),
           if (sessions.isEmpty)
             const _RunningEmptyTile()
           else
@@ -231,7 +233,8 @@ class _SectionHeader extends StatelessWidget {
 class _Place {
   const _Place(this.label, this.icon, this.envVar, this.relPath);
 
-  final String label;
+  /// 表示ラベルを `AppLocalizations` から解決する関数。
+  final String Function(AppLocalizations l10n) label;
   final IconData icon;
   final String envVar;
   final String relPath;
@@ -248,12 +251,32 @@ class _Place {
   }
 }
 
-const _defaultPlaces = <_Place>[
-  _Place('ホーム', Icons.home_outlined, 'HOME', ''),
-  _Place('ダウンロード', Icons.download_outlined, 'HOME', 'Downloads'),
-  _Place('デスクトップ', Icons.desktop_mac_outlined, 'HOME', 'Desktop'),
-  _Place('ドキュメント', Icons.description_outlined, 'HOME', 'Documents'),
-  _Place('アプリケーション', Icons.apps, '__abs__', '/Applications'),
+final _defaultPlaces = <_Place>[
+  _Place((l10n) => l10n.explorerPlaceHome, Icons.home_outlined, 'HOME', ''),
+  _Place(
+    (l10n) => l10n.explorerPlaceDownloads,
+    Icons.download_outlined,
+    'HOME',
+    'Downloads',
+  ),
+  _Place(
+    (l10n) => l10n.explorerPlaceDesktop,
+    Icons.desktop_mac_outlined,
+    'HOME',
+    'Desktop',
+  ),
+  _Place(
+    (l10n) => l10n.explorerPlaceDocuments,
+    Icons.description_outlined,
+    'HOME',
+    'Documents',
+  ),
+  _Place(
+    (l10n) => l10n.explorerPlaceApplications,
+    Icons.apps,
+    '__abs__',
+    '/Applications',
+  ),
 ];
 
 class _PlaceTile extends ConsumerWidget {
@@ -287,7 +310,7 @@ class _PlaceTile extends ConsumerWidget {
             const SizedBox(width: 10),
             Expanded(
               child: Text(
-                place.label,
+                place.label(AppLocalizations.of(context)),
                 style: Theme.of(context).textTheme.bodyMedium,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -321,7 +344,7 @@ class _OpenOtherFolderTile extends ConsumerWidget {
             const SizedBox(width: 10),
             Expanded(
               child: Text(
-                '別のフォルダを開く…',
+                AppLocalizations.of(context).explorerOpenOtherFolder,
                 style: Theme.of(context).textTheme.bodyMedium,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -352,6 +375,7 @@ class _FavoritesHeader extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context);
     return GestureDetector(
       onSecondaryTapDown: (details) =>
           _showContextMenu(context, ref, details.globalPosition),
@@ -361,7 +385,7 @@ class _FavoritesHeader extends ConsumerWidget {
           children: [
             Expanded(
               child: Text(
-                'お気に入り',
+                l10n.explorerSidebarFavorites,
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
                   color: colors.onSurfaceVariant,
                   fontWeight: FontWeight.w600,
@@ -371,7 +395,7 @@ class _FavoritesHeader extends ConsumerWidget {
             Builder(
               builder: (buttonContext) => IconButton(
                 icon: const Icon(Icons.add, size: 18),
-                tooltip: 'お気に入りを追加 / フォルダを作成',
+                tooltip: l10n.explorerFavoritesAddTooltip,
                 visualDensity: VisualDensity.compact,
                 onPressed: () => _showContextMenu(
                   context,
@@ -392,6 +416,7 @@ class _FavoritesHeader extends ConsumerWidget {
     Offset globalPosition,
   ) async {
     final overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
+    final l10n = AppLocalizations.of(context);
     final path = currentPath;
     final action = await showMenu<_FavoritesHeaderAction>(
       context: context,
@@ -403,11 +428,11 @@ class _FavoritesHeader extends ConsumerWidget {
         PopupMenuItem(
           value: _FavoritesHeaderAction.addCurrent,
           enabled: path != null,
-          child: const Text('フォーカス中のディレクトリを登録'),
+          child: Text(l10n.explorerRegisterCurrentDirectory),
         ),
-        const PopupMenuItem(
+        PopupMenuItem(
           value: _FavoritesHeaderAction.newFolder,
-          child: Text('新しいフォルダ'),
+          child: Text(l10n.explorerNewFavoriteFolder),
         ),
       ],
     );
@@ -418,8 +443,8 @@ class _FavoritesHeader extends ConsumerWidget {
       case _FavoritesHeaderAction.newFolder:
         final name = await promptName(
           context,
-          title: 'フォルダ名',
-          hintText: '例: work / personal',
+          title: l10n.launcherFolderNameTitle,
+          hintText: l10n.explorerFavoriteFolderHint,
         );
         if (name == null || name.trim().isEmpty) {
           return;
@@ -445,11 +470,12 @@ class _FavoritesHeader extends ConsumerWidget {
     WidgetRef ref,
     String path,
   ) async {
+    final l10n = AppLocalizations.of(context);
     final name = await promptName(
       context,
-      title: '表示名',
+      title: l10n.entryEditDisplayNameLabel,
       initialValue: _basename(path),
-      hintText: 'お気に入りの表示名',
+      hintText: l10n.explorerFavoriteDisplayNameHint,
     );
     if (name == null || name.trim().isEmpty) {
       return;
@@ -479,7 +505,7 @@ class _EmptyFavoritesHint extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
       child: Text(
-        '上の + でフォーカス中のディレクトリを登録',
+        AppLocalizations.of(context).explorerFavoritesEmptyHint,
         style: Theme.of(context).textTheme.bodySmall?.copyWith(
           color: Theme.of(context).colorScheme.onSurfaceVariant,
         ),
@@ -582,6 +608,7 @@ class _FavoriteTile extends HookConsumerWidget {
     WidgetRef ref,
     Offset position,
   ) async {
+    final l10n = AppLocalizations.of(context);
     final selected = await showMenu<_FavoriteAction>(
       context: context,
       position: RelativeRect.fromLTRB(
@@ -590,19 +617,19 @@ class _FavoriteTile extends HookConsumerWidget {
         position.dx,
         position.dy,
       ),
-      items: const [
+      items: [
         PopupMenuItem(
           value: _FavoriteAction.rename,
           child: ListTile(
-            leading: Icon(Icons.edit_outlined),
-            title: Text('リネーム'),
+            leading: const Icon(Icons.edit_outlined),
+            title: Text(l10n.explorerRenameTitle),
           ),
         ),
         PopupMenuItem(
           value: _FavoriteAction.remove,
           child: ListTile(
-            leading: Icon(Icons.delete_outline),
-            title: Text('お気に入りから削除'),
+            leading: const Icon(Icons.delete_outline),
+            title: Text(l10n.explorerRemoveFromFavorites),
           ),
         ),
       ],
@@ -615,7 +642,7 @@ class _FavoriteTile extends HookConsumerWidget {
       case _FavoriteAction.rename:
         final newName = await promptName(
           context,
-          title: '表示名',
+          title: l10n.entryEditDisplayNameLabel,
           initialValue: favorite.name,
         );
         if (newName == null || newName.trim().isEmpty) {
@@ -703,20 +730,21 @@ class _FavoriteFolderTile extends ConsumerWidget {
     Offset globalPosition,
   ) async {
     final overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
+    final l10n = AppLocalizations.of(context);
     final action = await showMenu<_FavoriteFolderAction>(
       context: context,
       position: RelativeRect.fromRect(
         Rect.fromLTWH(globalPosition.dx, globalPosition.dy, 0, 0),
         Offset.zero & overlay.size,
       ),
-      items: const [
+      items: [
         PopupMenuItem(
           value: _FavoriteFolderAction.rename,
-          child: Text('リネーム'),
+          child: Text(l10n.explorerRenameTitle),
         ),
         PopupMenuItem(
           value: _FavoriteFolderAction.delete,
-          child: Text('削除（中身は未分類に戻る）'),
+          child: Text(l10n.folderDeleteWithContentsMenuItem),
         ),
       ],
     );
@@ -728,7 +756,7 @@ class _FavoriteFolderTile extends ConsumerWidget {
       case _FavoriteFolderAction.rename:
         final newName = await promptName(
           context,
-          title: 'フォルダ名',
+          title: l10n.launcherFolderNameTitle,
           initialValue: folder.name,
         );
         if (newName == null || newName.trim().isEmpty) {
@@ -742,18 +770,16 @@ class _FavoriteFolderTile extends ConsumerWidget {
         final confirmed = await showDialog<bool>(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Text('フォルダを削除しますか？'),
-            content: Text(
-              '「${folder.name}」を削除します。中身のお気に入りは未分類に戻ります。',
-            ),
+            title: Text(l10n.folderDeleteConfirmTitle),
+            content: Text(l10n.folderDeleteConfirmMessage(folder.name)),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(false),
-                child: const Text('キャンセル'),
+                child: Text(l10n.buttonCancel),
               ),
               FilledButton(
                 onPressed: () => Navigator.of(context).pop(true),
-                child: const Text('削除'),
+                child: Text(l10n.buttonDelete),
               ),
             ],
           ),
@@ -788,7 +814,7 @@ class _FavoriteRootDropZone extends ConsumerWidget {
           color: hover ? colors.primary.withValues(alpha: 0.12) : null,
           padding: const EdgeInsets.fromLTRB(16, 6, 16, 4),
           child: Text(
-            '未分類',
+            AppLocalizations.of(context).unclassified,
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
               color: colors.onSurfaceVariant,
               fontWeight: FontWeight.w600,
@@ -806,6 +832,7 @@ class _LauncherHeader extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context);
     return GestureDetector(
       onSecondaryTapDown: (details) =>
           _showContextMenu(context, ref, details.globalPosition),
@@ -815,7 +842,7 @@ class _LauncherHeader extends ConsumerWidget {
           children: [
             Expanded(
               child: Text(
-                'ランチャー',
+                l10n.explorerSidebarLaunchers,
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
                   color: colors.onSurfaceVariant,
                   fontWeight: FontWeight.w600,
@@ -825,7 +852,7 @@ class _LauncherHeader extends ConsumerWidget {
             Builder(
               builder: (buttonContext) => IconButton(
                 icon: const Icon(Icons.add, size: 18),
-                tooltip: 'エントリを追加 / フォルダを作成',
+                tooltip: l10n.explorerLaunchersAddTooltip,
                 visualDensity: VisualDensity.compact,
                 onPressed: () => _showContextMenu(
                   context,
@@ -846,20 +873,21 @@ class _LauncherHeader extends ConsumerWidget {
     Offset globalPosition,
   ) async {
     final overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
+    final l10n = AppLocalizations.of(context);
     final action = await showMenu<_LauncherHeaderAction>(
       context: context,
       position: RelativeRect.fromRect(
         Rect.fromLTWH(globalPosition.dx, globalPosition.dy, 0, 0),
         Offset.zero & overlay.size,
       ),
-      items: const [
+      items: [
         PopupMenuItem(
           value: _LauncherHeaderAction.newEntry,
-          child: Text('新しいエントリ'),
+          child: Text(l10n.explorerNewLauncherEntry),
         ),
         PopupMenuItem(
           value: _LauncherHeaderAction.newFolder,
-          child: Text('新しいフォルダ'),
+          child: Text(l10n.explorerNewLauncherFolder),
         ),
       ],
     );
@@ -870,8 +898,8 @@ class _LauncherHeader extends ConsumerWidget {
       case _LauncherHeaderAction.newFolder:
         final name = await promptName(
           context,
-          title: 'フォルダ名',
-          hintText: '例: dev / ops',
+          title: l10n.launcherFolderNameTitle,
+          hintText: l10n.explorerLauncherFolderHint,
         );
         if (name == null || name.trim().isEmpty) {
           return;
@@ -901,7 +929,7 @@ class _EmptyLauncherHint extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
       child: Text(
-        '上の + でエントリを登録',
+        AppLocalizations.of(context).explorerLaunchersRegisterHint,
         style: Theme.of(context).textTheme.bodySmall?.copyWith(
           color: Theme.of(context).colorScheme.onSurfaceVariant,
         ),
@@ -927,7 +955,7 @@ class _LauncherManageTile extends StatelessWidget {
             const SizedBox(width: 10),
             Expanded(
               child: Text(
-                'ランチャーを管理…',
+                AppLocalizations.of(context).explorerManageLaunchers,
                 style: Theme.of(
                   context,
                 ).textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant),
@@ -1063,17 +1091,21 @@ class _LauncherFolderTile extends ConsumerWidget {
     Offset globalPosition,
   ) async {
     final overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
+    final l10n = AppLocalizations.of(context);
     final action = await showMenu<_LauncherFolderAction>(
       context: context,
       position: RelativeRect.fromRect(
         Rect.fromLTWH(globalPosition.dx, globalPosition.dy, 0, 0),
         Offset.zero & overlay.size,
       ),
-      items: const [
-        PopupMenuItem(value: _LauncherFolderAction.rename, child: Text('リネーム')),
+      items: [
+        PopupMenuItem(
+          value: _LauncherFolderAction.rename,
+          child: Text(l10n.explorerRenameTitle),
+        ),
         PopupMenuItem(
           value: _LauncherFolderAction.delete,
-          child: Text('削除（中身は未分類に戻る）'),
+          child: Text(l10n.folderDeleteWithContentsMenuItem),
         ),
       ],
     );
@@ -1084,7 +1116,7 @@ class _LauncherFolderTile extends ConsumerWidget {
       case _LauncherFolderAction.rename:
         final newName = await promptName(
           context,
-          title: 'フォルダ名',
+          title: l10n.launcherFolderNameTitle,
           initialValue: folder.name,
         );
         if (newName == null || newName.trim().isEmpty) {
@@ -1100,16 +1132,16 @@ class _LauncherFolderTile extends ConsumerWidget {
         final confirmed = await showDialog<bool>(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Text('フォルダを削除しますか？'),
-            content: Text('「${folder.name}」を削除します。中身のエントリは未分類に戻ります。'),
+            title: Text(l10n.folderDeleteConfirmTitle),
+            content: Text(l10n.folderDeleteConfirmMessage(folder.name)),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(false),
-                child: const Text('キャンセル'),
+                child: Text(l10n.buttonCancel),
               ),
               FilledButton(
                 onPressed: () => Navigator.of(context).pop(true),
-                child: const Text('削除'),
+                child: Text(l10n.buttonDelete),
               ),
             ],
           ),
@@ -1143,7 +1175,7 @@ class _LauncherRootDropZone extends ConsumerWidget {
           color: hover ? colors.primary.withValues(alpha: 0.12) : null,
           padding: const EdgeInsets.fromLTRB(16, 6, 16, 4),
           child: Text(
-            '未分類',
+            AppLocalizations.of(context).unclassified,
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
               color: colors.onSurfaceVariant,
               fontWeight: FontWeight.w600,
@@ -1201,7 +1233,7 @@ class _RunningTile extends ConsumerWidget {
             ),
             IconButton(
               icon: const Icon(Icons.close, size: 16),
-              tooltip: 'セッションを完全に破棄',
+              tooltip: AppLocalizations.of(context).explorerSessionDiscardTooltip,
               visualDensity: VisualDensity.compact,
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
@@ -1247,7 +1279,7 @@ class _RunningEmptyTile extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
       child: Text(
-        'なし',
+        AppLocalizations.of(context).explorerRunningEmpty,
         style: Theme.of(context).textTheme.bodySmall?.copyWith(
           color: Theme.of(context).colorScheme.onSurfaceVariant,
         ),

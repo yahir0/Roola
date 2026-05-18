@@ -6,6 +6,7 @@ import 'package:roola/data/launcher_entry/launcher_entries_provider.dart';
 import 'package:roola/data/launcher_entry/launcher_entry.dart';
 import 'package:roola/data/launcher_entry/launcher_folder.dart';
 import 'package:roola/data/launcher_entry/launcher_folders_provider.dart';
+import 'package:roola/l10n/app_localizations.dart';
 import 'package:roola/ui/common/macos_window_app_bar.dart';
 import 'package:roola/ui/common/prompt_name_dialog.dart';
 import 'package:uuid/uuid.dart';
@@ -26,29 +27,31 @@ class LauncherManagementPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final entriesState = ref.watch(launcherEntriesProvider);
     final foldersState = ref.watch(launcherFoldersProvider);
     return Scaffold(
       appBar: MacosWindowAppBar(
-        title: const Text('ランチャー管理'),
+        title: Text(l10n.launcherManagementTitle),
         actions: [
           IconButton(
             icon: const Icon(Icons.create_new_folder_outlined),
-            tooltip: 'フォルダ追加',
+            tooltip: l10n.launcherAddFolderTooltip,
             onPressed: () => _addFolder(context, ref),
           ),
           IconButton(
             icon: const Icon(Icons.add),
-            tooltip: 'エントリ追加',
+            tooltip: l10n.launcherAddEntryTooltip,
             onPressed: () => const EntryNewRoute().push<void>(context),
           ),
         ],
       ),
-      body: _buildBody(entriesState, foldersState),
+      body: _buildBody(l10n, entriesState, foldersState),
     );
   }
 
   Widget _buildBody(
+    AppLocalizations l10n,
     AsyncValue<List<LauncherEntry>> entriesState,
     AsyncValue<List<LauncherFolder>> foldersState,
   ) {
@@ -60,7 +63,7 @@ class LauncherManagementPage extends ConsumerWidget {
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(24),
-          child: Text('読み込みに失敗しました: $entriesError'),
+          child: Text(l10n.launcherLoadError('$entriesError')),
         ),
       );
     }
@@ -73,10 +76,11 @@ class LauncherManagementPage extends ConsumerWidget {
   }
 
   Future<void> _addFolder(BuildContext context, WidgetRef ref) async {
+    final l10n = AppLocalizations.of(context);
     final name = await promptName(
       context,
-      title: 'フォルダ名',
-      hintText: '例: dev / ops',
+      title: l10n.launcherFolderNameTitle,
+      hintText: l10n.launcherFolderNameHint,
     );
     if (name == null || name.trim().isEmpty) {
       return;
@@ -98,17 +102,18 @@ class _EmptyPlaceholder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const Icon(Icons.dashboard_customize, size: 64),
           const SizedBox(height: 16),
-          const Text('登録されたランチャーがまだありません'),
+          Text(l10n.launcherEmptyPlaceholder),
           const SizedBox(height: 16),
           FilledButton.icon(
             icon: const Icon(Icons.add),
-            label: const Text('エントリを追加'),
+            label: Text(l10n.launcherAddEntryButton),
             onPressed: () => const EntryNewRoute().push<void>(context),
           ),
         ],
@@ -168,6 +173,7 @@ class _FolderHeader extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final colors = Theme.of(context).colorScheme;
     return DragTarget<LauncherEntry>(
       // 既に自フォルダにいるエントリは accept しない（無駄な save 防止）。
@@ -197,17 +203,17 @@ class _FolderHeader extends ConsumerWidget {
                 ),
               ),
               PopupMenuButton<_FolderAction>(
-                tooltip: 'フォルダ操作',
+                tooltip: AppLocalizations.of(context).launcherFolderOperationsTooltip,
                 icon: const Icon(Icons.more_horiz),
                 onSelected: (action) => _onAction(context, ref, action),
-                itemBuilder: (context) => const [
+                itemBuilder: (context) => [
                   PopupMenuItem(
                     value: _FolderAction.rename,
-                    child: Text('リネーム'),
+                    child: Text(AppLocalizations.of(context).buttonRename),
                   ),
                   PopupMenuItem(
                     value: _FolderAction.delete,
-                    child: Text('削除（中身は未分類に戻る）'),
+                    child: Text(l10n.folderDeleteWithContentsMenuItem),
                   ),
                 ],
               ),
@@ -223,11 +229,12 @@ class _FolderHeader extends ConsumerWidget {
     WidgetRef ref,
     _FolderAction action,
   ) async {
+    final l10n = AppLocalizations.of(context);
     switch (action) {
       case _FolderAction.rename:
         final newName = await promptName(
           context,
-          title: 'フォルダ名',
+          title: l10n.launcherFolderNameTitle,
           initialValue: folder.name,
         );
         if (newName == null || newName.trim().isEmpty) {
@@ -243,16 +250,16 @@ class _FolderHeader extends ConsumerWidget {
         final confirmed = await showDialog<bool>(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Text('フォルダを削除しますか？'),
-            content: Text('「${folder.name}」を削除します。中身のエントリは未分類に戻ります。'),
+            title: Text(l10n.folderDeleteConfirmTitle),
+            content: Text(l10n.folderDeleteConfirmMessage(folder.name)),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(false),
-                child: const Text('キャンセル'),
+                child: Text(l10n.buttonCancel),
               ),
               FilledButton(
                 onPressed: () => Navigator.of(context).pop(true),
-                child: const Text('削除'),
+                child: Text(l10n.buttonDelete),
               ),
             ],
           ),
@@ -273,6 +280,7 @@ class _RootSectionHeader extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final colors = Theme.of(context).colorScheme;
     return DragTarget<LauncherEntry>(
       // 既に root にいるエントリは accept しない。
@@ -290,7 +298,7 @@ class _RootSectionHeader extends ConsumerWidget {
               : colors.surfaceContainerHighest.withValues(alpha: 0.4),
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
           child: Text(
-            '未分類',
+            l10n.unclassified,
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
               color: colors.onSurfaceVariant,
               fontWeight: FontWeight.w600,
@@ -307,11 +315,12 @@ class _EmptyFolderHint extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final colors = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.fromLTRB(32, 8, 16, 8),
       child: Text(
-        '（このフォルダは空です。エントリをここにドラッグして追加できます）',
+        l10n.launcherEmptyFolderHint,
         style: Theme.of(
           context,
         ).textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant),
@@ -325,11 +334,12 @@ class _EmptyRootHint extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final colors = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.fromLTRB(32, 8, 16, 8),
       child: Text(
-        '（未分類のエントリはありません。フォルダから「未分類」ヘッダにドラッグすると戻せます）',
+        l10n.launcherEmptyRootHint,
         style: Theme.of(
           context,
         ).textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant),
@@ -346,6 +356,7 @@ class _EntryTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     return LongPressDraggable<LauncherEntry>(
       data: entry,
       // ドラッグ中はカーソル位置に半透明のサムネイルを表示する。Material
@@ -358,7 +369,7 @@ class _EntryTile extends ConsumerWidget {
           child: ListTile(
             leading: _ActionIcon(action: entry.action),
             title: Text(entry.displayName),
-            subtitle: Text(_actionLabel(entry.action), maxLines: 1),
+            subtitle: Text(_actionLabel(l10n, entry.action), maxLines: 1),
           ),
         ),
       ),
@@ -369,18 +380,19 @@ class _EntryTile extends ConsumerWidget {
   }
 
   Widget _content(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     return ListTile(
       leading: _ActionIcon(action: entry.action),
       title: Text(entry.displayName),
       subtitle: Text(
-        '${entry.workingDirectory}\n${_actionLabel(entry.action)}',
+        '${entry.workingDirectory}\n${_actionLabel(l10n, entry.action)}',
         maxLines: 2,
         overflow: TextOverflow.ellipsis,
       ),
       isThreeLine: true,
       trailing: IconButton(
         icon: const Icon(Icons.delete_outline),
-        tooltip: '削除',
+        tooltip: l10n.launcherDeleteEntryTooltip,
         onPressed: () => _confirmDelete(context, ref, entry),
       ),
       onTap: () => EntryEditRoute(entryId: entry.id).push<void>(context),
@@ -392,19 +404,20 @@ class _EntryTile extends ConsumerWidget {
     WidgetRef ref,
     LauncherEntry entry,
   ) async {
+    final l10n = AppLocalizations.of(context);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('エントリを削除しますか？'),
-        content: Text('「${entry.displayName}」を削除します。この操作は取り消せません。'),
+        title: Text(l10n.launcherDeleteEntryConfirm),
+        content: Text(l10n.launcherDeleteEntryMessage(entry.displayName)),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('キャンセル'),
+            child: Text(l10n.buttonCancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('削除'),
+            child: Text(l10n.buttonDelete),
           ),
         ],
       ),
@@ -416,11 +429,16 @@ class _EntryTile extends ConsumerWidget {
 }
 
 /// subtitle に表示する 1 行分の動作説明。
-String _actionLabel(LauncherAction action) => switch (action) {
-  OpenHereAction() => '動作: 開くだけ',
-  RunCommandAction(:final command) => '動作: コマンド実行 — $command',
-  ClaudeSkillAction(:final skillName) => '動作: Claude Skill — $skillName',
-};
+String _actionLabel(AppLocalizations l10n, LauncherAction action) =>
+    switch (action) {
+      OpenHereAction() => l10n.launcherActionLabelOpenHere,
+      RunCommandAction(:final command) => l10n.launcherActionLabelRunCommand(
+        command,
+      ),
+      ClaudeSkillAction(:final skillName) => l10n.launcherActionLabelClaudeSkill(
+        skillName,
+      ),
+    };
 
 /// 動作タイプ別の小さな leading アイコン（ADR-0023 で _EntryIcon を廃止）。
 class _ActionIcon extends StatelessWidget {

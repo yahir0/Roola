@@ -5,6 +5,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:roola/core/health/claude_health_check.dart';
 import 'package:roola/data/launcher_entry/launcher_action.dart';
 import 'package:roola/data/launcher_entry/launcher_folders_provider.dart';
+import 'package:roola/l10n/app_localizations.dart';
 import 'package:roola/ui/common/macos_window_app_bar.dart';
 import 'package:roola/ui/launchers/entry_edit_view_model.dart';
 
@@ -74,8 +75,12 @@ class EntryEditPage extends HookConsumerWidget {
       return null;
     }, [state.workingDirectory]);
 
+    final l10n = AppLocalizations.of(context);
+
     return Scaffold(
-      appBar: MacosWindowAppBar(title: Text(isNew ? 'エントリ追加' : 'エントリ編集')),
+      appBar: MacosWindowAppBar(
+        title: Text(isNew ? l10n.entryEditTitleNew : l10n.entryEditTitleEdit),
+      ),
       body: AbsorbPointer(
         absorbing: state.isSubmitting,
         child: ListView(
@@ -84,7 +89,7 @@ class EntryEditPage extends HookConsumerWidget {
             TextField(
               controller: displayNameController,
               decoration: InputDecoration(
-                labelText: '表示名',
+                labelText: l10n.entryEditDisplayNameLabel,
                 errorText: state.errors['displayName'],
                 border: const OutlineInputBorder(),
               ),
@@ -94,13 +99,13 @@ class EntryEditPage extends HookConsumerWidget {
             TextField(
               controller: workingDirectoryController,
               decoration: InputDecoration(
-                labelText: '作業ディレクトリ',
-                hintText: '/Users/you/path/to/dir',
+                labelText: l10n.entryEditWorkingDirectoryLabel,
+                hintText: l10n.entryEditWorkingDirectoryHint,
                 errorText: state.errors['workingDirectory'],
                 border: const OutlineInputBorder(),
                 suffixIcon: IconButton(
                   icon: const Icon(Icons.folder_open),
-                  tooltip: 'ディレクトリを選択',
+                  tooltip: l10n.entryEditDirectorySelectTooltip,
                   onPressed: () => _pickDirectory(viewModel),
                 ),
               ),
@@ -126,7 +131,7 @@ class EntryEditPage extends HookConsumerWidget {
                   onPressed: state.isSubmitting
                       ? null
                       : () => Navigator.of(context).pop(),
-                  child: const Text('キャンセル'),
+                  child: Text(l10n.buttonCancel),
                 ),
                 const SizedBox(width: 8),
                 FilledButton.icon(
@@ -137,7 +142,9 @@ class EntryEditPage extends HookConsumerWidget {
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
                       : const Icon(Icons.save),
-                  label: Text(state.isSubmitting ? '保存中...' : '保存'),
+                  label: Text(
+                    state.isSubmitting ? l10n.buttonSaving : l10n.buttonSave,
+                  ),
                   onPressed: state.isSubmitting
                       ? null
                       : () async {
@@ -178,15 +185,16 @@ class _FolderSelector extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final folders = ref.watch(launcherFoldersProvider).value ?? const [];
     return DropdownButtonFormField<String?>(
       initialValue: selectedFolderId,
-      decoration: const InputDecoration(
-        labelText: 'フォルダ',
-        border: OutlineInputBorder(),
+      decoration: InputDecoration(
+        labelText: l10n.entryEditFolderLabel,
+        border: const OutlineInputBorder(),
       ),
       items: [
-        const DropdownMenuItem<String?>(child: Text('フォルダなし（未分類）')),
+        DropdownMenuItem<String?>(child: Text(l10n.entryEditFolderNone)),
         for (final f in folders)
           DropdownMenuItem<String?>(value: f.id, child: Text(f.name)),
       ],
@@ -208,13 +216,17 @@ class _ActionTypeSelector extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final claudeAvailable = ref.watch(claudeAvailableProvider);
     final showClaudeSkill =
         claudeAvailable || selected == LauncherActionType.claudeSkill;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('動作', style: Theme.of(context).textTheme.labelLarge),
+        Text(
+          l10n.entryEditActionTypeLabel,
+          style: Theme.of(context).textTheme.labelLarge,
+        ),
         const SizedBox(height: 8),
         if (!claudeAvailable) ...[
           _ClaudeUnavailableNotice(currentIsClaudeSkill: showClaudeSkill),
@@ -224,21 +236,21 @@ class _ActionTypeSelector extends ConsumerWidget {
           width: double.infinity,
           child: SegmentedButton<LauncherActionType>(
             segments: [
-              const ButtonSegment(
+              ButtonSegment(
                 value: LauncherActionType.openHere,
-                icon: Icon(Icons.folder_open),
-                label: Text('開くだけ'),
+                icon: const Icon(Icons.folder_open),
+                label: Text(l10n.entryEditActionOpenHere),
               ),
-              const ButtonSegment(
+              ButtonSegment(
                 value: LauncherActionType.runCommand,
-                icon: Icon(Icons.bolt),
-                label: Text('コマンド実行'),
+                icon: const Icon(Icons.bolt),
+                label: Text(l10n.entryEditActionRunCommand),
               ),
               if (showClaudeSkill)
-                const ButtonSegment(
+                ButtonSegment(
                   value: LauncherActionType.claudeSkill,
-                  icon: Icon(Icons.auto_awesome),
-                  label: Text('Claude Skill'),
+                  icon: const Icon(Icons.auto_awesome),
+                  label: Text(l10n.entryEditActionClaudeSkill),
                 ),
             ],
             selected: {selected},
@@ -261,6 +273,7 @@ class _ClaudeUnavailableNotice extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final colors = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
@@ -277,8 +290,8 @@ class _ClaudeUnavailableNotice extends StatelessWidget {
           Expanded(
             child: Text(
               currentIsClaudeSkill
-                  ? 'Claude Code が未導入です。このエントリは Skill タイプですが、保存しても起動できません。「設定」画面のインストール手順を参照してください。'
-                  : 'Claude Code が未導入のため「Claude Skill」タイプは無効化されています。「設定」画面のインストール手順を参照してください。',
+                  ? l10n.entryEditClaudeUnavailableNoticeCurrent
+                  : l10n.entryEditClaudeUnavailableNoticeGeneral,
               style: Theme.of(context).textTheme.bodySmall,
             ),
           ),
@@ -322,20 +335,16 @@ class _OpenHereSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Card(
       color: Theme.of(context).colorScheme.surfaceContainerHighest,
-      child: const Padding(
-        padding: EdgeInsets.all(16),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
         child: Row(
           children: [
-            Icon(Icons.info_outline),
-            SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                r'指定した作業ディレクトリでログインシェル ($SHELL) を起動し、'
-                'プロンプトで停止します。',
-              ),
-            ),
+            const Icon(Icons.info_outline),
+            const SizedBox(width: 12),
+            Expanded(child: Text(l10n.entryEditOpenHereDescription)),
           ],
         ),
       ),
@@ -395,15 +404,16 @@ class _RunCommandSectionState extends State<_RunCommandSection> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         TextField(
           controller: _controller,
           decoration: InputDecoration(
-            labelText: '実行コマンド',
-            hintText: 'npm run dev',
-            helperText: r'$SHELL -lc 経由で実行されます。&& や環境変数も使えます。',
+            labelText: l10n.entryEditCommandLabel,
+            hintText: l10n.entryEditCommandHint,
+            helperText: l10n.entryEditCommandHelper,
             errorText: widget.errorText,
             border: const OutlineInputBorder(),
           ),
@@ -412,11 +422,8 @@ class _RunCommandSectionState extends State<_RunCommandSection> {
         const SizedBox(height: 8),
         SwitchListTile(
           contentPadding: EdgeInsets.zero,
-          title: const Text('コマンド終了後もターミナルを残す'),
-          subtitle: const Text(
-            '一発完結コマンド（make build 等）の結果を確認できます。'
-            '常駐コマンド (npm run dev 等) では結果に影響しません。',
-          ),
+          title: Text(l10n.entryEditKeepShellAfterExitTitle),
+          subtitle: Text(l10n.entryEditKeepShellAfterExitSubtitle),
           value: widget.keepShellAfterExit,
           onChanged: widget.onKeepShellChanged,
         ),
@@ -473,14 +480,17 @@ class _ClaudeSkillSectionState extends State<_ClaudeSkillSection> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return TextField(
       controller: _controller,
       decoration: InputDecoration(
-        labelText: 'Skill 名',
-        hintText: 'my-skill',
+        labelText: l10n.entryEditSkillNameLabel,
+        hintText: l10n.entryEditSkillNameHint,
         helperText: widget.availableSkills.isEmpty
-            ? '作業ディレクトリ内の `.claude/skills/` から候補を取得します'
-            : '候補: ${widget.availableSkills.length} 件',
+            ? l10n.entryEditSkillNameHelperNoSkills
+            : l10n.entryEditSkillNameHelperWithSkills(
+                widget.availableSkills.length,
+              ),
         errorText: widget.errorText,
         border: const OutlineInputBorder(),
         suffixIcon: widget.availableSkills.isEmpty
@@ -493,7 +503,7 @@ class _ClaudeSkillSectionState extends State<_ClaudeSkillSection> {
                 // macOS 実機の挙動を回避するための保険。
                 key: ValueKey('skill-suggest-${widget.workingDirectory}'),
                 icon: const Icon(Icons.arrow_drop_down),
-                tooltip: '候補から選択',
+                tooltip: l10n.entryEditSkillNameSelectTooltip,
                 itemBuilder: (context) => widget.availableSkills
                     .map((s) => PopupMenuItem<String>(value: s, child: Text(s)))
                     .toList(),

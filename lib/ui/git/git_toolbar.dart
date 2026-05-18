@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:roola/data/git/git_stash_entry.dart';
+import 'package:roola/l10n/app_localizations.dart';
 import 'package:roola/ui/git/git_branch_menu.dart';
 import 'package:roola/ui/git/git_dialogs.dart';
 import 'package:roola/ui/git/git_view_model.dart';
@@ -21,6 +22,7 @@ class GitToolbar extends ConsumerWidget {
     final notifier = ref.read(gitViewModelProvider(tabId).notifier);
     final colors = Theme.of(context).colorScheme;
     final running = state.runningOperation;
+    final l10n = AppLocalizations.of(context);
 
     return Container(
       height: 40,
@@ -76,26 +78,30 @@ class GitToolbar extends ConsumerWidget {
               ),
               PopupMenuButton<_GitOverflow>(
                 enabled: !state.isBusy,
-                tooltip: 'その他の操作',
+                tooltip: l10n.gitToolbarOverflowTooltip,
                 icon: Icon(Icons.more_vert, size: 18, color: colors.onSurface),
                 onSelected: (value) => _onOverflow(context, ref, value),
                 itemBuilder: (context) => [
-                  _overflowItem(_GitOverflow.refresh, Icons.refresh, '再読込'),
+                  _overflowItem(
+                    _GitOverflow.refresh,
+                    Icons.refresh,
+                    l10n.gitMenuRefresh,
+                  ),
                   _overflowItem(
                     _GitOverflow.stashSave,
                     Icons.inventory_2_outlined,
-                    '変更を stash に退避',
+                    l10n.gitMenuStashSave,
                   ),
                   _overflowItem(
                     _GitOverflow.stashList,
                     Icons.list_alt,
-                    'stash 一覧 (${state.stashes.length})',
+                    l10n.gitMenuStashList(state.stashes.length),
                   ),
                   const PopupMenuDivider(),
                   _overflowItem(
                     _GitOverflow.forcePush,
                     Icons.published_with_changes,
-                    'Push (--force-with-lease)',
+                    l10n.gitMenuForcePush,
                   ),
                 ],
               ),
@@ -126,15 +132,16 @@ class GitToolbar extends ConsumerWidget {
     _GitOverflow value,
   ) async {
     final notifier = ref.read(gitViewModelProvider(tabId).notifier);
+    final l10n = AppLocalizations.of(context);
     switch (value) {
       case _GitOverflow.refresh:
         await notifier.refresh();
       case _GitOverflow.stashSave:
         final message = await gitPrompt(
           context,
-          title: '変更を stash に退避',
-          label: 'メッセージ（任意）',
-          confirmLabel: '退避',
+          title: l10n.gitStashSaveTitle,
+          label: l10n.gitStashMessageLabel,
+          confirmLabel: l10n.gitStashSaveButton,
           allowEmpty: true,
         );
         if (message != null) {
@@ -147,9 +154,9 @@ class GitToolbar extends ConsumerWidget {
       case _GitOverflow.forcePush:
         final ok = await gitConfirm(
           context,
-          title: 'force push',
-          message: 'リモートブランチを --force-with-lease で上書きします。',
-          confirmLabel: 'Push',
+          title: l10n.gitForcePushTitle,
+          message: l10n.gitForcePushMessage,
+          confirmLabel: l10n.gitForcePushButton,
         );
         if (ok) {
           await notifier.push(force: true);
@@ -296,6 +303,7 @@ class _StashDialog extends ConsumerWidget {
     final state = ref.watch(gitViewModelProvider(tabId)).value;
     final notifier = ref.read(gitViewModelProvider(tabId).notifier);
     final stashes = state?.stashes ?? const <GitStashEntry>[];
+    final l10n = AppLocalizations.of(context);
 
     return Dialog(
       child: SizedBox(
@@ -311,13 +319,13 @@ class _StashDialog extends ConsumerWidget {
                   const Icon(Icons.inventory_2_outlined, size: 18),
                   const SizedBox(width: 8),
                   Text(
-                    'stash 一覧',
+                    l10n.gitStashListTitle,
                     style: Theme.of(context).textTheme.titleSmall,
                   ),
                   const Spacer(),
                   IconButton(
                     icon: const Icon(Icons.close, size: 18),
-                    tooltip: '閉じる',
+                    tooltip: l10n.buttonClose,
                     onPressed: () => Navigator.of(context).maybePop(),
                   ),
                 ],
@@ -326,7 +334,7 @@ class _StashDialog extends ConsumerWidget {
             const Divider(height: 1),
             Expanded(
               child: stashes.isEmpty
-                  ? const Center(child: Text('stash はありません'))
+                  ? Center(child: Text(l10n.gitStashEmpty))
                   : ListView(
                       children: [
                         for (final stash in stashes)
@@ -353,7 +361,7 @@ class _StashDialog extends ConsumerWidget {
                                           stash.index,
                                           pop: false,
                                         ),
-                                  child: const Text('適用'),
+                                  child: Text(l10n.gitStashApplyButton),
                                 ),
                                 TextButton(
                                   onPressed: (state?.isBusy ?? true)
@@ -362,22 +370,25 @@ class _StashDialog extends ConsumerWidget {
                                           stash.index,
                                           pop: true,
                                         ),
-                                  child: const Text('pop'),
+                                  child: Text(l10n.gitStashPopButton),
                                 ),
                                 IconButton(
                                   icon: const Icon(
                                     Icons.delete_outline,
                                     size: 16,
                                   ),
-                                  tooltip: '破棄',
+                                  tooltip: l10n.gitStashDiscardTooltip,
                                   onPressed: (state?.isBusy ?? true)
                                       ? null
                                       : () async {
                                           final ok = await gitConfirm(
                                             context,
-                                            title: 'stash を破棄',
-                                            message: '${stash.ref} を破棄します。',
-                                            confirmLabel: '破棄',
+                                            title: l10n.gitStashDropTitle,
+                                            message: l10n.gitStashDropMessage(
+                                              stash.ref,
+                                            ),
+                                            confirmLabel:
+                                                l10n.gitStashDropButton,
                                           );
                                           if (ok) {
                                             await notifier.stashDrop(

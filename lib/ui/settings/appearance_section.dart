@@ -6,6 +6,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:roola/data/appearance/appearance_settings.dart';
 import 'package:roola/data/appearance/appearance_settings_repository_impl.dart';
 import 'package:roola/data/launcher_entry/launcher_entry_repository_impl.dart';
+import 'package:roola/l10n/app_localizations.dart';
 
 /// 設定画面に組み込む「外観」セクション。
 ///
@@ -36,7 +37,7 @@ class AppearanceSection extends ConsumerWidget {
       ),
       error: (e, _) => Padding(
         padding: const EdgeInsets.all(16),
-        child: Text('外観設定の読み込みに失敗しました: $e'),
+        child: Text(AppLocalizations.of(context).appearanceLoadError('$e')),
       ),
     );
   }
@@ -50,34 +51,38 @@ class _Body extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final notifier = ref.read(appearanceSettingsProvider.notifier);
+    final l10n = AppLocalizations.of(context);
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('外観', style: Theme.of(context).textTheme.titleMedium),
+          Text(
+            l10n.appearanceTitle,
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
           const SizedBox(height: 12),
           SegmentedButton<AppearanceMode>(
-            segments: const [
+            segments: [
               ButtonSegment(
                 value: AppearanceMode.transparent,
-                label: Text('透過'),
-                icon: Icon(Icons.blur_on),
+                label: Text(l10n.appearanceModeTransparent),
+                icon: const Icon(Icons.blur_on),
               ),
               ButtonSegment(
                 value: AppearanceMode.gradient,
-                label: Text('ロゴ'),
-                icon: Icon(Icons.gradient),
+                label: Text(l10n.appearanceModeGradient),
+                icon: const Icon(Icons.gradient),
               ),
               ButtonSegment(
                 value: AppearanceMode.solid,
-                label: Text('単色'),
-                icon: Icon(Icons.format_color_fill),
+                label: Text(l10n.appearanceModeSolid),
+                icon: const Icon(Icons.format_color_fill),
               ),
               ButtonSegment(
                 value: AppearanceMode.image,
-                label: Text('画像'),
-                icon: Icon(Icons.image),
+                label: Text(l10n.appearanceModeImage),
+                icon: const Icon(Icons.image),
               ),
             ],
             selected: {settings.mode},
@@ -170,7 +175,7 @@ class _OpacitySlider extends StatelessWidget {
       children: [
         Row(
           children: [
-            const Text('不透明度'),
+            Text(AppLocalizations.of(context).appearanceOpacityLabel),
             const Spacer(),
             Text('$percent%', style: Theme.of(context).textTheme.bodySmall),
           ],
@@ -253,7 +258,7 @@ class _ImagePicker extends StatelessWidget {
         const SizedBox(width: 16),
         FilledButton.icon(
           icon: const Icon(Icons.upload_file),
-          label: const Text('画像を選択'),
+          label: Text(AppLocalizations.of(context).appearanceImageSelectButton),
           onPressed: onPick,
         ),
       ],
@@ -278,13 +283,17 @@ class _CenterImagePicker extends StatelessWidget {
   Widget build(BuildContext context) {
     final file = imagePath != null ? File(imagePath!) : null;
     final hasImage = file != null && file.existsSync();
+    final l10n = AppLocalizations.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('中央画像', style: Theme.of(context).textTheme.bodyMedium),
+        Text(
+          l10n.appearanceCenterImageLabel,
+          style: Theme.of(context).textTheme.bodyMedium,
+        ),
         const SizedBox(height: 4),
         Text(
-          'ウィンドウの中央に重ねて表示します（短辺の 60% 程度のサイズ）。',
+          l10n.appearanceCenterImageDescription,
           style: Theme.of(context).textTheme.bodySmall,
         ),
         const SizedBox(height: 8),
@@ -313,14 +322,14 @@ class _CenterImagePicker extends StatelessWidget {
               children: [
                 FilledButton.icon(
                   icon: const Icon(Icons.upload_file),
-                  label: const Text('画像を選択'),
+                  label: Text(l10n.appearanceImageSelectButton),
                   onPressed: onPick,
                 ),
                 if (hasImage) ...[
                   const SizedBox(height: 8),
                   TextButton.icon(
                     icon: const Icon(Icons.clear),
-                    label: const Text('クリア'),
+                    label: Text(l10n.appearanceCenterImageClear),
                     onPressed: onClear,
                   ),
                 ],

@@ -1,0 +1,468 @@
+{
+  "@@locale": "en",
+
+  "buttonCancel": "Cancel",
+  "buttonClose": "Close",
+  "buttonConfirm": "OK",
+  "buttonReset": "Reset",
+  "buttonDelete": "Delete",
+  "buttonCreate": "Create",
+  "buttonChange": "Change",
+  "buttonSave": "Save",
+  "buttonSaving": "Saving...",
+  "buttonRetry": "Retry",
+
+  "navBack": "Back",
+  "navForward": "Forward",
+  "navUp": "Up one level",
+
+  "commandCategoryNavigation": "Navigation",
+  "commandCategoryExplorer": "Explorer",
+  "commandCategoryTab": "Tabs / Panes",
+  "commandCategoryApp": "Launcher / App",
+  "commandCategoryGit": "Git",
+
+  "commandCopyPath": "Copy path",
+  "commandCopyItem": "Copy",
+  "commandPasteItem": "Paste",
+  "commandRenameItem": "Rename",
+  "commandMoveToTrash": "Delete",
+  "commandNewFolder": "New folder",
+  "commandNewFile": "New text file",
+  "commandRevealInFinder": "Reveal in Finder",
+  "commandOpenItem": "Open",
+  "commandShowProperties": "Properties",
+  "commandOpenTerminalHere": "Open terminal here",
+  "commandOpenClaudeHere": "Open Claude Code here",
+  "commandNewExplorerTab": "New explorer tab",
+  "commandNewTerminalTab": "New terminal tab",
+  "commandCloseTab": "Close tab",
+  "commandNextTab": "Next tab",
+  "commandPreviousTab": "Previous tab",
+  "commandMoveTabTopLeft": "Move tab to top-left pane",
+  "commandMoveTabTopRight": "Move tab to top-right pane",
+  "commandMoveTabBottom": "Move tab to bottom pane",
+  "commandOpenLauncherManagement": "Open launcher management",
+  "commandOpenSettings": "Open settings",
+  "commandOpenKeybindings": "Open keyboard shortcuts",
+  "commandGitRefresh": "Refresh Git view",
+  "commandGitFetch": "Fetch",
+  "commandGitPull": "Pull",
+  "commandGitPush": "Push",
+
+  "appMenuRoola": "Roola",
+  "appMenuFile": "File",
+  "appMenuEdit": "Edit",
+  "appMenuView": "View",
+  "appMenuTerminal": "Terminal",
+  "appMenuGit": "Git",
+  "appMenuPane": "Pane",
+
+  "windowCloseConfirmTitle": "Confirm quit",
+  "windowCloseConfirmMessage": "{count} session(s) are still running.\nQuitting will terminate all PTYs and discard their output history.",
+  "@windowCloseConfirmMessage": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "windowCloseConfirmButton": "Quit",
+
+  "settingsPageTitle": "Settings",
+  "settingsLanguageTitle": "Language",
+  "settingsLanguageDescription": "Choose the display language of the app.",
+  "languageJapanese": "日本語",
+  "languageEnglish": "English",
+
+  "settingsExplorerTitle": "Explorer",
+  "settingsExplorerDescription": "Switch the row height and amount of detail of file / folder tiles.",
+  "explorerDensityCompact": "Compact",
+  "explorerDensityComfortable": "Comfortable",
+  "explorerDensityCompactDescription": "Compact: same row height as the sidebar. Skill subtitle / chips are omitted.",
+  "explorerDensityComfortableDescription": "Comfortable: roomier rows that also show the Skill subtitle and chips.",
+
+  "settingsClaudeIntegrationTitle": "Claude Code integration",
+  "settingsClaudeIntegrationDescription": "When Anthropic's Claude Code CLI is found on PATH, related features are enabled automatically.",
+  "claudeHealthChecking": "Detecting…",
+  "claudeHealthCheckingDetail": "Waiting for `claude --version` to run.",
+  "claudeHealthCheckError": "Health check failed",
+  "claudeHealthCheckSuccess": "Detected",
+  "claudeHealthCheckSuccessDetail": "The `claude` command is available.",
+  "claudeHealthVersion": "Version: {version}",
+  "@claudeHealthVersion": {
+    "placeholders": { "version": { "type": "String" } }
+  },
+  "claudeHealthCheckNotFound": "Not detected",
+  "claudeHealthCheckNotFoundDetail": "The `claude` command was not found on PATH.",
+  "claudeHealthCheckNotFoundDetailWith": "Details: {detail}",
+  "@claudeHealthCheckNotFoundDetailWith": {
+    "placeholders": { "detail": { "type": "String" } }
+  },
+  "settingsClaudeFeatures": "Features that get enabled",
+  "settingsClaudeFeature1": "Auto-detects `.claude/skills/` in explorer folders and shows a special icon and Skill chips",
+  "settingsClaudeFeature2": "Adds \"Open Claude Code\", \"Run Skill now\", and \"Register Skill to launcher\" to the right-click menu",
+  "settingsClaudeFeature3": "Lets you pick the \"Claude Skill\" action type when registering a launcher entry (runs `claude /skillname` with the given Skill name)",
+  "settingsClaudeInstallTitle": "Installation steps",
+  "settingsClaudeInstallInstructions": "With Node.js 18+ installed, run the following command:",
+  "settingsClaudeInstallCopyTooltip": "Copy command",
+  "settingsClaudeInstallCopied": "Copied the install command",
+  "settingsClaudeInstallAfter": "After installing, restart Roola for it to be detected.",
+
+  "settingsKeyboardShortcutsTitle": "Keyboard shortcuts",
+  "settingsKeyboardShortcutsDescription": "All command shortcuts can be reviewed and changed on a dedicated screen.",
+  "settingsKeyboardShortcutsButton": "Edit keyboard shortcuts…",
+  "settingsMouseOperationsTitle": "Mouse operations",
+  "settingsMouseClick": "Select a file / folder (highlighted)",
+  "settingsMouseDoubleClick": "Enter a folder / open a file with the default app",
+  "settingsMouseRightClick": "Context menu (operations specific to folders / files)",
+  "settingsMouseNavigation": "Go back / forward one step in directory history (same as ← → in the AppBar)",
+
+  "appearanceTitle": "Appearance",
+  "appearanceLoadError": "Failed to load appearance settings: {error}",
+  "@appearanceLoadError": {
+    "placeholders": { "error": { "type": "String" } }
+  },
+  "appearanceModeTransparent": "Transparent",
+  "appearanceModeSolid": "Solid",
+  "appearanceModeImage": "Image",
+  "appearanceModeGradient": "Logo",
+  "appearanceOpacityLabel": "Opacity",
+  "appearanceImageSelectButton": "Select image",
+  "appearanceCenterImageLabel": "Center image",
+  "appearanceCenterImageDescription": "Overlaid in the center of the window (about 60% of the shorter side).",
+  "appearanceCenterImageClear": "Clear",
+
+  "keybindingsPageTitle": "Keyboard shortcuts",
+  "keybindingsIntro": "Click a row to change its shortcut. It must include at least one modifier key (⌘ ⌥ ⌃ ⇧), and a key combination that conflicts with another command cannot be saved.",
+  "keybindingsResetAllButton": "Reset all to defaults",
+  "keybindingsResetAllConfirmTitle": "Reset all to defaults?",
+  "keybindingsResetAllConfirmMessage": "Resets every shortcut to its default key combination.",
+  "keybindingsResetOneTooltip": "Reset to default",
+  "keyChordErrorMissingModifier": "Include at least one modifier key (⌘ ⌥ ⌃ ⇧).",
+  "keyChordErrorAlreadyAssigned": "Already assigned to \"{label}\".",
+  "@keyChordErrorAlreadyAssigned": {
+    "placeholders": { "label": { "type": "String" } }
+  },
+  "keyChordRecorderTitle": "Shortcut for {command}",
+  "@keyChordRecorderTitle": {
+    "placeholders": { "command": { "type": "String" } }
+  },
+  "keyChordRecorderInstructions": "Press the key you want to assign.",
+  "keyChordPlaceholderUnselected": "(none)",
+
+  "explorerNoItems": "There are no items to show",
+  "explorerOpenGitViewTooltip": "Open Git view",
+  "explorerNotGitRepository": "Not under Git management",
+  "explorerPathNotFound": "Path does not exist: {input}",
+  "@explorerPathNotFound": {
+    "placeholders": { "input": { "type": "String" } }
+  },
+
+  "explorerPropertyTitle": "Properties",
+  "explorerPropertyPathNotFound": "Target does not exist: {path}",
+  "@explorerPropertyPathNotFound": {
+    "placeholders": { "path": { "type": "String" } }
+  },
+  "explorerPropertyName": "Name",
+  "explorerPropertyPath": "Path",
+  "explorerPropertyType": "Type",
+  "explorerPropertyTypeDirectory": "Directory",
+  "explorerPropertyTypeFile": "File",
+  "explorerPropertySize": "Size",
+  "explorerPropertyModified": "Modified",
+  "explorerPropertyAccessed": "Accessed",
+  "explorerPropertyChanged": "Status changed",
+  "explorerPropertyPermission": "Permissions",
+
+  "explorerSidebarPlaces": "Places",
+  "explorerPlaceHome": "Home",
+  "explorerPlaceDownloads": "Downloads",
+  "explorerPlaceDesktop": "Desktop",
+  "explorerPlaceDocuments": "Documents",
+  "explorerPlaceApplications": "Applications",
+  "explorerOpenOtherFolder": "Open another folder…",
+  "explorerSidebarFavorites": "Favorites",
+  "explorerFavoritesAddTooltip": "Add favorite / create folder",
+  "explorerRegisterCurrentDirectory": "Register the focused directory",
+  "explorerNewFavoriteFolder": "New folder",
+  "explorerFavoriteFolderHint": "e.g. work / personal",
+  "explorerFavoriteDisplayNameHint": "Favorite display name",
+  "explorerFavoritesEmptyHint": "Use + above to register the focused directory",
+  "explorerRemoveFromFavorites": "Remove from favorites",
+  "explorerSidebarLaunchers": "Launcher",
+  "explorerLaunchersAddTooltip": "Add entry / create folder",
+  "explorerNewLauncherEntry": "New entry",
+  "explorerNewLauncherFolder": "New folder",
+  "explorerLauncherFolderHint": "e.g. dev / ops",
+  "explorerLaunchersEmptyHint": "Add a launcher entry… (or register from the context menu)",
+  "explorerSidebarRunning": "Running",
+  "explorerSessionDiscardTooltip": "Discard the session entirely",
+  "explorerNavigateToPathTooltip": "Go to this path",
+  "explorerLaunchersRegisterHint": "Use + above to register an entry",
+  "explorerManageLaunchers": "Manage launchers…",
+  "explorerRunningEmpty": "None",
+
+  "explorerContextMenuAddFavorite": "Add to favorites",
+  "explorerContextMenuRunSkill": "Run \"{skill}\" now",
+  "@explorerContextMenuRunSkill": {
+    "placeholders": { "skill": { "type": "String" } }
+  },
+  "explorerContextMenuRegisterSkill": "Register \"{skill}\" to launcher",
+  "@explorerContextMenuRegisterSkill": {
+    "placeholders": { "skill": { "type": "String" } }
+  },
+  "explorerContextMenuOpenWith": "Open with another application…",
+  "explorerContextMenuOpenInVim": "Open in vim",
+  "explorerPickAppTitle": "Choose an app to open with",
+  "explorerParentDirectoryLabel": "Up one level",
+  "explorerSnackbarCopied": "Copied: {name}",
+  "@explorerSnackbarCopied": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "explorerSnackbarAddedFavorite": "Added to favorites: {name}",
+  "@explorerSnackbarAddedFavorite": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "explorerSnackbarOpenFailed": "Could not open: {error}",
+  "@explorerSnackbarOpenFailed": {
+    "placeholders": { "error": { "type": "String" } }
+  },
+  "explorerSnackbarCopyFailed": "Copy failed: {error}",
+  "@explorerSnackbarCopyFailed": {
+    "placeholders": { "error": { "type": "String" } }
+  },
+  "explorerSnackbarMoveFailed": "Move failed: {error}",
+  "@explorerSnackbarMoveFailed": {
+    "placeholders": { "error": { "type": "String" } }
+  },
+
+  "explorerDefaultFolderName": "New folder",
+  "explorerDefaultFileName": "New text file.txt",
+  "explorerNewFolderTitle": "New folder name",
+  "explorerNewFileTitle": "New file name",
+  "explorerRenameTitle": "Rename",
+  "explorerSnackbarCreateFailed": "Failed to create: {error}",
+  "@explorerSnackbarCreateFailed": {
+    "placeholders": { "error": { "type": "String" } }
+  },
+  "explorerSnackbarRenameFailed": "Failed to rename: {error}",
+  "@explorerSnackbarRenameFailed": {
+    "placeholders": { "error": { "type": "String" } }
+  },
+  "explorerSnackbarPasteFailed": "Failed to paste: {error}",
+  "@explorerSnackbarPasteFailed": {
+    "placeholders": { "error": { "type": "String" } }
+  },
+  "explorerSnackbarSourceNotFound": "Copy source not found: {sources}",
+  "@explorerSnackbarSourceNotFound": {
+    "placeholders": { "sources": { "type": "String" } }
+  },
+  "explorerDeleteConfirmTitle": "Delete?",
+  "explorerDeleteConfirmMessage": "\"{name}\" will be moved to the Trash.",
+  "@explorerDeleteConfirmMessage": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "explorerSnackbarMovedToTrash": "Moved to Trash: {name}",
+  "@explorerSnackbarMovedToTrash": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "explorerSnackbarMoveToTrashFailed": "Could not move to Trash: {error}",
+  "@explorerSnackbarMoveToTrashFailed": {
+    "placeholders": { "error": { "type": "String" } }
+  },
+  "explorerSnackbarPathCopied": "Copied path: {path}",
+  "@explorerSnackbarPathCopied": {
+    "placeholders": { "path": { "type": "String" } }
+  },
+  "explorerSnackbarItemCopied": "Copied: {name}",
+  "@explorerSnackbarItemCopied": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "explorerTerminalDisplayName": "{name} (Terminal)",
+  "@explorerTerminalDisplayName": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "explorerClaudeDisplayName": "{name} (Claude)",
+  "@explorerClaudeDisplayName": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+
+  "folderDeleteConfirmTitle": "Delete folder?",
+  "folderDeleteConfirmMessage": "\"{name}\" will be deleted. Its entries return to Unclassified.",
+  "@folderDeleteConfirmMessage": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "folderDeleteWithContentsMenuItem": "Delete (contents return to Unclassified)",
+  "unclassified": "Unclassified",
+
+  "entryEditTitleNew": "Add entry",
+  "entryEditTitleEdit": "Edit entry",
+  "entryEditDisplayNameLabel": "Display name",
+  "entryEditWorkingDirectoryLabel": "Working directory",
+  "entryEditWorkingDirectoryHint": "/Users/you/path/to/dir",
+  "entryEditDirectorySelectTooltip": "Select directory",
+  "entryEditFolderLabel": "Folder",
+  "entryEditFolderNone": "No folder (Unclassified)",
+  "entryEditActionTypeLabel": "Action",
+  "entryEditActionOpenHere": "Open only",
+  "entryEditActionRunCommand": "Run command",
+  "entryEditActionClaudeSkill": "Claude Skill",
+  "entryEditClaudeUnavailableNoticeCurrent": "Claude Code is not installed. This entry is a Skill type, so it cannot be launched even if saved. See the installation steps on the \"Settings\" screen.",
+  "entryEditClaudeUnavailableNoticeGeneral": "The \"Claude Skill\" type is disabled because Claude Code is not installed. See the installation steps on the \"Settings\" screen.",
+  "entryEditOpenHereDescription": "Starts a login shell ($SHELL) in the specified working directory and stops at the prompt.",
+  "entryEditCommandLabel": "Command to run",
+  "entryEditCommandHint": "npm run dev",
+  "entryEditCommandHelper": "Runs via $SHELL -lc. You can use && and environment variables.",
+  "entryEditKeepShellAfterExitTitle": "Keep the terminal after the command exits",
+  "entryEditKeepShellAfterExitSubtitle": "Lets you review the result of one-shot commands (e.g. make build). Has no effect on long-running commands (e.g. npm run dev).",
+  "entryEditSkillNameLabel": "Skill name",
+  "entryEditSkillNameHint": "my-skill",
+  "entryEditSkillNameHelperNoSkills": "Suggestions are taken from `.claude/skills/` in the working directory",
+  "entryEditSkillNameHelperWithSkills": "{count} suggestion(s)",
+  "@entryEditSkillNameHelperWithSkills": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "entryEditSkillNameSelectTooltip": "Select from suggestions",
+
+  "launcherManagementTitle": "Launcher management",
+  "launcherAddFolderTooltip": "Add folder",
+  "launcherAddEntryTooltip": "Add entry",
+  "launcherLoadError": "Failed to load: {error}",
+  "@launcherLoadError": {
+    "placeholders": { "error": { "type": "String" } }
+  },
+  "launcherEmptyPlaceholder": "No launchers registered yet",
+  "launcherAddEntryButton": "Add entry",
+  "launcherFolderNameTitle": "Folder name",
+  "launcherFolderNameHint": "e.g. dev / ops",
+  "launcherEmptyFolderHint": "(This folder is empty. Drag entries here to add them.)",
+  "launcherEmptyRootHint": "(There are no unclassified entries. Drag from a folder to the \"Unclassified\" header to return them.)",
+  "launcherDeleteEntryTooltip": "Delete",
+  "launcherDeleteEntryConfirm": "Delete entry?",
+  "launcherDeleteEntryMessage": "\"{name}\" will be deleted. This action cannot be undone.",
+  "@launcherDeleteEntryMessage": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "launcherActionLabelOpenHere": "Action: Open only",
+  "launcherActionLabelRunCommand": "Action: Run command — {command}",
+  "@launcherActionLabelRunCommand": {
+    "placeholders": { "command": { "type": "String" } }
+  },
+  "launcherActionLabelClaudeSkill": "Action: Claude Skill — {skillName}",
+  "@launcherActionLabelClaudeSkill": {
+    "placeholders": { "skillName": { "type": "String" } }
+  },
+
+  "gitMenuRefresh": "Reload",
+  "gitMenuStashSave": "Stash changes",
+  "gitMenuStashList": "Stash list ({count})",
+  "@gitMenuStashList": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "gitMenuForcePush": "Push (--force-with-lease)",
+  "gitToolbarOverflowTooltip": "More actions",
+  "gitStashSaveTitle": "Stash changes",
+  "gitStashMessageLabel": "Message (optional)",
+  "gitStashSaveButton": "Stash",
+  "gitForcePushMessage": "Overwrites the remote branch with --force-with-lease.",
+  "gitForcePushButton": "Push",
+  "gitStashListTitle": "Stash list",
+  "gitStashEmpty": "No stashes",
+  "gitStashApplyButton": "Apply",
+  "gitStashPopButton": "Pop",
+  "gitStashDiscardTooltip": "Discard",
+  "gitStashDropTitle": "Discard stash",
+  "gitStashDropMessage": "{ref} will be discarded.",
+  "@gitStashDropMessage": {
+    "placeholders": { "ref": { "type": "String" } }
+  },
+  "gitStashDropButton": "Discard",
+  "gitBranchDialogTitle": "Branches",
+  "gitBranchNewButton": "Create new",
+  "gitBranchCreateTitle": "Create branch",
+  "gitBranchNameLabel": "Branch name",
+  "gitBranchFilterHint": "Filter branches",
+  "gitBranchLocalLabel": "Local",
+  "gitBranchRemoteLabel": "Remote",
+  "gitBranchOperationsTooltip": "Branch operations",
+  "gitBranchMergeMenuItem": "Merge into current branch",
+  "gitBranchDeleteMenuItem": "Delete",
+  "gitBranchDeleteConfirmTitle": "Delete branch",
+  "gitBranchDeleteConfirmMessage": "Branch \"{name}\" will be deleted.",
+  "@gitBranchDeleteConfirmMessage": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "gitWorkingTreeClean": "Working tree is clean",
+  "gitDiscardAllTooltip": "Discard all",
+  "gitDiscardChangeTooltip": "Discard change",
+  "gitAmendPreviousCommit": "Amend the previous commit",
+  "gitLoadMoreButton": "Load more",
+  "gitCloseDetailsTooltip": "Close details",
+  "gitLoadError": "Failed to get Git information\n{error}",
+  "@gitLoadError": {
+    "placeholders": { "error": { "type": "String" } }
+  },
+  "gitOpenInTerminal": "Open in terminal",
+
+  "sessionCancelTooltip": "Cancel (terminates the PTY; output history is kept)",
+  "sessionRerunTooltip": "Re-run",
+
+  "settingsButtonTooltip": "Settings",
+  "paneTabCloseTooltip": "Close tab",
+  "paneTabAddTooltip": "Add tab",
+
+  "buttonDiscard": "Discard",
+  "buttonRename": "Rename",
+
+  "gitTabChanges": "Changes",
+  "gitTabHistory": "History",
+  "gitStaged": "Staged",
+  "gitConflicts": "Conflicts",
+  "gitTabChangesWithCount": "Changes ({count})",
+  "@gitTabChangesWithCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "gitTabHistoryWithCount": "History ({count})",
+  "@gitTabHistoryWithCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "gitStageAll": "Stage all",
+  "gitUnstageAll": "Unstage all",
+  "gitStage": "Stage",
+  "gitUnstage": "Unstage",
+  "gitDiscardAllConfirmMessage": "Discards changes to {count} file(s). This action cannot be undone.",
+  "@gitDiscardAllConfirmMessage": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "gitDiscardFileConfirmMessage": "Discards changes to {path}.",
+  "@gitDiscardFileConfirmMessage": {
+    "placeholders": { "path": { "type": "String" } }
+  },
+  "gitCommitMessageHint": "Commit message",
+  "gitCommitButton": "Commit",
+  "gitCommitOptionsTooltip": "Commit options",
+  "gitCommitAndPush": "Commit & Push",
+  "gitNoCommits": "No commits",
+  "gitLoadingChangedFiles": "Loading changed files…",
+  "gitNotFoundTitle": "git command not found",
+  "gitNotFoundMessage": "Install git and add it to PATH to use the Git view.",
+  "gitForcePushTitle": "Force push",
+  "gitTerminalDisplayName": "{name} (git)",
+  "@gitTerminalDisplayName": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+
+  "sessionStateIdle": "Idle",
+  "sessionStateStarting": "Starting…",
+  "sessionStateRunning": "Running",
+  "sessionStateWaitingInput": "Waiting for input",
+  "sessionStateCompleted": "Completed ({code})",
+  "@sessionStateCompleted": {
+    "placeholders": { "code": { "type": "int" } }
+  },
+  "sessionStateExited": "Exited ({code})",
+  "@sessionStateExited": {
+    "placeholders": { "code": { "type": "int" } }
+  },
+  "sessionStateFailed": "Failed",
+  "sessionStateCancelled": "Cancelled",
+
+  "launcherFolderOperationsTooltip": "Folder operations"
+}

@@ -4,6 +4,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:roola/data/launcher_entry/launcher_action.dart';
 import 'package:roola/data/skill_session/adhoc_run_args.dart';
 import 'package:roola/data/workspace/workspace_layout.dart';
+import 'package:roola/l10n/app_localizations.dart';
 import 'package:roola/ui/git/git_changes_section.dart';
 import 'package:roola/ui/git/git_history_section.dart';
 import 'package:roola/ui/git/git_toolbar.dart';
@@ -48,17 +49,21 @@ class _GitErrorView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           const Icon(Icons.error_outline, size: 40),
           const SizedBox(height: 8),
-          Text('Git 情報の取得に失敗しました\n$error', textAlign: TextAlign.center),
+          Text(
+            l10n.gitLoadError(error.toString()),
+            textAlign: TextAlign.center,
+          ),
           const SizedBox(height: 8),
           OutlinedButton.icon(
             icon: const Icon(Icons.refresh, size: 16),
-            label: const Text('再試行'),
+            label: Text(l10n.buttonRetry),
             onPressed: () => ref.invalidate(gitViewModelProvider(tabId)),
           ),
         ],
@@ -72,6 +77,7 @@ class _GitMissingView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -81,13 +87,12 @@ class _GitMissingView extends StatelessWidget {
             const Icon(Icons.terminal, size: 40),
             const SizedBox(height: 8),
             Text(
-              'git コマンドが見つかりません',
+              l10n.gitNotFoundTitle,
               style: Theme.of(context).textTheme.titleSmall,
             ),
             const SizedBox(height: 4),
-            const Text(
-              'Git ビューを使うには git をインストールし、'
-              'PATH を通してください。',
+            Text(
+              l10n.gitNotFoundMessage,
               textAlign: TextAlign.center,
             ),
           ],
@@ -163,9 +168,10 @@ class _WideBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final children = <Widget>[
       _SectionHeader(
-        title: 'Changes',
+        title: l10n.gitTabChanges,
         count: changedCount,
         collapsed: changesCollapsed.value,
         onToggle: () => changesCollapsed.value = !changesCollapsed.value,
@@ -184,7 +190,7 @@ class _WideBody extends StatelessWidget {
     children.add(const Divider(height: 1));
     children.add(
       _SectionHeader(
-        title: 'History',
+        title: l10n.gitTabHistory,
         count: state.graph.length,
         collapsed: historyCollapsed.value,
         onToggle: () => historyCollapsed.value = !historyCollapsed.value,
@@ -220,6 +226,7 @@ class _NarrowBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Column(
       children: [
         Padding(
@@ -229,11 +236,11 @@ class _NarrowBody extends StatelessWidget {
             segments: [
               ButtonSegment(
                 value: _Section.changes,
-                label: Text('Changes ($changedCount)'),
+                label: Text(l10n.gitTabChangesWithCount(changedCount)),
               ),
               ButtonSegment(
                 value: _Section.history,
-                label: Text('History (${state.graph.length})'),
+                label: Text(l10n.gitTabHistoryWithCount(state.graph.length)),
               ),
             ],
             selected: {section.value},
@@ -300,6 +307,7 @@ class _GitNoticeBar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context);
     final isError = notice.kind == GitNoticeKind.error;
     final bg = isError ? colors.errorContainer : colors.surfaceContainerHighest;
     final fg = isError ? colors.onErrorContainer : colors.onSurface;
@@ -325,11 +333,11 @@ class _GitNoticeBar extends ConsumerWidget {
           if (notice.offerTerminal)
             TextButton(
               onPressed: () => _openTerminal(ref),
-              child: const Text('ターミナルで開く'),
+              child: Text(l10n.gitOpenInTerminal),
             ),
           IconButton(
             icon: Icon(Icons.close, size: 15, color: fg),
-            tooltip: '閉じる',
+            tooltip: l10n.buttonClose,
             visualDensity: VisualDensity.compact,
             onPressed: () =>
                 ref.read(gitViewModelProvider(tabId).notifier).dismissNotice(),

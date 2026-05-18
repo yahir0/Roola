@@ -3,6 +3,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:roola/core/skill/skill_scanner.dart';
 import 'package:roola/data/repo_explorer/explorer_node.dart';
+import 'package:roola/l10n/app_localizations.dart';
 import 'package:roola/ui/explorer/explorer_item_selection.dart';
 import 'package:roola/ui/explorer/explorer_node_tile.dart';
 import 'package:roola/ui/explorer/explorer_path_bar.dart';
@@ -47,25 +48,26 @@ class _PaneHeader extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final notifier = ref.read(explorerViewModelProvider(tabId).notifier);
+    final l10n = AppLocalizations.of(context);
     return Padding(
       padding: const EdgeInsets.fromLTRB(8, 4, 8, 4),
       child: Row(
         children: [
           IconButton(
             icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 16),
-            tooltip: '戻る',
+            tooltip: l10n.navBack,
             visualDensity: VisualDensity.compact,
             onPressed: notifier.canGoBack ? notifier.goBack : null,
           ),
           IconButton(
             icon: const Icon(Icons.arrow_forward_ios_rounded, size: 16),
-            tooltip: '進む',
+            tooltip: l10n.navForward,
             visualDensity: VisualDensity.compact,
             onPressed: notifier.canGoForward ? notifier.goForward : null,
           ),
           IconButton(
             icon: const Icon(Icons.arrow_upward_rounded, size: 16),
-            tooltip: '上の階層へ',
+            tooltip: l10n.navUp,
             visualDensity: VisualDensity.compact,
             onPressed: notifier.goUp,
           ),
@@ -94,9 +96,12 @@ class _OpenGitButton extends ConsumerWidget {
     final repoRoot = ref
         .watch(gitRepositoryRootProvider(currentPath))
         .value;
+    final l10n = AppLocalizations.of(context);
     return IconButton(
       icon: const Icon(Icons.account_tree_outlined, size: 16),
-      tooltip: repoRoot != null ? 'Git ビューを開く' : 'Git 管理下ではありません',
+      tooltip: repoRoot != null
+          ? l10n.explorerOpenGitViewTooltip
+          : l10n.explorerNotGitRepository,
       visualDensity: VisualDensity.compact,
       onPressed: repoRoot == null
           ? null
@@ -247,13 +252,14 @@ class _EmptyPlaceholder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
+    final l10n = AppLocalizations.of(context);
+    return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.folder_off_outlined, size: 64),
-          SizedBox(height: 12),
-          Text('表示できる項目がありません'),
+          const Icon(Icons.folder_off_outlined, size: 64),
+          const SizedBox(height: 12),
+          Text(l10n.explorerNoItems),
         ],
       ),
     );

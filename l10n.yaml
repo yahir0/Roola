@@ -1,0 +1,9 @@
+# 多言語化の gen-l10n 設定（ADR-0034）。
+# `flutter gen-l10n`（または generate: true でのビルド）が lib/l10n/ の
+# ARB から AppLocalizations を生成する。
+arb-dir: lib/l10n
+template-arb-file: app_ja.arb
+output-localization-file: app_localizations.dart
+output-class: AppLocalizations
+# of(context) を non-null で返す（全画面で必ずデリゲートが入るため）。
+nullable-getter: false

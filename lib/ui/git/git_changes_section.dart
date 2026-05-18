@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:roola/data/git/git_status.dart';
+import 'package:roola/l10n/app_localizations.dart';
 import 'package:roola/ui/git/git_dialogs.dart';
 import 'package:roola/ui/git/git_diff_view.dart';
 import 'package:roola/ui/git/git_view_model.dart';
@@ -48,6 +49,7 @@ class GitChangesSection extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final notifier = ref.read(gitViewModelProvider(tabId).notifier);
+    final l10n = AppLocalizations.of(context);
     final messageController = useTextEditingController();
     // メッセージ欄の入力で Commit ボタンの活性を切り替えるため再ビルドさせる。
     useListenable(messageController);
@@ -102,14 +104,14 @@ class GitChangesSection extends HookConsumerWidget {
                         if (conflicts.isNotEmpty)
                           _ChangeGroup(
                             tabId: tabId,
-                            title: 'Conflicts',
+                            title: l10n.gitConflicts,
                             changes: conflicts,
                             state: state,
                           ),
                         if (status.staged.isNotEmpty)
                           _ChangeGroup(
                             tabId: tabId,
-                            title: 'Staged',
+                            title: l10n.gitStaged,
                             changes: status.staged,
                             state: state,
                             onUnstageAll: notifier.unstageAll,
@@ -117,18 +119,18 @@ class GitChangesSection extends HookConsumerWidget {
                         if (unstaged.isNotEmpty)
                           _ChangeGroup(
                             tabId: tabId,
-                            title: 'Changes',
+                            title: l10n.gitTabChanges,
                             changes: unstaged,
                             state: state,
                             onStageAll: notifier.stageAll,
                             onDiscardAll: () async {
                               final ok = await gitConfirm(
                                 context,
-                                title: '変更を破棄',
-                                message:
-                                    '${unstaged.length} 件のファイルの変更を破棄します。'
-                                    'この操作は取り消せません。',
-                                confirmLabel: '破棄',
+                                title: l10n.gitDiscardChangeTooltip,
+                                message: l10n.gitDiscardAllConfirmMessage(
+                                  unstaged.length,
+                                ),
+                                confirmLabel: l10n.buttonDiscard,
                               );
                               if (ok) {
                                 await notifier.discard(unstaged);
@@ -171,7 +173,7 @@ class _CleanPlaceholder extends StatelessWidget {
         children: [
           Icon(Icons.check_circle_outline, size: 36, color: colors.primary),
           const SizedBox(height: 8),
-          const Text('作業ツリーはクリーンです'),
+          Text(AppLocalizations.of(context).gitWorkingTreeClean),
         ],
       ),
     );
@@ -200,6 +202,7 @@ class _ChangeGroup extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -217,21 +220,21 @@ class _ChangeGroup extends ConsumerWidget {
               if (onStageAll != null)
                 _GroupAction(
                   icon: Icons.add,
-                  tooltip: 'すべて stage',
+                  tooltip: l10n.gitStageAll,
                   enabled: !state.isBusy,
                   onPressed: onStageAll!,
                 ),
               if (onDiscardAll != null)
                 _GroupAction(
                   icon: Icons.undo,
-                  tooltip: 'すべて破棄',
+                  tooltip: l10n.gitDiscardAllTooltip,
                   enabled: !state.isBusy,
                   onPressed: onDiscardAll!,
                 ),
               if (onUnstageAll != null)
                 _GroupAction(
                   icon: Icons.remove,
-                  tooltip: 'すべて unstage',
+                  tooltip: l10n.gitUnstageAll,
                   enabled: !state.isBusy,
                   onPressed: onUnstageAll!,
                 ),
@@ -286,6 +289,7 @@ class _ChangeRow extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final notifier = ref.read(gitViewModelProvider(tabId).notifier);
     final colors = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context);
 
     return InkWell(
       onDoubleTap: change.type == GitChangeType.untracked
@@ -325,15 +329,17 @@ class _ChangeRow extends ConsumerWidget {
             if (!change.staged) ...[
               _RowAction(
                 icon: Icons.undo,
-                tooltip: '変更を破棄',
+                tooltip: l10n.gitDiscardChangeTooltip,
                 color: colors.error,
                 enabled: !busy,
                 onPressed: () async {
                   final ok = await gitConfirm(
                     context,
-                    title: '変更を破棄',
-                    message: '${change.displayPath} の変更を破棄します。',
-                    confirmLabel: '破棄',
+                    title: l10n.gitDiscardChangeTooltip,
+                    message: l10n.gitDiscardFileConfirmMessage(
+                      change.displayPath,
+                    ),
+                    confirmLabel: l10n.buttonDiscard,
                   );
                   if (ok) {
                     await notifier.discard([change]);
@@ -342,14 +348,14 @@ class _ChangeRow extends ConsumerWidget {
               ),
               _RowAction(
                 icon: Icons.add,
-                tooltip: 'stage',
+                tooltip: l10n.gitStage,
                 enabled: !busy,
                 onPressed: () => notifier.stage([change]),
               ),
             ] else
               _RowAction(
                 icon: Icons.remove,
-                tooltip: 'unstage',
+                tooltip: l10n.gitUnstage,
                 enabled: !busy,
                 onPressed: () => notifier.unstage([change]),
               ),
@@ -420,10 +426,10 @@ class _CommitBox extends StatelessWidget {
             minLines: 1,
             maxLines: 3,
             style: Theme.of(context).textTheme.bodySmall,
-            decoration: const InputDecoration(
-              hintText: 'コミットメッセージ',
+            decoration: InputDecoration(
+              hintText: AppLocalizations.of(context).gitCommitMessageHint,
               isDense: true,
-              contentPadding: EdgeInsets.all(8),
+              contentPadding: const EdgeInsets.all(8),
             ),
           ),
           const SizedBox(height: 6),
@@ -432,14 +438,14 @@ class _CommitBox extends StatelessWidget {
               Expanded(
                 child: FilledButton.icon(
                   icon: const Icon(Icons.check, size: 16),
-                  label: const Text('Commit'),
+                  label: Text(AppLocalizations.of(context).gitCommitButton),
                   onPressed: canCommit ? onCommit : null,
                 ),
               ),
               const SizedBox(width: 4),
               PopupMenuButton<_CommitMenu>(
                 enabled: !busy,
-                tooltip: 'コミットオプション',
+                tooltip: AppLocalizations.of(context).gitCommitOptionsTooltip,
                 onSelected: (value) => switch (value) {
                   _CommitMenu.commitAndPush => onCommitAndPush(),
                   _CommitMenu.amend => onAmend(),
@@ -448,9 +454,9 @@ class _CommitBox extends StatelessWidget {
                   PopupMenuItem(
                     value: _CommitMenu.commitAndPush,
                     enabled: canCommit,
-                    child: const ListTile(
-                      leading: Icon(Icons.upload),
-                      title: Text('Commit & Push'),
+                    child: ListTile(
+                      leading: const Icon(Icons.upload),
+                      title: Text(AppLocalizations.of(context).gitCommitAndPush),
                       dense: true,
                       contentPadding: EdgeInsets.zero,
                     ),
@@ -458,9 +464,11 @@ class _CommitBox extends StatelessWidget {
                   PopupMenuItem(
                     value: _CommitMenu.amend,
                     enabled: canCommit,
-                    child: const ListTile(
-                      leading: Icon(Icons.edit_note),
-                      title: Text('直前のコミットを修正（amend）'),
+                    child: ListTile(
+                      leading: const Icon(Icons.edit_note),
+                      title: Text(
+                        AppLocalizations.of(context).gitAmendPreviousCommit,
+                      ),
                       dense: true,
                       contentPadding: EdgeInsets.zero,
                     ),

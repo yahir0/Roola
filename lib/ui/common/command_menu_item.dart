@@ -4,6 +4,8 @@ import 'package:roola/core/keybindings/chord_formatter.dart';
 import 'package:roola/data/keybindings/command_id.dart';
 import 'package:roola/data/keybindings/command_registry.dart';
 import 'package:roola/data/keybindings/effective_keybindings.dart';
+import 'package:roola/l10n/app_localizations.dart';
+import 'package:roola/ui/common/command_l10n.dart';
 
 /// コンテキストメニュー項目の共通ビルダー（ADR-0033）。
 ///
@@ -23,7 +25,7 @@ ListTile commandMenuTile(
   final hintColor = Theme.of(context).hintColor;
   return ListTile(
     leading: Icon(metadata.icon),
-    title: Text(metadata.label),
+    title: Text(AppLocalizations.of(context).commandLabel(command)),
     trailing: Text(
       formatChord(chord),
       style: Theme.of(

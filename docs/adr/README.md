@@ -39,6 +39,7 @@
 | [0031](./0031-terminal-swiftterm-native-view.md) | ターミナル描画を xterm.dart から SwiftTerm ネイティブビューへ移行する | Accepted |
 | [0032](./0032-shift-enter-newline.md) | ターミナルで Shift+Enter を改行（LF）入力に割り当てる | Accepted |
 | [0033](./0033-customizable-keyboard-shortcuts.md) | コマンドレジストリとネイティブメニューバーによる統一ショートカット機構 | Accepted |
+| [0034](./0034-internationalization.md) | 多言語化を Flutter 公式 gen-l10n（ARB）で実装する | Accepted |
 
 ## フォーマット
 

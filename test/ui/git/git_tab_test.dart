@@ -8,6 +8,7 @@ import 'package:roola/data/git/process_git_repository.dart';
 import 'package:roola/data/workspace/pane_slot.dart';
 import 'package:roola/data/workspace/workspace_layout.dart';
 import 'package:roola/data/workspace/workspace_tab.dart';
+import 'package:roola/l10n/app_localizations.dart';
 import 'package:roola/ui/git/git_tab.dart';
 import 'package:roola/ui/workspace/current_tab_id_provider.dart';
 import 'package:roola/ui/workspace/workspace_seed.dart';
@@ -46,7 +47,12 @@ void main() {
         gitRepositoryProvider.overrideWithValue(mock),
         currentTabIdProvider.overrideWithValue('g1'),
       ],
-      child: const MaterialApp(home: Scaffold(body: GitTabBody())),
+      child: const MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        locale: Locale('ja'),
+        home: Scaffold(body: GitTabBody()),
+      ),
     );
   }
 

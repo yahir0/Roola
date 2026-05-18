@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:roola/l10n/app_localizations.dart';
 
 /// パスに対応するファイル / ディレクトリのプロパティをダイアログで表示する。
 ///
@@ -13,9 +14,10 @@ Future<void> showPropertiesDialog(BuildContext context, String path) async {
     if (!context.mounted) {
       return;
     }
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text('対象が存在しません: $path')));
+    final l10n = AppLocalizations.of(context);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(l10n.explorerPropertyPathNotFound(path))),
+    );
     return;
   }
   final FileStat stat;
@@ -30,32 +32,56 @@ Future<void> showPropertiesDialog(BuildContext context, String path) async {
   final isDir = type == FileSystemEntityType.directory;
   await showDialog<void>(
     context: context,
-    builder: (context) => AlertDialog(
-      title: const Text('プロパティ'),
-      content: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 480),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _PropRow(label: '名前', value: _basenameOf(path)),
-            _PropRow(label: 'パス', value: path),
-            _PropRow(label: '種類', value: isDir ? 'ディレクトリ' : 'ファイル'),
-            if (!isDir) _PropRow(label: 'サイズ', value: _formatBytes(stat.size)),
-            _PropRow(label: '更新日時', value: _formatDate(stat.modified)),
-            _PropRow(label: 'アクセス日時', value: _formatDate(stat.accessed)),
-            _PropRow(label: 'status 変更日時', value: _formatDate(stat.changed)),
-            _PropRow(label: 'パーミッション', value: stat.modeString()),
-          ],
+    builder: (context) {
+      final l10n = AppLocalizations.of(context);
+      return AlertDialog(
+        title: Text(l10n.explorerPropertyTitle),
+        content: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 480),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _PropRow(label: l10n.explorerPropertyName, value: _basenameOf(path)),
+              _PropRow(label: l10n.explorerPropertyPath, value: path),
+              _PropRow(
+                label: l10n.explorerPropertyType,
+                value: isDir
+                    ? l10n.explorerPropertyTypeDirectory
+                    : l10n.explorerPropertyTypeFile,
+              ),
+              if (!isDir)
+                _PropRow(
+                  label: l10n.explorerPropertySize,
+                  value: _formatBytes(stat.size),
+                ),
+              _PropRow(
+                label: l10n.explorerPropertyModified,
+                value: _formatDate(stat.modified),
+              ),
+              _PropRow(
+                label: l10n.explorerPropertyAccessed,
+                value: _formatDate(stat.accessed),
+              ),
+              _PropRow(
+                label: l10n.explorerPropertyChanged,
+                value: _formatDate(stat.changed),
+              ),
+              _PropRow(
+                label: l10n.explorerPropertyPermission,
+                value: stat.modeString(),
+              ),
+            ],
+          ),
         ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('閉じる'),
-        ),
-      ],
-    ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(l10n.buttonClose),
+          ),
+        ],
+      );
+    },
   );
 }
 

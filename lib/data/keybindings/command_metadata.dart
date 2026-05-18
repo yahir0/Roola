@@ -6,14 +6,15 @@ import 'package:roola/data/keybindings/key_chord.dart';
 /// 1 つのコマンドの静的メタデータ（ADR-0033）。
 ///
 /// 実体は `CommandRegistry` が `CommandId` ごとに 1 つ保持する。ユーザーの
-/// カスタム割り当ては `Keybindings` 側が持ち、本クラスは既定値とラベル等の
-/// 不変メタデータに徹する。
+/// カスタム割り当ては `Keybindings` 側が持ち、本クラスは既定値等の不変
+/// メタデータに徹する。表示ラベルはロケール依存のため本クラスは持たず、
+/// UI 層が `CommandId` を安定キーとして `AppLocalizations` から解決する
+/// （ADR-0034）。
 @immutable
 class CommandMetadata {
   const CommandMetadata({
     required this.id,
     required this.category,
-    required this.label,
     required this.icon,
     required this.defaultChord,
     this.contextDependent = false,
@@ -24,9 +25,6 @@ class CommandMetadata {
 
   /// 分類。
   final CommandCategory category;
-
-  /// 日本語表示名（メニュー項目・設定画面の行ラベル）。
-  final String label;
 
   /// リーディングアイコン（コンテキストメニュー・設定画面）。
   final IconData icon;

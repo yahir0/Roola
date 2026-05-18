@@ -1,0 +1,468 @@
+{
+  "@@locale": "ja",
+
+  "buttonCancel": "キャンセル",
+  "buttonClose": "閉じる",
+  "buttonConfirm": "決定",
+  "buttonReset": "戻す",
+  "buttonDelete": "削除",
+  "buttonCreate": "作成",
+  "buttonChange": "変更",
+  "buttonSave": "保存",
+  "buttonSaving": "保存中...",
+  "buttonRetry": "再試行",
+
+  "navBack": "戻る",
+  "navForward": "進む",
+  "navUp": "上の階層へ",
+
+  "commandCategoryNavigation": "ナビゲーション",
+  "commandCategoryExplorer": "エクスプローラ",
+  "commandCategoryTab": "タブ / ペイン",
+  "commandCategoryApp": "ランチャー / アプリ",
+  "commandCategoryGit": "Git",
+
+  "commandCopyPath": "パスをコピー",
+  "commandCopyItem": "コピー",
+  "commandPasteItem": "ペースト",
+  "commandRenameItem": "名前を変更",
+  "commandMoveToTrash": "削除",
+  "commandNewFolder": "新規フォルダ",
+  "commandNewFile": "新規テキストファイル",
+  "commandRevealInFinder": "Finder で表示",
+  "commandOpenItem": "開く",
+  "commandShowProperties": "プロパティ",
+  "commandOpenTerminalHere": "ここでターミナルを開く",
+  "commandOpenClaudeHere": "ここで Claude Code を開く",
+  "commandNewExplorerTab": "新規エクスプローラタブ",
+  "commandNewTerminalTab": "新規ターミナルタブ",
+  "commandCloseTab": "タブを閉じる",
+  "commandNextTab": "次のタブ",
+  "commandPreviousTab": "前のタブ",
+  "commandMoveTabTopLeft": "タブを左上ペインへ移動",
+  "commandMoveTabTopRight": "タブを右上ペインへ移動",
+  "commandMoveTabBottom": "タブを下ペインへ移動",
+  "commandOpenLauncherManagement": "ランチャー管理を開く",
+  "commandOpenSettings": "設定を開く",
+  "commandOpenKeybindings": "キーボードショートカットを開く",
+  "commandGitRefresh": "Git ビューを更新",
+  "commandGitFetch": "フェッチ",
+  "commandGitPull": "プル",
+  "commandGitPush": "プッシュ",
+
+  "appMenuRoola": "Roola",
+  "appMenuFile": "ファイル",
+  "appMenuEdit": "編集",
+  "appMenuView": "表示",
+  "appMenuTerminal": "ターミナル",
+  "appMenuGit": "Git",
+  "appMenuPane": "ペイン",
+
+  "windowCloseConfirmTitle": "終了の確認",
+  "windowCloseConfirmMessage": "{count} 件のセッションが残っています。\n終了するとすべての PTY が終了され、出力履歴も失われます。",
+  "@windowCloseConfirmMessage": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "windowCloseConfirmButton": "終了する",
+
+  "settingsPageTitle": "設定",
+  "settingsLanguageTitle": "言語",
+  "settingsLanguageDescription": "アプリの表示言語を選択します。",
+  "languageJapanese": "日本語",
+  "languageEnglish": "English",
+
+  "settingsExplorerTitle": "エクスプローラ",
+  "settingsExplorerDescription": "ファイル / フォルダタイルの縦幅と情報量を切替えます。",
+  "explorerDensityCompact": "コンパクト",
+  "explorerDensityComfortable": "ゆったり",
+  "explorerDensityCompactDescription": "コンパクト: サイドバーと同じ縦幅。Skill サブタイトル / チップは省略。",
+  "explorerDensityComfortableDescription": "ゆったり: 縦幅にゆとりを持たせ、Skill サブタイトルとチップも表示。",
+
+  "settingsClaudeIntegrationTitle": "Claude Code 連携",
+  "settingsClaudeIntegrationDescription": "Anthropic の Claude Code CLI が PATH 上で見つかると、関連機能が自動で有効化されます。",
+  "claudeHealthChecking": "検出中…",
+  "claudeHealthCheckingDetail": "`claude --version` の実行を待っています。",
+  "claudeHealthCheckError": "ヘルスチェックに失敗",
+  "claudeHealthCheckSuccess": "検出済み",
+  "claudeHealthCheckSuccessDetail": "`claude` コマンドが利用可能です。",
+  "claudeHealthVersion": "Version: {version}",
+  "@claudeHealthVersion": {
+    "placeholders": { "version": { "type": "String" } }
+  },
+  "claudeHealthCheckNotFound": "未検出",
+  "claudeHealthCheckNotFoundDetail": "`claude` コマンドが PATH 上で見つかりませんでした。",
+  "claudeHealthCheckNotFoundDetailWith": "詳細: {detail}",
+  "@claudeHealthCheckNotFoundDetailWith": {
+    "placeholders": { "detail": { "type": "String" } }
+  },
+  "settingsClaudeFeatures": "有効化される機能",
+  "settingsClaudeFeature1": "エクスプローラのフォルダで `.claude/skills/` を自動検知し、特別アイコンと Skill チップを表示",
+  "settingsClaudeFeature2": "右クリックメニューに「Claude Code を開く」「Skill を即実行」「Skill をランチャーに登録」を追加",
+  "settingsClaudeFeature3": "ランチャー登録時に「Claude Skill」動作タイプを選べる（Skill 名を指定して `claude /skillname` を起動）",
+  "settingsClaudeInstallTitle": "インストール手順",
+  "settingsClaudeInstallInstructions": "Node.js 18+ がある状態で次のコマンドを実行してください:",
+  "settingsClaudeInstallCopyTooltip": "コマンドをコピー",
+  "settingsClaudeInstallCopied": "インストールコマンドをコピーしました",
+  "settingsClaudeInstallAfter": "インストール後、Roola を再起動すると検出されます。",
+
+  "settingsKeyboardShortcutsTitle": "キーボードショートカット",
+  "settingsKeyboardShortcutsDescription": "すべてのコマンドのショートカットは専用画面で確認・変更できます。",
+  "settingsKeyboardShortcutsButton": "キーボードショートカットを編集…",
+  "settingsMouseOperationsTitle": "マウス操作",
+  "settingsMouseClick": "ファイル / フォルダを選択（ハイライト表示）",
+  "settingsMouseDoubleClick": "フォルダに遷移 / ファイルを既定のアプリで開く",
+  "settingsMouseRightClick": "コンテキストメニュー（フォルダ / ファイル別の操作一覧）",
+  "settingsMouseNavigation": "ディレクトリ履歴を 1 つ戻る / 進む（AppBar の ← → と同等）",
+
+  "appearanceTitle": "外観",
+  "appearanceLoadError": "外観設定の読み込みに失敗しました: {error}",
+  "@appearanceLoadError": {
+    "placeholders": { "error": { "type": "String" } }
+  },
+  "appearanceModeTransparent": "透過",
+  "appearanceModeSolid": "単色",
+  "appearanceModeImage": "画像",
+  "appearanceModeGradient": "ロゴ",
+  "appearanceOpacityLabel": "不透明度",
+  "appearanceImageSelectButton": "画像を選択",
+  "appearanceCenterImageLabel": "中央画像",
+  "appearanceCenterImageDescription": "ウィンドウの中央に重ねて表示します（短辺の 60% 程度のサイズ）。",
+  "appearanceCenterImageClear": "クリア",
+
+  "keybindingsPageTitle": "キーボードショートカット",
+  "keybindingsIntro": "行をクリックしてショートカットを変更できます。修飾キー（⌘ ⌥ ⌃ ⇧）を 1 つ以上含める必要があり、他のコマンドと重複するキーは保存できません。",
+  "keybindingsResetAllButton": "すべてデフォルトに戻す",
+  "keybindingsResetAllConfirmTitle": "すべてデフォルトに戻しますか？",
+  "keybindingsResetAllConfirmMessage": "すべてのショートカットを既定のキーコンビに戻します。",
+  "keybindingsResetOneTooltip": "デフォルトに戻す",
+  "keyChordErrorMissingModifier": "修飾キー（⌘ ⌥ ⌃ ⇧）を 1 つ以上含めてください。",
+  "keyChordErrorAlreadyAssigned": "「{label}」に割り当て済みです。",
+  "@keyChordErrorAlreadyAssigned": {
+    "placeholders": { "label": { "type": "String" } }
+  },
+  "keyChordRecorderTitle": "{command} のショートカット",
+  "@keyChordRecorderTitle": {
+    "placeholders": { "command": { "type": "String" } }
+  },
+  "keyChordRecorderInstructions": "割り当てたいキーを押してください。",
+  "keyChordPlaceholderUnselected": "（未入力）",
+
+  "explorerNoItems": "表示できる項目がありません",
+  "explorerOpenGitViewTooltip": "Git ビューを開く",
+  "explorerNotGitRepository": "Git 管理下ではありません",
+  "explorerPathNotFound": "パスが存在しません: {input}",
+  "@explorerPathNotFound": {
+    "placeholders": { "input": { "type": "String" } }
+  },
+
+  "explorerPropertyTitle": "プロパティ",
+  "explorerPropertyPathNotFound": "対象が存在しません: {path}",
+  "@explorerPropertyPathNotFound": {
+    "placeholders": { "path": { "type": "String" } }
+  },
+  "explorerPropertyName": "名前",
+  "explorerPropertyPath": "パス",
+  "explorerPropertyType": "種類",
+  "explorerPropertyTypeDirectory": "ディレクトリ",
+  "explorerPropertyTypeFile": "ファイル",
+  "explorerPropertySize": "サイズ",
+  "explorerPropertyModified": "更新日時",
+  "explorerPropertyAccessed": "アクセス日時",
+  "explorerPropertyChanged": "status 変更日時",
+  "explorerPropertyPermission": "パーミッション",
+
+  "explorerSidebarPlaces": "場所",
+  "explorerPlaceHome": "ホーム",
+  "explorerPlaceDownloads": "ダウンロード",
+  "explorerPlaceDesktop": "デスクトップ",
+  "explorerPlaceDocuments": "ドキュメント",
+  "explorerPlaceApplications": "アプリケーション",
+  "explorerOpenOtherFolder": "別のフォルダを開く…",
+  "explorerSidebarFavorites": "お気に入り",
+  "explorerFavoritesAddTooltip": "お気に入りを追加 / フォルダを作成",
+  "explorerRegisterCurrentDirectory": "フォーカス中のディレクトリを登録",
+  "explorerNewFavoriteFolder": "新しいフォルダ",
+  "explorerFavoriteFolderHint": "例: work / personal",
+  "explorerFavoriteDisplayNameHint": "お気に入りの表示名",
+  "explorerFavoritesEmptyHint": "上の + でフォーカス中のディレクトリを登録",
+  "explorerRemoveFromFavorites": "お気に入りから削除",
+  "explorerSidebarLaunchers": "ランチャー",
+  "explorerLaunchersAddTooltip": "エントリを追加 / フォルダを作成",
+  "explorerNewLauncherEntry": "新しいエントリ",
+  "explorerNewLauncherFolder": "新しいフォルダ",
+  "explorerLauncherFolderHint": "例: dev / ops",
+  "explorerLaunchersEmptyHint": "ランチャーエントリを追加…（または、コンテキストメニューから登録）",
+  "explorerSidebarRunning": "実行中",
+  "explorerSessionDiscardTooltip": "セッションを完全に破棄",
+  "explorerNavigateToPathTooltip": "このパスに移動",
+  "explorerLaunchersRegisterHint": "上の + でエントリを登録",
+  "explorerManageLaunchers": "ランチャーを管理…",
+  "explorerRunningEmpty": "なし",
+
+  "explorerContextMenuAddFavorite": "お気に入りに追加",
+  "explorerContextMenuRunSkill": "「{skill}」を即実行",
+  "@explorerContextMenuRunSkill": {
+    "placeholders": { "skill": { "type": "String" } }
+  },
+  "explorerContextMenuRegisterSkill": "「{skill}」をランチャーに登録",
+  "@explorerContextMenuRegisterSkill": {
+    "placeholders": { "skill": { "type": "String" } }
+  },
+  "explorerContextMenuOpenWith": "別のアプリケーションで開く…",
+  "explorerContextMenuOpenInVim": "vim で開く",
+  "explorerPickAppTitle": "開くアプリを選択",
+  "explorerParentDirectoryLabel": "上の階層へ",
+  "explorerSnackbarCopied": "コピーしました: {name}",
+  "@explorerSnackbarCopied": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "explorerSnackbarAddedFavorite": "お気に入りに追加しました: {name}",
+  "@explorerSnackbarAddedFavorite": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "explorerSnackbarOpenFailed": "開けませんでした: {error}",
+  "@explorerSnackbarOpenFailed": {
+    "placeholders": { "error": { "type": "String" } }
+  },
+  "explorerSnackbarCopyFailed": "コピーに失敗しました: {error}",
+  "@explorerSnackbarCopyFailed": {
+    "placeholders": { "error": { "type": "String" } }
+  },
+  "explorerSnackbarMoveFailed": "移動に失敗しました: {error}",
+  "@explorerSnackbarMoveFailed": {
+    "placeholders": { "error": { "type": "String" } }
+  },
+
+  "explorerDefaultFolderName": "新規フォルダ",
+  "explorerDefaultFileName": "新規テキストファイル.txt",
+  "explorerNewFolderTitle": "新規フォルダ名",
+  "explorerNewFileTitle": "新規ファイル名",
+  "explorerRenameTitle": "名前を変更",
+  "explorerSnackbarCreateFailed": "作成に失敗しました: {error}",
+  "@explorerSnackbarCreateFailed": {
+    "placeholders": { "error": { "type": "String" } }
+  },
+  "explorerSnackbarRenameFailed": "リネームに失敗しました: {error}",
+  "@explorerSnackbarRenameFailed": {
+    "placeholders": { "error": { "type": "String" } }
+  },
+  "explorerSnackbarPasteFailed": "ペーストに失敗しました: {error}",
+  "@explorerSnackbarPasteFailed": {
+    "placeholders": { "error": { "type": "String" } }
+  },
+  "explorerSnackbarSourceNotFound": "コピー元が見つかりません: {sources}",
+  "@explorerSnackbarSourceNotFound": {
+    "placeholders": { "sources": { "type": "String" } }
+  },
+  "explorerDeleteConfirmTitle": "削除しますか？",
+  "explorerDeleteConfirmMessage": "「{name}」をゴミ箱に移動します。",
+  "@explorerDeleteConfirmMessage": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "explorerSnackbarMovedToTrash": "ゴミ箱に移動しました: {name}",
+  "@explorerSnackbarMovedToTrash": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "explorerSnackbarMoveToTrashFailed": "ゴミ箱に移動できませんでした: {error}",
+  "@explorerSnackbarMoveToTrashFailed": {
+    "placeholders": { "error": { "type": "String" } }
+  },
+  "explorerSnackbarPathCopied": "パスをコピーしました: {path}",
+  "@explorerSnackbarPathCopied": {
+    "placeholders": { "path": { "type": "String" } }
+  },
+  "explorerSnackbarItemCopied": "コピーしました: {name}",
+  "@explorerSnackbarItemCopied": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "explorerTerminalDisplayName": "{name} (Terminal)",
+  "@explorerTerminalDisplayName": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "explorerClaudeDisplayName": "{name} (Claude)",
+  "@explorerClaudeDisplayName": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+
+  "folderDeleteConfirmTitle": "フォルダを削除しますか？",
+  "folderDeleteConfirmMessage": "「{name}」を削除します。中身のエントリは未分類に戻ります。",
+  "@folderDeleteConfirmMessage": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "folderDeleteWithContentsMenuItem": "削除（中身は未分類に戻る）",
+  "unclassified": "未分類",
+
+  "entryEditTitleNew": "エントリ追加",
+  "entryEditTitleEdit": "エントリ編集",
+  "entryEditDisplayNameLabel": "表示名",
+  "entryEditWorkingDirectoryLabel": "作業ディレクトリ",
+  "entryEditWorkingDirectoryHint": "/Users/you/path/to/dir",
+  "entryEditDirectorySelectTooltip": "ディレクトリを選択",
+  "entryEditFolderLabel": "フォルダ",
+  "entryEditFolderNone": "フォルダなし（未分類）",
+  "entryEditActionTypeLabel": "動作",
+  "entryEditActionOpenHere": "開くだけ",
+  "entryEditActionRunCommand": "コマンド実行",
+  "entryEditActionClaudeSkill": "Claude Skill",
+  "entryEditClaudeUnavailableNoticeCurrent": "Claude Code が未導入です。このエントリは Skill タイプですが、保存しても起動できません。「設定」画面のインストール手順を参照してください。",
+  "entryEditClaudeUnavailableNoticeGeneral": "Claude Code が未導入のため「Claude Skill」タイプは無効化されています。「設定」画面のインストール手順を参照してください。",
+  "entryEditOpenHereDescription": "指定した作業ディレクトリでログインシェル ($SHELL) を起動し、プロンプトで停止します。",
+  "entryEditCommandLabel": "実行コマンド",
+  "entryEditCommandHint": "npm run dev",
+  "entryEditCommandHelper": "$SHELL -lc 経由で実行されます。&& や環境変数も使えます。",
+  "entryEditKeepShellAfterExitTitle": "コマンド終了後もターミナルを残す",
+  "entryEditKeepShellAfterExitSubtitle": "一発完結コマンド（make build 等）の結果を確認できます。常駐コマンド (npm run dev 等) では結果に影響しません。",
+  "entryEditSkillNameLabel": "Skill 名",
+  "entryEditSkillNameHint": "my-skill",
+  "entryEditSkillNameHelperNoSkills": "作業ディレクトリ内の `.claude/skills/` から候補を取得します",
+  "entryEditSkillNameHelperWithSkills": "候補: {count} 件",
+  "@entryEditSkillNameHelperWithSkills": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "entryEditSkillNameSelectTooltip": "候補から選択",
+
+  "launcherManagementTitle": "ランチャー管理",
+  "launcherAddFolderTooltip": "フォルダ追加",
+  "launcherAddEntryTooltip": "エントリ追加",
+  "launcherLoadError": "読み込みに失敗しました: {error}",
+  "@launcherLoadError": {
+    "placeholders": { "error": { "type": "String" } }
+  },
+  "launcherEmptyPlaceholder": "登録されたランチャーがまだありません",
+  "launcherAddEntryButton": "エントリを追加",
+  "launcherFolderNameTitle": "フォルダ名",
+  "launcherFolderNameHint": "例: dev / ops",
+  "launcherEmptyFolderHint": "（このフォルダは空です。エントリをここにドラッグして追加できます）",
+  "launcherEmptyRootHint": "（未分類のエントリはありません。フォルダから「未分類」ヘッダにドラッグすると戻せます）",
+  "launcherDeleteEntryTooltip": "削除",
+  "launcherDeleteEntryConfirm": "エントリを削除しますか？",
+  "launcherDeleteEntryMessage": "「{name}」を削除します。この操作は取り消せません。",
+  "@launcherDeleteEntryMessage": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "launcherActionLabelOpenHere": "動作: 開くだけ",
+  "launcherActionLabelRunCommand": "動作: コマンド実行 — {command}",
+  "@launcherActionLabelRunCommand": {
+    "placeholders": { "command": { "type": "String" } }
+  },
+  "launcherActionLabelClaudeSkill": "動作: Claude Skill — {skillName}",
+  "@launcherActionLabelClaudeSkill": {
+    "placeholders": { "skillName": { "type": "String" } }
+  },
+
+  "gitMenuRefresh": "再読込",
+  "gitMenuStashSave": "変更を stash に退避",
+  "gitMenuStashList": "stash 一覧 ({count})",
+  "@gitMenuStashList": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "gitMenuForcePush": "Push (--force-with-lease)",
+  "gitToolbarOverflowTooltip": "その他の操作",
+  "gitStashSaveTitle": "変更を stash に退避",
+  "gitStashMessageLabel": "メッセージ（任意）",
+  "gitStashSaveButton": "退避",
+  "gitForcePushMessage": "リモートブランチを --force-with-lease で上書きします。",
+  "gitForcePushButton": "Push",
+  "gitStashListTitle": "stash 一覧",
+  "gitStashEmpty": "stash はありません",
+  "gitStashApplyButton": "適用",
+  "gitStashPopButton": "pop",
+  "gitStashDiscardTooltip": "破棄",
+  "gitStashDropTitle": "stash を破棄",
+  "gitStashDropMessage": "{ref} を破棄します。",
+  "@gitStashDropMessage": {
+    "placeholders": { "ref": { "type": "String" } }
+  },
+  "gitStashDropButton": "破棄",
+  "gitBranchDialogTitle": "ブランチ",
+  "gitBranchNewButton": "新規作成",
+  "gitBranchCreateTitle": "ブランチを作成",
+  "gitBranchNameLabel": "ブランチ名",
+  "gitBranchFilterHint": "ブランチを絞り込み",
+  "gitBranchLocalLabel": "ローカル",
+  "gitBranchRemoteLabel": "リモート",
+  "gitBranchOperationsTooltip": "ブランチ操作",
+  "gitBranchMergeMenuItem": "現在ブランチへマージ",
+  "gitBranchDeleteMenuItem": "削除",
+  "gitBranchDeleteConfirmTitle": "ブランチを削除",
+  "gitBranchDeleteConfirmMessage": "ブランチ「{name}」を削除します。",
+  "@gitBranchDeleteConfirmMessage": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "gitWorkingTreeClean": "作業ツリーはクリーンです",
+  "gitDiscardAllTooltip": "すべて破棄",
+  "gitDiscardChangeTooltip": "変更を破棄",
+  "gitAmendPreviousCommit": "直前のコミットを修正（amend）",
+  "gitLoadMoreButton": "さらに読み込む",
+  "gitCloseDetailsTooltip": "詳細を閉じる",
+  "gitLoadError": "Git 情報の取得に失敗しました\n{error}",
+  "@gitLoadError": {
+    "placeholders": { "error": { "type": "String" } }
+  },
+  "gitOpenInTerminal": "ターミナルで開く",
+
+  "sessionCancelTooltip": "キャンセル (PTY を終了。出力履歴は残る)",
+  "sessionRerunTooltip": "再実行",
+
+  "settingsButtonTooltip": "設定",
+  "paneTabCloseTooltip": "タブを閉じる",
+  "paneTabAddTooltip": "タブを追加",
+
+  "buttonDiscard": "破棄",
+  "buttonRename": "リネーム",
+
+  "gitTabChanges": "変更",
+  "gitTabHistory": "履歴",
+  "gitStaged": "ステージ済み",
+  "gitConflicts": "コンフリクト",
+  "gitTabChangesWithCount": "変更 ({count})",
+  "@gitTabChangesWithCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "gitTabHistoryWithCount": "履歴 ({count})",
+  "@gitTabHistoryWithCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "gitStageAll": "すべて stage",
+  "gitUnstageAll": "すべて unstage",
+  "gitStage": "stage",
+  "gitUnstage": "unstage",
+  "gitDiscardAllConfirmMessage": "{count} 件のファイルの変更を破棄します。この操作は取り消せません。",
+  "@gitDiscardAllConfirmMessage": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "gitDiscardFileConfirmMessage": "{path} の変更を破棄します。",
+  "@gitDiscardFileConfirmMessage": {
+    "placeholders": { "path": { "type": "String" } }
+  },
+  "gitCommitMessageHint": "コミットメッセージ",
+  "gitCommitButton": "コミット",
+  "gitCommitOptionsTooltip": "コミットオプション",
+  "gitCommitAndPush": "コミット & プッシュ",
+  "gitNoCommits": "コミットがありません",
+  "gitLoadingChangedFiles": "変更ファイルを読み込み中…",
+  "gitNotFoundTitle": "git コマンドが見つかりません",
+  "gitNotFoundMessage": "Git ビューを使うには git をインストールし、PATH を通してください。",
+  "gitForcePushTitle": "force push",
+  "gitTerminalDisplayName": "{name} (git)",
+  "@gitTerminalDisplayName": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+
+  "sessionStateIdle": "待機中",
+  "sessionStateStarting": "起動中…",
+  "sessionStateRunning": "実行中",
+  "sessionStateWaitingInput": "入力待ち",
+  "sessionStateCompleted": "完了 ({code})",
+  "@sessionStateCompleted": {
+    "placeholders": { "code": { "type": "int" } }
+  },
+  "sessionStateExited": "終了 ({code})",
+  "@sessionStateExited": {
+    "placeholders": { "code": { "type": "int" } }
+  },
+  "sessionStateFailed": "失敗",
+  "sessionStateCancelled": "キャンセル",
+
+  "launcherFolderOperationsTooltip": "フォルダ操作"
+}

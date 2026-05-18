@@ -3,13 +3,16 @@ import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:roola/app/router.dart';
 import 'package:roola/core/health/claude_health_check.dart';
+import 'package:roola/data/locale/app_locale.dart';
+import 'package:roola/data/locale/locale_settings_repository_impl.dart';
 import 'package:roola/data/repo_explorer/explorer_settings.dart';
 import 'package:roola/data/repo_explorer/explorer_settings_repository_impl.dart';
+import 'package:roola/l10n/app_localizations.dart';
 import 'package:roola/ui/common/macos_window_app_bar.dart';
 import 'package:roola/ui/settings/appearance_section.dart';
 
-/// 設定画面。アプリ全体の preference のみを扱う（外観 / `claude` 連携 /
-/// キーボードショートカット解説）。
+/// 設定画面。アプリ全体の preference のみを扱う（言語 / 外観 / `claude`
+/// 連携 / キーボードショートカット解説）。
 ///
 /// 登録済みランチャーエントリの一覧と管理 UI は `LauncherManagementPage` に
 /// 移してある（コンテンツ管理 ≠ 設定）。サイドバーのランチャーセクション末尾の
@@ -20,9 +23,13 @@ class SettingsPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      appBar: const MacosWindowAppBar(title: Text('設定')),
+      appBar: MacosWindowAppBar(
+        title: Text(AppLocalizations.of(context).settingsPageTitle),
+      ),
       body: ListView(
         children: const [
+          _LanguageSection(),
+          Divider(height: 32),
           AppearanceSection(),
           Divider(height: 32),
           _ExplorerSection(),
@@ -30,6 +37,58 @@ class SettingsPage extends ConsumerWidget {
           _ClaudeIntegrationSection(),
           Divider(height: 32),
           _ShortcutsSection(),
+        ],
+      ),
+    );
+  }
+}
+
+/// 表示言語の切替セクション（ADR-0034）。日本語 / 英語の 2 択。
+class _LanguageSection extends ConsumerWidget {
+  const _LanguageSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final colors = Theme.of(context).colorScheme;
+    final locale = ref.watch(appLocaleProvider);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(24, 8, 24, 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            l10n.settingsLanguageTitle,
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            l10n.settingsLanguageDescription,
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant),
+          ),
+          const SizedBox(height: 12),
+          SegmentedButton<AppLocale>(
+            segments: [
+              ButtonSegment(
+                value: AppLocale.ja,
+                label: Text(l10n.languageJapanese),
+              ),
+              ButtonSegment(
+                value: AppLocale.en,
+                label: Text(l10n.languageEnglish),
+              ),
+            ],
+            selected: {locale},
+            onSelectionChanged: (set) {
+              if (set.isNotEmpty) {
+                ref.read(appLocaleProvider.notifier).setLocale(set.first);
+              }
+            },
+          ),
         ],
       ),
     );
@@ -44,6 +103,7 @@ class _ExplorerSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final state = ref.watch(explorerSettingsProvider);
     final colors = Theme.of(context).colorScheme;
     final density = state.value?.listDensity ?? ExplorerListDensity.comfortable;
@@ -53,30 +113,30 @@ class _ExplorerSection extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'エクスプローラ',
+            l10n.settingsExplorerTitle,
             style: Theme.of(
               context,
             ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 4),
           Text(
-            'ファイル / フォルダタイルの縦幅と情報量を切替えます。',
+            l10n.settingsExplorerDescription,
             style: Theme.of(
               context,
             ).textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant),
           ),
           const SizedBox(height: 12),
           SegmentedButton<ExplorerListDensity>(
-            segments: const [
+            segments: [
               ButtonSegment(
                 value: ExplorerListDensity.compact,
-                label: Text('コンパクト'),
-                icon: Icon(Icons.density_small),
+                label: Text(l10n.explorerDensityCompact),
+                icon: const Icon(Icons.density_small),
               ),
               ButtonSegment(
                 value: ExplorerListDensity.comfortable,
-                label: Text('ゆったり'),
-                icon: Icon(Icons.density_medium),
+                label: Text(l10n.explorerDensityComfortable),
+                icon: const Icon(Icons.density_medium),
               ),
             ],
             selected: {density},
@@ -93,8 +153,8 @@ class _ExplorerSection extends ConsumerWidget {
           const SizedBox(height: 8),
           Text(
             density == ExplorerListDensity.compact
-                ? 'コンパクト: サイドバーと同じ縦幅。Skill サブタイトル / チップは省略。'
-                : 'ゆったり: 縦幅にゆとりを持たせ、Skill サブタイトルとチップも表示。',
+                ? l10n.explorerDensityCompactDescription
+                : l10n.explorerDensityComfortableDescription,
             style: Theme.of(
               context,
             ).textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant),
@@ -113,6 +173,7 @@ class _ClaudeIntegrationSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final health = ref.watch(claudeHealthProvider);
     final colors = Theme.of(context).colorScheme;
     return Padding(
@@ -121,71 +182,63 @@ class _ClaudeIntegrationSection extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Claude Code 連携',
+            l10n.settingsClaudeIntegrationTitle,
             style: Theme.of(
               context,
             ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 4),
           Text(
-            'Anthropic の Claude Code CLI が PATH 上で見つかると、'
-            '関連機能が自動で有効化されます。',
+            l10n.settingsClaudeIntegrationDescription,
             style: Theme.of(
               context,
             ).textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant),
           ),
           const SizedBox(height: 16),
           health.when(
-            loading: () => const _StatusCard(
+            loading: () => _StatusCard(
               icon: Icons.hourglass_top,
               tone: _StatusTone.neutral,
-              title: '検出中…',
-              detail: '`claude --version` の実行を待っています。',
+              title: l10n.claudeHealthChecking,
+              detail: l10n.claudeHealthCheckingDetail,
             ),
             error: (e, _) => _StatusCard(
               icon: Icons.error_outline,
               tone: _StatusTone.error,
-              title: 'ヘルスチェックに失敗',
+              title: l10n.claudeHealthCheckError,
               detail: '$e',
             ),
             data: (h) => h.available
                 ? _StatusCard(
                     icon: Icons.check_circle_outline,
                     tone: _StatusTone.ok,
-                    title: '検出済み',
+                    title: l10n.claudeHealthCheckSuccess,
                     detail: h.versionOutput.isEmpty
-                        ? '`claude` コマンドが利用可能です。'
-                        : 'Version: ${h.versionOutput}',
+                        ? l10n.claudeHealthCheckSuccessDetail
+                        : l10n.claudeHealthVersion(h.versionOutput),
                   )
                 : _StatusCard(
                     icon: Icons.error_outline,
                     tone: _StatusTone.error,
-                    title: '未検出',
+                    title: l10n.claudeHealthCheckNotFound,
                     detail: h.versionOutput.isEmpty
-                        ? '`claude` コマンドが PATH 上で見つかりませんでした。'
-                        : '詳細: ${h.versionOutput}',
+                        ? l10n.claudeHealthCheckNotFoundDetail
+                        : l10n.claudeHealthCheckNotFoundDetailWith(
+                            h.versionOutput,
+                          ),
                   ),
           ),
           const SizedBox(height: 16),
           Text(
-            '有効化される機能',
+            l10n.settingsClaudeFeatures,
             style: Theme.of(
               context,
             ).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 8),
-          const _FeatureRow(
-            description:
-                'エクスプローラのフォルダで `.claude/skills/` を自動検知し、特別アイコンと Skill チップを表示',
-          ),
-          const _FeatureRow(
-            description:
-                '右クリックメニューに「Claude Code を開く」「Skill を即実行」「Skill をランチャーに登録」を追加',
-          ),
-          const _FeatureRow(
-            description:
-                'ランチャー登録時に「Claude Skill」動作タイプを選べる（Skill 名を指定して `claude /skillname` を起動）',
-          ),
+          _FeatureRow(description: l10n.settingsClaudeFeature1),
+          _FeatureRow(description: l10n.settingsClaudeFeature2),
+          _FeatureRow(description: l10n.settingsClaudeFeature3),
           if (health.value?.available != true) ...[
             const SizedBox(height: 16),
             const _InstallGuide(),
@@ -286,19 +339,20 @@ class _InstallGuide extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final colors = Theme.of(context).colorScheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'インストール手順',
+          l10n.settingsClaudeInstallTitle,
           style: Theme.of(
             context,
           ).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 8),
         Text(
-          'Node.js 18+ がある状態で次のコマンドを実行してください:',
+          l10n.settingsClaudeInstallInstructions,
           style: Theme.of(context).textTheme.bodySmall,
         ),
         const SizedBox(height: 8),
@@ -320,7 +374,7 @@ class _InstallGuide extends StatelessWidget {
               ),
               IconButton(
                 icon: const Icon(Icons.content_copy, size: 16),
-                tooltip: 'コマンドをコピー',
+                tooltip: l10n.settingsClaudeInstallCopyTooltip,
                 visualDensity: VisualDensity.compact,
                 onPressed: () => _copy(context),
               ),
@@ -329,7 +383,7 @@ class _InstallGuide extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         Text(
-          'インストール後、Roola を再起動すると検出されます。',
+          l10n.settingsClaudeInstallAfter,
           style: Theme.of(
             context,
           ).textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant),
@@ -339,14 +393,16 @@ class _InstallGuide extends StatelessWidget {
   }
 
   Future<void> _copy(BuildContext context) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final copiedMessage = AppLocalizations.of(context).settingsClaudeInstallCopied;
     await Clipboard.setData(const ClipboardData(text: _command));
     if (!context.mounted) {
       return;
     }
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('インストールコマンドをコピーしました'),
-        duration: Duration(seconds: 2),
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(copiedMessage),
+        duration: const Duration(seconds: 2),
         behavior: SnackBarBehavior.floating,
       ),
     );
@@ -363,6 +419,7 @@ class _ShortcutsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final colors = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
@@ -370,14 +427,14 @@ class _ShortcutsSection extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'キーボードショートカット',
+            l10n.settingsKeyboardShortcutsTitle,
             style: Theme.of(
               context,
             ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 4),
           Text(
-            'すべてのコマンドのショートカットは専用画面で確認・変更できます。',
+            l10n.settingsKeyboardShortcutsDescription,
             style: Theme.of(
               context,
             ).textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant),
@@ -387,33 +444,33 @@ class _ShortcutsSection extends StatelessWidget {
             alignment: Alignment.centerLeft,
             child: OutlinedButton.icon(
               icon: const Icon(Icons.keyboard),
-              label: const Text('キーボードショートカットを編集…'),
+              label: Text(l10n.settingsKeyboardShortcutsButton),
               onPressed: () => const KeybindingsRoute().push<void>(context),
             ),
           ),
           const SizedBox(height: 20),
           Text(
-            'マウス操作',
+            l10n.settingsMouseOperationsTitle,
             style: Theme.of(
               context,
             ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 8),
-          const _ShortcutRow(
-            keys: ['Click'],
-            description: 'ファイル / フォルダを選択（ハイライト表示）',
+          _ShortcutRow(
+            keys: const ['Click'],
+            description: l10n.settingsMouseClick,
           ),
-          const _ShortcutRow(
-            keys: ['Double Click'],
-            description: 'フォルダに遷移 / ファイルを既定のアプリで開く',
+          _ShortcutRow(
+            keys: const ['Double Click'],
+            description: l10n.settingsMouseDoubleClick,
           ),
-          const _ShortcutRow(
-            keys: ['Right Click'],
-            description: 'コンテキストメニュー（フォルダ / ファイル別の操作一覧）',
+          _ShortcutRow(
+            keys: const ['Right Click'],
+            description: l10n.settingsMouseRightClick,
           ),
-          const _ShortcutRow(
-            keys: ['Mouse Back / Forward'],
-            description: 'ディレクトリ履歴を 1 つ戻る / 進む（AppBar の ← → と同等）',
+          _ShortcutRow(
+            keys: const ['Mouse Back / Forward'],
+            description: l10n.settingsMouseNavigation,
           ),
         ],
       ),
