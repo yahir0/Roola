@@ -9,6 +9,7 @@ part of 'router.dart';
 List<RouteBase> get $appRoutes => [
   $explorerRoute,
   $settingsRoute,
+  $keybindingsRoute,
   $launcherManagementRoute,
 ];
 
@@ -43,6 +44,32 @@ mixin $SettingsRoute on GoRouteData {
 
   @override
   String get location => GoRouteData.$location('/settings');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+RouteBase get $keybindingsRoute => GoRouteData.$route(
+  path: '/keybindings',
+  factory: $KeybindingsRoute._fromState,
+);
+
+mixin $KeybindingsRoute on GoRouteData {
+  static KeybindingsRoute _fromState(GoRouterState state) =>
+      const KeybindingsRoute();
+
+  @override
+  String get location => GoRouteData.$location('/keybindings');
 
   @override
   void go(BuildContext context) => context.go(location);

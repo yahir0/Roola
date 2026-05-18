@@ -33,6 +33,9 @@ class AppPaths {
   /// 永続化先（ADR-0028）。
   File get workspaceFile => File('${root.path}/workspace.json');
 
+  /// キーボードショートカットのユーザー上書きの永続化先（ADR-0033）。
+  File get keybindingsFile => File('${root.path}/keybindings.json');
+
   /// 背景画像の保存先。
   File get backgroundImageFile => File('${root.path}/background.png');
 

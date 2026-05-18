@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:roola/core/keybindings/chord_formatter.dart';
+import 'package:roola/data/keybindings/command_id.dart';
+import 'package:roola/data/keybindings/command_registry.dart';
+import 'package:roola/data/keybindings/effective_keybindings.dart';
 import 'package:roola/data/workspace/pane_slot.dart';
 import 'package:roola/data/workspace/workspace_layout.dart';
 import 'package:roola/data/workspace/workspace_tab.dart';
@@ -192,19 +196,28 @@ class _TabChip extends ConsumerWidget {
     WidgetRef ref,
     Offset position,
   ) async {
+    final effective = ref.read(effectiveKeybindingsProvider);
     PopupMenuItem<_TabMenuAction> item(
       _TabMenuAction action,
-      IconData icon,
-      String label,
-    ) => PopupMenuItem(
-      value: action,
-      child: ListTile(
-        leading: Icon(icon),
-        title: Text(label),
-        dense: true,
-        contentPadding: EdgeInsets.zero,
-      ),
-    );
+      CommandId command,
+    ) {
+      final metadata = CommandRegistry.metadataFor(command);
+      return PopupMenuItem(
+        value: action,
+        child: ListTile(
+          leading: Icon(metadata.icon),
+          title: Text(metadata.label),
+          trailing: Text(
+            formatChord(effective[command]!),
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).hintColor,
+            ),
+          ),
+          dense: true,
+          contentPadding: EdgeInsets.zero,
+        ),
+      );
+    }
 
     final selected = await showMenu<_TabMenuAction>(
       context: context,
@@ -216,13 +229,13 @@ class _TabChip extends ConsumerWidget {
       ),
       items: [
         if (slotId != PaneSlotId.topLeft)
-          item(_TabMenuAction.moveTopLeft, Icons.north_west, '左上ペインへ移動'),
+          item(_TabMenuAction.moveTopLeft, CommandId.moveTabTopLeft),
         if (slotId != PaneSlotId.topRight)
-          item(_TabMenuAction.moveTopRight, Icons.north_east, '右上ペインへ移動'),
+          item(_TabMenuAction.moveTopRight, CommandId.moveTabTopRight),
         if (slotId != PaneSlotId.bottom)
-          item(_TabMenuAction.moveBottom, Icons.south, '下ペインへ移動'),
+          item(_TabMenuAction.moveBottom, CommandId.moveTabBottom),
         const PopupMenuDivider(),
-        item(_TabMenuAction.close, Icons.close, 'タブを閉じる'),
+        item(_TabMenuAction.close, CommandId.closeTab),
       ],
     );
     if (selected == null) {

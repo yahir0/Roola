@@ -10,14 +10,15 @@ import 'package:roola/app/router.dart';
 import 'package:roola/core/health/claude_health_check.dart';
 import 'package:roola/core/system/explorer_file_ops.dart';
 import 'package:roola/core/system/file_opener.dart';
-import 'package:roola/core/system/trash_service.dart';
+import 'package:roola/data/keybindings/command_id.dart';
 import 'package:roola/data/launcher_entry/launcher_action.dart';
 import 'package:roola/data/repo_explorer/explorer_node.dart';
 import 'package:roola/data/repo_explorer/explorer_settings.dart';
 import 'package:roola/data/repo_explorer/explorer_settings_repository_impl.dart';
 import 'package:roola/data/workspace/workspace_layout.dart';
-import 'package:roola/ui/common/prompt_name_dialog.dart';
+import 'package:roola/ui/common/command_menu_item.dart';
 import 'package:roola/ui/explorer/explorer_clipboard_provider.dart';
+import 'package:roola/ui/explorer/explorer_commands.dart';
 import 'package:roola/ui/explorer/explorer_item_selection.dart';
 import 'package:roola/ui/explorer/explorer_properties_dialog.dart';
 import 'package:roola/ui/explorer/explorer_view_model.dart';
@@ -56,26 +57,23 @@ Future<void> showExplorerContextMenu(
   }
   final items = <PopupMenuEntry<ExplorerNodeAction>>[
     if (claudeAvailable)
-      const PopupMenuItem(
-        value: _ActionOpenClaude(),
-        child: ListTile(
-          leading: Icon(Icons.terminal),
-          title: Text('このディレクトリで Claude Code を開く'),
-        ),
+      commandPopupMenuItem<ExplorerNodeAction>(
+        context,
+        ref,
+        command: CommandId.openClaudeHere,
+        value: const _ActionOpenClaude(),
       ),
-    const PopupMenuItem(
-      value: _ActionOpenTerminal(),
-      child: ListTile(
-        leading: Icon(Icons.developer_mode),
-        title: Text('ここでターミナルを開く'),
-      ),
+    commandPopupMenuItem<ExplorerNodeAction>(
+      context,
+      ref,
+      command: CommandId.openTerminalHere,
+      value: const _ActionOpenTerminal(),
     ),
-    const PopupMenuItem(
-      value: _ActionRevealInFinder(),
-      child: ListTile(
-        leading: Icon(Icons.folder_open),
-        title: Text('Finder で表示'),
-      ),
+    commandPopupMenuItem<ExplorerNodeAction>(
+      context,
+      ref,
+      command: CommandId.revealInFinder,
+      value: const _ActionRevealInFinder(),
     ),
     const PopupMenuItem(
       value: _ActionAddToFavorite(),
@@ -85,57 +83,61 @@ Future<void> showExplorerContextMenu(
       ),
     ),
     const PopupMenuDivider(),
-    const PopupMenuItem(
-      value: _ActionNewFolder(),
-      child: ListTile(
-        leading: Icon(Icons.create_new_folder_outlined),
-        title: Text('新規フォルダ'),
-      ),
+    commandPopupMenuItem<ExplorerNodeAction>(
+      context,
+      ref,
+      command: CommandId.newFolder,
+      value: const _ActionNewFolder(),
     ),
-    const PopupMenuItem(
-      value: _ActionNewFile(),
-      child: ListTile(
-        leading: Icon(Icons.note_add_outlined),
-        title: Text('新規テキストファイル'),
-      ),
+    commandPopupMenuItem<ExplorerNodeAction>(
+      context,
+      ref,
+      command: CommandId.newFile,
+      value: const _ActionNewFile(),
     ),
     if (showRename)
-      const PopupMenuItem(
-        value: _ActionRename(),
-        child: ListTile(
-          leading: Icon(Icons.drive_file_rename_outline),
-          title: Text('名前を変更'),
-        ),
+      commandPopupMenuItem<ExplorerNodeAction>(
+        context,
+        ref,
+        command: CommandId.renameItem,
+        value: const _ActionRename(),
       ),
     const PopupMenuDivider(),
     if (showCopy)
-      const PopupMenuItem(
-        value: _ActionCopy(),
-        child: ListTile(leading: Icon(Icons.content_copy), title: Text('コピー')),
+      commandPopupMenuItem<ExplorerNodeAction>(
+        context,
+        ref,
+        command: CommandId.copyItem,
+        value: const _ActionCopy(),
       ),
-    const PopupMenuItem(
-      value: _ActionCopyPath(),
-      child: ListTile(leading: Icon(Icons.link), title: Text('パスをコピー')),
+    commandPopupMenuItem<ExplorerNodeAction>(
+      context,
+      ref,
+      command: CommandId.copyPath,
+      value: const _ActionCopyPath(),
     ),
     if (hasClipboard)
-      const PopupMenuItem(
-        value: _ActionPaste(),
-        child: ListTile(
-          leading: Icon(Icons.content_paste),
-          title: Text('ペースト'),
-        ),
+      commandPopupMenuItem<ExplorerNodeAction>(
+        context,
+        ref,
+        command: CommandId.pasteItem,
+        value: const _ActionPaste(),
       ),
-    if (showDelete) ...const [
-      PopupMenuDivider(),
-      PopupMenuItem(
-        value: _ActionMoveToTrash(),
-        child: ListTile(leading: Icon(Icons.delete_outline), title: Text('削除')),
+    if (showDelete) ...[
+      const PopupMenuDivider(),
+      commandPopupMenuItem<ExplorerNodeAction>(
+        context,
+        ref,
+        command: CommandId.moveToTrash,
+        value: const _ActionMoveToTrash(),
       ),
     ],
     const PopupMenuDivider(),
-    const PopupMenuItem(
-      value: _ActionProperties(),
-      child: ListTile(leading: Icon(Icons.info_outline), title: Text('プロパティ')),
+    commandPopupMenuItem<ExplorerNodeAction>(
+      context,
+      ref,
+      command: CommandId.showProperties,
+      value: const _ActionProperties(),
     ),
   ];
   if (claudeAvailable && node.skillNames.isNotEmpty) {
@@ -197,63 +199,65 @@ Future<void> showFileContextMenu(
       position.dx,
       position.dy,
     ),
-    items: const [
-      PopupMenuItem(
+    items: [
+      commandPopupMenuItem<_FileAction>(
+        context,
+        ref,
+        command: CommandId.openItem,
         value: _FileAction.open,
-        child: ListTile(
-          leading: Icon(Icons.open_in_new),
-          title: Text('OS デフォルトアプリで開く'),
-        ),
       ),
-      PopupMenuItem(
+      const PopupMenuItem(
         value: _FileAction.openWith,
         child: ListTile(
           leading: Icon(Icons.apps),
           title: Text('別のアプリケーションで開く…'),
         ),
       ),
-      PopupMenuItem(
+      const PopupMenuItem(
         value: _FileAction.openInVim,
         child: ListTile(
           leading: Icon(Icons.edit_note),
           title: Text('vim で開く'),
         ),
       ),
-      PopupMenuItem(
+      commandPopupMenuItem<_FileAction>(
+        context,
+        ref,
+        command: CommandId.revealInFinder,
         value: _FileAction.revealInFinder,
-        child: ListTile(
-          leading: Icon(Icons.folder_open),
-          title: Text('Finder で表示'),
-        ),
       ),
-      PopupMenuDivider(),
-      PopupMenuItem(
+      const PopupMenuDivider(),
+      commandPopupMenuItem<_FileAction>(
+        context,
+        ref,
+        command: CommandId.renameItem,
         value: _FileAction.rename,
-        child: ListTile(
-          leading: Icon(Icons.drive_file_rename_outline),
-          title: Text('名前を変更'),
-        ),
       ),
-      PopupMenuItem(
+      commandPopupMenuItem<_FileAction>(
+        context,
+        ref,
+        command: CommandId.copyItem,
         value: _FileAction.copy,
-        child: ListTile(leading: Icon(Icons.content_copy), title: Text('コピー')),
       ),
-      PopupMenuItem(
+      commandPopupMenuItem<_FileAction>(
+        context,
+        ref,
+        command: CommandId.copyPath,
         value: _FileAction.copyPath,
-        child: ListTile(leading: Icon(Icons.link), title: Text('パスをコピー')),
       ),
-      PopupMenuDivider(),
-      PopupMenuItem(
+      const PopupMenuDivider(),
+      commandPopupMenuItem<_FileAction>(
+        context,
+        ref,
+        command: CommandId.moveToTrash,
         value: _FileAction.moveToTrash,
-        child: ListTile(leading: Icon(Icons.delete_outline), title: Text('削除')),
       ),
-      PopupMenuDivider(),
-      PopupMenuItem(
+      const PopupMenuDivider(),
+      commandPopupMenuItem<_FileAction>(
+        context,
+        ref,
+        command: CommandId.showProperties,
         value: _FileAction.properties,
-        child: ListTile(
-          leading: Icon(Icons.info_outline),
-          title: Text('プロパティ'),
-        ),
       ),
     ],
   );
@@ -426,197 +430,74 @@ Future<void> _handleDirectoryAction(
   }
 }
 
-/// 新規フォルダ / 新規ファイルを [parentPath] 直下に作成する。失敗時は
-/// SnackBar でエラーを表示。成功時はビューモデルを refresh して反映。
+/// 新規フォルダ / 新規ファイルを [parentPath] 直下に作成する。
+/// 実処理は `explorer_commands.dart` の `runCreateEntry`（ADR-0033）。
 Future<void> _createNew(
   BuildContext context,
   WidgetRef ref,
   String parentPath, {
   required bool isDirectory,
-}) async {
-  final defaultName = isDirectory ? '新規フォルダ' : '新規テキストファイル.txt';
-  final name = await promptName(
+}) {
+  return runCreateEntry(
     context,
-    title: isDirectory ? '新規フォルダ名' : '新規ファイル名',
-    initialValue: defaultName,
-    confirmLabel: '作成',
+    ref,
+    parentPath: parentPath,
+    explorerTabId: ref.read(currentTabIdProvider),
+    isDirectory: isDirectory,
   );
-  if (name == null || name.trim().isEmpty || !context.mounted) {
-    return;
-  }
-  final ops = ref.read(explorerFileOpsProvider);
-  try {
-    if (isDirectory) {
-      await ops.createDirectory(parentPath, name.trim());
-    } else {
-      await ops.createFile(parentPath, name.trim());
-    }
-    ref
-        .read(
-          explorerViewModelProvider(ref.read(currentTabIdProvider)).notifier,
-        )
-        .refresh();
-  } on FileSystemException catch (e) {
-    if (!context.mounted) {
-      return;
-    }
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text('作成に失敗しました: ${e.message}')));
-  }
 }
 
-/// [oldPath] を新しい名前にリネームし、ビューモデルを refresh する。
+/// [oldPath] を新しい名前にリネームする。実処理は `runRename`。
 Future<void> _renameAndRefresh(
   BuildContext context,
   WidgetRef ref,
   String oldPath,
   String oldName,
-) async {
-  final newName = await promptName(
+) {
+  return runRename(
     context,
-    title: '名前を変更',
-    initialValue: oldName,
-    confirmLabel: '変更',
+    ref,
+    path: oldPath,
+    currentName: oldName,
+    explorerTabId: ref.read(currentTabIdProvider),
   );
-  if (newName == null || newName.trim().isEmpty || newName.trim() == oldName) {
-    return;
-  }
-  if (!context.mounted) {
-    return;
-  }
-  final ops = ref.read(explorerFileOpsProvider);
-  try {
-    await ops.rename(oldPath, newName.trim());
-    ref
-        .read(
-          explorerViewModelProvider(ref.read(currentTabIdProvider)).notifier,
-        )
-        .refresh();
-  } on FileSystemException catch (e) {
-    if (!context.mounted) {
-      return;
-    }
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text('リネームに失敗しました: ${e.message}')));
-  }
 }
 
-/// OS クリップボードに乗っているファイル URI を [targetDir] にコピーする。
-/// Finder で複数選択コピーした場合など複数 URI がある場合は順にコピーする。
-/// 失敗時は SnackBar でエラー、成功時は ViewModel を refresh。
-/// OS クリップボードの内容はこちらで消さない（連続ペースト可）。
+/// OS クリップボードのファイル URI を [targetDir] にコピーする。
+/// 実処理は `runPaste`。
 Future<void> _pasteInto(
   BuildContext context,
   WidgetRef ref,
   String targetDir,
-) async {
-  final sources = await ref.read(osClipboardServiceProvider).readFilePaths();
-  if (sources.isEmpty) {
-    return;
-  }
-  final ops = ref.read(explorerFileOpsProvider);
-  final missing = <String>[];
-  String? lastError;
-  for (final source in sources) {
-    if (!File(source).existsSync() && !Directory(source).existsSync()) {
-      missing.add(source);
-      continue;
-    }
-    try {
-      await ops.copyInto(source, targetDir);
-    } on FileSystemException catch (e) {
-      lastError = e.message;
-    }
-  }
-  ref
-      .read(explorerViewModelProvider(ref.read(currentTabIdProvider)).notifier)
-      .refresh();
-  if (!context.mounted) {
-    return;
-  }
-  if (lastError != null) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text('ペーストに失敗しました: $lastError')));
-  } else if (missing.isNotEmpty) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('コピー元が見つかりません: ${missing.join(', ')}')),
-    );
-  }
+) {
+  return runPaste(
+    context,
+    ref,
+    targetDir: targetDir,
+    explorerTabId: ref.read(currentTabIdProvider),
+  );
 }
 
-/// [path] を OS のゴミ箱に移動する。実行前に必ず確認ダイアログを出し、
-/// 承認された場合のみ実行する（誤クリック対策）。実体はゴミ箱送りで
-/// 戻せるため、文言は「削除しますか？」と直接的に書く。
-/// 完了後は ViewModel を refresh し、SnackBar で結果を通知する。
+/// [path] を OS のゴミ箱に移動する。実処理は `runMoveToTrash`。
 Future<void> _moveToTrash(
   BuildContext context,
   WidgetRef ref,
   String path,
   String displayName,
-) async {
-  final confirmed = await showDialog<bool>(
-    context: context,
-    builder: (context) => AlertDialog(
-      title: const Text('削除しますか？'),
-      content: Text('「$displayName」をゴミ箱に移動します。'),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(false),
-          child: const Text('キャンセル'),
-        ),
-        FilledButton(
-          onPressed: () => Navigator.of(context).pop(true),
-          child: const Text('削除'),
-        ),
-      ],
-    ),
+) {
+  return runMoveToTrash(
+    context,
+    ref,
+    path: path,
+    displayName: displayName,
+    explorerTabId: ref.read(currentTabIdProvider),
   );
-  if (confirmed != true || !context.mounted) {
-    return;
-  }
-  try {
-    await ref.read(trashServiceProvider).moveToTrash(path);
-    ref
-        .read(
-          explorerViewModelProvider(ref.read(currentTabIdProvider)).notifier,
-        )
-        .refresh();
-    if (!context.mounted) {
-      return;
-    }
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('ゴミ箱に移動しました: $displayName'),
-        duration: const Duration(seconds: 2),
-      ),
-    );
-  } on PlatformException catch (e) {
-    if (!context.mounted) {
-      return;
-    }
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('ゴミ箱に移動できませんでした: ${e.message ?? e.code}')),
-    );
-  }
 }
 
 /// 絶対パス文字列を OS クリップボードにテキストとして書き込む。
-/// ファイル URI 形式の「コピー」とは別経路で、他アプリのテキスト入力
-/// 欄にそのまま貼れることを意図する。
-Future<void> _copyPathToClipboard(BuildContext context, String path) async {
-  await Clipboard.setData(ClipboardData(text: path));
-  if (!context.mounted) {
-    return;
-  }
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(
-      content: Text('パスをコピーしました: $path'),
-      duration: const Duration(seconds: 2),
-    ),
-  );
+/// 実処理は `runCopyPath`。
+Future<void> _copyPathToClipboard(BuildContext context, String path) {
+  return runCopyPath(context, path: path);
 }
 
 /// [tabId] のタブが属するペインスロットを返す。見つからなければ
