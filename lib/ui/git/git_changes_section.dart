@@ -82,63 +82,79 @@ class GitChangesSection extends HookConsumerWidget {
       }
     }
 
-    return Column(
-      children: [
-        Expanded(
-          child: status.isClean
-              ? const _CleanPlaceholder()
-              : ListView(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  children: [
-                    if (conflicts.isNotEmpty)
-                      _ChangeGroup(
-                        tabId: tabId,
-                        title: 'Conflicts',
-                        changes: conflicts,
-                        state: state,
-                      ),
-                    if (status.staged.isNotEmpty)
-                      _ChangeGroup(
-                        tabId: tabId,
-                        title: 'Staged',
-                        changes: status.staged,
-                        state: state,
-                        onUnstageAll: notifier.unstageAll,
-                      ),
-                    if (unstaged.isNotEmpty)
-                      _ChangeGroup(
-                        tabId: tabId,
-                        title: 'Changes',
-                        changes: unstaged,
-                        state: state,
-                        onStageAll: notifier.stageAll,
-                        onDiscardAll: () async {
-                          final ok = await gitConfirm(
-                            context,
-                            title: '変更を破棄',
-                            message:
-                                '${unstaged.length} 件のファイルの変更を破棄します。'
-                                'この操作は取り消せません。',
-                            confirmLabel: '破棄',
-                          );
-                          if (ok) {
-                            await notifier.discard(unstaged);
-                          }
-                        },
-                      ),
-                  ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // ペインが極端に低いとコミット欄が縦に収まらない。コミット欄の高さを
+        // 「セクション高 − Divider」までに制限し、収まらない分は内部スクロール
+        // させることで、Column のオーバーフローを防ぐ。
+        final commitMaxHeight = (constraints.maxHeight - 1).clamp(
+          0.0,
+          double.infinity,
+        );
+        return Column(
+          children: [
+            Expanded(
+              child: status.isClean
+                  ? const _CleanPlaceholder()
+                  : ListView(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      children: [
+                        if (conflicts.isNotEmpty)
+                          _ChangeGroup(
+                            tabId: tabId,
+                            title: 'Conflicts',
+                            changes: conflicts,
+                            state: state,
+                          ),
+                        if (status.staged.isNotEmpty)
+                          _ChangeGroup(
+                            tabId: tabId,
+                            title: 'Staged',
+                            changes: status.staged,
+                            state: state,
+                            onUnstageAll: notifier.unstageAll,
+                          ),
+                        if (unstaged.isNotEmpty)
+                          _ChangeGroup(
+                            tabId: tabId,
+                            title: 'Changes',
+                            changes: unstaged,
+                            state: state,
+                            onStageAll: notifier.stageAll,
+                            onDiscardAll: () async {
+                              final ok = await gitConfirm(
+                                context,
+                                title: '変更を破棄',
+                                message:
+                                    '${unstaged.length} 件のファイルの変更を破棄します。'
+                                    'この操作は取り消せません。',
+                                confirmLabel: '破棄',
+                              );
+                              if (ok) {
+                                await notifier.discard(unstaged);
+                              }
+                            },
+                          ),
+                      ],
+                    ),
+            ),
+            const Divider(height: 1),
+            ConstrainedBox(
+              constraints: BoxConstraints(maxHeight: commitMaxHeight),
+              child: SingleChildScrollView(
+                child: _CommitBox(
+                  controller: messageController,
+                  canCommit: canCommit,
+                  busy: state.isBusy,
+                  onCommit: doCommit,
+                  onCommitAndPush: () => doCommit(thenPush: true),
+                  onAmend: () => doCommit(amend: true),
                 ),
-        ),
-        const Divider(height: 1),
-        _CommitBox(
-          controller: messageController,
-          canCommit: canCommit,
-          busy: state.isBusy,
-          onCommit: doCommit,
-          onCommitAndPush: () => doCommit(thenPush: true),
-          onAmend: () => doCommit(amend: true),
-        ),
-      ],
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }

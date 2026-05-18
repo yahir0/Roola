@@ -8,6 +8,10 @@ class MainFlutterWindow: NSWindow {
     self.contentViewController = flutterViewController
     self.setFrame(windowFrame, display: true)
 
+    // ウィンドウの最小サイズ。3 ペインのワークスペース（ADR-0026）が
+    // 破綻なく収まる下限。これ以下に縮めるとレイアウトが溢れるため固定する。
+    self.minSize = NSSize(width: 800, height: 600)
+
     // 透過ウィンドウ設定（Flutter 側で背景を制御する）
     self.isOpaque = false
     self.backgroundColor = .clear
