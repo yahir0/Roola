@@ -6,6 +6,7 @@ import 'package:roola/data/keybindings/command_id.dart';
 import 'package:roola/data/keybindings/command_registry.dart';
 import 'package:roola/data/keybindings/effective_keybindings.dart';
 import 'package:roola/data/keybindings/key_chord.dart';
+import 'package:roola/ui/settings/key_chord_recorder_dialog.dart';
 
 /// macOS ネイティブメニューバー（ADR-0033）。
 ///
@@ -24,17 +25,22 @@ class AppMenuBar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final effective = ref.watch(effectiveKeybindingsProvider);
+    // レコーダ表示中はメニューの key equivalent を外し、入力キーが
+    // レコーダまで届くようにする（ADR-0033）。
+    final recording = ref.watch(keybindingRecordingProvider);
     return PlatformMenuBar(
-      menus: _menus(ref, effective),
+      menus: _menus(ref, effective, recording: recording),
       child: child,
     );
   }
 
   List<PlatformMenuItem> _menus(
     WidgetRef ref,
-    Map<CommandId, KeyChord> effective,
-  ) {
-    PlatformMenuItem item(CommandId id) => _commandItem(ref, effective, id);
+    Map<CommandId, KeyChord> effective, {
+    required bool recording,
+  }) {
+    PlatformMenuItem item(CommandId id) =>
+        _commandItem(ref, effective, id, recording: recording);
 
     return [
       // macOS の先頭メニュー（アプリメニュー）。
@@ -173,11 +179,12 @@ class AppMenuBar extends ConsumerWidget {
   PlatformMenuItem _commandItem(
     WidgetRef ref,
     Map<CommandId, KeyChord> effective,
-    CommandId id,
-  ) {
+    CommandId id, {
+    required bool recording,
+  }) {
     return PlatformMenuItem(
       label: CommandRegistry.metadataFor(id).label,
-      shortcut: toSingleActivator(effective[id]!),
+      shortcut: recording ? null : toSingleActivator(effective[id]!),
       onSelected: () => dispatchCommand(id, ref),
     );
   }

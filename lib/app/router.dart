@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:roola/ui/launchers/entry_edit_page.dart';
 import 'package:roola/ui/launchers/launcher_management_page.dart';
+import 'package:roola/ui/settings/keybindings_page.dart';
 import 'package:roola/ui/settings/settings_page.dart';
 import 'package:roola/ui/workspace/workspace_page.dart';
 
@@ -56,6 +57,18 @@ class SettingsRoute extends GoRouteData with $SettingsRoute {
   @override
   Page<void> buildPage(BuildContext context, GoRouterState state) =>
       const NoTransitionPage(child: SettingsPage());
+}
+
+/// キーボードショートカット設定ルート (`/keybindings`)。全コマンドの一覧と
+/// キー割り当て編集（ADR-0033）。設定画面とメニューバーから push。
+/// 遷移アニメを抑制する理由は `SettingsRoute` 参照。
+@TypedGoRoute<KeybindingsRoute>(path: '/keybindings')
+class KeybindingsRoute extends GoRouteData with $KeybindingsRoute {
+  const KeybindingsRoute();
+
+  @override
+  Page<void> buildPage(BuildContext context, GoRouterState state) =>
+      const NoTransitionPage(child: KeybindingsPage());
 }
 
 /// ランチャー管理画面ルート (`/launchers`)。登録済みエントリの一覧 + 追加 /

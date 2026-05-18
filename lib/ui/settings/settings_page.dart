@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:roola/app/router.dart';
 import 'package:roola/core/health/claude_health_check.dart';
 import 'package:roola/data/repo_explorer/explorer_settings.dart';
 import 'package:roola/data/repo_explorer/explorer_settings_repository_impl.dart';
@@ -352,10 +353,11 @@ class _InstallGuide extends StatelessWidget {
   }
 }
 
-/// エクスプローラのキーボードショートカット / 操作モデルの解説。
+/// キーボードショートカットの導線と、エクスプローラのマウス操作モデルの解説。
 ///
-/// ADR-0021 で操作モデルがダブルクリック式に変わったので、ユーザーが
-/// 「クリックしても何も起きない」と迷わないように、明示的に書いておく。
+/// キー割り当ての一覧・編集は専用画面 [KeybindingsPage] に分離した（ADR-0033）。
+/// マウス操作（ADR-0021 のダブルクリック式）は割り当て対象外なので、ここに
+/// 解説として残す。
 class _ShortcutsSection extends StatelessWidget {
   const _ShortcutsSection();
 
@@ -375,12 +377,28 @@ class _ShortcutsSection extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            'エクスプローラの操作モデルと、選択中アイテムに対するショートカット。',
+            'すべてのコマンドのショートカットは専用画面で確認・変更できます。',
             style: Theme.of(
               context,
             ).textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: OutlinedButton.icon(
+              icon: const Icon(Icons.keyboard),
+              label: const Text('キーボードショートカットを編集…'),
+              onPressed: () => const KeybindingsRoute().push<void>(context),
+            ),
+          ),
+          const SizedBox(height: 20),
+          Text(
+            'マウス操作（ADR-0021）',
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 8),
           const _ShortcutRow(
             keys: ['Click'],
             description: 'ファイル / フォルダを選択（ハイライト表示）',
@@ -388,10 +406,6 @@ class _ShortcutsSection extends StatelessWidget {
           const _ShortcutRow(
             keys: ['Double Click'],
             description: 'フォルダに遷移 / ファイルを既定のアプリで開く',
-          ),
-          const _ShortcutRow(
-            keys: ['C', 'C'],
-            description: '選択中アイテムのパスをクリップボードへコピー（500ms 以内に 2 連打）',
           ),
           const _ShortcutRow(
             keys: ['Right Click'],
