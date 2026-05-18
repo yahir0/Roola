@@ -393,7 +393,7 @@ class _ShortcutsSection extends StatelessWidget {
           ),
           const SizedBox(height: 20),
           Text(
-            'マウス操作（ADR-0021）',
+            'マウス操作',
             style: Theme.of(
               context,
             ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
