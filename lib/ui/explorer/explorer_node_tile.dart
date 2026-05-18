@@ -10,11 +10,13 @@ import 'package:roola/app/router.dart';
 import 'package:roola/core/health/claude_health_check.dart';
 import 'package:roola/core/system/explorer_file_ops.dart';
 import 'package:roola/core/system/file_opener.dart';
+import 'package:roola/data/keybindings/command_id.dart';
 import 'package:roola/data/launcher_entry/launcher_action.dart';
 import 'package:roola/data/repo_explorer/explorer_node.dart';
 import 'package:roola/data/repo_explorer/explorer_settings.dart';
 import 'package:roola/data/repo_explorer/explorer_settings_repository_impl.dart';
 import 'package:roola/data/workspace/workspace_layout.dart';
+import 'package:roola/ui/common/command_menu_item.dart';
 import 'package:roola/ui/explorer/explorer_clipboard_provider.dart';
 import 'package:roola/ui/explorer/explorer_commands.dart';
 import 'package:roola/ui/explorer/explorer_item_selection.dart';
@@ -55,26 +57,23 @@ Future<void> showExplorerContextMenu(
   }
   final items = <PopupMenuEntry<ExplorerNodeAction>>[
     if (claudeAvailable)
-      const PopupMenuItem(
-        value: _ActionOpenClaude(),
-        child: ListTile(
-          leading: Icon(Icons.terminal),
-          title: Text('このディレクトリで Claude Code を開く'),
-        ),
+      commandPopupMenuItem<ExplorerNodeAction>(
+        context,
+        ref,
+        command: CommandId.openClaudeHere,
+        value: const _ActionOpenClaude(),
       ),
-    const PopupMenuItem(
-      value: _ActionOpenTerminal(),
-      child: ListTile(
-        leading: Icon(Icons.developer_mode),
-        title: Text('ここでターミナルを開く'),
-      ),
+    commandPopupMenuItem<ExplorerNodeAction>(
+      context,
+      ref,
+      command: CommandId.openTerminalHere,
+      value: const _ActionOpenTerminal(),
     ),
-    const PopupMenuItem(
-      value: _ActionRevealInFinder(),
-      child: ListTile(
-        leading: Icon(Icons.folder_open),
-        title: Text('Finder で表示'),
-      ),
+    commandPopupMenuItem<ExplorerNodeAction>(
+      context,
+      ref,
+      command: CommandId.revealInFinder,
+      value: const _ActionRevealInFinder(),
     ),
     const PopupMenuItem(
       value: _ActionAddToFavorite(),
@@ -84,57 +83,61 @@ Future<void> showExplorerContextMenu(
       ),
     ),
     const PopupMenuDivider(),
-    const PopupMenuItem(
-      value: _ActionNewFolder(),
-      child: ListTile(
-        leading: Icon(Icons.create_new_folder_outlined),
-        title: Text('新規フォルダ'),
-      ),
+    commandPopupMenuItem<ExplorerNodeAction>(
+      context,
+      ref,
+      command: CommandId.newFolder,
+      value: const _ActionNewFolder(),
     ),
-    const PopupMenuItem(
-      value: _ActionNewFile(),
-      child: ListTile(
-        leading: Icon(Icons.note_add_outlined),
-        title: Text('新規テキストファイル'),
-      ),
+    commandPopupMenuItem<ExplorerNodeAction>(
+      context,
+      ref,
+      command: CommandId.newFile,
+      value: const _ActionNewFile(),
     ),
     if (showRename)
-      const PopupMenuItem(
-        value: _ActionRename(),
-        child: ListTile(
-          leading: Icon(Icons.drive_file_rename_outline),
-          title: Text('名前を変更'),
-        ),
+      commandPopupMenuItem<ExplorerNodeAction>(
+        context,
+        ref,
+        command: CommandId.renameItem,
+        value: const _ActionRename(),
       ),
     const PopupMenuDivider(),
     if (showCopy)
-      const PopupMenuItem(
-        value: _ActionCopy(),
-        child: ListTile(leading: Icon(Icons.content_copy), title: Text('コピー')),
+      commandPopupMenuItem<ExplorerNodeAction>(
+        context,
+        ref,
+        command: CommandId.copyItem,
+        value: const _ActionCopy(),
       ),
-    const PopupMenuItem(
-      value: _ActionCopyPath(),
-      child: ListTile(leading: Icon(Icons.link), title: Text('パスをコピー')),
+    commandPopupMenuItem<ExplorerNodeAction>(
+      context,
+      ref,
+      command: CommandId.copyPath,
+      value: const _ActionCopyPath(),
     ),
     if (hasClipboard)
-      const PopupMenuItem(
-        value: _ActionPaste(),
-        child: ListTile(
-          leading: Icon(Icons.content_paste),
-          title: Text('ペースト'),
-        ),
+      commandPopupMenuItem<ExplorerNodeAction>(
+        context,
+        ref,
+        command: CommandId.pasteItem,
+        value: const _ActionPaste(),
       ),
-    if (showDelete) ...const [
-      PopupMenuDivider(),
-      PopupMenuItem(
-        value: _ActionMoveToTrash(),
-        child: ListTile(leading: Icon(Icons.delete_outline), title: Text('削除')),
+    if (showDelete) ...[
+      const PopupMenuDivider(),
+      commandPopupMenuItem<ExplorerNodeAction>(
+        context,
+        ref,
+        command: CommandId.moveToTrash,
+        value: const _ActionMoveToTrash(),
       ),
     ],
     const PopupMenuDivider(),
-    const PopupMenuItem(
-      value: _ActionProperties(),
-      child: ListTile(leading: Icon(Icons.info_outline), title: Text('プロパティ')),
+    commandPopupMenuItem<ExplorerNodeAction>(
+      context,
+      ref,
+      command: CommandId.showProperties,
+      value: const _ActionProperties(),
     ),
   ];
   if (claudeAvailable && node.skillNames.isNotEmpty) {
@@ -196,63 +199,65 @@ Future<void> showFileContextMenu(
       position.dx,
       position.dy,
     ),
-    items: const [
-      PopupMenuItem(
+    items: [
+      commandPopupMenuItem<_FileAction>(
+        context,
+        ref,
+        command: CommandId.openItem,
         value: _FileAction.open,
-        child: ListTile(
-          leading: Icon(Icons.open_in_new),
-          title: Text('OS デフォルトアプリで開く'),
-        ),
       ),
-      PopupMenuItem(
+      const PopupMenuItem(
         value: _FileAction.openWith,
         child: ListTile(
           leading: Icon(Icons.apps),
           title: Text('別のアプリケーションで開く…'),
         ),
       ),
-      PopupMenuItem(
+      const PopupMenuItem(
         value: _FileAction.openInVim,
         child: ListTile(
           leading: Icon(Icons.edit_note),
           title: Text('vim で開く'),
         ),
       ),
-      PopupMenuItem(
+      commandPopupMenuItem<_FileAction>(
+        context,
+        ref,
+        command: CommandId.revealInFinder,
         value: _FileAction.revealInFinder,
-        child: ListTile(
-          leading: Icon(Icons.folder_open),
-          title: Text('Finder で表示'),
-        ),
       ),
-      PopupMenuDivider(),
-      PopupMenuItem(
+      const PopupMenuDivider(),
+      commandPopupMenuItem<_FileAction>(
+        context,
+        ref,
+        command: CommandId.renameItem,
         value: _FileAction.rename,
-        child: ListTile(
-          leading: Icon(Icons.drive_file_rename_outline),
-          title: Text('名前を変更'),
-        ),
       ),
-      PopupMenuItem(
+      commandPopupMenuItem<_FileAction>(
+        context,
+        ref,
+        command: CommandId.copyItem,
         value: _FileAction.copy,
-        child: ListTile(leading: Icon(Icons.content_copy), title: Text('コピー')),
       ),
-      PopupMenuItem(
+      commandPopupMenuItem<_FileAction>(
+        context,
+        ref,
+        command: CommandId.copyPath,
         value: _FileAction.copyPath,
-        child: ListTile(leading: Icon(Icons.link), title: Text('パスをコピー')),
       ),
-      PopupMenuDivider(),
-      PopupMenuItem(
+      const PopupMenuDivider(),
+      commandPopupMenuItem<_FileAction>(
+        context,
+        ref,
+        command: CommandId.moveToTrash,
         value: _FileAction.moveToTrash,
-        child: ListTile(leading: Icon(Icons.delete_outline), title: Text('削除')),
       ),
-      PopupMenuDivider(),
-      PopupMenuItem(
+      const PopupMenuDivider(),
+      commandPopupMenuItem<_FileAction>(
+        context,
+        ref,
+        command: CommandId.showProperties,
         value: _FileAction.properties,
-        child: ListTile(
-          leading: Icon(Icons.info_outline),
-          title: Text('プロパティ'),
-        ),
       ),
     ],
   );
