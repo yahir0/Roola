@@ -65,7 +65,7 @@ void main() {
   );
 
   test(
-    'excludes common noise entries (.git, node_modules, .DS_Store, etc.)',
+    'lists all entries without filtering (.git, node_modules, build, etc.)',
     () async {
       for (final name in ['.git', 'node_modules', '.dart_tool', 'build']) {
         await Directory('${tempDir.path}/$name').create();
@@ -75,7 +75,16 @@ void main() {
       await File('${tempDir.path}/README.md').writeAsString('# hi');
 
       final nodes = loader.load(tempDir.path);
-      expect(nodes.map(nameOf).toList(), ['src', 'README.md']);
+      // ディレクトリ（名前昇順）→ ファイル（名前昇順）。除外なし。
+      expect(nodes.map(nameOf).toList(), [
+        '.dart_tool',
+        '.git',
+        'build',
+        'node_modules',
+        'src',
+        '.DS_Store',
+        'README.md',
+      ]);
     },
   );
 

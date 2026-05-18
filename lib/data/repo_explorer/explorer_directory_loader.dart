@@ -6,28 +6,14 @@ import 'package:roola/data/repo_explorer/explorer_node.dart';
 /// 指定ディレクトリ直下のディレクトリ・ファイルを列挙し、各ディレクトリで
 /// `.claude/skills/` 直下を `SkillScanner` で再利用してスキャンする loader。
 ///
-/// 再帰しない（深部は表示時に都度スキャン）。well-known なノイズ
-/// （`.git` / `.DS_Store` / `node_modules` 等）は除外する。
+/// 再帰しない（深部は表示時に都度スキャン）。`.git` / `build` /
+/// `node_modules` / `.DS_Store` 等も含め、直下のエントリをフィルタせず
+/// すべて列挙する。
 /// ディレクトリ → ファイルの順、各ブロック内は名前昇順（大文字小文字無視）。
 class ExplorerDirectoryLoader {
   const ExplorerDirectoryLoader({this.scanner = const SkillScanner()});
 
   final SkillScanner scanner;
-
-  /// 表示対象から外す名前。ドット始まりでも `.claude` のような
-  /// Skill 検知対象は出したいので、明示的なブロックリスト方式を取る。
-  static const _hiddenNames = <String>{
-    '.git',
-    '.DS_Store',
-    '.localized',
-    'node_modules',
-    '.next',
-    '.cache',
-    '.idea',
-    '.vscode',
-    'build',
-    '.dart_tool',
-  };
 
   /// [parentPath] 直下を読み、ノード一覧を返す。
   /// パスが存在しない、ディレクトリでない、読めない場合は空リスト。
@@ -42,9 +28,6 @@ class ExplorerDirectoryLoader {
       final entities = dir.listSync(followLinks: false);
       for (final entity in entities) {
         final name = _basename(entity.path);
-        if (_hiddenNames.contains(name)) {
-          continue;
-        }
         if (entity is Directory) {
           dirs.add(
             ExplorerDirectoryNode(
