@@ -81,6 +81,16 @@ class RoolaTerminalView: NSView, TerminalViewDelegate {
       terminal.bottomAnchor.constraint(equalTo: bottomAnchor),
     ])
 
+    // 透過: ラッパと SwiftTerm ビューの layer を透明にし、Flutter 側の
+    // 暗幕（ADR-0020）を背後に透かす（ADR-0031 スパイク (c)）。
+    // SwiftTerm のセル背景色は TerminalTheme で .clear に設定済み。
+    wantsLayer = true
+    layer?.isOpaque = false
+    layer?.backgroundColor = NSColor.clear.cgColor
+    terminal.wantsLayer = true
+    terminal.layer?.isOpaque = false
+    terminal.layer?.backgroundColor = NSColor.clear.cgColor
+
     terminal.terminalDelegate = self
     TerminalTheme.apply(to: terminal, registrar: registrar)
 

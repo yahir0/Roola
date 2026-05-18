@@ -24,8 +24,8 @@ class TerminalSurface extends StatefulWidget {
     super.key,
   });
 
-  /// タブ固有のチャネル id（ad-hoc セッション id）。native 側はこの id で
-  /// チャネルとプラットフォームビューを 1:1 に対応づける。
+  /// チャネル名のベース（ad-hoc セッション id）。実際のチャネル名は
+  /// マウントごとに一意化される（[_TerminalSurfaceState] 参照）。
   final String channelId;
 
   /// 描画対象の PTY セッション。
@@ -40,13 +40,26 @@ class _TerminalSurfaceState extends State<TerminalSurface> {
   /// `NSViewFactory` 登録 id と一致させる）。
   static const _viewType = 'roola/terminal-view';
 
+  /// プロセス内で TerminalSurface のマウントごとに一意な連番。
+  ///
+  /// タブをペイン間 DnD 移動すると本 widget は remount され、移動の瞬間に
+  /// 新旧 2 つの `TerminalSurface` が一瞬共存する。チャネル名を
+  /// [TerminalSurface.channelId] 固定にすると新旧が同名チャネルを奪い合い、
+  /// 古い側の `dispose`（`setMessageHandler(null)`）が新しい側のハンドラを
+  /// 解除してしまう（移動先のターミナルが描画も入力も受け付けなくなる）。
+  /// マウントごとに一意な id を使ってこの衝突を防ぐ。
+  static int _mountSeq = 0;
+
+  /// 本マウント固有のチャネル名（`<channelId>#<連番>`）。
+  late final String _channelName;
   late final TerminalChannel _channel;
   StreamSubscription<Uint8List>? _outputSub;
 
   @override
   void initState() {
     super.initState();
-    _channel = TerminalChannel(widget.channelId)
+    _channelName = '${widget.channelId}#${_mountSeq++}';
+    _channel = TerminalChannel(_channelName)
       ..onInput = widget.runner.write
       ..onResize = (cols, rows) => widget.runner.resize(cols: cols, rows: rows);
     // プラットフォームビュー生成前の出力は TerminalChannel がバッファする
@@ -72,7 +85,7 @@ class _TerminalSurfaceState extends State<TerminalSurface> {
     return AppKitView(
       viewType: _viewType,
       layoutDirection: TextDirection.ltr,
-      creationParams: <String, String>{'channelId': widget.channelId},
+      creationParams: <String, String>{'channelId': _channelName},
       creationParamsCodec: const StandardMessageCodec(),
       onPlatformViewCreated: _onPlatformViewCreated,
     );
