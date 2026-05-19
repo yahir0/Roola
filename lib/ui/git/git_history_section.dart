@@ -50,7 +50,10 @@ class GitHistorySection extends ConsumerWidget {
 
     return Column(
       children: [
+        // 履歴リストと詳細パネルはセクションの高さを flex で分け合う。
+        // 詳細を固定高にするとセクションが縮んだとき収まらず溢れる。
         Expanded(
+          flex: 3,
           child: ListView.builder(
             itemCount: state.graph.length + (state.hasMoreHistory ? 1 : 0),
             itemExtent: _rowHeight,
@@ -72,7 +75,10 @@ class GitHistorySection extends ConsumerWidget {
           ),
         ),
         if (state.selectedSha != null)
-          _CommitDetail(tabId: tabId, state: state),
+          Expanded(
+            flex: 2,
+            child: _CommitDetail(tabId: tabId, state: state),
+          ),
       ],
     );
   }
@@ -275,7 +281,7 @@ class _CommitDetail extends ConsumerWidget {
     final commit = _findCommit(sha);
 
     return Container(
-      height: 188,
+      // 高さは親の Expanded から受ける（固定高にしない。上のコメント参照）。
       decoration: BoxDecoration(
         color: colors.surfaceContainerHighest.withValues(alpha: 0.3),
         border: Border(top: BorderSide(color: Theme.of(context).dividerColor)),
