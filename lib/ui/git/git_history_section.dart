@@ -82,6 +82,8 @@ class GitHistorySection extends HookConsumerWidget {
       axis: Axis.vertical,
       ratio: listRatio.value,
       onRatioChanged: (r) => listRatio.value = r.clamp(0.15, 0.85),
+      // 詳細パネルがヘッダーより小さくなって溢れないよう最小高を確保する。
+      minPaneSize: 72,
       first: list,
       second: _CommitDetail(tabId: tabId, state: state),
     );
@@ -294,104 +296,126 @@ class _CommitDetail extends ConsumerWidget {
       decoration: BoxDecoration(
         color: colors.surfaceContainerHighest.withValues(alpha: 0.3),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(
-              PolarisTokens.space3,
-              PolarisTokens.space2,
-              PolarisTokens.space1,
-              PolarisTokens.space1,
-            ),
-            child: Row(
+      // パネルがヘッダーより低く潰されても RenderFlex が溢れないよう、Column は
+      // 最低高で組み、入り切らない分はコンテナ側でクリップする。
+      clipBehavior: Clip.hardEdge,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          const minHeight = 80.0;
+          final height = constraints.maxHeight < minHeight
+              ? minHeight
+              : constraints.maxHeight;
+          return OverflowBox(
+            minHeight: height,
+            maxHeight: height,
+            alignment: Alignment.topCenter,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    PolarisTokens.space3,
+                    PolarisTokens.space2,
+                    PolarisTokens.space1,
+                    PolarisTokens.space1,
+                  ),
+                  child: Row(
                     children: [
-                      Text(
-                        commit?.subject ?? sha,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.titleSmall,
-                      ),
-                      if (commit != null)
-                        Text(
-                          '${commit.shortSha} · ${commit.authorName} · '
-                          '${_formatDate(commit.date)}',
-                          style: Theme.of(context).textTheme.labelSmall
-                              ?.copyWith(color: colors.onSurfaceVariant),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              commit?.subject ?? sha,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context).textTheme.titleSmall,
+                            ),
+                            if (commit != null)
+                              Text(
+                                '${commit.shortSha} · ${commit.authorName} · '
+                                '${_formatDate(commit.date)}',
+                                style: Theme.of(context).textTheme.labelSmall
+                                    ?.copyWith(color: colors.onSurfaceVariant),
+                              ),
+                          ],
                         ),
+                      ),
+                      IconButton(
+                        icon: const Icon(
+                          Icons.close,
+                          size: PolarisIconSize.standard,
+                        ),
+                        tooltip: AppLocalizations.of(
+                          context,
+                        ).gitCloseDetailsTooltip,
+                        visualDensity: VisualDensity.compact,
+                        onPressed: notifier.clearSelection,
+                      ),
                     ],
                   ),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.close, size: PolarisIconSize.standard),
-                  tooltip: AppLocalizations.of(context).gitCloseDetailsTooltip,
-                  visualDensity: VisualDensity.compact,
-                  onPressed: notifier.clearSelection,
+                const Divider(height: 1),
+                Expanded(
+                  child: state.selectedCommitFiles.isEmpty
+                      ? Center(
+                          child: Text(
+                            AppLocalizations.of(context).gitLoadingChangedFiles,
+                            style: const TextStyle(fontSize: 13),
+                          ),
+                        )
+                      : ListView(
+                          children: [
+                            for (final file in state.selectedCommitFiles)
+                              InkWell(
+                                onTap: () => showGitDiffDialog(
+                                  context,
+                                  title: file.displayPath,
+                                  load: () =>
+                                      notifier.commitFileDiff(sha, file.path),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: PolarisTokens.space3,
+                                    vertical: PolarisTokens.space1,
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      SizedBox(
+                                        width: 16,
+                                        child: Text(
+                                          gitChangeLetter(file.type),
+                                          style: TextStyle(
+                                            color: gitChangeColor(
+                                              PolarisTokens.of(context),
+                                              file.type,
+                                            ),
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 13,
+                                          ),
+                                        ),
+                                      ),
+                                      Expanded(
+                                        child: Text(
+                                          file.displayPath,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: Theme.of(
+                                            context,
+                                          ).textTheme.bodySmall,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
                 ),
               ],
             ),
-          ),
-          const Divider(height: 1),
-          Expanded(
-            child: state.selectedCommitFiles.isEmpty
-                ? Center(
-                    child: Text(
-                      AppLocalizations.of(context).gitLoadingChangedFiles,
-                      style: const TextStyle(fontSize: 13),
-                    ),
-                  )
-                : ListView(
-                    children: [
-                      for (final file in state.selectedCommitFiles)
-                        InkWell(
-                          onTap: () => showGitDiffDialog(
-                            context,
-                            title: file.displayPath,
-                            load: () => notifier.commitFileDiff(sha, file.path),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: PolarisTokens.space3,
-                              vertical: PolarisTokens.space1,
-                            ),
-                            child: Row(
-                              children: [
-                                SizedBox(
-                                  width: 16,
-                                  child: Text(
-                                    gitChangeLetter(file.type),
-                                    style: TextStyle(
-                                      color: gitChangeColor(
-                                        PolarisTokens.of(context),
-                                        file.type,
-                                      ),
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 13,
-                                    ),
-                                  ),
-                                ),
-                                Expanded(
-                                  child: Text(
-                                    file.displayPath,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.bodySmall,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-          ),
-        ],
+          );
+        },
       ),
     );
   }

@@ -212,6 +212,7 @@ class _WideBody extends StatelessWidget {
               axis: Axis.vertical,
               ratio: splitRatio.value,
               onRatioChanged: (r) => splitRatio.value = r.clamp(0.1, 0.9),
+              minPaneSize: 72,
               first: GitChangesSection(tabId: tabId, state: state),
               second: Column(
                 children: [
