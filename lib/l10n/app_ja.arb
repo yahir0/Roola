@@ -173,13 +173,34 @@
   "explorerPropertyPermission": "パーミッション",
 
   "explorerSidebarPlaces": "場所",
+  "@explorerSidebarPlaces": {
+    "description": "【未使用】サイドバーのセクション見出しは explorer_sidebar.dart で英語固定リテラル化したため未参照。再ローカライズしたくなったときの復帰用に残置。"
+  },
   "explorerPlaceHome": "ホーム",
+  "@explorerPlaceHome": {
+    "description": "【未使用】PLACES の初期項目は explorer_sidebar.dart で英語固定リテラル化したため未参照。再ローカライズ時の復帰用に残置。"
+  },
   "explorerPlaceDownloads": "ダウンロード",
+  "@explorerPlaceDownloads": {
+    "description": "【未使用】PLACES の初期項目は explorer_sidebar.dart で英語固定リテラル化したため未参照。再ローカライズ時の復帰用に残置。"
+  },
   "explorerPlaceDesktop": "デスクトップ",
+  "@explorerPlaceDesktop": {
+    "description": "【未使用】PLACES の初期項目は explorer_sidebar.dart で英語固定リテラル化したため未参照。再ローカライズ時の復帰用に残置。"
+  },
   "explorerPlaceDocuments": "ドキュメント",
+  "@explorerPlaceDocuments": {
+    "description": "【未使用】PLACES の初期項目は explorer_sidebar.dart で英語固定リテラル化したため未参照。再ローカライズ時の復帰用に残置。"
+  },
   "explorerPlaceApplications": "アプリケーション",
+  "@explorerPlaceApplications": {
+    "description": "【未使用】PLACES の初期項目は explorer_sidebar.dart で英語固定リテラル化したため未参照。再ローカライズ時の復帰用に残置。"
+  },
   "explorerOpenOtherFolder": "別のフォルダを開く…",
   "explorerSidebarFavorites": "お気に入り",
+  "@explorerSidebarFavorites": {
+    "description": "【未使用】サイドバーのセクション見出しは explorer_sidebar.dart で英語固定リテラル化したため未参照。再ローカライズしたくなったときの復帰用に残置。"
+  },
   "explorerFavoritesAddTooltip": "お気に入りを追加 / フォルダを作成",
   "explorerRegisterCurrentDirectory": "フォーカス中のディレクトリを登録",
   "explorerNewFavoriteFolder": "新しいフォルダ",
@@ -188,12 +209,18 @@
   "explorerFavoritesEmptyHint": "上の + でフォーカス中のディレクトリを登録",
   "explorerRemoveFromFavorites": "お気に入りから削除",
   "explorerSidebarLaunchers": "ランチャー",
+  "@explorerSidebarLaunchers": {
+    "description": "【未使用】サイドバーのセクション見出しは explorer_sidebar.dart で英語固定リテラル化したため未参照。再ローカライズしたくなったときの復帰用に残置。"
+  },
   "explorerLaunchersAddTooltip": "エントリを追加 / フォルダを作成",
   "explorerNewLauncherEntry": "新しいエントリ",
   "explorerNewLauncherFolder": "新しいフォルダ",
   "explorerLauncherFolderHint": "例: dev / ops",
   "explorerLaunchersEmptyHint": "ランチャーエントリを追加…（または、コンテキストメニューから登録）",
   "explorerSidebarRunning": "実行中",
+  "@explorerSidebarRunning": {
+    "description": "【未使用】サイドバーのセクション見出しは explorer_sidebar.dart で英語固定リテラル化したため未参照。再ローカライズしたくなったときの復帰用に残置。"
+  },
   "explorerSessionDiscardTooltip": "セッションを完全に破棄",
   "explorerNavigateToPathTooltip": "このパスに移動",
   "explorerLaunchersRegisterHint": "上の + でエントリを登録",

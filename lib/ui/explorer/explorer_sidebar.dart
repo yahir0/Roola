@@ -52,7 +52,6 @@ class ExplorerSidebar extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
     final settings =
         ref.watch(explorerSettingsProvider).value ??
         ExplorerSettings.defaults();
@@ -119,7 +118,7 @@ class ExplorerSidebar extends HookConsumerWidget {
         padding: const EdgeInsets.symmetric(vertical: PolarisTokens.space1),
         children: [
           // 場所
-          _SectionHeader(l10n.explorerSidebarPlaces),
+          const _SectionHeader('Places'),
           for (final place in _defaultPlaces)
             _PlaceTile(
               place: place,
@@ -196,7 +195,7 @@ class ExplorerSidebar extends HookConsumerWidget {
           const Divider(height: 1),
 
           // 実行中
-          _SectionHeader(l10n.explorerSidebarRunning),
+          const _SectionHeader('Running'),
           if (sessions.isEmpty)
             const _RunningEmptyTile()
           else
@@ -312,8 +311,8 @@ class _SectionLabelText extends StatelessWidget {
 class _Place {
   const _Place(this.label, this.icon, this.envVar, this.relPath);
 
-  /// 表示ラベルを `AppLocalizations` から解決する関数。
-  final String Function(AppLocalizations l10n) label;
+  /// 表示ラベル。ロケールに依存しない固定の英語表記（[_defaultPlaces] 参照）。
+  final String label;
   final IconData icon;
   final String envVar;
   final String relPath;
@@ -330,32 +329,14 @@ class _Place {
   }
 }
 
-final _defaultPlaces = <_Place>[
-  _Place((l10n) => l10n.explorerPlaceHome, Icons.home_outlined, 'HOME', ''),
-  _Place(
-    (l10n) => l10n.explorerPlaceDownloads,
-    Icons.download_outlined,
-    'HOME',
-    'Downloads',
-  ),
-  _Place(
-    (l10n) => l10n.explorerPlaceDesktop,
-    Icons.desktop_mac_outlined,
-    'HOME',
-    'Desktop',
-  ),
-  _Place(
-    (l10n) => l10n.explorerPlaceDocuments,
-    Icons.description_outlined,
-    'HOME',
-    'Documents',
-  ),
-  _Place(
-    (l10n) => l10n.explorerPlaceApplications,
-    Icons.apps,
-    '__abs__',
-    '/Applications',
-  ),
+/// 場所セクションの初期項目。見出しと同じく、ラベルはロケールに依存しない
+/// 固定の英語表記にする（日英混在より英語で揃える方がバランスが良いため）。
+const _defaultPlaces = <_Place>[
+  _Place('Home', Icons.home_outlined, 'HOME', ''),
+  _Place('Downloads', Icons.download_outlined, 'HOME', 'Downloads'),
+  _Place('Desktop', Icons.desktop_mac_outlined, 'HOME', 'Desktop'),
+  _Place('Documents', Icons.description_outlined, 'HOME', 'Documents'),
+  _Place('Applications', Icons.apps, '__abs__', '/Applications'),
 ];
 
 class _PlaceTile extends ConsumerWidget {
@@ -383,7 +364,7 @@ class _PlaceTile extends ConsumerWidget {
           size: PolarisIconSize.standard,
           color: isCurrent ? tokens.accent : tokens.textDim,
         ),
-        label: place.label(AppLocalizations.of(context)),
+        label: place.label,
       ),
     );
   }
@@ -512,7 +493,7 @@ class _FavoritesHeader extends ConsumerWidget {
       onSecondaryTapDown: (details) =>
           _showContextMenu(context, ref, details.globalPosition),
       child: _SidebarSectionHeader(
-        l10n.explorerSidebarFavorites,
+        'Favorites',
         action: _SectionHeaderAddButton(
           tooltip: l10n.explorerFavoritesAddTooltip,
           onPressed: (buttonContext) => _showContextMenu(
@@ -916,7 +897,7 @@ class _FavoriteRootDropZone extends ConsumerWidget {
             PolarisTokens.space4,
             PolarisTokens.space1,
           ),
-          child: _SectionLabelText(AppLocalizations.of(context).unclassified),
+          child: const _SectionLabelText('Unclassified'),
         );
       },
     );
@@ -933,7 +914,7 @@ class _LauncherHeader extends ConsumerWidget {
       onSecondaryTapDown: (details) =>
           _showContextMenu(context, ref, details.globalPosition),
       child: _SidebarSectionHeader(
-        l10n.explorerSidebarLaunchers,
+        'Launcher',
         action: _SectionHeaderAddButton(
           tooltip: l10n.explorerLaunchersAddTooltip,
           onPressed: (buttonContext) => _showContextMenu(
@@ -1275,7 +1256,7 @@ class _LauncherRootDropZone extends ConsumerWidget {
             PolarisTokens.space4,
             PolarisTokens.space1,
           ),
-          child: _SectionLabelText(AppLocalizations.of(context).unclassified),
+          child: const _SectionLabelText('Unclassified'),
         );
       },
     );

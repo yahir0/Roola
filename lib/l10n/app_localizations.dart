@@ -896,37 +896,37 @@ abstract class AppLocalizations {
   /// **'パーミッション'**
   String get explorerPropertyPermission;
 
-  /// No description provided for @explorerSidebarPlaces.
+  /// 【未使用】サイドバーのセクション見出しは explorer_sidebar.dart で英語固定リテラル化したため未参照。再ローカライズしたくなったときの復帰用に残置。
   ///
   /// In ja, this message translates to:
   /// **'場所'**
   String get explorerSidebarPlaces;
 
-  /// No description provided for @explorerPlaceHome.
+  /// 【未使用】PLACES の初期項目は explorer_sidebar.dart で英語固定リテラル化したため未参照。再ローカライズ時の復帰用に残置。
   ///
   /// In ja, this message translates to:
   /// **'ホーム'**
   String get explorerPlaceHome;
 
-  /// No description provided for @explorerPlaceDownloads.
+  /// 【未使用】PLACES の初期項目は explorer_sidebar.dart で英語固定リテラル化したため未参照。再ローカライズ時の復帰用に残置。
   ///
   /// In ja, this message translates to:
   /// **'ダウンロード'**
   String get explorerPlaceDownloads;
 
-  /// No description provided for @explorerPlaceDesktop.
+  /// 【未使用】PLACES の初期項目は explorer_sidebar.dart で英語固定リテラル化したため未参照。再ローカライズ時の復帰用に残置。
   ///
   /// In ja, this message translates to:
   /// **'デスクトップ'**
   String get explorerPlaceDesktop;
 
-  /// No description provided for @explorerPlaceDocuments.
+  /// 【未使用】PLACES の初期項目は explorer_sidebar.dart で英語固定リテラル化したため未参照。再ローカライズ時の復帰用に残置。
   ///
   /// In ja, this message translates to:
   /// **'ドキュメント'**
   String get explorerPlaceDocuments;
 
-  /// No description provided for @explorerPlaceApplications.
+  /// 【未使用】PLACES の初期項目は explorer_sidebar.dart で英語固定リテラル化したため未参照。再ローカライズ時の復帰用に残置。
   ///
   /// In ja, this message translates to:
   /// **'アプリケーション'**
@@ -938,7 +938,7 @@ abstract class AppLocalizations {
   /// **'別のフォルダを開く…'**
   String get explorerOpenOtherFolder;
 
-  /// No description provided for @explorerSidebarFavorites.
+  /// 【未使用】サイドバーのセクション見出しは explorer_sidebar.dart で英語固定リテラル化したため未参照。再ローカライズしたくなったときの復帰用に残置。
   ///
   /// In ja, this message translates to:
   /// **'お気に入り'**
@@ -986,7 +986,7 @@ abstract class AppLocalizations {
   /// **'お気に入りから削除'**
   String get explorerRemoveFromFavorites;
 
-  /// No description provided for @explorerSidebarLaunchers.
+  /// 【未使用】サイドバーのセクション見出しは explorer_sidebar.dart で英語固定リテラル化したため未参照。再ローカライズしたくなったときの復帰用に残置。
   ///
   /// In ja, this message translates to:
   /// **'ランチャー'**
@@ -1022,7 +1022,7 @@ abstract class AppLocalizations {
   /// **'ランチャーエントリを追加…（または、コンテキストメニューから登録）'**
   String get explorerLaunchersEmptyHint;
 
-  /// No description provided for @explorerSidebarRunning.
+  /// 【未使用】サイドバーのセクション見出しは explorer_sidebar.dart で英語固定リテラル化したため未参照。再ローカライズしたくなったときの復帰用に残置。
   ///
   /// In ja, this message translates to:
   /// **'実行中'**
