@@ -47,10 +47,10 @@ class PolarisDialog extends StatelessWidget {
             // ヘッダ帯。
             Padding(
               padding: EdgeInsets.fromLTRB(
-                16,
-                10,
-                trailing != null ? 8 : 16,
-                10,
+                PolarisTokens.space4,
+                PolarisTokens.space3,
+                trailing != null ? PolarisTokens.space2 : PolarisTokens.space4,
+                PolarisTokens.space3,
               ),
               child: Row(
                 children: [
@@ -66,16 +66,19 @@ class PolarisDialog extends StatelessWidget {
             ),
             Container(height: 1, color: tokens.line),
             // 本文。
-            Padding(padding: const EdgeInsets.all(16), child: content),
+            Padding(
+              padding: const EdgeInsets.all(PolarisTokens.space4),
+              child: content,
+            ),
             if (actions.isNotEmpty) ...[
               Container(height: 1, color: tokens.line),
               Padding(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(PolarisTokens.space3),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     for (var i = 0; i < actions.length; i++) ...[
-                      if (i > 0) const SizedBox(width: 8),
+                      if (i > 0) const SizedBox(width: PolarisTokens.space2),
                       actions[i],
                     ],
                   ],

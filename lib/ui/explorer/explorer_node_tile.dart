@@ -711,7 +711,9 @@ class ExplorerParentDropTile extends HookConsumerWidget {
                 : mouseHover.value
                 ? tokens.surface
                 : null,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.symmetric(
+              horizontal: PolarisTokens.space4,
+            ),
             child: Row(
               children: [
                 Icon(
@@ -719,12 +721,12 @@ class ExplorerParentDropTile extends HookConsumerWidget {
                   size: PolarisIconSize.standard,
                   color: tokens.textDim,
                 ),
-                SizedBox(width: isCompact ? 10 : 12),
+                const SizedBox(width: PolarisTokens.space3),
                 Text(
                   AppLocalizations.of(context).explorerParentDirectoryLabel,
                   style: tokens.body.copyWith(color: tokens.textDim),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: PolarisTokens.space3),
                 Expanded(
                   child: Text(
                     parentPath,
@@ -953,7 +955,9 @@ class _DirectoryTile extends HookConsumerWidget {
           Container(
             height: explorerRowHeight(isCompact),
             color: rowColor,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.symmetric(
+              horizontal: PolarisTokens.space4,
+            ),
             child: Row(
               children: [
                 // フォルダの型アイコンは常にアクセント色（D4）。
@@ -964,7 +968,7 @@ class _DirectoryTile extends HookConsumerWidget {
                       ? PolarisIconSize.small
                       : PolarisIconSize.standard,
                 ),
-                SizedBox(width: isCompact ? 10 : 12),
+                const SizedBox(width: PolarisTokens.space3),
                 Expanded(
                   child: Text(
                     node.name,
@@ -976,7 +980,7 @@ class _DirectoryTile extends HookConsumerWidget {
                   ),
                 ),
                 if (hasSkill) ...[
-                  const SizedBox(width: 8),
+                  const SizedBox(width: PolarisTokens.space2),
                   _SkillBadge(names: node.skillNames, color: tokens.accent),
                 ],
               ],
@@ -1056,7 +1060,9 @@ class _FileTile extends HookConsumerWidget {
             Container(
               height: explorerRowHeight(isCompact),
               color: rowColor,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.symmetric(
+                horizontal: PolarisTokens.space4,
+              ),
               child: Row(
                 children: [
                   // ファイルの型アイコンは主選択時のみアクセント点灯（D12）。
@@ -1067,7 +1073,7 @@ class _FileTile extends HookConsumerWidget {
                         ? PolarisIconSize.small
                         : PolarisIconSize.standard,
                   ),
-                  SizedBox(width: isCompact ? 10 : 12),
+                  const SizedBox(width: PolarisTokens.space3),
                   Expanded(
                     child: Text(
                       node.name,

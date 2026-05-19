@@ -109,7 +109,10 @@ class _NotepadHeader extends StatelessWidget {
     return Container(
       height: 36,
       color: theme.colorScheme.surfaceContainerHighest,
-      padding: const EdgeInsets.only(left: 12, right: 4),
+      padding: const EdgeInsets.only(
+        left: PolarisTokens.space3,
+        right: PolarisTokens.space1,
+      ),
       child: Row(
         children: [
           Icon(
@@ -117,7 +120,7 @@ class _NotepadHeader extends StatelessWidget {
             size: PolarisIconSize.standard,
             color: theme.colorScheme.onSurfaceVariant,
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: PolarisTokens.space2),
           Expanded(
             child: Text(
               title,

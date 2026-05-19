@@ -48,7 +48,12 @@ class _GitBranchDialog extends HookConsumerWidget {
           children: [
             // ヘッダ帯。
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 10, 8, 10),
+              padding: const EdgeInsets.fromLTRB(
+                PolarisTokens.space4,
+                PolarisTokens.space3,
+                PolarisTokens.space2,
+                PolarisTokens.space3,
+              ),
               child: Row(
                 children: [
                   Icon(
@@ -56,7 +61,7 @@ class _GitBranchDialog extends HookConsumerWidget {
                     size: PolarisIconSize.standard,
                     color: tokens.textDim,
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: PolarisTokens.space2),
                   Text(
                     l10n.gitBranchDialogTitle,
                     style: tokens.body.copyWith(color: tokens.text),
@@ -93,7 +98,12 @@ class _GitBranchDialog extends HookConsumerWidget {
             Container(height: 1, color: tokens.line),
             // 検索行。
             Padding(
-              padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+              padding: const EdgeInsets.fromLTRB(
+                PolarisTokens.space3,
+                PolarisTokens.space3,
+                PolarisTokens.space3,
+                PolarisTokens.space3,
+              ),
               child: TextField(
                 autofocus: true,
                 decoration: InputDecoration(
@@ -147,7 +157,12 @@ class _SectionLabel extends StatelessWidget {
     final tokens = PolarisTokens.of(context);
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+      padding: const EdgeInsets.fromLTRB(
+        PolarisTokens.space4,
+        PolarisTokens.space2,
+        PolarisTokens.space4,
+        PolarisTokens.space1,
+      ),
       color: tokens.surface,
       child: Text(
         label.toUpperCase(),

@@ -62,7 +62,12 @@ class _PaneHeader extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     // 計器パネル内側の最上段＝コントロール行。4px グリッドに乗せる。
     return Padding(
-      padding: const EdgeInsets.fromLTRB(6, 4, 8, 4),
+      padding: const EdgeInsets.fromLTRB(
+        PolarisTokens.space2,
+        PolarisTokens.space1,
+        PolarisTokens.space2,
+        PolarisTokens.space1,
+      ),
       child: Row(
         children: [
           _NavButton(
@@ -80,11 +85,11 @@ class _PaneHeader extends ConsumerWidget {
             tooltip: l10n.navUp,
             onPressed: notifier.goUp,
           ),
-          const SizedBox(width: 6),
+          const SizedBox(width: PolarisTokens.space2),
           Expanded(
             child: ExplorerPathBar(tabId: tabId, currentPath: currentPath),
           ),
-          const SizedBox(width: 6),
+          const SizedBox(width: PolarisTokens.space2),
           _OpenGitButton(currentPath: currentPath),
         ],
       ),
@@ -184,7 +189,9 @@ class _DirectoryListing extends HookConsumerWidget {
       // スクロール位置を先頭に戻す。
       key: ValueKey('explorer-body:$tabId:${state.currentPath}'),
       slivers: [
-        const SliverPadding(padding: EdgeInsets.only(top: 4)),
+        const SliverPadding(
+          padding: EdgeInsets.only(top: PolarisTokens.space1),
+        ),
         if (showParentTile)
           SliverToBoxAdapter(
             child: ExplorerParentDropTile(currentPath: state.currentPath),
@@ -294,7 +301,7 @@ class _EmptyPlaceholder extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const Icon(Icons.folder_off_outlined, size: PolarisIconSize.hero),
-          const SizedBox(height: 12),
+          const SizedBox(height: PolarisTokens.space3),
           Text(l10n.explorerNoItems),
         ],
       ),

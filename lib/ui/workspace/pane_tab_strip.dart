@@ -148,7 +148,10 @@ class _TabChip extends ConsumerWidget {
         onTap: dragging ? null : () => notifier.activateTab(tab.id),
         child: Container(
           constraints: const BoxConstraints(maxWidth: 180),
-          padding: const EdgeInsets.only(left: 12, right: 8),
+          padding: const EdgeInsets.only(
+            left: PolarisTokens.space3,
+            right: PolarisTokens.space2,
+          ),
           decoration: BoxDecoration(
             border: Border(
               bottom: BorderSide(
@@ -169,7 +172,7 @@ class _TabChip extends ConsumerWidget {
                 size: PolarisIconSize.small,
                 color: isActive ? tokens.accent : tokens.textFaint,
               ),
-              const SizedBox(width: 6),
+              const SizedBox(width: PolarisTokens.space2),
               Flexible(
                 child: Text(
                   _label(tab),
@@ -180,7 +183,7 @@ class _TabChip extends ConsumerWidget {
                   ),
                 ),
               ),
-              const SizedBox(width: 6),
+              const SizedBox(width: PolarisTokens.space2),
               IconButton(
                 icon: const Icon(Icons.close, size: PolarisIconSize.small),
                 tooltip: AppLocalizations.of(context).paneTabCloseTooltip,

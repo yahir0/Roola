@@ -64,7 +64,7 @@ class LauncherManagementPage extends ConsumerWidget {
     if (entriesError != null) {
       return Center(
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(PolarisTokens.space6),
           child: Text(l10n.launcherLoadError('$entriesError')),
         ),
       );
@@ -110,9 +110,9 @@ class _EmptyPlaceholder extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const Icon(Icons.dashboard_customize, size: PolarisIconSize.hero),
-          const SizedBox(height: 16),
+          const SizedBox(height: PolarisTokens.space4),
           Text(l10n.launcherEmptyPlaceholder),
-          const SizedBox(height: 16),
+          const SizedBox(height: PolarisTokens.space4),
           FilledButton.icon(
             icon: const Icon(Icons.add),
             label: Text(l10n.launcherAddEntryButton),
@@ -147,7 +147,7 @@ class _Catalog extends ConsumerWidget {
     final rootEntries = entries.where((e) => e.folderId == null).toList();
     final showRootSection = folders.isNotEmpty || rootEntries.isNotEmpty;
     return ListView(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.symmetric(vertical: PolarisTokens.space2),
       children: [
         for (final folder in folders) ...[
           _FolderHeader(folder: folder),
@@ -191,7 +191,12 @@ class _FolderHeader extends ConsumerWidget {
           color: hover
               ? colors.primary.withValues(alpha: 0.12)
               : colors.surfaceContainerHighest.withValues(alpha: 0.4),
-          padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
+          padding: const EdgeInsets.fromLTRB(
+            PolarisTokens.space4,
+            PolarisTokens.space2,
+            PolarisTokens.space2,
+            PolarisTokens.space2,
+          ),
           child: Row(
             children: [
               Icon(
@@ -199,7 +204,7 @@ class _FolderHeader extends ConsumerWidget {
                 size: PolarisIconSize.standard,
                 color: colors.secondary,
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: PolarisTokens.space3),
               Expanded(
                 child: Text(
                   folder.name,
@@ -295,7 +300,12 @@ class _RootSectionHeader extends ConsumerWidget {
           color: hover
               ? colors.primary.withValues(alpha: 0.12)
               : colors.surfaceContainerHighest.withValues(alpha: 0.4),
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+          padding: const EdgeInsets.fromLTRB(
+            PolarisTokens.space4,
+            PolarisTokens.space2,
+            PolarisTokens.space4,
+            PolarisTokens.space2,
+          ),
           child: Text(
             l10n.unclassified,
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
@@ -317,7 +327,12 @@ class _EmptyFolderHint extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final colors = Theme.of(context).colorScheme;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(32, 8, 16, 8),
+      padding: const EdgeInsets.fromLTRB(
+        PolarisTokens.space8,
+        PolarisTokens.space2,
+        PolarisTokens.space4,
+        PolarisTokens.space2,
+      ),
       child: Text(
         l10n.launcherEmptyFolderHint,
         style: Theme.of(
@@ -336,7 +351,12 @@ class _EmptyRootHint extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final colors = Theme.of(context).colorScheme;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(32, 8, 16, 8),
+      padding: const EdgeInsets.fromLTRB(
+        PolarisTokens.space8,
+        PolarisTokens.space2,
+        PolarisTokens.space4,
+        PolarisTokens.space2,
+      ),
       child: Text(
         l10n.launcherEmptyRootHint,
         style: Theme.of(

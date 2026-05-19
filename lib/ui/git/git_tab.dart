@@ -57,12 +57,12 @@ class _GitErrorView extends ConsumerWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           const Icon(Icons.error_outline, size: PolarisIconSize.hero),
-          const SizedBox(height: 8),
+          const SizedBox(height: PolarisTokens.space2),
           Text(
             l10n.gitLoadError(error.toString()),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: PolarisTokens.space2),
           OutlinedButton.icon(
             icon: const Icon(Icons.refresh, size: PolarisIconSize.standard),
             label: Text(l10n.buttonRetry),
@@ -82,17 +82,17 @@ class _GitMissingView extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(PolarisTokens.space6),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             const Icon(Icons.terminal, size: PolarisIconSize.hero),
-            const SizedBox(height: 8),
+            const SizedBox(height: PolarisTokens.space2),
             Text(
               l10n.gitNotFoundTitle,
               style: Theme.of(context).textTheme.titleSmall,
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: PolarisTokens.space1),
             Text(l10n.gitNotFoundMessage, textAlign: TextAlign.center),
           ],
         ),
@@ -237,7 +237,7 @@ class _NarrowBody extends StatelessWidget {
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.all(6),
+          padding: const EdgeInsets.all(PolarisTokens.space2),
           child: SegmentedButton<_Section>(
             showSelectedIcon: false,
             segments: [
@@ -289,7 +289,7 @@ class _SectionHeader extends StatelessWidget {
       onTap: onToggle,
       child: Container(
         height: 28,
-        padding: const EdgeInsets.symmetric(horizontal: 6),
+        padding: const EdgeInsets.symmetric(horizontal: PolarisTokens.space2),
         color: tokens.surface,
         child: Row(
           children: [
@@ -298,12 +298,12 @@ class _SectionHeader extends StatelessWidget {
               size: PolarisIconSize.standard,
               color: tokens.textDim,
             ),
-            const SizedBox(width: 4),
+            const SizedBox(width: PolarisTokens.space1),
             Text(
               title.toUpperCase(),
               style: tokens.label.copyWith(color: tokens.textDim),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: PolarisTokens.space2),
             Text(
               '$count',
               style: tokens.mono.copyWith(color: tokens.textFaint),
@@ -335,7 +335,12 @@ class _GitNoticeBar extends ConsumerWidget {
     return Container(
       width: double.infinity,
       color: bg,
-      padding: const EdgeInsets.fromLTRB(10, 4, 4, 4),
+      padding: const EdgeInsets.fromLTRB(
+        PolarisTokens.space3,
+        PolarisTokens.space1,
+        PolarisTokens.space1,
+        PolarisTokens.space1,
+      ),
       child: Row(
         children: [
           Icon(
@@ -343,7 +348,7 @@ class _GitNoticeBar extends ConsumerWidget {
             size: PolarisIconSize.small,
             color: fg,
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: PolarisTokens.space2),
           Expanded(
             child: Text(
               notice.message,

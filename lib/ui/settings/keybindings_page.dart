@@ -34,7 +34,7 @@ class KeybindingsPage extends ConsumerWidget {
             for (final metadata in CommandRegistry.byCategory(category))
               _KeybindingRow(commandId: metadata.id),
           ],
-          const SizedBox(height: 24),
+          const SizedBox(height: PolarisTokens.space6),
         ],
       ),
     );
@@ -49,7 +49,12 @@ class _Intro extends ConsumerWidget {
     final colors = Theme.of(context).colorScheme;
     final l10n = AppLocalizations.of(context);
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 20, 24, 8),
+      padding: const EdgeInsets.fromLTRB(
+        PolarisTokens.space6,
+        PolarisTokens.space5,
+        PolarisTokens.space6,
+        PolarisTokens.space2,
+      ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -61,7 +66,7 @@ class _Intro extends ConsumerWidget {
               ).textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant),
             ),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: PolarisTokens.space4),
           TextButton(
             onPressed: () => _confirmResetAll(context, ref),
             child: Text(l10n.keybindingsResetAllButton),
@@ -94,7 +99,12 @@ class _CategoryHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 20, 24, 4),
+      padding: const EdgeInsets.fromLTRB(
+        PolarisTokens.space6,
+        PolarisTokens.space5,
+        PolarisTokens.space6,
+        PolarisTokens.space1,
+      ),
       child: Text(
         AppLocalizations.of(context).commandCategoryLabel(category),
         style: Theme.of(
@@ -124,7 +134,9 @@ class _KeybindingRow extends ConsumerWidget {
 
     return ListTile(
       dense: true,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+      contentPadding: const EdgeInsets.symmetric(
+        horizontal: PolarisTokens.space6,
+      ),
       leading: Icon(metadata.icon),
       title: Text(AppLocalizations.of(context).commandLabel(commandId)),
       trailing: Row(
@@ -168,7 +180,10 @@ class _ChordChip extends StatelessWidget {
     final colors = Theme.of(context).colorScheme;
     final tokens = PolarisTokens.of(context);
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(
+        horizontal: PolarisTokens.space2,
+        vertical: PolarisTokens.space1,
+      ),
       decoration: BoxDecoration(
         color: colors.surfaceContainerHigh,
         border: Border.all(color: colors.outlineVariant),

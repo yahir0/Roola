@@ -105,7 +105,9 @@ class GitChangesSection extends HookConsumerWidget {
               child: status.isClean
                   ? const _CleanPlaceholder()
                   : ListView(
-                      padding: const EdgeInsets.only(bottom: 8),
+                      padding: const EdgeInsets.only(
+                        bottom: PolarisTokens.space2,
+                      ),
                       children: [
                         if (conflicts.isNotEmpty)
                           _ChangeGroup(
@@ -182,7 +184,7 @@ class _CleanPlaceholder extends StatelessWidget {
             size: PolarisIconSize.hero,
             color: colors.primary,
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: PolarisTokens.space2),
           Text(AppLocalizations.of(context).gitWorkingTreeClean),
         ],
       ),
@@ -218,7 +220,10 @@ class _ChangeGroup extends ConsumerWidget {
       children: [
         Container(
           height: 26,
-          padding: const EdgeInsets.only(left: 12, right: 4),
+          padding: const EdgeInsets.only(
+            left: PolarisTokens.space3,
+            right: PolarisTokens.space1,
+          ),
           color: colors.surfaceContainerHighest.withValues(alpha: 0.4),
           child: Row(
             children: [
@@ -311,7 +316,10 @@ class _ChangeRow extends ConsumerWidget {
                   notifier.workingFileDiff(change.path, staged: change.staged),
             ),
       child: Padding(
-        padding: const EdgeInsets.only(left: 12, right: 4),
+        padding: const EdgeInsets.only(
+          left: PolarisTokens.space3,
+          right: PolarisTokens.space1,
+        ),
         child: Row(
           children: [
             SizedBox(
@@ -327,7 +335,9 @@ class _ChangeRow extends ConsumerWidget {
             ),
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 5),
+                padding: const EdgeInsets.symmetric(
+                  vertical: PolarisTokens.space1,
+                ),
                 child: Text(
                   change.displayPath,
                   maxLines: 1,
@@ -426,7 +436,12 @@ class _CommitBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(8, 6, 8, 8),
+      padding: const EdgeInsets.fromLTRB(
+        PolarisTokens.space2,
+        PolarisTokens.space2,
+        PolarisTokens.space2,
+        PolarisTokens.space2,
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -440,7 +455,7 @@ class _CommitBox extends StatelessWidget {
               hintText: AppLocalizations.of(context).gitCommitMessageHint,
             ),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: PolarisTokens.space2),
           Row(
             children: [
               Expanded(
@@ -450,7 +465,7 @@ class _CommitBox extends StatelessWidget {
                   onPressed: canCommit ? onCommit : null,
                 ),
               ),
-              const SizedBox(width: 4),
+              const SizedBox(width: PolarisTokens.space1),
               PopupMenuButton<_CommitMenu>(
                 enabled: !busy,
                 tooltip: AppLocalizations.of(context).gitCommitOptionsTooltip,

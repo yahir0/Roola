@@ -54,7 +54,12 @@ class _LanguageSection extends ConsumerWidget {
     final colors = Theme.of(context).colorScheme;
     final locale = ref.watch(appLocaleProvider);
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 8, 24, 8),
+      padding: const EdgeInsets.fromLTRB(
+        PolarisTokens.space6,
+        PolarisTokens.space2,
+        PolarisTokens.space6,
+        PolarisTokens.space2,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -64,14 +69,14 @@ class _LanguageSection extends ConsumerWidget {
               context,
             ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: PolarisTokens.space1),
           Text(
             l10n.settingsLanguageDescription,
             style: Theme.of(
               context,
             ).textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: PolarisTokens.space3),
           SegmentedButton<AppLocale>(
             segments: [
               ButtonSegment(
@@ -109,7 +114,12 @@ class _ExplorerSection extends ConsumerWidget {
     final colors = Theme.of(context).colorScheme;
     final density = state.value?.listDensity ?? ExplorerListDensity.comfortable;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 8, 24, 8),
+      padding: const EdgeInsets.fromLTRB(
+        PolarisTokens.space6,
+        PolarisTokens.space2,
+        PolarisTokens.space6,
+        PolarisTokens.space2,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -119,14 +129,14 @@ class _ExplorerSection extends ConsumerWidget {
               context,
             ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: PolarisTokens.space1),
           Text(
             l10n.settingsExplorerDescription,
             style: Theme.of(
               context,
             ).textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: PolarisTokens.space3),
           SegmentedButton<ExplorerListDensity>(
             segments: [
               ButtonSegment(
@@ -151,7 +161,7 @@ class _ExplorerSection extends ConsumerWidget {
                     }
                   },
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: PolarisTokens.space2),
           Text(
             density == ExplorerListDensity.compact
                 ? l10n.explorerDensityCompactDescription
@@ -178,7 +188,12 @@ class _ClaudeIntegrationSection extends ConsumerWidget {
     final health = ref.watch(claudeHealthProvider);
     final colors = Theme.of(context).colorScheme;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 8, 24, 8),
+      padding: const EdgeInsets.fromLTRB(
+        PolarisTokens.space6,
+        PolarisTokens.space2,
+        PolarisTokens.space6,
+        PolarisTokens.space2,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -188,14 +203,14 @@ class _ClaudeIntegrationSection extends ConsumerWidget {
               context,
             ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: PolarisTokens.space1),
           Text(
             l10n.settingsClaudeIntegrationDescription,
             style: Theme.of(
               context,
             ).textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: PolarisTokens.space4),
           health.when(
             loading: () => _StatusCard(
               icon: Icons.hourglass_top,
@@ -229,19 +244,19 @@ class _ClaudeIntegrationSection extends ConsumerWidget {
                           ),
                   ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: PolarisTokens.space4),
           Text(
             l10n.settingsClaudeFeatures,
             style: Theme.of(
               context,
             ).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w600),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: PolarisTokens.space2),
           _FeatureRow(description: l10n.settingsClaudeFeature1),
           _FeatureRow(description: l10n.settingsClaudeFeature2),
           _FeatureRow(description: l10n.settingsClaudeFeature3),
           if (health.value?.available != true) ...[
-            const SizedBox(height: 16),
+            const SizedBox(height: PolarisTokens.space4),
             const _InstallGuide(),
           ],
         ],
@@ -275,7 +290,12 @@ class _StatusCard extends StatelessWidget {
       _StatusTone.error => colors.error,
     };
     return Container(
-      padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+      padding: const EdgeInsets.fromLTRB(
+        PolarisTokens.space3,
+        PolarisTokens.space3,
+        PolarisTokens.space3,
+        PolarisTokens.space3,
+      ),
       decoration: BoxDecoration(
         color: colors.surfaceContainerHigh,
         border: Border.all(color: colors.outlineVariant),
@@ -285,7 +305,7 @@ class _StatusCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Icon(icon, size: PolarisIconSize.standard, color: toneColor),
-          const SizedBox(width: 10),
+          const SizedBox(width: PolarisTokens.space3),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -322,7 +342,10 @@ class _FeatureRow extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.only(top: 4, right: 8),
+            padding: const EdgeInsets.only(
+              top: PolarisTokens.space1,
+              right: PolarisTokens.space2,
+            ),
             child: Icon(
               Icons.check,
               size: PolarisIconSize.small,
@@ -357,15 +380,20 @@ class _InstallGuide extends StatelessWidget {
             context,
           ).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w600),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: PolarisTokens.space2),
         Text(
           l10n.settingsClaudeInstallInstructions,
           style: Theme.of(context).textTheme.bodySmall,
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: PolarisTokens.space2),
         Container(
           width: double.infinity,
-          padding: const EdgeInsets.fromLTRB(12, 10, 8, 10),
+          padding: const EdgeInsets.fromLTRB(
+            PolarisTokens.space3,
+            PolarisTokens.space3,
+            PolarisTokens.space2,
+            PolarisTokens.space3,
+          ),
           decoration: BoxDecoration(
             color: colors.surfaceContainerHighest,
             border: Border.all(color: colors.outlineVariant),
@@ -391,7 +419,7 @@ class _InstallGuide extends StatelessWidget {
             ],
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: PolarisTokens.space2),
         Text(
           l10n.settingsClaudeInstallAfter,
           style: Theme.of(
@@ -434,7 +462,12 @@ class _ShortcutsSection extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final colors = Theme.of(context).colorScheme;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
+      padding: const EdgeInsets.fromLTRB(
+        PolarisTokens.space6,
+        PolarisTokens.space2,
+        PolarisTokens.space6,
+        PolarisTokens.space6,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -444,14 +477,14 @@ class _ShortcutsSection extends StatelessWidget {
               context,
             ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: PolarisTokens.space1),
           Text(
             l10n.settingsKeyboardShortcutsDescription,
             style: Theme.of(
               context,
             ).textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: PolarisTokens.space3),
           Align(
             alignment: Alignment.centerLeft,
             child: OutlinedButton.icon(
@@ -460,14 +493,14 @@ class _ShortcutsSection extends StatelessWidget {
               onPressed: () => const KeybindingsRoute().push<void>(context),
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: PolarisTokens.space5),
           Text(
             l10n.settingsMouseOperationsTitle,
             style: Theme.of(
               context,
             ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: PolarisTokens.space2),
           _ShortcutRow(
             keys: const ['Click'],
             description: l10n.settingsMouseClick,
@@ -499,7 +532,7 @@ class _ShortcutRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: PolarisTokens.space1),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -511,10 +544,10 @@ class _ShortcutRow extends StatelessWidget {
               children: [for (final k in keys) _KeyChip(label: k)],
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: PolarisTokens.space3),
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.only(top: 4),
+              padding: const EdgeInsets.only(top: PolarisTokens.space1),
               child: Text(description),
             ),
           ),
@@ -536,7 +569,10 @@ class _KeyChip extends StatelessWidget {
     final colors = Theme.of(context).colorScheme;
     final tokens = PolarisTokens.of(context);
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(
+        horizontal: PolarisTokens.space2,
+        vertical: PolarisTokens.space1,
+      ),
       decoration: BoxDecoration(
         color: colors.surfaceContainerHigh,
         border: Border.all(color: colors.outlineVariant),

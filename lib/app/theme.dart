@@ -90,7 +90,9 @@ class AppTheme {
     // （機能優先 / ADR-0038）。一覧の行（28px）とトップバー（40px）の中間、
     // クリックに十分な 32px・横詰めに統一する（ADR-0038 D6）。
     const buttonMinSize = Size(0, 32);
-    const buttonPadding = EdgeInsets.symmetric(horizontal: 12);
+    const buttonPadding = EdgeInsets.symmetric(
+      horizontal: PolarisTokens.space3,
+    );
 
     // 全プラットフォームでページ遷移アニメーションを即時化する（D7）。
     const transitions = PageTransitionsTheme(
@@ -224,7 +226,10 @@ class AppTheme {
         // 入力欄も計器パネルらしく低く詰める。Material 既定の content padding
         // は計器 UI には大きいため、4px グリッドに乗る詰めた既定値に統一する。
         isDense: true,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: PolarisTokens.space3,
+          vertical: PolarisTokens.space2,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(t.radius),
         ),

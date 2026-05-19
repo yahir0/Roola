@@ -44,7 +44,12 @@ class _GitDiffDialog extends HookWidget {
           children: [
             // ヘッダ帯。
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
+              padding: const EdgeInsets.fromLTRB(
+                PolarisTokens.space4,
+                PolarisTokens.space2,
+                PolarisTokens.space2,
+                PolarisTokens.space2,
+              ),
               child: Row(
                 children: [
                   Icon(
@@ -52,7 +57,7 @@ class _GitDiffDialog extends HookWidget {
                     size: PolarisIconSize.standard,
                     color: tokens.textDim,
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: PolarisTokens.space2),
                   Expanded(
                     child: Text(
                       title,
@@ -124,7 +129,7 @@ class _DiffMessage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(PolarisTokens.space6),
         child: Text(message, style: TextStyle(color: color)),
       ),
     );
@@ -224,7 +229,7 @@ class _UnifiedRow extends StatelessWidget {
         children: [
           _Gutter(text: _no(line.oldLineNo), color: palette.gutter),
           _Gutter(text: _no(line.newLineNo), color: palette.gutter),
-          const SizedBox(width: 8),
+          const SizedBox(width: PolarisTokens.space2),
           Text(
             isHeader ? line.text : '$prefix${line.text}',
             style: _monoStyle.copyWith(
@@ -233,7 +238,7 @@ class _UnifiedRow extends StatelessWidget {
                   : null,
             ),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: PolarisTokens.space4),
         ],
       ),
     );
@@ -252,7 +257,7 @@ class _Gutter extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: 48,
-      padding: const EdgeInsets.only(right: 8, top: 1),
+      padding: const EdgeInsets.only(right: PolarisTokens.space2, top: 1),
       alignment: Alignment.topRight,
       child: Text(text, style: _monoStyle.copyWith(color: color)),
     );
@@ -289,7 +294,10 @@ class _SplitRow extends StatelessWidget {
         line.kind == GitDiffLineKind.fileHeader) {
       return Container(
         color: palette.headerBg,
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 1),
+        padding: const EdgeInsets.symmetric(
+          horizontal: PolarisTokens.space2,
+          vertical: 1,
+        ),
         child: Text(
           line.text,
           style: _monoStyle.copyWith(
@@ -347,7 +355,7 @@ class _SplitCell extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _Gutter(text: lineNo == null ? '' : '$lineNo', color: palette.gutter),
-          const SizedBox(width: 4),
+          const SizedBox(width: PolarisTokens.space1),
           Expanded(child: Text(text ?? '', style: _monoStyle)),
         ],
       ),

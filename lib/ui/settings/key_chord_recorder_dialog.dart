@@ -110,10 +110,12 @@ class _KeyChordRecorderDialog extends HookConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(l10n.keyChordRecorderInstructions),
-            const SizedBox(height: 16),
+            const SizedBox(height: PolarisTokens.space4),
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 16),
+              padding: const EdgeInsets.symmetric(
+                vertical: PolarisTokens.space4,
+              ),
               decoration: BoxDecoration(
                 color: colors.surfaceContainerHigh,
                 border: Border.all(color: colors.outlineVariant),
@@ -129,7 +131,7 @@ class _KeyChordRecorderDialog extends HookConsumerWidget {
               ),
             ),
             if (error != null) ...[
-              const SizedBox(height: 12),
+              const SizedBox(height: PolarisTokens.space3),
               Text(
                 error,
                 style: Theme.of(

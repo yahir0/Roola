@@ -130,7 +130,7 @@ class _CommitRow extends ConsumerWidget {
       },
       child: Container(
         color: selected ? tokens.surfaceHi : null,
-        padding: const EdgeInsets.only(right: 8),
+        padding: const EdgeInsets.only(right: PolarisTokens.space2),
         child: Row(
           children: [
             SizedBox(
@@ -163,7 +163,7 @@ class _CommitRow extends ConsumerWidget {
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: PolarisTokens.space2),
                   Flexible(
                     flex: 2,
                     child: Text(
@@ -179,14 +179,14 @@ class _CommitRow extends ConsumerWidget {
                 ],
               ),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: PolarisTokens.space3),
             Text(
               _formatDate(commit.date),
               style: Theme.of(
                 context,
               ).textTheme.labelSmall?.copyWith(color: tokens.textDim),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: PolarisTokens.space3),
             Text(
               commit.shortSha,
               style: const TextStyle(fontFamily: 'SarasaTermJ', fontSize: 13),
@@ -222,8 +222,11 @@ class _RefChip extends StatelessWidget {
         ? tokens.accent
         : tokens.text;
     return Container(
-      margin: const EdgeInsets.only(right: 4),
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+      margin: const EdgeInsets.only(right: PolarisTokens.space1),
+      padding: const EdgeInsets.symmetric(
+        horizontal: PolarisTokens.space2,
+        vertical: 1,
+      ),
       decoration: BoxDecoration(
         color: bg,
         border: isTag ? Border.all(color: tokens.accent) : null,
@@ -238,7 +241,7 @@ class _RefChip extends StatelessWidget {
             WidgetSpan(
               alignment: PlaceholderAlignment.middle,
               child: Padding(
-                padding: const EdgeInsets.only(right: 3),
+                padding: const EdgeInsets.only(right: PolarisTokens.space1),
                 child: Icon(
                   isTag ? Icons.sell_outlined : Icons.commit,
                   size: 11,
@@ -281,7 +284,12 @@ class _CommitDetail extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(12, 8, 4, 4),
+            padding: const EdgeInsets.fromLTRB(
+              PolarisTokens.space3,
+              PolarisTokens.space2,
+              PolarisTokens.space1,
+              PolarisTokens.space1,
+            ),
             child: Row(
               children: [
                 Expanded(
@@ -333,8 +341,8 @@ class _CommitDetail extends ConsumerWidget {
                           ),
                           child: Padding(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 4,
+                              horizontal: PolarisTokens.space3,
+                              vertical: PolarisTokens.space1,
                             ),
                             child: Row(
                               children: [

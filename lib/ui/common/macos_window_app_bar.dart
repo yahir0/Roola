@@ -100,7 +100,7 @@ class MacosWindowAppBar extends StatelessWidget implements PreferredSizeWidget {
       // アクション群が筐体右端に貼り付くと窮屈なので 8px の余白を挟む。
       // `actions` の要素数を変えないので、macOS のタイトル中央寄せ判定
       // （アクション 2 個未満で中央）には影響しない。
-      actionsPadding: const EdgeInsets.only(right: 8),
+      actionsPadding: const EdgeInsets.only(right: PolarisTokens.space2),
       bottom: bottom,
       automaticallyImplyLeading: false,
       // `TitleBarStyle.hidden` でネイティブのタイトルバーを消しているため、

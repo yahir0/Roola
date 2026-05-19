@@ -25,11 +25,11 @@ class AppearanceSection extends ConsumerWidget {
     return state.when(
       data: (settings) => _Body(settings: settings),
       loading: () => const Padding(
-        padding: EdgeInsets.all(16),
+        padding: EdgeInsets.all(PolarisTokens.space4),
         child: LinearProgressIndicator(),
       ),
       error: (e, _) => Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(PolarisTokens.space4),
         child: Text(AppLocalizations.of(context).appearanceLoadError('$e')),
       ),
     );
@@ -62,7 +62,7 @@ class _Body extends ConsumerWidget {
     final notifier = ref.read(appearanceSettingsProvider.notifier);
     final l10n = AppLocalizations.of(context);
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(PolarisTokens.space4),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -70,10 +70,10 @@ class _Body extends ConsumerWidget {
             l10n.appearanceTitle,
             style: Theme.of(context).textTheme.titleMedium,
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: PolarisTokens.space4),
           // アクセント色（ADR-0038 D4）。常に 1 色だが選択できる。
           _FieldLabel(l10n.appearanceAccentLabel),
-          const SizedBox(height: 6),
+          const SizedBox(height: PolarisTokens.space2),
           SegmentedButton<PolarisAccent>(
             showSelectedIcon: false,
             segments: const [
@@ -87,11 +87,11 @@ class _Body extends ConsumerWidget {
               }
             },
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: PolarisTokens.space4),
           // 背景モード。不透明 = Polaris グラファイト筐体、透過 = 筐体を
           // 半透明にして背後のデスクトップを透かす（ADR-0038）。
           _FieldLabel(l10n.appearanceBackgroundLabel),
-          const SizedBox(height: 6),
+          const SizedBox(height: PolarisTokens.space2),
           SegmentedButton<AppearanceMode>(
             showSelectedIcon: false,
             segments: [
@@ -111,13 +111,13 @@ class _Body extends ConsumerWidget {
               }
             },
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: PolarisTokens.space4),
           if (settings.mode == AppearanceMode.transparent) ...[
             _OpacitySlider(
               value: settings.transparencyOpacity,
               onChanged: notifier.setTransparencyOpacity,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: PolarisTokens.space4),
             _CenterImagePicker(
               imagePath: settings.transparentCenterImagePath,
               onPick: () => _pickAndSaveCenterImage(context, ref, notifier),
@@ -205,12 +205,12 @@ class _CenterImagePicker extends StatelessWidget {
           l10n.appearanceCenterImageLabel,
           style: Theme.of(context).textTheme.bodyMedium,
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: PolarisTokens.space1),
         Text(
           l10n.appearanceCenterImageDescription,
           style: Theme.of(context).textTheme.bodySmall,
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: PolarisTokens.space2),
         Row(
           children: [
             Container(
@@ -230,7 +230,7 @@ class _CenterImagePicker extends StatelessWidget {
                     )
                   : const Icon(Icons.image_outlined, size: 32),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: PolarisTokens.space4),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -240,7 +240,7 @@ class _CenterImagePicker extends StatelessWidget {
                   onPressed: onPick,
                 ),
                 if (hasImage) ...[
-                  const SizedBox(height: 8),
+                  const SizedBox(height: PolarisTokens.space2),
                   TextButton.icon(
                     icon: const Icon(Icons.clear),
                     label: Text(l10n.appearanceCenterImageClear),

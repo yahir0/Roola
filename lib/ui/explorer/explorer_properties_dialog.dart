@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:roola/app/theme.dart';
 import 'package:roola/l10n/app_localizations.dart';
 import 'package:roola/ui/common/polaris_dialog.dart';
 
@@ -97,7 +98,7 @@ class _PropRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: PolarisTokens.space1),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

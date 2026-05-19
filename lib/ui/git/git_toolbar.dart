@@ -27,7 +27,7 @@ class GitToolbar extends ConsumerWidget {
 
     return Container(
       height: 40,
-      padding: const EdgeInsets.symmetric(horizontal: 6),
+      padding: const EdgeInsets.symmetric(horizontal: PolarisTokens.space2),
       decoration: BoxDecoration(
         border: Border(
           bottom: BorderSide(color: Theme.of(context).dividerColor),
@@ -49,7 +49,7 @@ class GitToolbar extends ConsumerWidget {
                       : () => showGitBranchMenu(context, tabId),
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: PolarisTokens.space2),
               if ((state.ahead > 0 || state.behind > 0) && !compact)
                 _AheadBehind(ahead: state.ahead, behind: state.behind),
               const Spacer(),
@@ -188,7 +188,7 @@ class _BranchButton extends StatelessWidget {
     return OutlinedButton(
       style: OutlinedButton.styleFrom(
         minimumSize: Size.zero,
-        padding: const EdgeInsets.symmetric(horizontal: 10),
+        padding: const EdgeInsets.symmetric(horizontal: PolarisTokens.space3),
       ),
       onPressed: onPressed,
       child: Text.rich(
@@ -197,7 +197,7 @@ class _BranchButton extends StatelessWidget {
             const WidgetSpan(
               alignment: PlaceholderAlignment.middle,
               child: Padding(
-                padding: EdgeInsets.only(right: 6),
+                padding: EdgeInsets.only(right: PolarisTokens.space2),
                 child: Icon(
                   Icons.account_tree_outlined,
                   size: PolarisIconSize.small,
@@ -234,7 +234,7 @@ class _AheadBehind extends StatelessWidget {
             color: colors.onSurfaceVariant,
           ),
           Text('$behind', style: style),
-          const SizedBox(width: 6),
+          const SizedBox(width: PolarisTokens.space2),
         ],
         if (ahead > 0) ...[
           Icon(
@@ -331,7 +331,12 @@ class _StashDialog extends ConsumerWidget {
           children: [
             // ヘッダ帯。
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 10, 8, 10),
+              padding: const EdgeInsets.fromLTRB(
+                PolarisTokens.space4,
+                PolarisTokens.space3,
+                PolarisTokens.space2,
+                PolarisTokens.space3,
+              ),
               child: Row(
                 children: [
                   Icon(
@@ -339,7 +344,7 @@ class _StashDialog extends ConsumerWidget {
                     size: PolarisIconSize.standard,
                     color: tokens.textDim,
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: PolarisTokens.space2),
                   Text(
                     l10n.gitStashListTitle,
                     style: tokens.body.copyWith(color: tokens.text),

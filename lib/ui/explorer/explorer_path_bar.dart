@@ -85,7 +85,10 @@ class ExplorerPathBar extends HookConsumerWidget {
         filled: true,
         fillColor: tokens.well,
         prefixIcon: Padding(
-          padding: const EdgeInsets.only(left: 10, right: 8),
+          padding: const EdgeInsets.only(
+            left: PolarisTokens.space3,
+            right: PolarisTokens.space2,
+          ),
           child: PolarisTypeIcon(isDir: true, color: tokens.textDim),
         ),
         prefixIconConstraints: const BoxConstraints(),

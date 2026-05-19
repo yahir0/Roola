@@ -81,7 +81,10 @@ class _SessionHeader extends StatelessWidget {
       SkillRunCancelled() => l10n.sessionStateCancelled,
     };
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      padding: const EdgeInsets.symmetric(
+        horizontal: PolarisTokens.space4,
+        vertical: PolarisTokens.space2,
+      ),
       child: Row(
         children: [
           Expanded(
@@ -104,7 +107,7 @@ class _SessionHeader extends StatelessWidget {
               onPressed: onRestart,
             ),
           if (state is SkillRunFailed) ...[
-            const SizedBox(width: 4),
+            const SizedBox(width: PolarisTokens.space1),
             Tooltip(
               message: (state as SkillRunFailed).message,
               child: const Icon(Icons.info_outline),
