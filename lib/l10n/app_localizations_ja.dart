@@ -315,16 +315,13 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String get appearanceBackgroundLabel => '背景';
+
+  @override
+  String get appearanceModeOpaque => '不透明';
+
+  @override
   String get appearanceModeTransparent => '透過';
-
-  @override
-  String get appearanceModeSolid => '単色';
-
-  @override
-  String get appearanceModeImage => '画像';
-
-  @override
-  String get appearanceModeGradient => 'グラデーション';
 
   @override
   String get appearanceAccentLabel => 'アクセントカラー';

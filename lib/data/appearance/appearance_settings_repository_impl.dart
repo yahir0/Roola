@@ -80,29 +80,11 @@ class AppearanceSettingsNotifier extends AsyncNotifier<AppearanceSettings> {
     });
   }
 
-  Future<void> setSolidColor(int argb) async {
-    final current = state.value ?? AppearanceSettings.defaults();
-    final next = current.copyWith(mode: AppearanceMode.solid, solidColor: argb);
-    state = await AsyncValue.guard(() async {
-      await _repository.save(next);
-      return next;
-    });
-  }
-
   /// Polaris のアクセント色を切り替える（ADR-0038 D4）。背景モードには
   /// 影響しない独立した設定。
   Future<void> setAccent(PolarisAccent accent) async {
     final current = state.value ?? AppearanceSettings.defaults();
     final next = current.copyWith(accent: accent);
-    state = await AsyncValue.guard(() async {
-      await _repository.save(next);
-      return next;
-    });
-  }
-
-  Future<void> setImagePath(String path) async {
-    final current = state.value ?? AppearanceSettings.defaults();
-    final next = current.copyWith(mode: AppearanceMode.image, imagePath: path);
     state = await AsyncValue.guard(() async {
       await _repository.save(next);
       return next;

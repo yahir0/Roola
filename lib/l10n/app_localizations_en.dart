@@ -322,16 +322,13 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get appearanceBackgroundLabel => 'Background';
+
+  @override
+  String get appearanceModeOpaque => 'Opaque';
+
+  @override
   String get appearanceModeTransparent => 'Transparent';
-
-  @override
-  String get appearanceModeSolid => 'Solid';
-
-  @override
-  String get appearanceModeImage => 'Image';
-
-  @override
-  String get appearanceModeGradient => 'Gradient';
 
   @override
   String get appearanceAccentLabel => 'Accent color';

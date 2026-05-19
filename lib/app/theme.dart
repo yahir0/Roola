@@ -19,18 +19,6 @@ import 'package:roola/data/appearance/polaris_accent.dart';
 class AppTheme {
   const AppTheme._();
 
-  /// 透過モード（`AppearanceMode.transparent`）時の暗幕に使う無彩色グレー。
-  /// R = G = B の完全無彩色で、デスクトップ側の壁紙にもっとも干渉しないトーン。
-  static const Color transparentBackdrop = Color(0xFF1D1D1D);
-
-  /// `AppearanceMode.gradient` で使うグラファイトのグラデーション。
-  /// Polaris の `bg` から `well` へ沈み込む暗色のグラデーション。
-  static const LinearGradient backgroundGradient = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: [Color(0xFF121317), Color(0xFF0A0B0D)],
-  );
-
   /// Polaris のデザイントークン。`ThemeData.extensions` 経由で参照する。
   static const PolarisTokens tokens = PolarisTokens(
     // --- グラファイト 2 トーン階層（D3）---------------------------------

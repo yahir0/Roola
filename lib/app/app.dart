@@ -58,6 +58,18 @@ class App extends ConsumerWidget {
   }
 }
 
+/// 外観モードに応じてアプリ全体の見え方を切り替えるレイヤー（ADR-0038）。
+///
+/// 透過ウィンドウ（macOS 側 `MainFlutterWindow` の `isOpaque = false`）の
+/// 上で、`opaque` は不透明グラファイトの基底層を全面に敷いて Polaris の
+/// 筐体を描く。`transparent` はその基底層ごと UI 全体を
+/// [AppearanceSettings.transparencyOpacity] の濃さで半透明合成し、背後の
+/// デスクトップを透かす。
+///
+/// 基底層（[AppTheme] の `bg` グラファイト）を必ず敷くのが要点。Polaris の
+/// 各画面は自前で背景を塗るとは限らず（ターミナルのネイティブビュー周りや
+/// 設定画面は塗らない）、基底層が無いと透過ウィンドウの素通し＝透明な穴に
+/// なってしまう。
 class _AppearanceLayer extends StatelessWidget {
   const _AppearanceLayer({required this.appearance, required this.child});
 
@@ -67,52 +79,33 @@ class _AppearanceLayer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return switch (appearance.mode) {
-      // 完全透過だとウィンドウ枠が背景と同化してしまうため、中性
-      // スレート（`transparentBackdrop`）を `transparencyOpacity` の濃さで
-      // 薄く敷く。ロゴ deep background だと青味が強く出すぎるため、
-      // 透過時専用のニュートラルカラーを使う。opacity = 0 のときは
-      // 背景色を描かず純粋な透過にする。
-      // `transparentCenterImagePath` が指定されていれば、暗幕と UI の
-      // 間に挟む形で中央に重ね描きする（日本国旗の赤円のイメージ）。
-      // 画像は `ClipOval` で円形にくり抜き、サイズは短辺の 60%。
-      // 透過率スライダーは暗幕と画像の両方に同じ値で連動させるが、
-      // 画像エリアは「画像 + 下の暗幕」が重ね合わさることでデスクトップの
-      // 見通しが二重に削れる。素直に同じ alpha を当てると画像が窓より
-      // 不透明に見えてしまうため、画像側だけ `opacity * opacity` と
-      // 二乗で減衰させて視覚的な透け感を窓側に寄せている。
-      // クリック入力は IgnorePointer で素通りさせる。
+      AppearanceMode.opaque => ColoredBox(
+        color: AppTheme.tokens.bg,
+        child: child,
+      ),
       AppearanceMode.transparent => _TransparentLayer(
         opacity: appearance.transparencyOpacity,
         centerImagePath: appearance.transparentCenterImagePath,
         centerImageMtime: appearance.transparentCenterImageMtime,
         child: child,
       ),
-      AppearanceMode.solid => ColoredBox(
-        color: appearance.solidColor != null
-            ? Color(appearance.solidColor!)
-            : Colors.transparent,
-        child: child,
-      ),
-      AppearanceMode.image => Stack(
-        fit: StackFit.expand,
-        children: [
-          if (appearance.imagePath != null &&
-              File(appearance.imagePath!).existsSync())
-            Image.file(File(appearance.imagePath!), fit: BoxFit.cover),
-          child,
-        ],
-      ),
-      AppearanceMode.gradient => DecoratedBox(
-        decoration: const BoxDecoration(gradient: AppTheme.backgroundGradient),
-        child: child,
-      ),
     };
   }
 }
 
-/// 透過モード用のレイヤー。暗幕 → 中央画像 → UI の順に重ねる。
-/// 中央画像が無いケースでは ColoredBox 1 枚で済むよう、Stack を作らずに
-/// 軽量側のツリーを返す。
+/// 透過モードのレイヤー。
+///
+/// 不透明グラファイトの基底層 → （中央画像）→ UI の順に重ねた全体を、1 枚の
+/// [Opacity] で半透明合成する。個々のサーフェスを半透明化するとトーン階層
+/// （`well` / `bg`）が重なる箇所でアルファが二重掛けされ濁るが、[Opacity] は
+/// 子ツリーを一旦合成してから 1 度だけアルファを掛けるため、トーン階層を
+/// 保ったまま均一に透ける。基底層があることで、UI が背景を塗らない領域も
+/// 同じ濃さの半透明グラファイトになる。`opacity` が 1.0 のとき [Opacity] は
+/// no-op。
+///
+/// `centerImagePath` が指定されていれば、基底層と UI の間に円形画像を挟む
+/// （日本国旗の赤円のイメージ）。UI が半透明なので画像は透けて見え、クリック
+/// 入力は [IgnorePointer] で UI 側へ素通りさせる。
 class _TransparentLayer extends StatelessWidget {
   const _TransparentLayer({
     required this.opacity,
@@ -136,33 +129,24 @@ class _TransparentLayer extends StatelessWidget {
   Widget build(BuildContext context) {
     final hasCenterImage =
         centerImagePath != null && File(centerImagePath!).existsSync();
+    final Widget content;
     if (!hasCenterImage) {
-      return opacity <= 0
-          ? child
-          : ColoredBox(
-              color: AppTheme.transparentBackdrop.withValues(alpha: opacity),
-              child: child,
-            );
-    }
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        if (opacity > 0)
-          ColoredBox(
-            color: AppTheme.transparentBackdrop.withValues(alpha: opacity),
-          ),
-        Center(
-          child: IgnorePointer(
-            child: Opacity(
-              opacity: opacity * opacity,
+      content = ColoredBox(color: AppTheme.tokens.bg, child: child);
+    } else {
+      content = Stack(
+        fit: StackFit.expand,
+        children: [
+          ColoredBox(color: AppTheme.tokens.bg),
+          Center(
+            child: IgnorePointer(
               child: LayoutBuilder(
                 builder: (context, constraints) {
                   final size =
                       constraints.biggest.shortestSide * _centerSizeRatio;
-                  // 同じパスに上書き保存した直後は `FileImage` の equality
-                  // が一致するため `Image` widget が再リゾルブせず古い画像
-                  // のまま。state 側で渡される更新時刻を ValueKey に乗せ
-                  // て widget を強制 remount し、新しいバイト列を読み直す。
+                  // 同じパスに上書き保存した直後は `FileImage` の equality が
+                  // 一致するため `Image` widget が再リゾルブせず古い画像のまま。
+                  // state 側で渡される更新時刻を ValueKey に乗せて widget を
+                  // 強制 remount し、新しいバイト列を読み直す。
                   return ClipOval(
                     child: SizedBox(
                       width: size,
@@ -178,9 +162,10 @@ class _TransparentLayer extends StatelessWidget {
               ),
             ),
           ),
-        ),
-        child,
-      ],
-    );
+          child,
+        ],
+      );
+    }
+    return Opacity(opacity: opacity, child: content);
   }
 }

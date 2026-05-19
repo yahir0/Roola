@@ -12,22 +12,12 @@ import 'package:roola/l10n/app_localizations.dart';
 
 /// 設定画面に組み込む「外観」セクション。
 ///
-/// `appearanceSettingsProvider` を購読し、モード切替・色設定・画像選択を
-/// ユーザーに提供する。
+/// `appearanceSettingsProvider` を購読し、アクセント色・透過モードの切替を
+/// ユーザーに提供する。Polaris（ADR-0038）はダーク専用・グラファイト筐体の
+/// 視覚システムのため、外観は「不透明な筐体」と「筐体を透かす」の 2 択に
+/// 絞る（旧 単色 / 画像 / グラデーションは廃止）。
 class AppearanceSection extends ConsumerWidget {
   const AppearanceSection({super.key});
-
-  // solid 背景モードで選べるプリセット色。Polaris のグラファイト階層に
-  // 揃える（ADR-0038）。ここは色を選ばせる「データ」なので literal で持つ。
-  static const _presetColors = <Color>[
-    Color(0xFF000000), // 純黒
-    Color(0xFF0A0B0D), // Polaris well（最も暗い計器ディスプレイ）
-    Color(0xFF121317), // Polaris bg（筐体）
-    Color(0xFF1B1D22), // Polaris surface
-    Color(0xFF2A2D33), // Polaris line（明るめのグラファイト）
-    Color(0xFFD0A341), // Polaris アクセント（ゴールド）
-    Color(0xFFFFFFFF), // 白
-  ];
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -98,27 +88,20 @@ class _Body extends ConsumerWidget {
             },
           ),
           const SizedBox(height: 16),
+          // 背景モード。不透明 = Polaris グラファイト筐体、透過 = 筐体を
+          // 半透明にして背後のデスクトップを透かす（ADR-0038）。
+          _FieldLabel(l10n.appearanceBackgroundLabel),
+          const SizedBox(height: 6),
           SegmentedButton<AppearanceMode>(
+            showSelectedIcon: false,
             segments: [
+              ButtonSegment(
+                value: AppearanceMode.opaque,
+                label: Text(l10n.appearanceModeOpaque),
+              ),
               ButtonSegment(
                 value: AppearanceMode.transparent,
                 label: Text(l10n.appearanceModeTransparent),
-                icon: const Icon(Icons.blur_on),
-              ),
-              ButtonSegment(
-                value: AppearanceMode.gradient,
-                label: Text(l10n.appearanceModeGradient),
-                icon: const Icon(Icons.gradient),
-              ),
-              ButtonSegment(
-                value: AppearanceMode.solid,
-                label: Text(l10n.appearanceModeSolid),
-                icon: const Icon(Icons.format_color_fill),
-              ),
-              ButtonSegment(
-                value: AppearanceMode.image,
-                label: Text(l10n.appearanceModeImage),
-                icon: const Icon(Icons.image),
               ),
             ],
             selected: {settings.mode},
@@ -141,39 +124,9 @@ class _Body extends ConsumerWidget {
               onClear: () => notifier.setTransparentCenterImagePath(null),
             ),
           ],
-          if (settings.mode == AppearanceMode.solid)
-            _ColorPicker(
-              selectedColor: settings.solidColor,
-              onPick: notifier.setSolidColor,
-            ),
-          if (settings.mode == AppearanceMode.image)
-            _ImagePicker(
-              imagePath: settings.imagePath,
-              onPick: () => _pickAndSaveImage(context, ref, notifier),
-            ),
         ],
       ),
     );
-  }
-
-  Future<void> _pickAndSaveImage(
-    BuildContext context,
-    WidgetRef ref,
-    AppearanceSettingsNotifier notifier,
-  ) async {
-    final result = await FilePicker.pickFiles(type: FileType.image);
-    final src = result?.files.single.path;
-    if (src == null) {
-      return;
-    }
-    final paths = ref.read(appPathsProvider);
-    final dest = paths.backgroundImageFile;
-    await File(src).copy(dest.path);
-    // 同じパスに上書き保存しただけでは Flutter の ImageCache が
-    // 古いバイト列を返し続け、再起動するまで描画が更新されない。
-    // 該当パスの FileImage を cache から落として強制再読み込みする。
-    await FileImage(dest).evict();
-    await notifier.setImagePath(dest.path);
   }
 
   Future<void> _pickAndSaveCenterImage(
@@ -189,14 +142,15 @@ class _Body extends ConsumerWidget {
     final paths = ref.read(appPathsProvider);
     final dest = paths.transparentCenterImageFile;
     await File(src).copy(dest.path);
-    // 上書き保存後のキャッシュ立て直し。背景画像と同じ理由（詳細は
-    // `_pickAndSaveImage` のコメント参照）。
+    // 同じパスに上書き保存しただけでは Flutter の ImageCache が古いバイト列を
+    // 返し続け、再起動するまで描画が更新されない。該当パスの FileImage を
+    // cache から落として強制再読み込みする。
     await FileImage(dest).evict();
     await notifier.setTransparentCenterImagePath(dest.path);
   }
 }
 
-/// 透過モード時の暗幕の不透明度スライダー。値は 0.0〜1.0。
+/// 透過モードの不透明度スライダー。値は 0.0〜1.0。
 class _OpacitySlider extends StatelessWidget {
   const _OpacitySlider({required this.value, required this.onChanged});
 
@@ -227,84 +181,7 @@ class _OpacitySlider extends StatelessWidget {
   }
 }
 
-class _ColorPicker extends StatelessWidget {
-  const _ColorPicker({required this.selectedColor, required this.onPick});
-
-  final int? selectedColor;
-  final ValueChanged<int> onPick;
-
-  @override
-  Widget build(BuildContext context) {
-    return Wrap(
-      spacing: 12,
-      runSpacing: 12,
-      children: AppearanceSection._presetColors.map((color) {
-        final isSelected = color.toARGB32() == selectedColor;
-        return GestureDetector(
-          onTap: () => onPick(color.toARGB32()),
-          child: Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: color,
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: isSelected
-                    ? Theme.of(context).colorScheme.primary
-                    : Colors.transparent,
-                width: 3,
-              ),
-            ),
-          ),
-        );
-      }).toList(),
-    );
-  }
-}
-
-class _ImagePicker extends StatelessWidget {
-  const _ImagePicker({required this.imagePath, required this.onPick});
-
-  final String? imagePath;
-  final VoidCallback onPick;
-
-  @override
-  Widget build(BuildContext context) {
-    final file = imagePath != null ? File(imagePath!) : null;
-    final hasImage = file != null && file.existsSync();
-    final tokens = PolarisTokens.of(context);
-    return Row(
-      children: [
-        Container(
-          width: 96,
-          height: 96,
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surfaceContainerHighest,
-            borderRadius: BorderRadius.circular(tokens.radius),
-          ),
-          clipBehavior: Clip.antiAlias,
-          child: hasImage
-              ? Image.file(
-                  file,
-                  // 同パス上書きで Image が再リゾルブされない問題対策
-                  key: ValueKey(file.lastModifiedSync()),
-                  fit: BoxFit.cover,
-                )
-              : const Icon(Icons.image_outlined, size: 32),
-        ),
-        const SizedBox(width: 16),
-        FilledButton.icon(
-          icon: const Icon(Icons.upload_file),
-          label: Text(AppLocalizations.of(context).appearanceImageSelectButton),
-          onPressed: onPick,
-        ),
-      ],
-    );
-  }
-}
-
-/// 透過モード時に中央へ重ねる画像のピッカー。`_ImagePicker` と似た形だが、
-/// 「クリア」操作を持つ点と、見出しテキストを追加する点が異なる。
+/// 透過モード時に中央へ重ねる画像のピッカー。
 class _CenterImagePicker extends StatelessWidget {
   const _CenterImagePicker({
     required this.imagePath,

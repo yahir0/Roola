@@ -674,29 +674,23 @@ abstract class AppLocalizations {
   /// **'外観設定の読み込みに失敗しました: {error}'**
   String appearanceLoadError(String error);
 
+  /// No description provided for @appearanceBackgroundLabel.
+  ///
+  /// In ja, this message translates to:
+  /// **'背景'**
+  String get appearanceBackgroundLabel;
+
+  /// No description provided for @appearanceModeOpaque.
+  ///
+  /// In ja, this message translates to:
+  /// **'不透明'**
+  String get appearanceModeOpaque;
+
   /// No description provided for @appearanceModeTransparent.
   ///
   /// In ja, this message translates to:
   /// **'透過'**
   String get appearanceModeTransparent;
-
-  /// No description provided for @appearanceModeSolid.
-  ///
-  /// In ja, this message translates to:
-  /// **'単色'**
-  String get appearanceModeSolid;
-
-  /// No description provided for @appearanceModeImage.
-  ///
-  /// In ja, this message translates to:
-  /// **'画像'**
-  String get appearanceModeImage;
-
-  /// No description provided for @appearanceModeGradient.
-  ///
-  /// In ja, this message translates to:
-  /// **'グラデーション'**
-  String get appearanceModeGradient;
 
   /// No description provided for @appearanceAccentLabel.
   ///

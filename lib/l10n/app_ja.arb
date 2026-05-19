@@ -119,10 +119,9 @@
   "@appearanceLoadError": {
     "placeholders": { "error": { "type": "String" } }
   },
+  "appearanceBackgroundLabel": "背景",
+  "appearanceModeOpaque": "不透明",
   "appearanceModeTransparent": "透過",
-  "appearanceModeSolid": "単色",
-  "appearanceModeImage": "画像",
-  "appearanceModeGradient": "グラデーション",
   "appearanceAccentLabel": "アクセントカラー",
   "appearanceOpacityLabel": "不透明度",
   "appearanceImageSelectButton": "画像を選択",
