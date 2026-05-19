@@ -1,5 +1,112 @@
 import Cocoa
+import Darwin
 import FlutterMacOS
+
+/// システムメトリクス（CPU / メモリ / プロセス一覧）を macOS の標準 API から
+/// 取得する（ADR-0039）。
+///
+/// - CPU: `host_statistics`(HOST_CPU_LOAD_INFO) の累積 tick 差分から使用率を
+///   算出する。差分方式のため前回 tick を保持する。初回呼び出しは前回値が
+///   無く 0% を返し、2 回目以降が「前回呼び出しからの使用率」になる。
+/// - メモリ: `host_statistics64`(HOST_VM_INFO64) と `sysctl hw.memsize` から
+///   使用量 / 総容量を算出する。
+/// - プロセス一覧: `ps` を 1 回実行して標準出力をパースする（クリック時のみ
+///   呼ばれるため、サブプロセス起動のコストは許容範囲）。
+final class SystemMetricsProvider {
+  private var previousCPUTicks: host_cpu_load_info?
+
+  /// システム全体の CPU 使用率（0–100）。
+  func cpuUsage() -> Double {
+    var count = mach_msg_type_number_t(
+      MemoryLayout<host_cpu_load_info_data_t>.size
+        / MemoryLayout<integer_t>.size
+    )
+    var load = host_cpu_load_info()
+    let status = withUnsafeMutablePointer(to: &load) { pointer -> kern_return_t in
+      pointer.withMemoryRebound(to: integer_t.self, capacity: Int(count)) {
+        host_statistics(mach_host_self(), HOST_CPU_LOAD_INFO, $0, &count)
+      }
+    }
+    guard status == KERN_SUCCESS else { return 0 }
+
+    defer { previousCPUTicks = load }
+    guard let previous = previousCPUTicks else { return 0 }
+
+    let user = Double(load.cpu_ticks.0 &- previous.cpu_ticks.0)
+    let system = Double(load.cpu_ticks.1 &- previous.cpu_ticks.1)
+    let idle = Double(load.cpu_ticks.2 &- previous.cpu_ticks.2)
+    let nice = Double(load.cpu_ticks.3 &- previous.cpu_ticks.3)
+    let used = user + system + nice
+    let total = used + idle
+    guard total > 0 else { return 0 }
+    return min(100, max(0, used / total * 100))
+  }
+
+  /// メモリ使用量と総容量（bytes）。使用量は active + wired + compressed。
+  func memoryInfo() -> (used: UInt64, total: UInt64) {
+    var total: UInt64 = 0
+    var totalSize = MemoryLayout<UInt64>.size
+    sysctlbyname("hw.memsize", &total, &totalSize, nil, 0)
+
+    var count = mach_msg_type_number_t(
+      MemoryLayout<vm_statistics64_data_t>.size / MemoryLayout<integer_t>.size
+    )
+    var stats = vm_statistics64()
+    let status = withUnsafeMutablePointer(to: &stats) { pointer -> kern_return_t in
+      pointer.withMemoryRebound(to: integer_t.self, capacity: Int(count)) {
+        host_statistics64(mach_host_self(), HOST_VM_INFO64, $0, &count)
+      }
+    }
+    guard status == KERN_SUCCESS else { return (0, total) }
+
+    let pageSize = UInt64(vm_kernel_page_size)
+    let used =
+      (UInt64(stats.active_count)
+        + UInt64(stats.wire_count)
+        + UInt64(stats.compressor_page_count)) * pageSize
+    return (used, total)
+  }
+
+  /// 上位プロセスの生リスト（並び替え前）。`ps` を 1 回実行して取得する。
+  func processes() -> [[String: Any]] {
+    let task = Process()
+    task.executableURL = URL(fileURLWithPath: "/bin/ps")
+    task.arguments = ["-Ao", "pid=,pcpu=,rss=,comm="]
+    let pipe = Pipe()
+    task.standardOutput = pipe
+    task.standardError = Pipe()
+    do {
+      try task.run()
+    } catch {
+      return []
+    }
+    let data = pipe.fileHandleForReading.readDataToEndOfFile()
+    task.waitUntilExit()
+    guard let output = String(data: data, encoding: .utf8) else { return [] }
+
+    var result: [[String: Any]] = []
+    for rawLine in output.split(separator: "\n") {
+      let line = rawLine.trimmingCharacters(in: .whitespaces)
+      // 先頭 3 列は pid / %cpu / rss(KB)、4 列目以降は実行ファイルパス
+      // （空白を含みうるため joined で復元し basename を採る）。
+      let parts = line.split(separator: " ", omittingEmptySubsequences: true)
+      guard parts.count >= 4,
+        let pid = Int(parts[0]),
+        let cpu = Double(parts[1]),
+        let rssKB = Int(parts[2])
+      else { continue }
+      let path = parts[3...].joined(separator: " ")
+      let name = path.split(separator: "/").last.map(String.init) ?? path
+      result.append([
+        "pid": pid,
+        "name": name,
+        "cpu": cpu,
+        "memoryBytes": rssKB * 1024,
+      ])
+    }
+    return result
+  }
+}
 
 class MainFlutterWindow: NSWindow {
   override func awakeFromNib() {
@@ -71,6 +178,31 @@ class MainFlutterWindow: NSWindow {
             details: nil
           )
         )
+      }
+    }
+
+    // システムメトリクス（ADR-0039）。Dart 側からは `roola/system/metrics`
+    // の `getSystemMetrics`（1 秒ポーリング）/ `getTopProcesses`
+    // （ポップオーバーを開いたとき）を呼ぶ。`metricsProvider` は CPU の
+    // tick 差分のため状態を持つので、ハンドラに captures させて常駐させる。
+    let metricsProvider = SystemMetricsProvider()
+    let metricsChannel = FlutterMethodChannel(
+      name: "roola/system/metrics",
+      binaryMessenger: flutterViewController.engine.binaryMessenger
+    )
+    metricsChannel.setMethodCallHandler { call, result in
+      switch call.method {
+      case "getSystemMetrics":
+        let memory = metricsProvider.memoryInfo()
+        result([
+          "cpu": metricsProvider.cpuUsage(),
+          "memoryUsed": Int(memory.used),
+          "memoryTotal": Int(memory.total),
+        ])
+      case "getTopProcesses":
+        result(metricsProvider.processes())
+      default:
+        result(FlutterMethodNotImplemented)
       }
     }
 

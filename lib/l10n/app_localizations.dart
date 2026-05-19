@@ -1772,6 +1772,48 @@ abstract class AppLocalizations {
   /// **'メモを入力…'**
   String get notepadHint;
 
+  /// No description provided for @activityMonitorCpuTooltip.
+  ///
+  /// In ja, this message translates to:
+  /// **'CPU {percent}%'**
+  String activityMonitorCpuTooltip(String percent);
+
+  /// No description provided for @activityMonitorMemoryTooltip.
+  ///
+  /// In ja, this message translates to:
+  /// **'メモリ {percent}%'**
+  String activityMonitorMemoryTooltip(String percent);
+
+  /// No description provided for @activityMonitorCpuPopoverTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'CPU 上位プロセス'**
+  String get activityMonitorCpuPopoverTitle;
+
+  /// No description provided for @activityMonitorMemoryPopoverTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'メモリ上位プロセス'**
+  String get activityMonitorMemoryPopoverTitle;
+
+  /// No description provided for @activityMonitorColumnCpu.
+  ///
+  /// In ja, this message translates to:
+  /// **'CPU'**
+  String get activityMonitorColumnCpu;
+
+  /// No description provided for @activityMonitorColumnMemory.
+  ///
+  /// In ja, this message translates to:
+  /// **'メモリ'**
+  String get activityMonitorColumnMemory;
+
+  /// No description provided for @activityMonitorEmpty.
+  ///
+  /// In ja, this message translates to:
+  /// **'プロセス情報を取得できません'**
+  String get activityMonitorEmpty;
+
   /// No description provided for @buttonDiscard.
   ///
   /// In ja, this message translates to:

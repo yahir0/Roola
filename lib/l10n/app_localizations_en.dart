@@ -956,6 +956,31 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notepadHint => 'Jot a note…';
 
   @override
+  String activityMonitorCpuTooltip(String percent) {
+    return 'CPU $percent%';
+  }
+
+  @override
+  String activityMonitorMemoryTooltip(String percent) {
+    return 'Memory $percent%';
+  }
+
+  @override
+  String get activityMonitorCpuPopoverTitle => 'Top processes — CPU';
+
+  @override
+  String get activityMonitorMemoryPopoverTitle => 'Top processes — Memory';
+
+  @override
+  String get activityMonitorColumnCpu => 'CPU';
+
+  @override
+  String get activityMonitorColumnMemory => 'MEM';
+
+  @override
+  String get activityMonitorEmpty => 'No process data available';
+
+  @override
   String get buttonDiscard => 'Discard';
 
   @override

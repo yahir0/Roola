@@ -6,6 +6,8 @@ import 'package:roola/app/theme.dart';
 import 'package:roola/data/workspace/workspace_layout.dart';
 import 'package:roola/data/workspace/workspace_layout_mode.dart';
 import 'package:roola/l10n/app_localizations.dart';
+import 'package:roola/ui/activity_monitor/activity_monitor_bar.dart';
+import 'package:roola/ui/activity_monitor/activity_monitor_popover_layer.dart';
 import 'package:roola/ui/common/app_bar_divider.dart';
 import 'package:roola/ui/common/macos_window_app_bar.dart';
 import 'package:roola/ui/explorer/explorer_sidebar.dart';
@@ -38,6 +40,10 @@ class WorkspacePage extends HookWidget {
         titleSpacing: 4,
         title: const _AppWordmark(),
         actions: [
+          // アクティビティモニタはメモパッド・設定アイコンの左に置く
+          // （ADR-0039）。
+          const ActivityMonitorBar(),
+          const SizedBox(width: PolarisTokens.space2),
           IconButton(
             icon: const Icon(Icons.sticky_note_2_outlined),
             tooltip: l10n.notepadButtonTooltip,
@@ -58,6 +64,9 @@ class WorkspacePage extends HookWidget {
             child: Stack(
               children: [
                 const _WorkspaceArea(),
+                // アクティビティモニタのポップオーバー（ADR-0039）。閉じて
+                // いる間は SizedBox.shrink。
+                const ActivityMonitorPopoverLayer(),
                 if (notepadOpen.value)
                   Positioned(
                     right: 12,
