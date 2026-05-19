@@ -159,14 +159,16 @@ class _CommitRow extends ConsumerWidget {
                 ),
               ),
             ),
-            // subject・作者は flex で行内に収める。ref チップは内容なりの幅で
-            // 表示し（潰れて文字が読めなくならないよう）、長い ref のみ上限で
-            // 省略する。固定幅は日付と SHA のみ（いずれも幅が一定）。
+            // subject・作者・ref チップはすべて flex で行内に収め、行幅を
+            // 超えないようにする。ref チップは Flexible で包む — 余裕があれば
+            // 内容なりの幅で表示され、狭いときは _RefChip 内で省略表示される
+            // （_RefChip は Flexible で絞られても溢れない設計）。固定幅は
+            // 日付と SHA のみ（いずれも幅が一定）。
             Expanded(
               child: Row(
                 children: [
                   for (final refLabel in commit.refs.take(3))
-                    _RefChip(label: refLabel),
+                    Flexible(child: _RefChip(label: refLabel)),
                   Expanded(
                     flex: 5,
                     child: Text(
