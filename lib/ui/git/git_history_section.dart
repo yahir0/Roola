@@ -153,13 +153,14 @@ class _CommitRow extends ConsumerWidget {
                 ),
               ),
             ),
-            // ref ラベル・subject・作者は flex で必ず行内に収める。
-            // 固定幅は日付と SHA のみ（いずれも幅が一定）。
+            // subject・作者は flex で行内に収める。ref チップは内容なりの幅で
+            // 表示し（潰れて文字が読めなくならないよう）、長い ref のみ上限で
+            // 省略する。固定幅は日付と SHA のみ（いずれも幅が一定）。
             Expanded(
               child: Row(
                 children: [
                   for (final refLabel in commit.refs.take(3))
-                    Flexible(child: _RefChip(label: refLabel)),
+                    _RefChip(label: refLabel),
                   Expanded(
                     flex: 5,
                     child: Text(
@@ -229,6 +230,9 @@ class _RefChip extends StatelessWidget {
         : tokens.text;
     return Container(
       margin: const EdgeInsets.only(right: PolarisTokens.space1),
+      // 幅は内容なり。短い ref（HEAD など）は全文表示し、長い ref 名だけ
+      // 上限で省略表示にして行を圧迫しすぎないようにする。
+      constraints: const BoxConstraints(maxWidth: 160),
       padding: const EdgeInsets.symmetric(
         horizontal: PolarisTokens.space2,
         vertical: 1,
