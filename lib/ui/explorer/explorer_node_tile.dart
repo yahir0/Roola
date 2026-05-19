@@ -815,7 +815,10 @@ class _ActionRegisterSkill extends ExplorerNodeAction {
 /// ドラッグソースのみ。
 /// ファイル一覧の行高（4px グリッド / ADR-0038 D6）。計器ディスプレイの
 /// 走査線のように行を密に揃えるため、行間の `Divider` は引かず固定高にする。
-double explorerRowHeight(bool compact) => compact ? 24 : 28;
+/// comfortable で Skill 名サブタイトルを出す行（[skillSubtitle]）だけは
+/// 2 行ぶんの高さを取る（ADR-0024）。
+double explorerRowHeight(bool compact, {bool skillSubtitle = false}) =>
+    compact ? 24 : (skillSubtitle ? 44 : 28);
 
 /// Skill 検知済みディレクトリの末尾に出す最小バッジ（雷マーク＋件数）。
 /// 行高を揃えるため `Chip` でなくインラインの小要素にする。
@@ -920,11 +923,13 @@ class _DirectoryTile extends HookConsumerWidget {
     final isSelected = selection.contains(node.path);
     // 主選択（アンカー）のみフルアクセント点灯。それ以外は控えめな塗り（D12）。
     final isPrimary = selection.isPrimary(node.path);
-    // ADR-0024: compact ではサイドバーと同じ縦幅・1 行表示にして Skill 表示を省略する。
+    // ADR-0024: compact は 1 行（Skill バッジのみ）、comfortable は Skill
+    // 検知時にスキル名のサブタイトル行を足した 2 行にして密度差を持たせる。
     final density =
         ref.watch(explorerSettingsProvider).value?.listDensity ??
         ExplorerListDensity.comfortable;
     final isCompact = density == ExplorerListDensity.compact;
+    final showSkillSubtitle = hasSkill && !isCompact;
     // ホバーは surface、選択・drop ホバーは surfaceHi（ADR-0038 D3）。
     final Color? rowColor = (isDropHovering || isSelected)
         ? tokens.surfaceHi
@@ -953,7 +958,10 @@ class _DirectoryTile extends HookConsumerWidget {
       child: Stack(
         children: [
           Container(
-            height: explorerRowHeight(isCompact),
+            height: explorerRowHeight(
+              isCompact,
+              skillSubtitle: showSkillSubtitle,
+            ),
             color: rowColor,
             padding: const EdgeInsets.symmetric(
               horizontal: PolarisTokens.space4,
@@ -970,13 +978,30 @@ class _DirectoryTile extends HookConsumerWidget {
                 ),
                 const SizedBox(width: PolarisTokens.space3),
                 Expanded(
-                  child: Text(
-                    node.name,
-                    style: tokens.body.copyWith(
-                      color: isPrimary ? tokens.accent : tokens.text,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                  // comfortable で Skill 検知済みなら、フォルダ名の下に
+                  // 検知したスキル名をサブタイトル行として出す（ADR-0024）。
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        node.name,
+                        style: tokens.body.copyWith(
+                          color: isPrimary ? tokens.accent : tokens.text,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      if (showSkillSubtitle)
+                        Text(
+                          'Skill: ${node.skillNames.join(', ')}',
+                          style: tokens.meta.copyWith(
+                            color: tokens.textFaint,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                    ],
                   ),
                 ),
                 if (hasSkill) ...[
