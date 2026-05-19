@@ -331,7 +331,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get appearanceModeImage => 'Image';
 
   @override
-  String get appearanceModeGradient => 'Logo';
+  String get appearanceModeGradient => 'Gradient';
+
+  @override
+  String get appearanceAccentLabel => 'Accent color';
 
   @override
   String get appearanceOpacityLabel => 'Opacity';

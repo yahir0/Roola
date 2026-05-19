@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:roola/app/theme.dart';
 import 'package:roola/data/git/git_status.dart';
 import 'package:roola/l10n/app_localizations.dart';
 import 'package:roola/ui/git/git_dialogs.dart';
@@ -20,17 +21,22 @@ String gitChangeLetter(GitChangeType type) => switch (type) {
   GitChangeType.typeChanged => 'T',
 };
 
-/// 変更種別の色。
-Color gitChangeColor(GitChangeType type) => switch (type) {
-  GitChangeType.modified => const Color(0xFFE0A030),
-  GitChangeType.added => const Color(0xFF4CAF50),
-  GitChangeType.deleted => const Color(0xFFC0504D),
-  GitChangeType.renamed => const Color(0xFF5080C0),
-  GitChangeType.copied => const Color(0xFF5080C0),
-  GitChangeType.untracked => const Color(0xFF4CAF50),
-  GitChangeType.conflicted => const Color(0xFFC0504D),
-  GitChangeType.typeChanged => const Color(0xFFE0A030),
-};
+/// 変更種別の信号色（Polaris / ADR-0038 D5）。
+///
+/// 新規（added / untracked）= green、変更（modified / renamed / copied /
+/// typeChanged）= steel blue、削除・コンフリクト（deleted / conflicted）
+/// = red。色＝意味として扱い、変更色はアクセントのゴールドと区別する。
+Color gitChangeColor(PolarisTokens tokens, GitChangeType type) =>
+    switch (type) {
+      GitChangeType.modified => tokens.signalModified,
+      GitChangeType.added => tokens.signalNew,
+      GitChangeType.deleted => tokens.signalConflict,
+      GitChangeType.renamed => tokens.signalModified,
+      GitChangeType.copied => tokens.signalModified,
+      GitChangeType.untracked => tokens.signalNew,
+      GitChangeType.conflicted => tokens.signalConflict,
+      GitChangeType.typeChanged => tokens.signalModified,
+    };
 
 /// Git ビューの「Changes」セクション本体。
 ///
@@ -171,7 +177,11 @@ class _CleanPlaceholder extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.check_circle_outline, size: 36, color: colors.primary),
+          Icon(
+            Icons.check_circle_outline,
+            size: PolarisIconSize.hero,
+            color: colors.primary,
+          ),
           const SizedBox(height: 8),
           Text(AppLocalizations.of(context).gitWorkingTreeClean),
         ],
@@ -264,11 +274,11 @@ class _GroupAction extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return IconButton(
-      icon: Icon(icon, size: 15),
+      icon: Icon(icon, size: PolarisIconSize.small),
       tooltip: tooltip,
       visualDensity: VisualDensity.compact,
       padding: EdgeInsets.zero,
-      constraints: const BoxConstraints(minWidth: 26, minHeight: 26),
+      constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
       onPressed: enabled ? onPressed : null,
     );
   }
@@ -309,9 +319,9 @@ class _ChangeRow extends ConsumerWidget {
               child: Text(
                 gitChangeLetter(change.type),
                 style: TextStyle(
-                  color: gitChangeColor(change.type),
+                  color: gitChangeColor(PolarisTokens.of(context), change.type),
                   fontWeight: FontWeight.bold,
-                  fontSize: 12,
+                  fontSize: 13,
                 ),
               ),
             ),
@@ -384,12 +394,12 @@ class _RowAction extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return IconButton(
-      icon: Icon(icon, size: 15),
+      icon: Icon(icon, size: PolarisIconSize.small),
       tooltip: tooltip,
       color: color,
       visualDensity: VisualDensity.compact,
       padding: EdgeInsets.zero,
-      constraints: const BoxConstraints(minWidth: 26, minHeight: 26),
+      constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
       onPressed: enabled ? onPressed : null,
     );
   }
@@ -428,8 +438,6 @@ class _CommitBox extends StatelessWidget {
             style: Theme.of(context).textTheme.bodySmall,
             decoration: InputDecoration(
               hintText: AppLocalizations.of(context).gitCommitMessageHint,
-              isDense: true,
-              contentPadding: const EdgeInsets.all(8),
             ),
           ),
           const SizedBox(height: 6),
@@ -437,7 +445,7 @@ class _CommitBox extends StatelessWidget {
             children: [
               Expanded(
                 child: FilledButton.icon(
-                  icon: const Icon(Icons.check, size: 16),
+                  icon: const Icon(Icons.check, size: PolarisIconSize.standard),
                   label: Text(AppLocalizations.of(context).gitCommitButton),
                   onPressed: canCommit ? onCommit : null,
                 ),
@@ -456,7 +464,9 @@ class _CommitBox extends StatelessWidget {
                     enabled: canCommit,
                     child: ListTile(
                       leading: const Icon(Icons.upload),
-                      title: Text(AppLocalizations.of(context).gitCommitAndPush),
+                      title: Text(
+                        AppLocalizations.of(context).gitCommitAndPush,
+                      ),
                       dense: true,
                       contentPadding: EdgeInsets.zero,
                     ),

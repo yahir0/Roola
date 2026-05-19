@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:roola/data/appearance/polaris_accent.dart';
 
 part 'appearance_settings.freezed.dart';
 
@@ -7,7 +8,7 @@ part 'appearance_settings.freezed.dart';
 /// - `transparent`: 背景は描画しない（OS の透過レイヤーが見える）
 /// - `solid`: `solidColor` で塗りつぶす
 /// - `image`: `imagePath` の画像を画面いっぱいにカバー表示する
-/// - `gradient`: ロゴ由来の gunmetal グラデーション（`LogoTheme.backgroundGradient`）
+/// - `gradient`: Polaris のグラファイトグラデーション（`AppTheme.backgroundGradient`）
 ///   を画面いっぱいに描画する。色は固定で追加フィールドは不要
 enum AppearanceMode { transparent, solid, image, gradient }
 
@@ -38,6 +39,9 @@ abstract class AppearanceSettings with _$AppearanceSettings {
     /// リゾルブされない問題を回避するための「変化のシグナル」として持つ。
     /// path と同時に必ずセットする。null は「画像なし」と等価。
     int? transparentCenterImageMtime,
+
+    /// Polaris のアクセント色（ADR-0038 D4）。既定はゴールド。
+    @Default(PolarisAccent.gold) PolarisAccent accent,
   }) = _AppearanceSettings;
 
   /// 既定値（透過 + 不透明度 0.8）。

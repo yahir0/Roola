@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:roola/app/router.dart';
+import 'package:roola/app/theme.dart';
 import 'package:roola/core/health/claude_health_check.dart';
 import 'package:roola/data/locale/app_locale.dart';
 import 'package:roola/data/locale/locale_settings_repository_impl.dart';
@@ -267,6 +268,7 @@ class _StatusCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+    final tokens = PolarisTokens.of(context);
     final toneColor = switch (tone) {
       _StatusTone.ok => colors.primary,
       _StatusTone.neutral => colors.onSurfaceVariant,
@@ -277,12 +279,12 @@ class _StatusCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: colors.surfaceContainerHigh,
         border: Border.all(color: colors.outlineVariant),
-        borderRadius: BorderRadius.circular(2),
+        borderRadius: BorderRadius.circular(tokens.radius),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 18, color: toneColor),
+          Icon(icon, size: PolarisIconSize.standard, color: toneColor),
           const SizedBox(width: 10),
           Expanded(
             child: Column(
@@ -321,7 +323,11 @@ class _FeatureRow extends StatelessWidget {
         children: [
           Padding(
             padding: const EdgeInsets.only(top: 4, right: 8),
-            child: Icon(Icons.check, size: 14, color: colors.onSurfaceVariant),
+            child: Icon(
+              Icons.check,
+              size: PolarisIconSize.small,
+              color: colors.onSurfaceVariant,
+            ),
           ),
           Expanded(child: Text(description)),
         ],
@@ -341,6 +347,7 @@ class _InstallGuide extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final colors = Theme.of(context).colorScheme;
+    final tokens = PolarisTokens.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -362,7 +369,7 @@ class _InstallGuide extends StatelessWidget {
           decoration: BoxDecoration(
             color: colors.surfaceContainerHighest,
             border: Border.all(color: colors.outlineVariant),
-            borderRadius: BorderRadius.circular(2),
+            borderRadius: BorderRadius.circular(tokens.radius),
           ),
           child: Row(
             children: [
@@ -373,7 +380,10 @@ class _InstallGuide extends StatelessWidget {
                 ),
               ),
               IconButton(
-                icon: const Icon(Icons.content_copy, size: 16),
+                icon: const Icon(
+                  Icons.content_copy,
+                  size: PolarisIconSize.standard,
+                ),
                 tooltip: l10n.settingsClaudeInstallCopyTooltip,
                 visualDensity: VisualDensity.compact,
                 onPressed: () => _copy(context),
@@ -394,7 +404,9 @@ class _InstallGuide extends StatelessWidget {
 
   Future<void> _copy(BuildContext context) async {
     final messenger = ScaffoldMessenger.of(context);
-    final copiedMessage = AppLocalizations.of(context).settingsClaudeInstallCopied;
+    final copiedMessage = AppLocalizations.of(
+      context,
+    ).settingsClaudeInstallCopied;
     await Clipboard.setData(const ClipboardData(text: _command));
     if (!context.mounted) {
       return;
@@ -522,12 +534,13 @@ class _KeyChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+    final tokens = PolarisTokens.of(context);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: colors.surfaceContainerHigh,
         border: Border.all(color: colors.outlineVariant),
-        borderRadius: BorderRadius.circular(2),
+        borderRadius: BorderRadius.circular(tokens.radius),
       ),
       child: Text(
         label,

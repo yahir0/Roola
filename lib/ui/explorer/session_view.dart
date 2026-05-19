@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:roola/app/theme.dart';
 import 'package:roola/data/terminal_runner/terminal_run_state.dart';
 import 'package:roola/l10n/app_localizations.dart';
 import 'package:roola/ui/common/session_state_icon.dart';
@@ -72,9 +73,10 @@ class _SessionHeader extends StatelessWidget {
       SkillRunStarting() => l10n.sessionStateStarting,
       SkillRunRunning() => l10n.sessionStateRunning,
       SkillRunWaitingInput() => l10n.sessionStateWaitingInput,
-      SkillRunCompleted(:final exitCode) => exitCode == 0
-          ? l10n.sessionStateCompleted(0)
-          : l10n.sessionStateExited(exitCode),
+      SkillRunCompleted(:final exitCode) =>
+        exitCode == 0
+            ? l10n.sessionStateCompleted(0)
+            : l10n.sessionStateExited(exitCode),
       SkillRunFailed() => l10n.sessionStateFailed,
       SkillRunCancelled() => l10n.sessionStateCancelled,
     };
@@ -91,7 +93,7 @@ class _SessionHeader extends StatelessWidget {
             ),
           ),
           Chip(
-            avatar: sessionStateAvatar(state),
+            avatar: sessionStateAvatar(PolarisTokens.of(context), state),
             label: Text(label),
             visualDensity: VisualDensity.compact,
           ),

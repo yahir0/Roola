@@ -1,5 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:roola/data/appearance/appearance_settings.dart';
+import 'package:roola/data/appearance/polaris_accent.dart';
 
 part 'appearance_settings_dto.g.dart';
 
@@ -13,6 +14,7 @@ class AppearanceSettingsDto {
     this.transparencyOpacity,
     this.transparentCenterImagePath,
     this.transparentCenterImageMtime,
+    this.accent,
   });
 
   factory AppearanceSettingsDto.fromJson(Map<String, dynamic> json) =>
@@ -26,6 +28,7 @@ class AppearanceSettingsDto {
         transparencyOpacity: entity.transparencyOpacity,
         transparentCenterImagePath: entity.transparentCenterImagePath,
         transparentCenterImageMtime: entity.transparentCenterImageMtime,
+        accent: entity.accent.name,
       );
 
   final String mode;
@@ -43,6 +46,10 @@ class AppearanceSettingsDto {
   /// state の equality 破りに使う。
   final int? transparentCenterImageMtime;
 
+  /// アクセント色（`PolarisAccent` の名前）。旧バージョンの設定ファイルには
+  /// 存在しないため nullable。`toEntity` で既定（gold）にフォールバックする。
+  final String? accent;
+
   Map<String, dynamic> toJson() => _$AppearanceSettingsDtoToJson(this);
 
   AppearanceSettings toEntity() {
@@ -57,6 +64,10 @@ class AppearanceSettingsDto {
       transparencyOpacity: transparencyOpacity ?? defaults.transparencyOpacity,
       transparentCenterImagePath: transparentCenterImagePath,
       transparentCenterImageMtime: transparentCenterImageMtime,
+      accent: PolarisAccent.values.firstWhere(
+        (a) => a.name == accent,
+        orElse: () => PolarisAccent.gold,
+      ),
     );
   }
 }

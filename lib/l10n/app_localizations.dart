@@ -695,8 +695,14 @@ abstract class AppLocalizations {
   /// No description provided for @appearanceModeGradient.
   ///
   /// In ja, this message translates to:
-  /// **'ロゴ'**
+  /// **'グラデーション'**
   String get appearanceModeGradient;
+
+  /// No description provided for @appearanceAccentLabel.
+  ///
+  /// In ja, this message translates to:
+  /// **'アクセントカラー'**
+  String get appearanceAccentLabel;
 
   /// No description provided for @appearanceOpacityLabel.
   ///

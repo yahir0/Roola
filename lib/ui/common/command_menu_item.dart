@@ -28,9 +28,7 @@ ListTile commandMenuTile(
     title: Text(AppLocalizations.of(context).commandLabel(command)),
     trailing: Text(
       formatChord(chord),
-      style: Theme.of(
-        context,
-      ).textTheme.bodySmall?.copyWith(color: hintColor),
+      style: Theme.of(context).textTheme.bodySmall?.copyWith(color: hintColor),
     ),
   );
 }

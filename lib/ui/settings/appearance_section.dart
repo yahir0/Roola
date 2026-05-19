@@ -3,8 +3,10 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:roola/app/theme.dart';
 import 'package:roola/data/appearance/appearance_settings.dart';
 import 'package:roola/data/appearance/appearance_settings_repository_impl.dart';
+import 'package:roola/data/appearance/polaris_accent.dart';
 import 'package:roola/data/launcher_entry/launcher_entry_repository_impl.dart';
 import 'package:roola/l10n/app_localizations.dart';
 
@@ -15,14 +17,15 @@ import 'package:roola/l10n/app_localizations.dart';
 class AppearanceSection extends ConsumerWidget {
   const AppearanceSection({super.key});
 
-  // ロゴ（AppIcon）の配色に揃えたプリセット。
+  // solid 背景モードで選べるプリセット色。Polaris のグラファイト階層に
+  // 揃える（ADR-0038）。ここは色を選ばせる「データ」なので literal で持つ。
   static const _presetColors = <Color>[
-    Color(0xFF000000), // 真っ黒（Windows 端末の黒）
-    Color(0xFF1E232A), // ロゴ背景（deep gunmetal）
-    Color(0xFF2F353D), // ロゴ surface
-    Color(0xFF0A0A14), // pure midnight
-    Color(0xFF5080C0), // ロゴ primary blue
-    Color(0xFF90C0F0), // ロゴ accent light blue
+    Color(0xFF000000), // 純黒
+    Color(0xFF0A0B0D), // Polaris well（最も暗い計器ディスプレイ）
+    Color(0xFF121317), // Polaris bg（筐体）
+    Color(0xFF1B1D22), // Polaris surface
+    Color(0xFF2A2D33), // Polaris line（明るめのグラファイト）
+    Color(0xFFD0A341), // Polaris アクセント（ゴールド）
     Color(0xFFFFFFFF), // 白
   ];
 
@@ -39,6 +42,22 @@ class AppearanceSection extends ConsumerWidget {
         padding: const EdgeInsets.all(16),
         child: Text(AppLocalizations.of(context).appearanceLoadError('$e')),
       ),
+    );
+  }
+}
+
+/// 設定項目のフィールド見出し（全大文字トラッキング / ADR-0038 D9）。
+class _FieldLabel extends StatelessWidget {
+  const _FieldLabel(this.text);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = PolarisTokens.of(context);
+    return Text(
+      text.toUpperCase(),
+      style: tokens.label.copyWith(color: tokens.textFaint),
     );
   }
 }
@@ -61,7 +80,24 @@ class _Body extends ConsumerWidget {
             l10n.appearanceTitle,
             style: Theme.of(context).textTheme.titleMedium,
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
+          // アクセント色（ADR-0038 D4）。常に 1 色だが選択できる。
+          _FieldLabel(l10n.appearanceAccentLabel),
+          const SizedBox(height: 6),
+          SegmentedButton<PolarisAccent>(
+            showSelectedIcon: false,
+            segments: const [
+              ButtonSegment(value: PolarisAccent.gold, label: Text('GOLD')),
+              ButtonSegment(value: PolarisAccent.iceBlue, label: Text('ICE')),
+            ],
+            selected: {settings.accent},
+            onSelectionChanged: (accents) async {
+              if (accents.isNotEmpty) {
+                await notifier.setAccent(accents.first);
+              }
+            },
+          ),
+          const SizedBox(height: 16),
           SegmentedButton<AppearanceMode>(
             segments: [
               ButtonSegment(
@@ -236,6 +272,7 @@ class _ImagePicker extends StatelessWidget {
   Widget build(BuildContext context) {
     final file = imagePath != null ? File(imagePath!) : null;
     final hasImage = file != null && file.existsSync();
+    final tokens = PolarisTokens.of(context);
     return Row(
       children: [
         Container(
@@ -243,7 +280,7 @@ class _ImagePicker extends StatelessWidget {
           height: 96,
           decoration: BoxDecoration(
             color: Theme.of(context).colorScheme.surfaceContainerHighest,
-            borderRadius: BorderRadius.circular(2),
+            borderRadius: BorderRadius.circular(tokens.radius),
           ),
           clipBehavior: Clip.antiAlias,
           child: hasImage

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:roola/app/theme.dart';
 import 'package:roola/data/git/git_commit.dart';
 import 'package:roola/data/git/git_graph_row.dart';
 import 'package:roola/l10n/app_localizations.dart';
@@ -116,7 +117,7 @@ class _CommitRow extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final notifier = ref.read(gitViewModelProvider(tabId).notifier);
-    final colors = Theme.of(context).colorScheme;
+    final tokens = PolarisTokens.of(context);
     final commit = row.commit;
 
     return InkWell(
@@ -128,7 +129,7 @@ class _CommitRow extends ConsumerWidget {
         }
       },
       child: Container(
-        color: selected ? colors.primary.withValues(alpha: 0.16) : null,
+        color: selected ? tokens.surfaceHi : null,
         padding: const EdgeInsets.only(right: 8),
         child: Row(
           children: [
@@ -141,6 +142,8 @@ class _CommitRow extends ConsumerWidget {
                   laneWidth: _laneWidth,
                   dotRadius: 5,
                   lineWidth: 2,
+                  laneColors: GitGraphPainter.paletteFor(tokens),
+                  dotInnerColor: tokens.well,
                 ),
               ),
             ),
@@ -168,9 +171,9 @@ class _CommitRow extends ConsumerWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       textAlign: TextAlign.end,
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: colors.onSurfaceVariant,
-                      ),
+                      style: Theme.of(
+                        context,
+                      ).textTheme.labelSmall?.copyWith(color: tokens.textDim),
                     ),
                   ),
                 ],
@@ -181,12 +184,12 @@ class _CommitRow extends ConsumerWidget {
               _formatDate(commit.date),
               style: Theme.of(
                 context,
-              ).textTheme.labelSmall?.copyWith(color: colors.onSurfaceVariant),
+              ).textTheme.labelSmall?.copyWith(color: tokens.textDim),
             ),
             const SizedBox(width: 10),
             Text(
               commit.shortSha,
-              style: const TextStyle(fontFamily: 'SarasaTermJ', fontSize: 11),
+              style: const TextStyle(fontFamily: 'SarasaTermJ', fontSize: 13),
             ),
           ],
         ),
@@ -202,22 +205,29 @@ class _RefChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
+    final tokens = PolarisTokens.of(context);
     final isHead = label.startsWith('HEAD');
     final isTag = label.startsWith('tag:');
     final text = isTag ? label.substring(4).trim() : label;
+    // 1 アクセント色のまま 3 種を塗り/枠/無彩で描き分ける（ADR-0038 D4）。
+    // HEAD = アクセント塗り、タグ = アクセント枠のみ、ブランチ = surfaceHi。
     final bg = isHead
-        ? colors.primary
+        ? tokens.accent
         : isTag
-        ? const Color(0xFFE0A030)
-        : colors.surfaceContainerHighest;
-    final fg = isHead ? colors.onPrimary : colors.onSurface;
+        ? Colors.transparent
+        : tokens.surfaceHi;
+    final fg = isHead
+        ? tokens.onAccent
+        : isTag
+        ? tokens.accent
+        : tokens.text;
     return Container(
       margin: const EdgeInsets.only(right: 4),
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
       decoration: BoxDecoration(
         color: bg,
-        borderRadius: BorderRadius.circular(2),
+        border: isTag ? Border.all(color: tokens.accent) : null,
+        borderRadius: BorderRadius.circular(tokens.radius),
       ),
       // アイコンをインライン（WidgetSpan）にして Flex を持たせない。
       // こうすると親 Flexible が幅を極端に絞っても、Row のように
@@ -295,7 +305,7 @@ class _CommitDetail extends ConsumerWidget {
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.close, size: 16),
+                  icon: const Icon(Icons.close, size: PolarisIconSize.standard),
                   tooltip: AppLocalizations.of(context).gitCloseDetailsTooltip,
                   visualDensity: VisualDensity.compact,
                   onPressed: notifier.clearSelection,
@@ -309,7 +319,7 @@ class _CommitDetail extends ConsumerWidget {
                 ? Center(
                     child: Text(
                       AppLocalizations.of(context).gitLoadingChangedFiles,
-                      style: const TextStyle(fontSize: 12),
+                      style: const TextStyle(fontSize: 13),
                     ),
                   )
                 : ListView(
@@ -333,9 +343,12 @@ class _CommitDetail extends ConsumerWidget {
                                   child: Text(
                                     gitChangeLetter(file.type),
                                     style: TextStyle(
-                                      color: gitChangeColor(file.type),
+                                      color: gitChangeColor(
+                                        PolarisTokens.of(context),
+                                        file.type,
+                                      ),
                                       fontWeight: FontWeight.bold,
-                                      fontSize: 12,
+                                      fontSize: 13,
                                     ),
                                   ),
                                 ),

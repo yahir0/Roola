@@ -16,8 +16,8 @@ import 'package:roola/ui/common/mouse_navigation_listener.dart';
 ///
 /// `ProviderScope` の内側に置く前提で、`MaterialApp.router` を組み立てる。
 /// 背景は `appearanceSettingsProvider` の値に応じて 透過 / 単色 / 画像 /
-/// ロゴグラデーション を切り替える。テーマはロゴが dark トーン基調のため
-/// `ThemeMode.dark` に固定する。
+/// グラデーション を切り替える。テーマは Polaris のダーク専用テーマ
+/// （ADR-0038）に固定する。
 class App extends ConsumerWidget {
   const App({super.key});
 
@@ -30,9 +30,11 @@ class App extends ConsumerWidget {
     final locale = ref.watch(appLocaleProvider);
     return MaterialApp.router(
       title: 'Roola',
-      theme: AppTheme.light(),
-      darkTheme: AppTheme.dark(),
-      themeMode: ThemeMode.dark,
+      // Polaris はダーク専用（ADR-0038 D2）。ライト/ダークの切替は持たない。
+      // アクセント色はユーザー設定（既定ゴールド / ADR-0038 D4）。
+      theme: AppTheme.polaris(accent: appearance.accent),
+      // スクロールの慣性・バウンス・オーバースクロールグローを排除（D7）。
+      scrollBehavior: const PolarisScrollBehavior(),
       routerConfig: router,
       debugShowCheckedModeBanner: false,
       // 表示言語（ADR-0034）。設定値由来の locale を渡し、
@@ -101,9 +103,7 @@ class _AppearanceLayer extends StatelessWidget {
         ],
       ),
       AppearanceMode.gradient => DecoratedBox(
-        decoration: BoxDecoration(
-          gradient: AppTheme.logoTheme.backgroundGradient,
-        ),
+        decoration: const BoxDecoration(gradient: AppTheme.backgroundGradient),
         child: child,
       ),
     };

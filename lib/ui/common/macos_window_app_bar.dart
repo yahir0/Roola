@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:roola/app/theme.dart';
 import 'package:roola/l10n/app_localizations.dart';
 import 'package:window_manager/window_manager.dart';
 
@@ -40,6 +41,12 @@ class MacosWindowAppBar extends StatelessWidget implements PreferredSizeWidget {
   /// 12px × 3 個 + 各 padding で実測 70〜78px。余裕を見て 80px 取る。
   static const double _trafficLightsWidth = 80;
 
+  /// トップバー（タイトルバー兼用）の高さ（px）。
+  /// Material 標準の `kToolbarHeight`（56px）は計器 UI には背が高く、トップ
+  /// 側のクロームを重く見せる。信号灯（12px）が収まる下限まで詰め、4px
+  /// グリッドに乗る 40px とする（ADR-0038 D6）。
+  static const double _toolbarHeight = 40;
+
   /// 標準 `BackButton` / 進むボタンの描画幅。
   static const double _navButtonWidth = 48;
 
@@ -64,11 +71,12 @@ class MacosWindowAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Size get preferredSize =>
-      Size.fromHeight(kToolbarHeight + (bottom?.preferredSize.height ?? 0));
+      Size.fromHeight(_toolbarHeight + (bottom?.preferredSize.height ?? 0));
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final tokens = PolarisTokens.of(context);
     final navigator = Navigator.of(context);
     final canPop = navigator.canPop();
     // onBack 指定が無くて pop 可能なら、暗黙の Navigator.pop を行う
@@ -80,6 +88,7 @@ class MacosWindowAppBar extends StatelessWidget implements PreferredSizeWidget {
         (showBack ? _navButtonWidth : 0) + (showForward ? _navButtonWidth : 0);
     return AppBar(
       title: title,
+      toolbarHeight: _toolbarHeight,
       actions: actions,
       bottom: bottom,
       automaticallyImplyLeading: false,
@@ -88,7 +97,17 @@ class MacosWindowAppBar extends StatelessWidget implements PreferredSizeWidget {
       // 効かない。`flexibleSpace` は leading / title / actions の背面に敷かれ、
       // ボタン等が消費しなかったジェスチャだけを受け取るので、ここに
       // `DragToMoveArea` を置いて空のヘッダ領域でその挙動を再現する。
-      flexibleSpace: const DragToMoveArea(child: SizedBox.expand()),
+      // 筐体上端の 1px ハイライト（topEdge）と下端の 1px ヘアライン継ぎ目
+      // （line）を重ね、トップバーを「筐体の枠」として見せる（ADR-0038 D3）。
+      flexibleSpace: DecoratedBox(
+        decoration: BoxDecoration(
+          border: Border(
+            top: BorderSide(color: tokens.topEdge),
+            bottom: BorderSide(color: tokens.line),
+          ),
+        ),
+        child: const DragToMoveArea(child: SizedBox.expand()),
+      ),
       leadingWidth: _trafficLightsWidth + navButtonsWidth,
       leading: navButtonsWidth == 0
           ? const SizedBox(width: _trafficLightsWidth)

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:roola/app/theme.dart';
 import 'package:roola/data/git/git_stash_entry.dart';
 import 'package:roola/l10n/app_localizations.dart';
 import 'package:roola/ui/git/git_branch_menu.dart';
@@ -79,7 +80,11 @@ class GitToolbar extends ConsumerWidget {
               PopupMenuButton<_GitOverflow>(
                 enabled: !state.isBusy,
                 tooltip: l10n.gitToolbarOverflowTooltip,
-                icon: Icon(Icons.more_vert, size: 18, color: colors.onSurface),
+                icon: Icon(
+                  Icons.more_vert,
+                  size: PolarisIconSize.standard,
+                  color: colors.onSurface,
+                ),
                 onSelected: (value) => _onOverflow(context, ref, value),
                 itemBuilder: (context) => [
                   _overflowItem(
@@ -193,7 +198,10 @@ class _BranchButton extends StatelessWidget {
               alignment: PlaceholderAlignment.middle,
               child: Padding(
                 padding: EdgeInsets.only(right: 6),
-                child: Icon(Icons.account_tree_outlined, size: 15),
+                child: Icon(
+                  Icons.account_tree_outlined,
+                  size: PolarisIconSize.small,
+                ),
               ),
             ),
             TextSpan(text: label),
@@ -220,12 +228,20 @@ class _AheadBehind extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         if (behind > 0) ...[
-          Icon(Icons.arrow_downward, size: 13, color: colors.onSurfaceVariant),
+          Icon(
+            Icons.arrow_downward,
+            size: PolarisIconSize.small,
+            color: colors.onSurfaceVariant,
+          ),
           Text('$behind', style: style),
           const SizedBox(width: 6),
         ],
         if (ahead > 0) ...[
-          Icon(Icons.arrow_upward, size: 13, color: colors.onSurfaceVariant),
+          Icon(
+            Icons.arrow_upward,
+            size: PolarisIconSize.small,
+            color: colors.onSurfaceVariant,
+          ),
           Text('$ahead', style: style),
         ],
       ],
@@ -258,7 +274,7 @@ class _ToolbarButton extends StatelessWidget {
             height: 13,
             child: CircularProgressIndicator(strokeWidth: 2),
           )
-        : Icon(icon, size: 15);
+        : Icon(icon, size: PolarisIconSize.small);
 
     // 横幅が狭いときはラベルを省きアイコンのみのボタンにする。
     // 高さ 40 のツールバーに収まるようサイズを明示的に絞る。
@@ -304,6 +320,7 @@ class _StashDialog extends ConsumerWidget {
     final notifier = ref.read(gitViewModelProvider(tabId).notifier);
     final stashes = state?.stashes ?? const <GitStashEntry>[];
     final l10n = AppLocalizations.of(context);
+    final tokens = PolarisTokens.of(context);
 
     return Dialog(
       child: SizedBox(
@@ -312,26 +329,35 @@ class _StashDialog extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            // ヘッダ帯。
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 8, 8),
+              padding: const EdgeInsets.fromLTRB(16, 10, 8, 10),
               child: Row(
                 children: [
-                  const Icon(Icons.inventory_2_outlined, size: 18),
+                  Icon(
+                    Icons.inventory_2_outlined,
+                    size: PolarisIconSize.standard,
+                    color: tokens.textDim,
+                  ),
                   const SizedBox(width: 8),
                   Text(
                     l10n.gitStashListTitle,
-                    style: Theme.of(context).textTheme.titleSmall,
+                    style: tokens.body.copyWith(color: tokens.text),
                   ),
                   const Spacer(),
                   IconButton(
-                    icon: const Icon(Icons.close, size: 18),
+                    icon: const Icon(
+                      Icons.close,
+                      size: PolarisIconSize.standard,
+                    ),
                     tooltip: l10n.buttonClose,
+                    visualDensity: VisualDensity.compact,
                     onPressed: () => Navigator.of(context).maybePop(),
                   ),
                 ],
               ),
             ),
-            const Divider(height: 1),
+            Container(height: 1, color: tokens.line),
             Expanded(
               child: stashes.isEmpty
                   ? Center(child: Text(l10n.gitStashEmpty))
@@ -343,7 +369,7 @@ class _StashDialog extends ConsumerWidget {
                             enabled: !(state?.isBusy ?? true),
                             leading: const Icon(
                               Icons.inventory_2_outlined,
-                              size: 16,
+                              size: PolarisIconSize.standard,
                             ),
                             title: Text(
                               stash.message,
@@ -375,7 +401,7 @@ class _StashDialog extends ConsumerWidget {
                                 IconButton(
                                   icon: const Icon(
                                     Icons.delete_outline,
-                                    size: 16,
+                                    size: PolarisIconSize.standard,
                                   ),
                                   tooltip: l10n.gitStashDiscardTooltip,
                                   onPressed: (state?.isBusy ?? true)

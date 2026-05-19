@@ -75,9 +75,7 @@ class KeybindingsNotifier extends AsyncNotifier<Keybindings> {
   /// コマンドにキーコンビを割り当てる（上書き）。
   Future<void> setChord(CommandId id, KeyChord chord) async {
     final current = state.value ?? Keybindings.empty();
-    final next = current.copyWith(
-      overrides: {...current.overrides, id: chord},
-    );
+    final next = current.copyWith(overrides: {...current.overrides, id: chord});
     state = await AsyncValue.guard(() async {
       await _repository.save(next);
       return next;

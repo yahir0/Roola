@@ -1,7 +1,13 @@
 # ADR-0020: UI を Win10/11 風フラット実用テーマに転換する
 
-- **Status**: Accepted
+- **Status**: Superseded by ADR-0038
 - **Date**: 2026-05-14
+
+> **Superseded**: 本 ADR の Win10/11 風フラットテーマは ADR-0038（Polaris
+> デザインシステム）により全面置換された。ライト/ダーク 2 テーマ・Material
+> `ColorScheme` ベースの構成は廃止され、ダーク専用の `PolarisTokens` ベースへ
+> 移行している。角丸 2px・elevation 0・ink ripple 抑制という方向性は Polaris に
+> 引き継がれているが、本 ADR の記述は歴史的経緯としてのみ参照すること。
 
 ## Context
 

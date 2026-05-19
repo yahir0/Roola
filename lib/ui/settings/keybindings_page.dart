@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:roola/app/theme.dart';
 import 'package:roola/core/keybindings/chord_formatter.dart';
 import 'package:roola/data/keybindings/command_category.dart';
 import 'package:roola/data/keybindings/command_id.dart';
@@ -9,6 +10,7 @@ import 'package:roola/data/keybindings/keybindings_repository_impl.dart';
 import 'package:roola/l10n/app_localizations.dart';
 import 'package:roola/ui/common/command_l10n.dart';
 import 'package:roola/ui/common/macos_window_app_bar.dart';
+import 'package:roola/ui/common/polaris_dialog.dart';
 import 'package:roola/ui/settings/key_chord_recorder_dialog.dart';
 
 /// キーボードショートカットの一覧・編集画面（ADR-0033）。
@@ -70,27 +72,15 @@ class _Intro extends ConsumerWidget {
   }
 
   Future<void> _confirmResetAll(BuildContext context, WidgetRef ref) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) {
-        final l10n = AppLocalizations.of(context);
-        return AlertDialog(
-          title: Text(l10n.keybindingsResetAllConfirmTitle),
-          content: Text(l10n.keybindingsResetAllConfirmMessage),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: Text(l10n.buttonCancel),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              child: Text(l10n.buttonReset),
-            ),
-          ],
-        );
-      },
+    final l10n = AppLocalizations.of(context);
+    final confirmed = await showPolarisConfirm(
+      context,
+      title: l10n.keybindingsResetAllConfirmTitle,
+      message: l10n.keybindingsResetAllConfirmMessage,
+      confirmLabel: l10n.buttonReset,
+      cancelLabel: l10n.buttonCancel,
     );
-    if (confirmed == true) {
+    if (confirmed) {
       await ref.read(keybindingsProvider.notifier).resetAll();
     }
   }
@@ -144,7 +134,10 @@ class _KeybindingRow extends ConsumerWidget {
             IconButton(
               tooltip: AppLocalizations.of(context).keybindingsResetOneTooltip,
               visualDensity: VisualDensity.compact,
-              icon: const Icon(Icons.settings_backup_restore, size: 18),
+              icon: const Icon(
+                Icons.settings_backup_restore,
+                size: PolarisIconSize.standard,
+              ),
               onPressed: () => ref
                   .read(keybindingsProvider.notifier)
                   .resetToDefault(commandId),
@@ -173,12 +166,13 @@ class _ChordChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+    final tokens = PolarisTokens.of(context);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: colors.surfaceContainerHigh,
         border: Border.all(color: colors.outlineVariant),
-        borderRadius: BorderRadius.circular(2),
+        borderRadius: BorderRadius.circular(tokens.radius),
       ),
       child: Text(
         text,

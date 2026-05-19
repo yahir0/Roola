@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:roola/app/theme.dart';
 import 'package:roola/core/exceptions/app_exception.dart';
 import 'package:roola/data/git/git_diff.dart';
 
@@ -31,6 +32,7 @@ class _GitDiffDialog extends HookWidget {
     final future = useMemoized(load);
     final snapshot = useFuture(future);
     final colors = Theme.of(context).colorScheme;
+    final tokens = PolarisTokens.of(context);
     final media = MediaQuery.of(context).size;
 
     return Dialog(
@@ -40,16 +42,21 @@ class _GitDiffDialog extends HookWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            // ヘッダ帯。
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 8, 8),
+              padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
               child: Row(
                 children: [
-                  const Icon(Icons.difference_outlined, size: 18),
+                  Icon(
+                    Icons.difference_outlined,
+                    size: PolarisIconSize.standard,
+                    color: tokens.textDim,
+                  ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       title,
-                      style: Theme.of(context).textTheme.titleSmall,
+                      style: tokens.body.copyWith(color: tokens.text),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
@@ -69,14 +76,18 @@ class _GitDiffDialog extends HookWidget {
                     onSelectionChanged: (s) => mode.value = s.first,
                   ),
                   IconButton(
-                    icon: const Icon(Icons.close, size: 18),
+                    icon: const Icon(
+                      Icons.close,
+                      size: PolarisIconSize.standard,
+                    ),
                     tooltip: '閉じる',
+                    visualDensity: VisualDensity.compact,
                     onPressed: () => Navigator.of(context).pop(),
                   ),
                 ],
               ),
             ),
-            const Divider(height: 1),
+            Container(height: 1, color: tokens.line),
             Expanded(
               child: switch (snapshot.connectionState) {
                 ConnectionState.done =>
@@ -147,15 +158,17 @@ class _DiffContent extends StatelessWidget {
   }
 }
 
-/// diff の行配色。
+/// diff の行配色（Polaris / ADR-0038 D5）。追加行は新規の信号色、削除行は
+/// コンフリクトの信号色を淡く敷く。
 class _DiffPalette {
   _DiffPalette(BuildContext context)
-    : addBg = const Color(0x2E4CAF50),
-      delBg = const Color(0x2EC0504D),
-      headerBg = Theme.of(
-        context,
-      ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.6),
-      gutter = Theme.of(context).colorScheme.onSurfaceVariant;
+    : this._(PolarisTokens.of(context), Theme.of(context).colorScheme);
+
+  _DiffPalette._(PolarisTokens tokens, ColorScheme colors)
+    : addBg = tokens.signalNew.withValues(alpha: 0.18),
+      delBg = tokens.signalConflict.withValues(alpha: 0.18),
+      headerBg = colors.surfaceContainerHighest.withValues(alpha: 0.6),
+      gutter = colors.onSurfaceVariant;
 
   final Color addBg;
   final Color delBg;
@@ -165,7 +178,7 @@ class _DiffPalette {
 
 const TextStyle _monoStyle = TextStyle(
   fontFamily: 'SarasaTermJ',
-  fontSize: 12,
+  fontSize: 13,
   height: 1.35,
 );
 
@@ -241,7 +254,7 @@ class _Gutter extends StatelessWidget {
       width: 48,
       padding: const EdgeInsets.only(right: 8, top: 1),
       alignment: Alignment.topRight,
-      child: Text(text, style: _monoStyle.copyWith(fontSize: 11, color: color)),
+      child: Text(text, style: _monoStyle.copyWith(color: color)),
     );
   }
 }

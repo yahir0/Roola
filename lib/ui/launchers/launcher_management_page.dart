@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:roola/app/router.dart';
+import 'package:roola/app/theme.dart';
 import 'package:roola/data/launcher_entry/launcher_action.dart';
 import 'package:roola/data/launcher_entry/launcher_entries_provider.dart';
 import 'package:roola/data/launcher_entry/launcher_entry.dart';
@@ -8,6 +9,7 @@ import 'package:roola/data/launcher_entry/launcher_folder.dart';
 import 'package:roola/data/launcher_entry/launcher_folders_provider.dart';
 import 'package:roola/l10n/app_localizations.dart';
 import 'package:roola/ui/common/macos_window_app_bar.dart';
+import 'package:roola/ui/common/polaris_dialog.dart';
 import 'package:roola/ui/common/prompt_name_dialog.dart';
 import 'package:uuid/uuid.dart';
 
@@ -107,7 +109,7 @@ class _EmptyPlaceholder extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.dashboard_customize, size: 64),
+          const Icon(Icons.dashboard_customize, size: PolarisIconSize.hero),
           const SizedBox(height: 16),
           Text(l10n.launcherEmptyPlaceholder),
           const SizedBox(height: 16),
@@ -192,7 +194,11 @@ class _FolderHeader extends ConsumerWidget {
           padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
           child: Row(
             children: [
-              Icon(Icons.folder_outlined, size: 20, color: colors.secondary),
+              Icon(
+                Icons.folder_outlined,
+                size: PolarisIconSize.standard,
+                color: colors.secondary,
+              ),
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
@@ -203,7 +209,9 @@ class _FolderHeader extends ConsumerWidget {
                 ),
               ),
               PopupMenuButton<_FolderAction>(
-                tooltip: AppLocalizations.of(context).launcherFolderOperationsTooltip,
+                tooltip: AppLocalizations.of(
+                  context,
+                ).launcherFolderOperationsTooltip,
                 icon: const Icon(Icons.more_horiz),
                 onSelected: (action) => _onAction(context, ref, action),
                 itemBuilder: (context) => [
@@ -247,24 +255,15 @@ class _FolderHeader extends ConsumerWidget {
         if (!context.mounted) {
           return;
         }
-        final confirmed = await showDialog<bool>(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: Text(l10n.folderDeleteConfirmTitle),
-            content: Text(l10n.folderDeleteConfirmMessage(folder.name)),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(false),
-                child: Text(l10n.buttonCancel),
-              ),
-              FilledButton(
-                onPressed: () => Navigator.of(context).pop(true),
-                child: Text(l10n.buttonDelete),
-              ),
-            ],
-          ),
+        final confirmed = await showPolarisConfirm(
+          context,
+          title: l10n.folderDeleteConfirmTitle,
+          message: l10n.folderDeleteConfirmMessage(folder.name),
+          confirmLabel: l10n.buttonDelete,
+          cancelLabel: l10n.buttonCancel,
+          destructive: true,
         );
-        if (confirmed ?? false) {
+        if (confirmed) {
           await ref.read(launcherFoldersProvider.notifier).delete(folder.id);
         }
     }
@@ -357,13 +356,14 @@ class _EntryTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
+    final tokens = PolarisTokens.of(context);
     return LongPressDraggable<LauncherEntry>(
       data: entry,
       // ドラッグ中はカーソル位置に半透明のサムネイルを表示する。Material
       // 包装が必要なのは elevation / overlay 由来。
       feedback: Material(
         elevation: 4,
-        borderRadius: BorderRadius.circular(2),
+        borderRadius: BorderRadius.circular(tokens.radius),
         child: SizedBox(
           width: 320,
           child: ListTile(
@@ -405,24 +405,15 @@ class _EntryTile extends ConsumerWidget {
     LauncherEntry entry,
   ) async {
     final l10n = AppLocalizations.of(context);
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.launcherDeleteEntryConfirm),
-        content: Text(l10n.launcherDeleteEntryMessage(entry.displayName)),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: Text(l10n.buttonCancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: Text(l10n.buttonDelete),
-          ),
-        ],
-      ),
+    final confirmed = await showPolarisConfirm(
+      context,
+      title: l10n.launcherDeleteEntryConfirm,
+      message: l10n.launcherDeleteEntryMessage(entry.displayName),
+      confirmLabel: l10n.buttonDelete,
+      cancelLabel: l10n.buttonCancel,
+      destructive: true,
     );
-    if (confirmed ?? false) {
+    if (confirmed) {
       await ref.read(launcherEntriesProvider.notifier).delete(entry.id);
     }
   }
@@ -435,9 +426,8 @@ String _actionLabel(AppLocalizations l10n, LauncherAction action) =>
       RunCommandAction(:final command) => l10n.launcherActionLabelRunCommand(
         command,
       ),
-      ClaudeSkillAction(:final skillName) => l10n.launcherActionLabelClaudeSkill(
-        skillName,
-      ),
+      ClaudeSkillAction(:final skillName) =>
+        l10n.launcherActionLabelClaudeSkill(skillName),
     };
 
 /// 動作タイプ別の小さな leading アイコン（ADR-0023 で _EntryIcon を廃止）。
@@ -449,6 +439,7 @@ class _ActionIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+    final tokens = PolarisTokens.of(context);
     final icon = switch (action) {
       OpenHereAction() => Icons.folder_open,
       RunCommandAction() => Icons.bolt,
@@ -460,9 +451,13 @@ class _ActionIcon extends StatelessWidget {
       decoration: BoxDecoration(
         color: colors.surfaceContainerHigh,
         border: Border.all(color: colors.outlineVariant),
-        borderRadius: BorderRadius.circular(2),
+        borderRadius: BorderRadius.circular(tokens.radius),
       ),
-      child: Icon(icon, size: 20, color: colors.onSurfaceVariant),
+      child: Icon(
+        icon,
+        size: PolarisIconSize.standard,
+        color: colors.onSurfaceVariant,
+      ),
     );
   }
 }
