@@ -433,6 +433,36 @@ class PolarisTokens extends ThemeExtension<PolarisTokens> {
   /// レイアウトの全寸法を乗せるグリッド単位（px）。
   final double gridUnit;
 
+  // --- 余白スケール（ADR-0038 D6: 全寸法を 4px グリッドに乗せる）-----------
+  // padding / gap / margin はこの定数を使い、リテラルを書かない。値はすべて
+  // グリッド単位（4px）の整数倍。色トークンと違い余白はテーマで変わらないため
+  // instance フィールドではなく `static const` で持つ。これにより
+  // `const EdgeInsets` の中でもそのまま使え、const 構築を壊さない。
+
+  /// 4px（1 グリッド）。最小の余白。
+  static const double space1 = 4;
+
+  /// 8px（2 グリッド）。標準の小余白・行内の細ギャップ。
+  static const double space2 = 8;
+
+  /// 12px（3 グリッド）。アイコン↔ラベル間隔・中余白。
+  static const double space3 = 12;
+
+  /// 16px（4 グリッド）。行・パネルの標準インセット。
+  static const double space4 = 16;
+
+  /// 20px（5 グリッド）。
+  static const double space5 = 20;
+
+  /// 24px（6 グリッド）。セクション間の大余白。
+  static const double space6 = 24;
+
+  /// 28px（7 グリッド）。サイドバー等のリスト行の高さ。
+  static const double space7 = 28;
+
+  /// 32px（8 グリッド）。画面・大ブロックの区切り。
+  static const double space8 = 32;
+
   /// タイプスケール最小段＝クローム用ラベル（全大文字・トラッキング）。11px。
   /// プロポーショナル。ウェイトは w500 — w600 は字面が太く丸く見えたため
   /// 引き下げた（ADR-0038 D9）。
@@ -448,6 +478,7 @@ class PolarisTokens extends ThemeExtension<PolarisTokens> {
   TextStyle get meta => const TextStyle(
     fontSize: 13,
     fontWeight: FontWeight.w500,
+    letterSpacing: 0, // textTheme 合成での Material 既定混入を防ぐ（body 参照）
     fontFamilyFallback: ['Hiragino Sans'],
   );
 
@@ -457,6 +488,10 @@ class PolarisTokens extends ThemeExtension<PolarisTokens> {
   TextStyle get body => const TextStyle(
     fontSize: 14,
     fontWeight: FontWeight.w500,
+    // 明示必須。省略すると ThemeData の textTheme 合成で Material 既定の
+    // letterSpacing(0.25) が紛れ込み、`textTheme.bodyMedium` 経由の文字だけ
+    // 字間が広がって素の `body` トークン直参照とズレる（meta / title も同様）。
+    letterSpacing: 0,
     fontFamilyFallback: ['Hiragino Sans'],
   );
 
@@ -466,6 +501,7 @@ class PolarisTokens extends ThemeExtension<PolarisTokens> {
   TextStyle get title => const TextStyle(
     fontSize: 16,
     fontWeight: FontWeight.w600,
+    letterSpacing: 0, // textTheme 合成での Material 既定混入を防ぐ（body 参照）
     fontFamilyFallback: ['Hiragino Sans'],
   );
 
