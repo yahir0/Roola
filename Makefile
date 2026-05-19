@@ -11,9 +11,14 @@ DEFINES ?= --dart-define-from-file=dart_defines/prod.json
 DEVICE  ?= macos
 
 # Release ビルド成果物と DMG の出力先。
+# DMG_VOLUME はマウント時のボリューム名。app 名と同じ "Roola" にすると、
+# Roola.app が /Applications にインストール済み（＝開発機では常にそう）の
+# とき macOS の App Management 保護が /Volumes/Roola/Roola.app への書き込み
+# を「起動中アプリの改変」と見なしてブロックし hdiutil create が失敗する。
+# ボリューム名を app 名と別にして回避する。
 APP_BUNDLE := build/macos/Build/Products/Release/Roola.app
 DMG_PATH   := build/Roola.dmg
-DMG_VOLUME := Roola
+DMG_VOLUME := Roola Installer
 
 # 配布用署名・公証の設定。
 # - SIGN_IDENTITY: codesign に渡す Developer ID Application 証明書の識別子。
