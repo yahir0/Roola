@@ -186,8 +186,10 @@ class _BranchButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return OutlinedButton(
+      // minimumSize は指定せず、テーマの buttonMinSize（高さ 32px・幅 0）に
+      // 委ねる。幅 0 なので狭い幅まで絞れる挙動は維持しつつ、高さは他の
+      // ボタンと同じ 32px に揃う。
       style: OutlinedButton.styleFrom(
-        minimumSize: Size.zero,
         padding: const EdgeInsets.symmetric(horizontal: PolarisTokens.space3),
       ),
       onPressed: onPressed,

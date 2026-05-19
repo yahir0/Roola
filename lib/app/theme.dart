@@ -85,11 +85,10 @@ class AppTheme {
       side: BorderSide(color: t.line),
     );
 
-    // ボタンは計器のキー然とした低い箱に詰める。Material 標準の 40px 角は
-    // 計器 UI には背が高く突出するが、詰めすぎると押しにくく視認性も落ちる
-    // （機能優先 / ADR-0038）。一覧の行（28px）とトップバー（40px）の中間、
-    // クリックに十分な 32px・横詰めに統一する（ADR-0038 D6）。
-    const buttonMinSize = Size(0, 32);
+    // コントロール（ボタン / 入力欄）の標準高さ。計器 UI 寄りに 32px へ
+    // 詰めていたが、操作のしやすさを優先して一段上げ、トップバーと同じ
+    // 40px（10 グリッド）に統一する（ADR-0038 D6）。横方向は詰める。
+    const buttonMinSize = Size(0, 40);
     const buttonPadding = EdgeInsets.symmetric(
       horizontal: PolarisTokens.space3,
     );
@@ -223,12 +222,12 @@ class AppTheme {
         backgroundColor: t.surface,
       ),
       inputDecorationTheme: InputDecorationTheme(
-        // 入力欄も計器パネルらしく低く詰める。Material 既定の content padding
-        // は計器 UI には大きいため、4px グリッドに乗る詰めた既定値に統一する。
+        // 入力欄もボタンと同じ操作高さ（≒40px）に揃える。isDense のうえで
+        // 上下パディングを広めに取り、ボタンの標準高さに体感を合わせる。
         isDense: true,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: PolarisTokens.space3,
-          vertical: PolarisTokens.space2,
+          vertical: PolarisTokens.space3,
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(t.radius),

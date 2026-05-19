@@ -103,6 +103,10 @@ class ExplorerPathBar extends HookConsumerWidget {
           constraints: const BoxConstraints.tightFor(width: 24, height: 24),
           onPressed: submit,
         ),
+        // suffixIcon スロットは未指定だと Material 既定の 48px 角を最小確保し、
+        // 入力欄全体をその高さまで押し広げる。空の制約でスロットを実アイコン
+        // （24px）に合わせ、入力欄を isDense 本来の高さ（≒32px）に収める。
+        suffixIconConstraints: const BoxConstraints(),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(tokens.radius),
           borderSide: BorderSide(color: tokens.line),
