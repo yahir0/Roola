@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:roola/app/theme.dart';
 import 'package:roola/data/launcher_entry/launcher_action.dart';
 import 'package:roola/data/skill_session/adhoc_run_args.dart';
 import 'package:roola/data/workspace/workspace_layout.dart';
 import 'package:roola/l10n/app_localizations.dart';
+import 'package:roola/ui/common/polaris_display_panel.dart';
 import 'package:roola/ui/git/git_changes_section.dart';
 import 'package:roola/ui/git/git_history_section.dart';
 import 'package:roola/ui/git/git_toolbar.dart';
@@ -12,6 +14,7 @@ import 'package:roola/ui/git/git_view_model.dart';
 import 'package:roola/ui/git/git_view_state.dart';
 import 'package:roola/ui/workspace/current_tab_id_provider.dart';
 import 'package:roola/ui/workspace/workspace_provider.dart';
+import 'package:roola/ui/workspace/workspace_split.dart';
 import 'package:uuid/uuid.dart';
 
 const _uuid = Uuid();
@@ -54,15 +57,15 @@ class _GitErrorView extends ConsumerWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.error_outline, size: 40),
-          const SizedBox(height: 8),
+          const Icon(Icons.error_outline, size: PolarisIconSize.hero),
+          const SizedBox(height: PolarisTokens.space2),
           Text(
             l10n.gitLoadError(error.toString()),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: PolarisTokens.space2),
           OutlinedButton.icon(
-            icon: const Icon(Icons.refresh, size: 16),
+            icon: const Icon(Icons.refresh, size: PolarisIconSize.standard),
             label: Text(l10n.buttonRetry),
             onPressed: () => ref.invalidate(gitViewModelProvider(tabId)),
           ),
@@ -80,21 +83,18 @@ class _GitMissingView extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(PolarisTokens.space6),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.terminal, size: 40),
-            const SizedBox(height: 8),
+            const Icon(Icons.terminal, size: PolarisIconSize.hero),
+            const SizedBox(height: PolarisTokens.space2),
             Text(
               l10n.gitNotFoundTitle,
               style: Theme.of(context).textTheme.titleSmall,
             ),
-            const SizedBox(height: 4),
-            Text(
-              l10n.gitNotFoundMessage,
-              textAlign: TextAlign.center,
-            ),
+            const SizedBox(height: PolarisTokens.space1),
+            Text(l10n.gitNotFoundMessage, textAlign: TextAlign.center),
           ],
         ),
       ),
@@ -115,38 +115,49 @@ class _GitWorkspace extends HookWidget {
   Widget build(BuildContext context) {
     final changesCollapsed = useState(false);
     final historyCollapsed = useState(false);
+    // Changes / History スプリッタの分割比（Changes 側の占有率）。
+    final splitRatio = useState(0.6);
     final narrowSection = useState(_Section.changes);
     final changedCount =
         (state.status?.staged.length ?? 0) +
         (state.status?.unstaged.length ?? 0);
+    final tokens = PolarisTokens.of(context);
 
-    return Column(
-      children: [
-        GitToolbar(tabId: tabId, state: state),
-        if (state.notice != null)
-          _GitNoticeBar(tabId: tabId, notice: state.notice!),
-        Expanded(
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              if (constraints.maxWidth < _narrowThreshold) {
-                return _NarrowBody(
-                  tabId: tabId,
-                  state: state,
-                  section: narrowSection,
-                  changedCount: changedCount,
-                );
-              }
-              return _WideBody(
-                tabId: tabId,
-                state: state,
-                changesCollapsed: changesCollapsed,
-                historyCollapsed: historyCollapsed,
-                changedCount: changedCount,
-              );
-            },
+    // explorer と同じく、ツールバー＝クローム（bg）／本体＝計器ディスプレイ
+    // パネル（well にインセット）の 2 トーン構成（ADR-0038 D3）。
+    return ColoredBox(
+      color: tokens.bg,
+      child: Column(
+        children: [
+          GitToolbar(tabId: tabId, state: state),
+          if (state.notice != null)
+            _GitNoticeBar(tabId: tabId, notice: state.notice!),
+          Expanded(
+            child: PolarisDisplayPanel(
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  if (constraints.maxWidth < _narrowThreshold) {
+                    return _NarrowBody(
+                      tabId: tabId,
+                      state: state,
+                      section: narrowSection,
+                      changedCount: changedCount,
+                    );
+                  }
+                  return _WideBody(
+                    tabId: tabId,
+                    state: state,
+                    changesCollapsed: changesCollapsed,
+                    historyCollapsed: historyCollapsed,
+                    splitRatio: splitRatio,
+                    changedCount: changedCount,
+                  );
+                },
+              ),
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
@@ -157,6 +168,7 @@ class _WideBody extends StatelessWidget {
     required this.state,
     required this.changesCollapsed,
     required this.historyCollapsed,
+    required this.splitRatio,
     required this.changedCount,
   });
 
@@ -164,50 +176,71 @@ class _WideBody extends StatelessWidget {
   final GitViewState state;
   final ValueNotifier<bool> changesCollapsed;
   final ValueNotifier<bool> historyCollapsed;
+
+  /// Changes セクションの占有率（残りが History）。スプリッタのドラッグで更新。
+  final ValueNotifier<double> splitRatio;
   final int changedCount;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final children = <Widget>[
-      _SectionHeader(
-        title: l10n.gitTabChanges,
-        count: changedCount,
-        collapsed: changesCollapsed.value,
-        onToggle: () => changesCollapsed.value = !changesCollapsed.value,
-      ),
-    ];
-    if (!changesCollapsed.value) {
-      children.add(
-        Expanded(
-          // Changes セクションを既定で広めに取り、ファイル一覧が
-          // コミット欄に潰されないようにする。
-          flex: historyCollapsed.value ? 1 : 3,
-          child: GitChangesSection(tabId: tabId, state: state),
-        ),
-      );
-    }
-    children.add(const Divider(height: 1));
-    children.add(
-      _SectionHeader(
-        title: l10n.gitTabHistory,
-        count: state.graph.length,
-        collapsed: historyCollapsed.value,
-        onToggle: () => historyCollapsed.value = !historyCollapsed.value,
-      ),
+    final changesOpen = !changesCollapsed.value;
+    final historyOpen = !historyCollapsed.value;
+
+    final changesHeader = _SectionHeader(
+      title: l10n.gitTabChanges,
+      count: changedCount,
+      collapsed: changesCollapsed.value,
+      onToggle: () => changesCollapsed.value = !changesCollapsed.value,
     );
-    if (!historyCollapsed.value) {
-      children.add(
-        Expanded(
-          flex: changesCollapsed.value ? 1 : 2,
-          child: GitHistorySection(tabId: tabId, state: state),
-        ),
+    final historyHeader = _SectionHeader(
+      title: l10n.gitTabHistory,
+      count: state.graph.length,
+      collapsed: historyCollapsed.value,
+      onToggle: () => historyCollapsed.value = !historyCollapsed.value,
+    );
+
+    // 両方開いているときだけ、Changes / History をドラッグ可能なスプリッタで
+    // 分割する（ハンドルを上下に動かして高さ配分を変えられる）。どちらかが
+    // 畳まれていれば本体は 1 つ以下なので、単純に縦に積む。
+    if (changesOpen && historyOpen) {
+      return Column(
+        children: [
+          changesHeader,
+          Expanded(
+            child: WorkspaceSplit(
+              axis: Axis.vertical,
+              ratio: splitRatio.value,
+              onRatioChanged: (r) => splitRatio.value = r.clamp(0.1, 0.9),
+              minPaneSize: 72,
+              first: GitChangesSection(tabId: tabId, state: state),
+              second: Column(
+                children: [
+                  historyHeader,
+                  Expanded(
+                    child: GitHistorySection(tabId: tabId, state: state),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       );
     }
-    if (changesCollapsed.value && historyCollapsed.value) {
-      children.add(const Expanded(child: SizedBox.shrink()));
-    }
-    return Column(children: children);
+
+    return Column(
+      children: [
+        changesHeader,
+        if (changesOpen)
+          Expanded(child: GitChangesSection(tabId: tabId, state: state)),
+        const Divider(height: 1),
+        historyHeader,
+        if (historyOpen)
+          Expanded(child: GitHistorySection(tabId: tabId, state: state)),
+        if (!changesOpen && !historyOpen)
+          const Expanded(child: SizedBox.shrink()),
+      ],
+    );
   }
 }
 
@@ -230,7 +263,7 @@ class _NarrowBody extends StatelessWidget {
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.all(6),
+          padding: const EdgeInsets.all(PolarisTokens.space2),
           child: SegmentedButton<_Section>(
             showSelectedIcon: false,
             segments: [
@@ -275,20 +308,31 @@ class _SectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
+    final tokens = PolarisTokens.of(context);
+    // 計器パネル内のサブ見出し帯。well より一段持ち上げた surface トーンで
+    // 区切り、見出しは全大文字トラッキングのラベル（ADR-0038 D9）。
     return InkWell(
       onTap: onToggle,
       child: Container(
         height: 28,
-        padding: const EdgeInsets.symmetric(horizontal: 6),
-        color: colors.surfaceContainerHighest.withValues(alpha: 0.5),
+        padding: const EdgeInsets.symmetric(horizontal: PolarisTokens.space2),
+        color: tokens.surface,
         child: Row(
           children: [
-            Icon(collapsed ? Icons.chevron_right : Icons.expand_more, size: 18),
-            const SizedBox(width: 2),
+            Icon(
+              collapsed ? Icons.chevron_right : Icons.expand_more,
+              size: PolarisIconSize.standard,
+              color: tokens.textDim,
+            ),
+            const SizedBox(width: PolarisTokens.space1),
             Text(
-              '$title  $count',
-              style: Theme.of(context).textTheme.labelMedium,
+              title.toUpperCase(),
+              style: tokens.label.copyWith(color: tokens.textDim),
+            ),
+            const SizedBox(width: PolarisTokens.space2),
+            Text(
+              '$count',
+              style: tokens.mono.copyWith(color: tokens.textFaint),
             ),
           ],
         ),
@@ -306,28 +350,35 @@ class _GitNoticeBar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final colors = Theme.of(context).colorScheme;
+    final tokens = PolarisTokens.of(context);
     final l10n = AppLocalizations.of(context);
     final isError = notice.kind == GitNoticeKind.error;
-    final bg = isError ? colors.errorContainer : colors.surfaceContainerHighest;
-    final fg = isError ? colors.onErrorContainer : colors.onSurface;
+    final bg = isError
+        ? tokens.signalConflict.withValues(alpha: 0.18)
+        : tokens.surface;
+    final fg = isError ? tokens.signalConflict : tokens.text;
 
     return Container(
       width: double.infinity,
       color: bg,
-      padding: const EdgeInsets.fromLTRB(10, 4, 4, 4),
+      padding: const EdgeInsets.fromLTRB(
+        PolarisTokens.space3,
+        PolarisTokens.space1,
+        PolarisTokens.space1,
+        PolarisTokens.space1,
+      ),
       child: Row(
         children: [
           Icon(
             isError ? Icons.error_outline : Icons.info_outline,
-            size: 15,
+            size: PolarisIconSize.small,
             color: fg,
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: PolarisTokens.space2),
           Expanded(
             child: Text(
               notice.message,
-              style: TextStyle(color: fg, fontSize: 12),
+              style: TextStyle(color: fg, fontSize: 13),
             ),
           ),
           if (notice.offerTerminal)
@@ -336,7 +387,7 @@ class _GitNoticeBar extends ConsumerWidget {
               child: Text(l10n.gitOpenInTerminal),
             ),
           IconButton(
-            icon: Icon(Icons.close, size: 15, color: fg),
+            icon: Icon(Icons.close, size: PolarisIconSize.small, color: fg),
             tooltip: l10n.buttonClose,
             visualDensity: VisualDensity.compact,
             onPressed: () =>

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:roola/app/theme.dart';
 import 'package:roola/data/git/git_branch.dart';
 import 'package:roola/l10n/app_localizations.dart';
 import 'package:roola/ui/git/git_dialogs.dart';
@@ -25,6 +26,7 @@ class _GitBranchDialog extends HookConsumerWidget {
     final state = ref.watch(gitViewModelProvider(tabId)).value;
     final notifier = ref.read(gitViewModelProvider(tabId).notifier);
     final l10n = AppLocalizations.of(context);
+    final tokens = PolarisTokens.of(context);
 
     final branches = state?.branches ?? const <GitBranch>[];
     final query = filter.value.toLowerCase();
@@ -44,19 +46,29 @@ class _GitBranchDialog extends HookConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            // ヘッダ帯。
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 8, 8),
+              padding: const EdgeInsets.fromLTRB(
+                PolarisTokens.space4,
+                PolarisTokens.space3,
+                PolarisTokens.space2,
+                PolarisTokens.space3,
+              ),
               child: Row(
                 children: [
-                  const Icon(Icons.account_tree_outlined, size: 18),
-                  const SizedBox(width: 8),
+                  Icon(
+                    Icons.account_tree_outlined,
+                    size: PolarisIconSize.standard,
+                    color: tokens.textDim,
+                  ),
+                  const SizedBox(width: PolarisTokens.space2),
                   Text(
                     l10n.gitBranchDialogTitle,
-                    style: Theme.of(context).textTheme.titleSmall,
+                    style: tokens.body.copyWith(color: tokens.text),
                   ),
                   const Spacer(),
                   TextButton.icon(
-                    icon: const Icon(Icons.add, size: 16),
+                    icon: const Icon(Icons.add, size: PolarisIconSize.small),
                     label: Text(l10n.gitBranchNewButton),
                     onPressed: () async {
                       final name = await gitPrompt(
@@ -72,27 +84,40 @@ class _GitBranchDialog extends HookConsumerWidget {
                     },
                   ),
                   IconButton(
-                    icon: const Icon(Icons.close, size: 18),
+                    icon: const Icon(
+                      Icons.close,
+                      size: PolarisIconSize.standard,
+                    ),
                     tooltip: l10n.buttonClose,
+                    visualDensity: VisualDensity.compact,
                     onPressed: close,
                   ),
                 ],
               ),
             ),
+            Container(height: 1, color: tokens.line),
+            // 検索行。
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.fromLTRB(
+                PolarisTokens.space3,
+                PolarisTokens.space3,
+                PolarisTokens.space3,
+                PolarisTokens.space3,
+              ),
               child: TextField(
                 autofocus: true,
                 decoration: InputDecoration(
-                  prefixIcon: const Icon(Icons.search, size: 18),
+                  prefixIcon: const Icon(
+                    Icons.search,
+                    size: PolarisIconSize.standard,
+                  ),
                   hintText: l10n.gitBranchFilterHint,
                   isDense: true,
                 ),
                 onChanged: (v) => filter.value = v,
               ),
             ),
-            const SizedBox(height: 8),
-            const Divider(height: 1),
+            Container(height: 1, color: tokens.line),
             Expanded(
               child: ListView(
                 children: [
@@ -129,13 +154,20 @@ class _SectionLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = PolarisTokens.of(context);
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-      color: Theme.of(
-        context,
-      ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
-      child: Text(label, style: Theme.of(context).textTheme.labelSmall),
+      padding: const EdgeInsets.fromLTRB(
+        PolarisTokens.space4,
+        PolarisTokens.space2,
+        PolarisTokens.space4,
+        PolarisTokens.space1,
+      ),
+      color: tokens.surface,
+      child: Text(
+        label.toUpperCase(),
+        style: tokens.label.copyWith(color: tokens.textFaint),
+      ),
     );
   }
 }
@@ -186,7 +218,7 @@ class _BranchRow extends ConsumerWidget {
       enabled: !busy,
       leading: Icon(
         branch.isCurrent ? Icons.check : Icons.account_tree_outlined,
-        size: 16,
+        size: PolarisIconSize.standard,
         color: branch.isCurrent ? colors.primary : colors.onSurfaceVariant,
       ),
       title: Text(
@@ -206,7 +238,7 @@ class _BranchRow extends ConsumerWidget {
       trailing: PopupMenuButton<_BranchMenu>(
         enabled: !busy,
         tooltip: l10n.gitBranchOperationsTooltip,
-        icon: const Icon(Icons.more_horiz, size: 18),
+        icon: const Icon(Icons.more_horiz, size: PolarisIconSize.standard),
         onSelected: (value) async {
           switch (value) {
             case _BranchMenu.merge:

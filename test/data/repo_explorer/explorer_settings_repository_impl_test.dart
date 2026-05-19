@@ -108,21 +108,18 @@ void main() {
     expect(loaded.favorites.firstWhere((f) => f.id == 'b').folderId, isNull);
   });
 
-  test(
-    'legacy settings file without favoriteFolders / folderId loads with '
-    'empty folders and null folderId',
-    () async {
-      // favoriteFolders キーが無く、favorites 要素に folderId が無い旧 JSON も
-      // 後方互換で読めることを検証する（ADR-0029 の lazy migration）。
-      await tempDir.create(recursive: true);
-      await File('${tempDir.path}/repo_explorer_settings.json').writeAsString(
-        '{"rootPath": "/Users/foo", "favorites": ['
-        '{"id": "a", "path": "/Users/foo/repos", "name": "Repos"}]}',
-      );
-      final loaded = await repo.load();
-      expect(loaded.favoriteFolders, isEmpty);
-      expect(loaded.favorites, hasLength(1));
-      expect(loaded.favorites.first.folderId, isNull);
-    },
-  );
+  test('legacy settings file without favoriteFolders / folderId loads with '
+      'empty folders and null folderId', () async {
+    // favoriteFolders キーが無く、favorites 要素に folderId が無い旧 JSON も
+    // 後方互換で読めることを検証する（ADR-0029 の lazy migration）。
+    await tempDir.create(recursive: true);
+    await File('${tempDir.path}/repo_explorer_settings.json').writeAsString(
+      '{"rootPath": "/Users/foo", "favorites": ['
+      '{"id": "a", "path": "/Users/foo/repos", "name": "Repos"}]}',
+    );
+    final loaded = await repo.load();
+    expect(loaded.favoriteFolders, isEmpty);
+    expect(loaded.favorites, hasLength(1));
+    expect(loaded.favorites.first.folderId, isNull);
+  });
 }

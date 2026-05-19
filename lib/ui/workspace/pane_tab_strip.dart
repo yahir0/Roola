@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:roola/app/theme.dart';
 import 'package:roola/core/keybindings/chord_formatter.dart';
 import 'package:roola/data/keybindings/command_id.dart';
 import 'package:roola/data/keybindings/command_registry.dart';
@@ -23,19 +24,21 @@ class PaneTabStrip extends ConsumerWidget {
   final PaneSlotId slotId;
   final PaneSlot slot;
 
-  static const double height = 36;
+  /// タブストリップの高さ（px）。タブ（アイコン 16 ＋ ラベル 14）が枠に
+  /// 詰まって見えないよう上下にゆとりを取り、4px グリッド上の 40px とする
+  /// （ADR-0038 D6）。
+  static const double height = 40;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final colors = Theme.of(context).colorScheme;
+    final tokens = PolarisTokens.of(context);
     final activeIndex = slot.safeActiveIndex;
+    // タブストリップは筐体側のクローム＝bg トーン＋下端 1px ヘアライン継ぎ目。
     return Container(
       height: height,
       decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(color: Theme.of(context).dividerColor),
-        ),
-        color: colors.surfaceContainerHighest.withValues(alpha: 0.3),
+        border: Border(bottom: BorderSide(color: tokens.line)),
+        color: tokens.bg,
       ),
       child: Row(
         children: [
@@ -88,7 +91,7 @@ class _TabChip extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final notifier = ref.read(workspaceProvider.notifier);
-    final colors = Theme.of(context).colorScheme;
+    final tokens = PolarisTokens.of(context);
     return DragTarget<String>(
       // 自分自身の上へのドロップは受けない（no-op）。
       onWillAcceptWithDetails: (details) => details.data != tab.id,
@@ -124,7 +127,7 @@ class _TabChip extends ConsumerWidget {
               left: 0,
               top: 4,
               bottom: 4,
-              child: Container(width: 3, color: colors.primary),
+              child: Container(width: 2, color: tokens.accent),
             ),
           ],
         );
@@ -137,20 +140,22 @@ class _TabChip extends ConsumerWidget {
     Workspace notifier, {
     bool dragging = false,
   }) {
-    final colors = Theme.of(context).colorScheme;
+    final tokens = PolarisTokens.of(context);
+    // アクティブタブのみ surface に持ち上げ、2px アクセント下線で点灯（D12）。
     return Material(
-      color: isActive
-          ? colors.surface
-          : colors.surfaceContainerHighest.withValues(alpha: 0.2),
+      color: isActive ? tokens.surface : Colors.transparent,
       child: InkWell(
         onTap: dragging ? null : () => notifier.activateTab(tab.id),
         child: Container(
           constraints: const BoxConstraints(maxWidth: 180),
-          padding: const EdgeInsets.only(left: 12, right: 4),
+          padding: const EdgeInsets.only(
+            left: PolarisTokens.space3,
+            right: PolarisTokens.space2,
+          ),
           decoration: BoxDecoration(
             border: Border(
               bottom: BorderSide(
-                color: isActive ? colors.primary : Colors.transparent,
+                color: isActive ? tokens.accent : Colors.transparent,
                 width: 2,
               ),
             ),
@@ -164,21 +169,23 @@ class _TabChip extends ConsumerWidget {
                   TerminalTab() => Icons.terminal,
                   GitTab() => Icons.account_tree_outlined,
                 },
-                size: 14,
-                color: colors.onSurfaceVariant,
+                size: PolarisIconSize.small,
+                color: isActive ? tokens.accent : tokens.textFaint,
               ),
-              const SizedBox(width: 6),
+              const SizedBox(width: PolarisTokens.space2),
               Flexible(
                 child: Text(
                   _label(tab),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.bodySmall,
+                  style: tokens.body.copyWith(
+                    color: isActive ? tokens.accent : tokens.textDim,
+                  ),
                 ),
               ),
-              const SizedBox(width: 2),
+              const SizedBox(width: PolarisTokens.space2),
               IconButton(
-                icon: const Icon(Icons.close, size: 14),
+                icon: const Icon(Icons.close, size: PolarisIconSize.small),
                 tooltip: AppLocalizations.of(context).paneTabCloseTooltip,
                 visualDensity: VisualDensity.compact,
                 padding: EdgeInsets.zero,
@@ -211,9 +218,9 @@ class _TabChip extends ConsumerWidget {
           title: Text(AppLocalizations.of(context).commandLabel(command)),
           trailing: Text(
             formatChord(effective[command]!),
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).hintColor,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: Theme.of(context).hintColor),
           ),
           dense: true,
           contentPadding: EdgeInsets.zero,
@@ -284,7 +291,7 @@ class _EndDropZone extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final colors = Theme.of(context).colorScheme;
+    final tokens = PolarisTokens.of(context);
     return DragTarget<String>(
       onAcceptWithDetails: (details) => ref
           .read(workspaceProvider.notifier)
@@ -297,9 +304,9 @@ class _EndDropZone extends ConsumerWidget {
           child: candidate.isEmpty
               ? null
               : Container(
-                  width: 3,
+                  width: 2,
                   height: PaneTabStrip.height - 8,
-                  color: colors.primary,
+                  color: tokens.accent,
                 ),
         );
       },
@@ -316,7 +323,7 @@ class _AddTabButton extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return PopupMenuButton<_AddTabKind>(
-      icon: const Icon(Icons.add, size: 18),
+      icon: const Icon(Icons.add, size: PolarisIconSize.standard),
       tooltip: AppLocalizations.of(context).paneTabAddTooltip,
       iconSize: 18,
       padding: EdgeInsets.zero,

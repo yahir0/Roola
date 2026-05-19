@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:roola/app/theme.dart';
 
 /// ノートパッド左端の行番号ルーラ（ADR-0036）。
 ///
@@ -85,7 +86,7 @@ class NotepadLineGutter extends StatelessWidget {
         // 本文のスクロールに追従させ、ClipRect ではみ出しを切り取る。
         return ClipRect(
           child: Padding(
-            padding: const EdgeInsets.only(right: 8),
+            padding: const EdgeInsets.only(right: PolarisTokens.space2),
             child: OverflowBox(
               alignment: Alignment.topCenter,
               minHeight: 0,

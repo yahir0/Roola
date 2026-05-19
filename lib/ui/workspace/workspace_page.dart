@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:roola/app/router.dart';
+import 'package:roola/app/theme.dart';
 import 'package:roola/data/workspace/workspace_layout.dart';
 import 'package:roola/data/workspace/workspace_layout_mode.dart';
 import 'package:roola/l10n/app_localizations.dart';
@@ -32,6 +33,10 @@ class WorkspacePage extends HookWidget {
     return Scaffold(
       appBar: MacosWindowAppBar(
         bottom: const AppBarDivider(),
+        // 信号灯領域の直後にワードマークを詰め、トップバー中央の空白を埋めて
+        // 右端のアクションと釣り合わせる（ADR-0038 D8/D9）。
+        titleSpacing: 4,
+        title: const _AppWordmark(),
         actions: [
           IconButton(
             icon: const Icon(Icons.sticky_note_2_outlined),
@@ -67,6 +72,18 @@ class WorkspacePage extends HookWidget {
         ],
       ),
     );
+  }
+}
+
+/// トップバー左端に置くロゴワードマーク（ADR-0038 D9）。信号灯領域の直後に
+/// 置き、トップバー中央の空白を埋めて右端のアクションと釣り合わせる。
+class _AppWordmark extends StatelessWidget {
+  const _AppWordmark();
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = PolarisTokens.of(context);
+    return Text('ROOLA', style: tokens.wordmark.copyWith(color: tokens.text));
   }
 }
 

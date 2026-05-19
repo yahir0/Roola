@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:roola/app/theme.dart';
 import 'package:roola/data/git/git_repository.dart';
 import 'package:roola/data/git/git_status.dart';
 import 'package:roola/data/git/process_git_repository.dart';
@@ -47,11 +48,12 @@ void main() {
         gitRepositoryProvider.overrideWithValue(mock),
         currentTabIdProvider.overrideWithValue('g1'),
       ],
-      child: const MaterialApp(
+      child: MaterialApp(
+        theme: AppTheme.polaris(),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
-        locale: Locale('ja'),
-        home: Scaffold(body: GitTabBody()),
+        locale: const Locale('ja'),
+        home: const Scaffold(body: GitTabBody()),
       ),
     );
   }
@@ -64,7 +66,9 @@ void main() {
     await tester.pumpWidget(harness(mock));
     await tester.pumpAndSettle();
 
-    expect(find.text('main'), findsOneWidget);
+    // ブランチ名は `_BranchButton` の `Text.rich`（アイコンの WidgetSpan を
+    // 含む）に出るため、完全一致の find.text でなく部分一致で検証する。
+    expect(find.textContaining('main'), findsOneWidget);
     expect(find.text('作業ツリーはクリーンです'), findsOneWidget);
   });
 

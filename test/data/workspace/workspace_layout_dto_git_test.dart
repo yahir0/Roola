@@ -95,9 +95,6 @@ void main() {
 
     final restored = WorkspaceLayoutDto.fromJson(oldJson).toEntity();
     expect(restored.topLeft.tabs.single, isA<ExplorerTab>());
-    expect(
-      (restored.topLeft.tabs.single as ExplorerTab).currentPath,
-      '/tmp',
-    );
+    expect((restored.topLeft.tabs.single as ExplorerTab).currentPath, '/tmp');
   });
 }

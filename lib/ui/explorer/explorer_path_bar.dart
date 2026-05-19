@@ -3,8 +3,10 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:roola/app/theme.dart';
 import 'package:roola/core/system/file_opener.dart';
 import 'package:roola/l10n/app_localizations.dart';
+import 'package:roola/ui/common/polaris_glyphs.dart';
 import 'package:roola/ui/explorer/explorer_view_model.dart';
 
 /// エクスプローラタブ上部の編集可能なパスバー。
@@ -65,36 +67,53 @@ class ExplorerPathBar extends HookConsumerWidget {
       if (!context.mounted) {
         return;
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.explorerPathNotFound(input))),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.explorerPathNotFound(input))));
       controller.text = currentPath;
     }
 
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-      child: TextField(
-        controller: controller,
-        focusNode: focusNode,
-        onSubmitted: (_) => submit(),
-        style: Theme.of(context).textTheme.bodyMedium,
-        decoration: InputDecoration(
-          isDense: true,
-          prefixIcon: const Icon(Icons.folder_outlined, size: 20),
-          prefixIconConstraints: const BoxConstraints(
-            minWidth: 36,
-            minHeight: 36,
+    final tokens = PolarisTokens.of(context);
+    // 計器パネルにインセットした「沈んだ読み取り表示」。太枠のフォーム感を
+    // 排し、well 地＋1px ヘアライン枠＋等幅でパスを表示する（ADR-0038 D9）。
+    return TextField(
+      controller: controller,
+      focusNode: focusNode,
+      onSubmitted: (_) => submit(),
+      style: tokens.mono.copyWith(color: tokens.text),
+      decoration: InputDecoration(
+        filled: true,
+        fillColor: tokens.well,
+        prefixIcon: Padding(
+          padding: const EdgeInsets.only(
+            left: PolarisTokens.space3,
+            right: PolarisTokens.space2,
           ),
-          suffixIcon: IconButton(
-            icon: const Icon(Icons.subdirectory_arrow_left, size: 18),
-            tooltip: l10n.explorerNavigateToPathTooltip,
-            onPressed: submit,
+          child: PolarisTypeIcon(isDir: true, color: tokens.textDim),
+        ),
+        prefixIconConstraints: const BoxConstraints(),
+        suffixIcon: IconButton(
+          icon: const Icon(
+            Icons.subdirectory_arrow_left,
+            size: PolarisIconSize.small,
           ),
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(2)),
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 12,
-            vertical: 10,
-          ),
+          tooltip: l10n.explorerNavigateToPathTooltip,
+          visualDensity: VisualDensity.compact,
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints.tightFor(width: 24, height: 24),
+          onPressed: submit,
+        ),
+        // suffixIcon スロットは未指定だと Material 既定の 48px 角を最小確保し、
+        // 入力欄全体をその高さまで押し広げる。空の制約でスロットを実アイコン
+        // （24px）に合わせ、入力欄を isDense 本来の高さ（≒32px）に収める。
+        suffixIconConstraints: const BoxConstraints(),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(tokens.radius),
+          borderSide: BorderSide(color: tokens.line),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(tokens.radius),
+          borderSide: BorderSide(color: tokens.accent),
         ),
       ),
     );

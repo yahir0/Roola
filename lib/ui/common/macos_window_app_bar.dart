@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:roola/app/theme.dart';
 import 'package:roola/l10n/app_localizations.dart';
 import 'package:window_manager/window_manager.dart';
 
@@ -11,14 +12,8 @@ import 'package:window_manager/window_manager.dart';
 /// 信号灯と重なって押し分けられない。`leadingWidth` に信号灯ぶんの幅を
 /// 加算し、leading widget を右側に押し出すことで衝突を避ける。
 ///
-/// 通常はナビゲーションスタックを `Navigator.pop` する back ボタンを
-/// 自動表示するが、Explorer のように「同じ route のまま内部状態を
-/// 巻き戻したい」ケースのために [onBack] を渡すと、push 履歴の有無に
-/// 関係なくその callback を back の動作として使う。
-///
-/// [onForward] を渡すと back の右隣にブラウザ風の進むボタンも表示する。
-/// Explorer のディレクトリ履歴ナビゲーション専用で、Settings 等の
-/// 単純な pop で済む画面では渡さない（null だと進むボタンは描画されない）。
+/// back ボタンは `Navigator.canPop()` が true のとき（push されて重なった
+/// 画面）だけ自動表示し、押すと pop する。
 ///
 /// [title] は省略可能で、Home / Explorer のようにタブで現在地が示せる
 /// 画面ではタイトル文字列を出さずに [AppTabSegments] のような widget を
@@ -29,9 +24,8 @@ import 'package:window_manager/window_manager.dart';
 class MacosWindowAppBar extends StatelessWidget implements PreferredSizeWidget {
   const MacosWindowAppBar({
     this.title,
+    this.titleSpacing,
     this.actions,
-    this.onBack,
-    this.onForward,
     this.bottom,
     super.key,
   });
@@ -40,23 +34,22 @@ class MacosWindowAppBar extends StatelessWidget implements PreferredSizeWidget {
   /// 12px × 3 個 + 各 padding で実測 70〜78px。余裕を見て 80px 取る。
   static const double _trafficLightsWidth = 80;
 
-  /// 標準 `BackButton` / 進むボタンの描画幅。
+  /// トップバー（タイトルバー兼用）の高さ（px）。
+  /// Material 標準の `kToolbarHeight`（56px）は計器 UI には背が高く、トップ
+  /// 側のクロームを重く見せる。信号灯（12px）が収まる下限まで詰め、4px
+  /// グリッドに乗る 40px とする（ADR-0038 D6）。
+  static const double _toolbarHeight = 40;
+
+  /// back ボタンの描画幅。
   static const double _navButtonWidth = 48;
 
   final Widget? title;
+
+  /// [title] の左余白。null だと AppBar 標準（16px）。トップバー左端の信号灯
+  /// 領域の直後にワードマーク等を詰めて置きたい場合に小さい値を渡す。
+  final double? titleSpacing;
+
   final List<Widget>? actions;
-
-  /// back ボタンの動作を上書きする callback。null の場合は
-  /// `Navigator.canPop()` を見て自動的に pop する。`null` ではないが
-  /// 値も null（= `() {} as VoidCallback?` 的に渡せない設計）。「back を
-  /// 表示しない」を意図する場合は呼び出し側で意図的に省略するか、
-  /// callback として `null` を渡すと back ボタンが消える。
-  final VoidCallback? onBack;
-
-  /// 進むボタンの動作。null だと進むボタン自体を描画しない（back のみ）。
-  /// Explorer の履歴 forward など、画面ごとに「進む」概念がある場合のみ
-  /// 渡す。
-  final VoidCallback? onForward;
 
   /// AppBar の下端に重ねる widget（区切りライン等）。Material の AppBar
   /// `bottom` スロットへそのまま流す。
@@ -64,23 +57,25 @@ class MacosWindowAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Size get preferredSize =>
-      Size.fromHeight(kToolbarHeight + (bottom?.preferredSize.height ?? 0));
+      Size.fromHeight(_toolbarHeight + (bottom?.preferredSize.height ?? 0));
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final tokens = PolarisTokens.of(context);
     final navigator = Navigator.of(context);
-    final canPop = navigator.canPop();
-    // onBack 指定が無くて pop 可能なら、暗黙の Navigator.pop を行う
-    // callback を組み立てる。`BackButton` を使っていた頃の挙動を維持。
-    final effectiveOnBack = onBack ?? (canPop ? navigator.maybePop : null);
-    final showBack = effectiveOnBack != null;
-    final showForward = onForward != null;
-    final navButtonsWidth =
-        (showBack ? _navButtonWidth : 0) + (showForward ? _navButtonWidth : 0);
+    // back ボタンは pop 可能なとき（push で重なった画面）だけ出す。
+    final showBack = navigator.canPop();
+    final navButtonsWidth = showBack ? _navButtonWidth : 0;
     return AppBar(
       title: title,
+      titleSpacing: titleSpacing,
+      toolbarHeight: _toolbarHeight,
       actions: actions,
+      // アクション群が筐体右端に貼り付くと窮屈なので 8px の余白を挟む。
+      // `actions` の要素数を変えないので、macOS のタイトル中央寄せ判定
+      // （アクション 2 個未満で中央）には影響しない。
+      actionsPadding: const EdgeInsets.only(right: PolarisTokens.space2),
       bottom: bottom,
       automaticallyImplyLeading: false,
       // `TitleBarStyle.hidden` でネイティブのタイトルバーを消しているため、
@@ -88,39 +83,30 @@ class MacosWindowAppBar extends StatelessWidget implements PreferredSizeWidget {
       // 効かない。`flexibleSpace` は leading / title / actions の背面に敷かれ、
       // ボタン等が消費しなかったジェスチャだけを受け取るので、ここに
       // `DragToMoveArea` を置いて空のヘッダ領域でその挙動を再現する。
-      flexibleSpace: const DragToMoveArea(child: SizedBox.expand()),
+      // 筐体上端の 1px ハイライト（topEdge）と下端の 1px ヘアライン継ぎ目
+      // （line）を重ね、トップバーを「筐体の枠」として見せる（ADR-0038 D3）。
+      flexibleSpace: DecoratedBox(
+        decoration: BoxDecoration(
+          border: Border(
+            top: BorderSide(color: tokens.topEdge),
+            bottom: BorderSide(color: tokens.line),
+          ),
+        ),
+        child: const DragToMoveArea(child: SizedBox.expand()),
+      ),
       leadingWidth: _trafficLightsWidth + navButtonsWidth,
-      leading: navButtonsWidth == 0
-          ? const SizedBox(width: _trafficLightsWidth)
-          : Padding(
+      leading: showBack
+          ? Padding(
               padding: const EdgeInsets.only(left: _trafficLightsWidth),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Material の BackButton をそのまま使うと、macOS では
-                  // `Icons.arrow_back_ios_new_rounded`（細いシェブロン）に
-                  // 切り替わるが、forward には対応する自動 widget が無い。
-                  // 両者を手動で同じ icon family に揃えるため、back も
-                  // IconButton で書き下す。
-                  //
-                  // BackButton は onPressed が null のとき自動で
-                  // Navigator.pop を呼ぶフォールバックを持つので、
-                  // それ相当の挙動を `effectiveOnBack` で再現している。
-                  if (showBack)
-                    IconButton(
-                      icon: const Icon(Icons.arrow_back_ios_new_rounded),
-                      tooltip: l10n.navBack,
-                      onPressed: effectiveOnBack,
-                    ),
-                  if (showForward)
-                    IconButton(
-                      icon: const Icon(Icons.arrow_forward_ios_rounded),
-                      tooltip: l10n.navForward,
-                      onPressed: onForward,
-                    ),
-                ],
+              // back は macOS 風の細いシェブロン。標準 BackButton 相当の
+              // 動作（pop）を IconButton で書き下す。
+              child: IconButton(
+                icon: const Icon(Icons.arrow_back_ios_new_rounded),
+                tooltip: l10n.navBack,
+                onPressed: navigator.maybePop,
               ),
-            ),
+            )
+          : const SizedBox(width: _trafficLightsWidth),
     );
   }
 }

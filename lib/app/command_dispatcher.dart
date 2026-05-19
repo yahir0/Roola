@@ -90,9 +90,7 @@ void dispatchCommand(CommandId id, WidgetRef ref) {
       });
     case CommandId.pasteItem:
       _inExplorerDir(ref, (context, tabId, dir) {
-        unawaited(
-          runPaste(context, ref, targetDir: dir, explorerTabId: tabId),
-        );
+        unawaited(runPaste(context, ref, targetDir: dir, explorerTabId: tabId));
       });
 
     // エクスプローラ（選択中アイテム対象）
@@ -243,22 +241,21 @@ void _inExplorerDir(
 /// 選択が無ければ何もしない。
 void _onSelection(
   WidgetRef ref,
-  void Function(BuildContext context, String tabId, String selectedPath)
-  action,
+  void Function(BuildContext context, String tabId, String selectedPath) action,
 ) {
   final tabId = _focusedExplorerTabId(ref);
   if (tabId == null) {
     return;
   }
-  final selection = ref.read(explorerItemSelectionProvider(tabId));
-  if (selection == null) {
+  final selectedPath = ref.read(explorerItemSelectionProvider(tabId)).primary;
+  if (selectedPath == null) {
     return;
   }
   final context = rootNavigatorKey.currentContext;
   if (context == null) {
     return;
   }
-  action(context, tabId, selection);
+  action(context, tabId, selectedPath);
 }
 
 /// 「ここで開く」系の対象ディレクトリに対して [action]。選択中アイテムが
@@ -268,9 +265,9 @@ void _onExplorerTargetDir(WidgetRef ref, void Function(String dir) action) {
   if (tabId == null) {
     return;
   }
-  final selection = ref.read(explorerItemSelectionProvider(tabId));
-  final dir = (selection != null && Directory(selection).existsSync())
-      ? selection
+  final selectedPath = ref.read(explorerItemSelectionProvider(tabId)).primary;
+  final dir = (selectedPath != null && Directory(selectedPath).existsSync())
+      ? selectedPath
       : ref.read(explorerViewModelProvider(tabId)).currentPath;
   action(dir);
 }

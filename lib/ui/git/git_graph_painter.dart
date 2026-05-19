@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:roola/app/theme.dart';
 import 'package:roola/data/git/git_graph_row.dart';
 
 /// 履歴グラフ 1 行分のレーン・線分を描く [CustomPainter]（ADR-0030 / design
@@ -13,6 +14,8 @@ class GitGraphPainter extends CustomPainter {
     required this.laneWidth,
     required this.dotRadius,
     required this.lineWidth,
+    required this.laneColors,
+    required this.dotInnerColor,
   });
 
   final GitGraphRow row;
@@ -20,17 +23,25 @@ class GitGraphPainter extends CustomPainter {
   final double dotRadius;
   final double lineWidth;
 
-  /// レーンごとの色。レーン番号をこの配列長で剰余して使う。
-  static const List<Color> laneColors = [
-    Color(0xFF5080C0),
-    Color(0xFF4CAF50),
-    Color(0xFFE0A030),
-    Color(0xFFC0504D),
-    Color(0xFF8E6FBF),
-    Color(0xFF3FA8A0),
+  /// レーンごとの色。レーン番号をこの配列長で剰余して使う。Polaris の
+  /// トークン由来のパレットを呼び出し側から渡す（ADR-0038）。
+  final List<Color> laneColors;
+
+  /// コミット node の中空部（リング内側）の色。`well` トーン。
+  final Color dotInnerColor;
+
+  /// Polaris トークンからレーンパレットを組み立てる。新規ハードコード色を
+  /// 持ち込まず、アクセント・信号色・テキストトーンでレーンを描き分ける。
+  static List<Color> paletteFor(PolarisTokens tokens) => [
+    tokens.accent,
+    tokens.signalNew,
+    tokens.signalModified,
+    tokens.signalConflict,
+    tokens.textDim,
+    tokens.text,
   ];
 
-  static Color colorForLane(int lane) => laneColors[lane % laneColors.length];
+  Color colorForLane(int lane) => laneColors[lane % laneColors.length];
 
   double _laneCenterX(int lane) => laneWidth / 2 + lane * laneWidth;
 
@@ -69,7 +80,7 @@ class GitGraphPainter extends CustomPainter {
       ..drawCircle(
         center,
         dotRadius - lineWidth,
-        Paint()..color = const Color(0xFFFFFFFF),
+        Paint()..color = dotInnerColor,
       )
       ..drawCircle(
         center,
@@ -86,5 +97,6 @@ class GitGraphPainter extends CustomPainter {
       oldDelegate.row != row ||
       oldDelegate.laneWidth != laneWidth ||
       oldDelegate.dotRadius != dotRadius ||
-      oldDelegate.lineWidth != lineWidth;
+      oldDelegate.lineWidth != lineWidth ||
+      oldDelegate.dotInnerColor != dotInnerColor;
 }

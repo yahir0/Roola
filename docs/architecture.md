@@ -28,7 +28,7 @@ lib/
 ├── app/                                 # アプリ最上位の合成 / DI / ルーティング / テーマ
 │   ├── app.dart                         # MaterialApp.router / ProviderScope
 │   ├── router.dart                      # go_router_builder で定義したルート
-│   └── theme.dart                       # ThemeData
+│   └── theme.dart                       # Polaris テーマ（PolarisTokens + ダーク専用 ThemeData）
 │
 ├── ui/                                  # View + ViewModel
 │   ├── home/
@@ -133,6 +133,14 @@ lib/
 - `ProviderScope` の配置と最上位 DI
 - `MaterialApp.router` の組み立てとテーマ適用
 - go_router 定義
+
+**テーマ（Polaris デザインシステム / ADR-0038）**:
+- `theme.dart` は Polaris のデザイントークン `PolarisTokens`（`ThemeExtension`）と、
+  それを束ねるダーク専用の `ThemeData` ビルダーを提供する。ライトテーマは持たない
+- UI コンポーネントは色・角丸・余白・テキストスタイルを `PolarisTokens`
+  （`Theme.of(context).extension<PolarisTokens>()`）経由で参照する。リテラルの
+  `Color(0x...)` やマジックナンバーをコンポーネント側にハードコードしない
+- 詳細な思想・トークン構成・各決定は ADR-0038 を参照
 
 **禁止**:
 - ビジネスロジックの実装（ViewModel 以降に置く）

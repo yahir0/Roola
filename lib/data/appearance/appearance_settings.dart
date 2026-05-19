@@ -1,15 +1,19 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:roola/data/appearance/polaris_accent.dart';
 
 part 'appearance_settings.freezed.dart';
 
 /// アプリ背景のモード。
 ///
-/// - `transparent`: 背景は描画しない（OS の透過レイヤーが見える）
-/// - `solid`: `solidColor` で塗りつぶす
-/// - `image`: `imagePath` の画像を画面いっぱいにカバー表示する
-/// - `gradient`: ロゴ由来の gunmetal グラデーション（`LogoTheme.backgroundGradient`）
-///   を画面いっぱいに描画する。色は固定で追加フィールドは不要
-enum AppearanceMode { transparent, solid, image, gradient }
+/// Polaris（ADR-0038）はダーク専用・グラファイト筐体を持つ視覚システムで、
+/// 任意色・画像への背景差し替えは思想と相反する。そのため外観モードは
+/// 「不透明な筐体」と「筐体を透かす」の 2 択に絞る（旧 solid / image /
+/// gradient は廃止）。
+///
+/// - `opaque`: Polaris のグラファイト筐体をそのまま不透明で描画する（既定）
+/// - `transparent`: 筐体全体を `transparencyOpacity` の濃さで半透明に合成し、
+///   背後のデスクトップを透かす
+enum AppearanceMode { opaque, transparent }
 
 /// アプリ全体の外観設定。
 ///
@@ -17,14 +21,10 @@ enum AppearanceMode { transparent, solid, image, gradient }
 @freezed
 abstract class AppearanceSettings with _$AppearanceSettings {
   const factory AppearanceSettings({
-    @Default(AppearanceMode.transparent) AppearanceMode mode,
+    @Default(AppearanceMode.opaque) AppearanceMode mode,
 
-    /// RGBA を 32bit int で保持（`Color.toARGB32()` 相当）。
-    int? solidColor,
-    String? imagePath,
-
-    /// `transparent` モードで背景にうっすら載せる暗幕の不透明度（0.0〜1.0）。
-    /// 1.0 で完全不透明、0.0 で完全透過。色はロゴの deep background 固定。
+    /// `transparent` モードで筐体を合成する不透明度（0.0〜1.0）。
+    /// 1.0 で完全不透明、0.0 で完全透過。
     /// 既定値はウィンドウ枠が視認できる程度の 0.8。
     @Default(0.8) double transparencyOpacity,
 
@@ -38,8 +38,11 @@ abstract class AppearanceSettings with _$AppearanceSettings {
     /// リゾルブされない問題を回避するための「変化のシグナル」として持つ。
     /// path と同時に必ずセットする。null は「画像なし」と等価。
     int? transparentCenterImageMtime,
+
+    /// Polaris のアクセント色（ADR-0038 D4）。既定はゴールド。
+    @Default(PolarisAccent.gold) PolarisAccent accent,
   }) = _AppearanceSettings;
 
-  /// 既定値（透過 + 不透明度 0.8）。
+  /// 既定値（不透明な Polaris グラファイト筐体）。
   factory AppearanceSettings.defaults() => const AppearanceSettings();
 }

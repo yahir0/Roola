@@ -4,6 +4,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:roola/app/router.dart';
 import 'package:roola/data/skill_session/active_sessions.dart';
 import 'package:roola/l10n/app_localizations.dart';
+import 'package:roola/ui/common/polaris_dialog.dart';
 import 'package:window_manager/window_manager.dart';
 
 /// ウィンドウ close 操作を捕まえ、アクティブセッションがあれば確認ダイアログを
@@ -65,25 +66,13 @@ Future<bool?> showSessionCloseConfirmation(
   BuildContext context,
   int sessionCount,
 ) {
-  return showDialog<bool>(
-    context: context,
-    builder: (dialogContext) {
-      final l10n = AppLocalizations.of(dialogContext);
-      return AlertDialog(
-        title: Text(l10n.windowCloseConfirmTitle),
-        content: Text(l10n.windowCloseConfirmMessage(sessionCount)),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: Text(l10n.buttonCancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: Text(l10n.windowCloseConfirmButton),
-          ),
-        ],
-      );
-    },
+  final l10n = AppLocalizations.of(context);
+  return showPolarisConfirm(
+    context,
+    title: l10n.windowCloseConfirmTitle,
+    message: l10n.windowCloseConfirmMessage(sessionCount),
+    confirmLabel: l10n.windowCloseConfirmButton,
+    cancelLabel: l10n.buttonCancel,
   );
 }
 

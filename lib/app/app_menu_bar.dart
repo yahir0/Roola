@@ -68,9 +68,7 @@ class AppMenuBar extends ConsumerWidget {
           ),
           const PlatformMenuItemGroup(
             members: [
-              PlatformProvidedMenuItem(
-                type: PlatformProvidedMenuItemType.hide,
-              ),
+              PlatformProvidedMenuItem(type: PlatformProvidedMenuItemType.hide),
               PlatformProvidedMenuItem(
                 type: PlatformProvidedMenuItemType.hideOtherApplications,
               ),
@@ -81,9 +79,7 @@ class AppMenuBar extends ConsumerWidget {
           ),
           const PlatformMenuItemGroup(
             members: [
-              PlatformProvidedMenuItem(
-                type: PlatformProvidedMenuItemType.quit,
-              ),
+              PlatformProvidedMenuItem(type: PlatformProvidedMenuItemType.quit),
             ],
           ),
         ],
@@ -117,10 +113,7 @@ class AppMenuBar extends ConsumerWidget {
             ],
           ),
           PlatformMenuItemGroup(
-            members: [
-              item(CommandId.renameItem),
-              item(CommandId.moveToTrash),
-            ],
+            members: [item(CommandId.renameItem), item(CommandId.moveToTrash)],
           ),
         ],
       ),
@@ -135,10 +128,7 @@ class AppMenuBar extends ConsumerWidget {
             ],
           ),
           PlatformMenuItemGroup(
-            members: [
-              item(CommandId.nextTab),
-              item(CommandId.previousTab),
-            ],
+            members: [item(CommandId.nextTab), item(CommandId.previousTab)],
           ),
           PlatformMenuItemGroup(
             members: [

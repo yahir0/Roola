@@ -5,7 +5,11 @@ import 'package:roola/data/keybindings/command_id.dart';
 import 'package:roola/data/keybindings/command_registry.dart';
 import 'package:roola/data/keybindings/key_chord.dart';
 
-KeyChord _chord(LogicalKeyboardKey key, {bool meta = false, bool shift = false}) {
+KeyChord _chord(
+  LogicalKeyboardKey key, {
+  bool meta = false,
+  bool shift = false,
+}) {
   return KeyChord(triggerKeyId: key.keyId, meta: meta, shift: shift);
 }
 
@@ -59,7 +63,10 @@ void main() {
       };
       final conflicts = findConflicts(effective);
       expect(conflicts.length, 1);
-      expect(conflicts[dup], containsAll([CommandId.copyPath, CommandId.copyItem]));
+      expect(
+        conflicts[dup],
+        containsAll([CommandId.copyPath, CommandId.copyItem]),
+      );
     });
 
     test('重複が無ければ空', () {

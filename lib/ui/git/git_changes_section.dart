@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:roola/app/theme.dart';
 import 'package:roola/data/git/git_status.dart';
 import 'package:roola/l10n/app_localizations.dart';
 import 'package:roola/ui/git/git_dialogs.dart';
@@ -20,17 +21,22 @@ String gitChangeLetter(GitChangeType type) => switch (type) {
   GitChangeType.typeChanged => 'T',
 };
 
-/// 変更種別の色。
-Color gitChangeColor(GitChangeType type) => switch (type) {
-  GitChangeType.modified => const Color(0xFFE0A030),
-  GitChangeType.added => const Color(0xFF4CAF50),
-  GitChangeType.deleted => const Color(0xFFC0504D),
-  GitChangeType.renamed => const Color(0xFF5080C0),
-  GitChangeType.copied => const Color(0xFF5080C0),
-  GitChangeType.untracked => const Color(0xFF4CAF50),
-  GitChangeType.conflicted => const Color(0xFFC0504D),
-  GitChangeType.typeChanged => const Color(0xFFE0A030),
-};
+/// 変更種別の信号色（Polaris / ADR-0038 D5）。
+///
+/// 新規（added / untracked）= green、変更（modified / renamed / copied /
+/// typeChanged）= steel blue、削除・コンフリクト（deleted / conflicted）
+/// = red。色＝意味として扱い、変更色はアクセントのゴールドと区別する。
+Color gitChangeColor(PolarisTokens tokens, GitChangeType type) =>
+    switch (type) {
+      GitChangeType.modified => tokens.signalModified,
+      GitChangeType.added => tokens.signalNew,
+      GitChangeType.deleted => tokens.signalConflict,
+      GitChangeType.renamed => tokens.signalModified,
+      GitChangeType.copied => tokens.signalModified,
+      GitChangeType.untracked => tokens.signalNew,
+      GitChangeType.conflicted => tokens.signalConflict,
+      GitChangeType.typeChanged => tokens.signalModified,
+    };
 
 /// Git ビューの「Changes」セクション本体。
 ///
@@ -99,7 +105,9 @@ class GitChangesSection extends HookConsumerWidget {
               child: status.isClean
                   ? const _CleanPlaceholder()
                   : ListView(
-                      padding: const EdgeInsets.only(bottom: 8),
+                      padding: const EdgeInsets.only(
+                        bottom: PolarisTokens.space2,
+                      ),
                       children: [
                         if (conflicts.isNotEmpty)
                           _ChangeGroup(
@@ -171,8 +179,12 @@ class _CleanPlaceholder extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.check_circle_outline, size: 36, color: colors.primary),
-          const SizedBox(height: 8),
+          Icon(
+            Icons.check_circle_outline,
+            size: PolarisIconSize.hero,
+            color: colors.primary,
+          ),
+          const SizedBox(height: PolarisTokens.space2),
           Text(AppLocalizations.of(context).gitWorkingTreeClean),
         ],
       ),
@@ -208,7 +220,10 @@ class _ChangeGroup extends ConsumerWidget {
       children: [
         Container(
           height: 26,
-          padding: const EdgeInsets.only(left: 12, right: 4),
+          padding: const EdgeInsets.only(
+            left: PolarisTokens.space3,
+            right: PolarisTokens.space1,
+          ),
           color: colors.surfaceContainerHighest.withValues(alpha: 0.4),
           child: Row(
             children: [
@@ -264,11 +279,11 @@ class _GroupAction extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return IconButton(
-      icon: Icon(icon, size: 15),
+      icon: Icon(icon, size: PolarisIconSize.small),
       tooltip: tooltip,
       visualDensity: VisualDensity.compact,
       padding: EdgeInsets.zero,
-      constraints: const BoxConstraints(minWidth: 26, minHeight: 26),
+      constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
       onPressed: enabled ? onPressed : null,
     );
   }
@@ -301,7 +316,10 @@ class _ChangeRow extends ConsumerWidget {
                   notifier.workingFileDiff(change.path, staged: change.staged),
             ),
       child: Padding(
-        padding: const EdgeInsets.only(left: 12, right: 4),
+        padding: const EdgeInsets.only(
+          left: PolarisTokens.space3,
+          right: PolarisTokens.space1,
+        ),
         child: Row(
           children: [
             SizedBox(
@@ -309,15 +327,17 @@ class _ChangeRow extends ConsumerWidget {
               child: Text(
                 gitChangeLetter(change.type),
                 style: TextStyle(
-                  color: gitChangeColor(change.type),
+                  color: gitChangeColor(PolarisTokens.of(context), change.type),
                   fontWeight: FontWeight.bold,
-                  fontSize: 12,
+                  fontSize: 13,
                 ),
               ),
             ),
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 5),
+                padding: const EdgeInsets.symmetric(
+                  vertical: PolarisTokens.space1,
+                ),
                 child: Text(
                   change.displayPath,
                   maxLines: 1,
@@ -384,12 +404,12 @@ class _RowAction extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return IconButton(
-      icon: Icon(icon, size: 15),
+      icon: Icon(icon, size: PolarisIconSize.small),
       tooltip: tooltip,
       color: color,
       visualDensity: VisualDensity.compact,
       padding: EdgeInsets.zero,
-      constraints: const BoxConstraints(minWidth: 26, minHeight: 26),
+      constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
       onPressed: enabled ? onPressed : null,
     );
   }
@@ -416,7 +436,12 @@ class _CommitBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(8, 6, 8, 8),
+      padding: const EdgeInsets.fromLTRB(
+        PolarisTokens.space2,
+        PolarisTokens.space2,
+        PolarisTokens.space2,
+        PolarisTokens.space2,
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -428,21 +453,19 @@ class _CommitBox extends StatelessWidget {
             style: Theme.of(context).textTheme.bodySmall,
             decoration: InputDecoration(
               hintText: AppLocalizations.of(context).gitCommitMessageHint,
-              isDense: true,
-              contentPadding: const EdgeInsets.all(8),
             ),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: PolarisTokens.space2),
           Row(
             children: [
               Expanded(
                 child: FilledButton.icon(
-                  icon: const Icon(Icons.check, size: 16),
+                  icon: const Icon(Icons.check, size: PolarisIconSize.standard),
                   label: Text(AppLocalizations.of(context).gitCommitButton),
                   onPressed: canCommit ? onCommit : null,
                 ),
               ),
-              const SizedBox(width: 4),
+              const SizedBox(width: PolarisTokens.space1),
               PopupMenuButton<_CommitMenu>(
                 enabled: !busy,
                 tooltip: AppLocalizations.of(context).gitCommitOptionsTooltip,
@@ -456,7 +479,9 @@ class _CommitBox extends StatelessWidget {
                     enabled: canCommit,
                     child: ListTile(
                       leading: const Icon(Icons.upload),
-                      title: Text(AppLocalizations.of(context).gitCommitAndPush),
+                      title: Text(
+                        AppLocalizations.of(context).gitCommitAndPush,
+                      ),
                       dense: true,
                       contentPadding: EdgeInsets.zero,
                     ),

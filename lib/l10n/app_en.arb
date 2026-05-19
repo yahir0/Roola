@@ -119,10 +119,10 @@
   "@appearanceLoadError": {
     "placeholders": { "error": { "type": "String" } }
   },
+  "appearanceBackgroundLabel": "Background",
+  "appearanceModeOpaque": "Opaque",
   "appearanceModeTransparent": "Transparent",
-  "appearanceModeSolid": "Solid",
-  "appearanceModeImage": "Image",
-  "appearanceModeGradient": "Logo",
+  "appearanceAccentLabel": "Accent color",
   "appearanceOpacityLabel": "Opacity",
   "appearanceImageSelectButton": "Select image",
   "appearanceCenterImageLabel": "Center image",

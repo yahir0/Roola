@@ -3,28 +3,21 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:roola/app/theme.dart';
 import 'package:roola/data/appearance/appearance_settings.dart';
 import 'package:roola/data/appearance/appearance_settings_repository_impl.dart';
+import 'package:roola/data/appearance/polaris_accent.dart';
 import 'package:roola/data/launcher_entry/launcher_entry_repository_impl.dart';
 import 'package:roola/l10n/app_localizations.dart';
 
 /// 設定画面に組み込む「外観」セクション。
 ///
-/// `appearanceSettingsProvider` を購読し、モード切替・色設定・画像選択を
-/// ユーザーに提供する。
+/// `appearanceSettingsProvider` を購読し、アクセント色・透過モードの切替を
+/// ユーザーに提供する。Polaris（ADR-0038）はダーク専用・グラファイト筐体の
+/// 視覚システムのため、外観は「不透明な筐体」と「筐体を透かす」の 2 択に
+/// 絞る（旧 単色 / 画像 / グラデーションは廃止）。
 class AppearanceSection extends ConsumerWidget {
   const AppearanceSection({super.key});
-
-  // ロゴ（AppIcon）の配色に揃えたプリセット。
-  static const _presetColors = <Color>[
-    Color(0xFF000000), // 真っ黒（Windows 端末の黒）
-    Color(0xFF1E232A), // ロゴ背景（deep gunmetal）
-    Color(0xFF2F353D), // ロゴ surface
-    Color(0xFF0A0A14), // pure midnight
-    Color(0xFF5080C0), // ロゴ primary blue
-    Color(0xFF90C0F0), // ロゴ accent light blue
-    Color(0xFFFFFFFF), // 白
-  ];
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -32,13 +25,29 @@ class AppearanceSection extends ConsumerWidget {
     return state.when(
       data: (settings) => _Body(settings: settings),
       loading: () => const Padding(
-        padding: EdgeInsets.all(16),
+        padding: EdgeInsets.all(PolarisTokens.space4),
         child: LinearProgressIndicator(),
       ),
       error: (e, _) => Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(PolarisTokens.space4),
         child: Text(AppLocalizations.of(context).appearanceLoadError('$e')),
       ),
+    );
+  }
+}
+
+/// 設定項目のフィールド見出し（全大文字トラッキング / ADR-0038 D9）。
+class _FieldLabel extends StatelessWidget {
+  const _FieldLabel(this.text);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = PolarisTokens.of(context);
+    return Text(
+      text.toUpperCase(),
+      style: tokens.label.copyWith(color: tokens.textFaint),
     );
   }
 }
@@ -53,7 +62,7 @@ class _Body extends ConsumerWidget {
     final notifier = ref.read(appearanceSettingsProvider.notifier);
     final l10n = AppLocalizations.of(context);
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(PolarisTokens.space4),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -61,28 +70,38 @@ class _Body extends ConsumerWidget {
             l10n.appearanceTitle,
             style: Theme.of(context).textTheme.titleMedium,
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: PolarisTokens.space4),
+          // アクセント色（ADR-0038 D4）。常に 1 色だが選択できる。
+          _FieldLabel(l10n.appearanceAccentLabel),
+          const SizedBox(height: PolarisTokens.space2),
+          SegmentedButton<PolarisAccent>(
+            showSelectedIcon: false,
+            segments: const [
+              ButtonSegment(value: PolarisAccent.gold, label: Text('GOLD')),
+              ButtonSegment(value: PolarisAccent.iceBlue, label: Text('ICE')),
+            ],
+            selected: {settings.accent},
+            onSelectionChanged: (accents) async {
+              if (accents.isNotEmpty) {
+                await notifier.setAccent(accents.first);
+              }
+            },
+          ),
+          const SizedBox(height: PolarisTokens.space4),
+          // 背景モード。不透明 = Polaris グラファイト筐体、透過 = 筐体を
+          // 半透明にして背後のデスクトップを透かす（ADR-0038）。
+          _FieldLabel(l10n.appearanceBackgroundLabel),
+          const SizedBox(height: PolarisTokens.space2),
           SegmentedButton<AppearanceMode>(
+            showSelectedIcon: false,
             segments: [
+              ButtonSegment(
+                value: AppearanceMode.opaque,
+                label: Text(l10n.appearanceModeOpaque),
+              ),
               ButtonSegment(
                 value: AppearanceMode.transparent,
                 label: Text(l10n.appearanceModeTransparent),
-                icon: const Icon(Icons.blur_on),
-              ),
-              ButtonSegment(
-                value: AppearanceMode.gradient,
-                label: Text(l10n.appearanceModeGradient),
-                icon: const Icon(Icons.gradient),
-              ),
-              ButtonSegment(
-                value: AppearanceMode.solid,
-                label: Text(l10n.appearanceModeSolid),
-                icon: const Icon(Icons.format_color_fill),
-              ),
-              ButtonSegment(
-                value: AppearanceMode.image,
-                label: Text(l10n.appearanceModeImage),
-                icon: const Icon(Icons.image),
               ),
             ],
             selected: {settings.mode},
@@ -92,52 +111,22 @@ class _Body extends ConsumerWidget {
               }
             },
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: PolarisTokens.space4),
           if (settings.mode == AppearanceMode.transparent) ...[
             _OpacitySlider(
               value: settings.transparencyOpacity,
               onChanged: notifier.setTransparencyOpacity,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: PolarisTokens.space4),
             _CenterImagePicker(
               imagePath: settings.transparentCenterImagePath,
               onPick: () => _pickAndSaveCenterImage(context, ref, notifier),
               onClear: () => notifier.setTransparentCenterImagePath(null),
             ),
           ],
-          if (settings.mode == AppearanceMode.solid)
-            _ColorPicker(
-              selectedColor: settings.solidColor,
-              onPick: notifier.setSolidColor,
-            ),
-          if (settings.mode == AppearanceMode.image)
-            _ImagePicker(
-              imagePath: settings.imagePath,
-              onPick: () => _pickAndSaveImage(context, ref, notifier),
-            ),
         ],
       ),
     );
-  }
-
-  Future<void> _pickAndSaveImage(
-    BuildContext context,
-    WidgetRef ref,
-    AppearanceSettingsNotifier notifier,
-  ) async {
-    final result = await FilePicker.pickFiles(type: FileType.image);
-    final src = result?.files.single.path;
-    if (src == null) {
-      return;
-    }
-    final paths = ref.read(appPathsProvider);
-    final dest = paths.backgroundImageFile;
-    await File(src).copy(dest.path);
-    // 同じパスに上書き保存しただけでは Flutter の ImageCache が
-    // 古いバイト列を返し続け、再起動するまで描画が更新されない。
-    // 該当パスの FileImage を cache から落として強制再読み込みする。
-    await FileImage(dest).evict();
-    await notifier.setImagePath(dest.path);
   }
 
   Future<void> _pickAndSaveCenterImage(
@@ -153,14 +142,15 @@ class _Body extends ConsumerWidget {
     final paths = ref.read(appPathsProvider);
     final dest = paths.transparentCenterImageFile;
     await File(src).copy(dest.path);
-    // 上書き保存後のキャッシュ立て直し。背景画像と同じ理由（詳細は
-    // `_pickAndSaveImage` のコメント参照）。
+    // 同じパスに上書き保存しただけでは Flutter の ImageCache が古いバイト列を
+    // 返し続け、再起動するまで描画が更新されない。該当パスの FileImage を
+    // cache から落として強制再読み込みする。
     await FileImage(dest).evict();
     await notifier.setTransparentCenterImagePath(dest.path);
   }
 }
 
-/// 透過モード時の暗幕の不透明度スライダー。値は 0.0〜1.0。
+/// 透過モードの不透明度スライダー。値は 0.0〜1.0。
 class _OpacitySlider extends StatelessWidget {
   const _OpacitySlider({required this.value, required this.onChanged});
 
@@ -191,83 +181,7 @@ class _OpacitySlider extends StatelessWidget {
   }
 }
 
-class _ColorPicker extends StatelessWidget {
-  const _ColorPicker({required this.selectedColor, required this.onPick});
-
-  final int? selectedColor;
-  final ValueChanged<int> onPick;
-
-  @override
-  Widget build(BuildContext context) {
-    return Wrap(
-      spacing: 12,
-      runSpacing: 12,
-      children: AppearanceSection._presetColors.map((color) {
-        final isSelected = color.toARGB32() == selectedColor;
-        return GestureDetector(
-          onTap: () => onPick(color.toARGB32()),
-          child: Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: color,
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: isSelected
-                    ? Theme.of(context).colorScheme.primary
-                    : Colors.transparent,
-                width: 3,
-              ),
-            ),
-          ),
-        );
-      }).toList(),
-    );
-  }
-}
-
-class _ImagePicker extends StatelessWidget {
-  const _ImagePicker({required this.imagePath, required this.onPick});
-
-  final String? imagePath;
-  final VoidCallback onPick;
-
-  @override
-  Widget build(BuildContext context) {
-    final file = imagePath != null ? File(imagePath!) : null;
-    final hasImage = file != null && file.existsSync();
-    return Row(
-      children: [
-        Container(
-          width: 96,
-          height: 96,
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surfaceContainerHighest,
-            borderRadius: BorderRadius.circular(2),
-          ),
-          clipBehavior: Clip.antiAlias,
-          child: hasImage
-              ? Image.file(
-                  file,
-                  // 同パス上書きで Image が再リゾルブされない問題対策
-                  key: ValueKey(file.lastModifiedSync()),
-                  fit: BoxFit.cover,
-                )
-              : const Icon(Icons.image_outlined, size: 32),
-        ),
-        const SizedBox(width: 16),
-        FilledButton.icon(
-          icon: const Icon(Icons.upload_file),
-          label: Text(AppLocalizations.of(context).appearanceImageSelectButton),
-          onPressed: onPick,
-        ),
-      ],
-    );
-  }
-}
-
-/// 透過モード時に中央へ重ねる画像のピッカー。`_ImagePicker` と似た形だが、
-/// 「クリア」操作を持つ点と、見出しテキストを追加する点が異なる。
+/// 透過モード時に中央へ重ねる画像のピッカー。
 class _CenterImagePicker extends StatelessWidget {
   const _CenterImagePicker({
     required this.imagePath,
@@ -291,12 +205,12 @@ class _CenterImagePicker extends StatelessWidget {
           l10n.appearanceCenterImageLabel,
           style: Theme.of(context).textTheme.bodyMedium,
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: PolarisTokens.space1),
         Text(
           l10n.appearanceCenterImageDescription,
           style: Theme.of(context).textTheme.bodySmall,
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: PolarisTokens.space2),
         Row(
           children: [
             Container(
@@ -316,7 +230,7 @@ class _CenterImagePicker extends StatelessWidget {
                     )
                   : const Icon(Icons.image_outlined, size: 32),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: PolarisTokens.space4),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -326,7 +240,7 @@ class _CenterImagePicker extends StatelessWidget {
                   onPressed: onPick,
                 ),
                 if (hasImage) ...[
-                  const SizedBox(height: 8),
+                  const SizedBox(height: PolarisTokens.space2),
                   TextButton.icon(
                     icon: const Icon(Icons.clear),
                     label: Text(l10n.appearanceCenterImageClear),

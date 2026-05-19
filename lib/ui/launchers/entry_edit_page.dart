@@ -2,6 +2,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:roola/app/theme.dart';
 import 'package:roola/core/health/claude_health_check.dart';
 import 'package:roola/data/launcher_entry/launcher_action.dart';
 import 'package:roola/data/launcher_entry/launcher_folders_provider.dart';
@@ -84,25 +85,23 @@ class EntryEditPage extends HookConsumerWidget {
       body: AbsorbPointer(
         absorbing: state.isSubmitting,
         child: ListView(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(PolarisTokens.space6),
           children: [
             TextField(
               controller: displayNameController,
               decoration: InputDecoration(
                 labelText: l10n.entryEditDisplayNameLabel,
                 errorText: state.errors['displayName'],
-                border: const OutlineInputBorder(),
               ),
               onChanged: viewModel.setDisplayName,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: PolarisTokens.space4),
             TextField(
               controller: workingDirectoryController,
               decoration: InputDecoration(
                 labelText: l10n.entryEditWorkingDirectoryLabel,
                 hintText: l10n.entryEditWorkingDirectoryHint,
                 errorText: state.errors['workingDirectory'],
-                border: const OutlineInputBorder(),
                 suffixIcon: IconButton(
                   icon: const Icon(Icons.folder_open),
                   tooltip: l10n.entryEditDirectorySelectTooltip,
@@ -111,19 +110,19 @@ class EntryEditPage extends HookConsumerWidget {
               ),
               onChanged: viewModel.setWorkingDirectory,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: PolarisTokens.space4),
             _FolderSelector(
               selectedFolderId: state.folderId,
               onChanged: viewModel.setFolderId,
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: PolarisTokens.space6),
             _ActionTypeSelector(
               selected: launcherActionTypeOf(state.action),
               onChanged: viewModel.setActionType,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: PolarisTokens.space4),
             _ActionFields(state: state, viewModel: viewModel),
-            const SizedBox(height: 32),
+            const SizedBox(height: PolarisTokens.space8),
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
@@ -133,7 +132,7 @@ class EntryEditPage extends HookConsumerWidget {
                       : () => Navigator.of(context).pop(),
                   child: Text(l10n.buttonCancel),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: PolarisTokens.space2),
                 FilledButton.icon(
                   icon: state.isSubmitting
                       ? const SizedBox(
@@ -189,10 +188,7 @@ class _FolderSelector extends ConsumerWidget {
     final folders = ref.watch(launcherFoldersProvider).value ?? const [];
     return DropdownButtonFormField<String?>(
       initialValue: selectedFolderId,
-      decoration: InputDecoration(
-        labelText: l10n.entryEditFolderLabel,
-        border: const OutlineInputBorder(),
-      ),
+      decoration: InputDecoration(labelText: l10n.entryEditFolderLabel),
       items: [
         DropdownMenuItem<String?>(child: Text(l10n.entryEditFolderNone)),
         for (final f in folders)
@@ -227,10 +223,10 @@ class _ActionTypeSelector extends ConsumerWidget {
           l10n.entryEditActionTypeLabel,
           style: Theme.of(context).textTheme.labelLarge,
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: PolarisTokens.space2),
         if (!claudeAvailable) ...[
           _ClaudeUnavailableNotice(currentIsClaudeSkill: showClaudeSkill),
-          const SizedBox(height: 8),
+          const SizedBox(height: PolarisTokens.space2),
         ],
         SizedBox(
           width: double.infinity,
@@ -275,18 +271,28 @@ class _ClaudeUnavailableNotice extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final colors = Theme.of(context).colorScheme;
+    final tokens = PolarisTokens.of(context);
     return Container(
-      padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+      padding: const EdgeInsets.fromLTRB(
+        PolarisTokens.space3,
+        PolarisTokens.space3,
+        PolarisTokens.space3,
+        PolarisTokens.space3,
+      ),
       decoration: BoxDecoration(
         color: colors.surfaceContainerHigh,
         border: Border.all(color: colors.outlineVariant),
-        borderRadius: BorderRadius.circular(2),
+        borderRadius: BorderRadius.circular(tokens.radius),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.info_outline, size: 18, color: colors.onSurfaceVariant),
-          const SizedBox(width: 8),
+          Icon(
+            Icons.info_outline,
+            size: PolarisIconSize.standard,
+            color: colors.onSurfaceVariant,
+          ),
+          const SizedBox(width: PolarisTokens.space2),
           Expanded(
             child: Text(
               currentIsClaudeSkill
@@ -339,11 +345,11 @@ class _OpenHereSection extends StatelessWidget {
     return Card(
       color: Theme.of(context).colorScheme.surfaceContainerHighest,
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(PolarisTokens.space4),
         child: Row(
           children: [
             const Icon(Icons.info_outline),
-            const SizedBox(width: 12),
+            const SizedBox(width: PolarisTokens.space3),
             Expanded(child: Text(l10n.entryEditOpenHereDescription)),
           ],
         ),
@@ -415,11 +421,10 @@ class _RunCommandSectionState extends State<_RunCommandSection> {
             hintText: l10n.entryEditCommandHint,
             helperText: l10n.entryEditCommandHelper,
             errorText: widget.errorText,
-            border: const OutlineInputBorder(),
           ),
           onChanged: widget.onCommandChanged,
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: PolarisTokens.space2),
         SwitchListTile(
           contentPadding: EdgeInsets.zero,
           title: Text(l10n.entryEditKeepShellAfterExitTitle),
@@ -492,7 +497,6 @@ class _ClaudeSkillSectionState extends State<_ClaudeSkillSection> {
                 widget.availableSkills.length,
               ),
         errorText: widget.errorText,
-        border: const OutlineInputBorder(),
         suffixIcon: widget.availableSkills.isEmpty
             ? null
             : PopupMenuButton<String>(

@@ -1,7 +1,9 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:roola/app/theme.dart';
 import 'package:roola/l10n/app_localizations.dart';
+import 'package:roola/ui/common/polaris_dialog.dart';
 
 /// パスに対応するファイル / ディレクトリのプロパティをダイアログで表示する。
 ///
@@ -34,48 +36,49 @@ Future<void> showPropertiesDialog(BuildContext context, String path) async {
     context: context,
     builder: (context) {
       final l10n = AppLocalizations.of(context);
-      return AlertDialog(
-        title: Text(l10n.explorerPropertyTitle),
-        content: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 480),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _PropRow(label: l10n.explorerPropertyName, value: _basenameOf(path)),
-              _PropRow(label: l10n.explorerPropertyPath, value: path),
+      return PolarisDialog(
+        title: l10n.explorerPropertyTitle,
+        width: 460,
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _PropRow(
+              label: l10n.explorerPropertyName,
+              value: _basenameOf(path),
+            ),
+            _PropRow(label: l10n.explorerPropertyPath, value: path),
+            _PropRow(
+              label: l10n.explorerPropertyType,
+              value: isDir
+                  ? l10n.explorerPropertyTypeDirectory
+                  : l10n.explorerPropertyTypeFile,
+            ),
+            if (!isDir)
               _PropRow(
-                label: l10n.explorerPropertyType,
-                value: isDir
-                    ? l10n.explorerPropertyTypeDirectory
-                    : l10n.explorerPropertyTypeFile,
+                label: l10n.explorerPropertySize,
+                value: _formatBytes(stat.size),
               ),
-              if (!isDir)
-                _PropRow(
-                  label: l10n.explorerPropertySize,
-                  value: _formatBytes(stat.size),
-                ),
-              _PropRow(
-                label: l10n.explorerPropertyModified,
-                value: _formatDate(stat.modified),
-              ),
-              _PropRow(
-                label: l10n.explorerPropertyAccessed,
-                value: _formatDate(stat.accessed),
-              ),
-              _PropRow(
-                label: l10n.explorerPropertyChanged,
-                value: _formatDate(stat.changed),
-              ),
-              _PropRow(
-                label: l10n.explorerPropertyPermission,
-                value: stat.modeString(),
-              ),
-            ],
-          ),
+            _PropRow(
+              label: l10n.explorerPropertyModified,
+              value: _formatDate(stat.modified),
+            ),
+            _PropRow(
+              label: l10n.explorerPropertyAccessed,
+              value: _formatDate(stat.accessed),
+            ),
+            _PropRow(
+              label: l10n.explorerPropertyChanged,
+              value: _formatDate(stat.changed),
+            ),
+            _PropRow(
+              label: l10n.explorerPropertyPermission,
+              value: stat.modeString(),
+            ),
+          ],
         ),
         actions: [
-          TextButton(
+          OutlinedButton(
             onPressed: () => Navigator.of(context).pop(),
             child: Text(l10n.buttonClose),
           ),
@@ -95,7 +98,7 @@ class _PropRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: PolarisTokens.space1),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

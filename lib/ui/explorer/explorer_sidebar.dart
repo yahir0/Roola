@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:roola/app/router.dart';
+import 'package:roola/app/theme.dart';
 import 'package:roola/data/launcher_entry/launcher_entries_provider.dart';
 import 'package:roola/data/launcher_entry/launcher_entry.dart';
 import 'package:roola/data/launcher_entry/launcher_folder.dart';
@@ -16,6 +17,9 @@ import 'package:roola/data/terminal_runner/terminal_run_state.dart';
 import 'package:roola/data/workspace/workspace_layout.dart';
 import 'package:roola/data/workspace/workspace_tab.dart';
 import 'package:roola/l10n/app_localizations.dart';
+import 'package:roola/ui/common/command_menu_item.dart';
+import 'package:roola/ui/common/polaris_dialog.dart';
+import 'package:roola/ui/common/polaris_glyphs.dart';
 import 'package:roola/ui/common/prompt_name_dialog.dart';
 import 'package:roola/ui/common/session_state_icon.dart';
 import 'package:roola/ui/explorer/explorer_node_tile.dart'
@@ -49,7 +53,6 @@ class ExplorerSidebar extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
     final settings =
         ref.watch(explorerSettingsProvider).value ??
         ExplorerSettings.defaults();
@@ -104,18 +107,19 @@ class ExplorerSidebar extends HookConsumerWidget {
     final hasFavoriteAtCurrent =
         currentPath != null && favoritePaths.contains(currentPath);
 
+    final tokens = PolarisTokens.of(context);
     return Container(
       width: width,
+      // サイドバーは筐体側のクローム＝bg トーン（ADR-0038 D3）。
       decoration: BoxDecoration(
-        border: Border(
-          right: BorderSide(color: Theme.of(context).dividerColor),
-        ),
+        color: tokens.bg,
+        border: Border(right: BorderSide(color: tokens.line)),
       ),
       child: ListView(
-        padding: const EdgeInsets.symmetric(vertical: 4),
+        padding: const EdgeInsets.symmetric(vertical: PolarisTokens.space1),
         children: [
           // 場所
-          _SectionHeader(l10n.explorerSidebarPlaces),
+          const _SectionHeader('Places'),
           for (final place in _defaultPlaces)
             _PlaceTile(
               place: place,
@@ -123,7 +127,7 @@ class ExplorerSidebar extends HookConsumerWidget {
               suppressHighlight: hasFavoriteAtCurrent,
             ),
           _OpenOtherFolderTile(),
-          const SizedBox(height: 8),
+          const SizedBox(height: PolarisTokens.space2),
           const Divider(height: 1),
 
           // お気に入り
@@ -159,7 +163,7 @@ class ExplorerSidebar extends HookConsumerWidget {
             for (final fav in favorites.where((f) => f.folderId == null))
               _FavoriteTile(favorite: fav, isCurrent: fav.path == currentPath),
           ],
-          const SizedBox(height: 8),
+          const SizedBox(height: PolarisTokens.space2),
           const Divider(height: 1),
 
           // ランチャー
@@ -188,17 +192,17 @@ class ExplorerSidebar extends HookConsumerWidget {
               _LauncherTile(entry: e),
           ],
           const _LauncherManageTile(),
-          const SizedBox(height: 8),
+          const SizedBox(height: PolarisTokens.space2),
           const Divider(height: 1),
 
           // 実行中
-          _SectionHeader(l10n.explorerSidebarRunning),
+          const _SectionHeader('Running'),
           if (sessions.isEmpty)
             const _RunningEmptyTile()
           else
             for (final entry in sessions.entries)
               _RunningTile(sessionId: entry.key, state: entry.value),
-          const SizedBox(height: 8),
+          const SizedBox(height: PolarisTokens.space2),
         ],
       ),
     );
@@ -207,23 +211,98 @@ class ExplorerSidebar extends HookConsumerWidget {
 
 // ----- 共通 -----
 
+/// プレーンなセクション見出し（場所 / 実行中）。アクションを持たない。
 class _SectionHeader extends StatelessWidget {
   const _SectionHeader(this.label);
 
   final String label;
 
   @override
+  Widget build(BuildContext context) => _SidebarSectionHeader(label);
+}
+
+/// サイドバーの全セクション見出し（場所 / お気に入り / ランチャー / 実行中）の
+/// 共通スキャフォールド。高さを固定し、右肩にアクション（「＋」ボタン等）を
+/// 置いても行が膨らまないようにする。アクションの有無で高さがばらつくのを
+/// 構造的に防ぐのが要点。
+class _SidebarSectionHeader extends StatelessWidget {
+  const _SidebarSectionHeader(this.label, {this.action});
+
+  final String label;
+
+  /// 見出し右端のアクション。null ならラベルのみ。
+  final Widget? action;
+
+  /// 見出し行の固定高さ。「＋」アイコン（18px）が収まり、ラベルのみの見出しと
+  /// 共通になる値（6 グリッド = 24px / ADR-0038 D6）。
+  static const double height = PolarisTokens.space6;
+
+  @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 12, 8, 4),
-      child: Text(
-        label,
-        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-          color: colors.onSurfaceVariant,
-          fontWeight: FontWeight.w600,
+    return SizedBox(
+      height: height,
+      child: Padding(
+        // 高さは固定なので横方向のみ。右はアクション分を詰めて space2。
+        padding: const EdgeInsets.fromLTRB(
+          PolarisTokens.space4,
+          0,
+          PolarisTokens.space2,
+          0,
+        ),
+        child: Row(
+          children: [
+            Expanded(child: _SectionLabelText(label)),
+            ?action,
+          ],
         ),
       ),
+    );
+  }
+}
+
+/// セクション見出し右肩の「＋」ボタン。タップ領域を見出しの固定高さに
+/// 合わせて詰め、行を膨らませない。
+class _SectionHeaderAddButton extends StatelessWidget {
+  const _SectionHeaderAddButton({
+    required this.tooltip,
+    required this.onPressed,
+  });
+
+  final String tooltip;
+
+  /// `buttonContext` はボタン自身を指す（ポップアップの表示位置算出に使う）。
+  final void Function(BuildContext buttonContext) onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Builder(
+      builder: (buttonContext) => IconButton(
+        icon: const Icon(Icons.add, size: PolarisIconSize.standard),
+        tooltip: tooltip,
+        padding: EdgeInsets.zero,
+        constraints: const BoxConstraints.tightFor(
+          width: _SidebarSectionHeader.height,
+          height: _SidebarSectionHeader.height,
+        ),
+        onPressed: () => onPressed(buttonContext),
+      ),
+    );
+  }
+}
+
+/// サイドバーのセクション見出し文字（全大文字トラッキング / ADR-0038 D9）。
+/// `toUpperCase()` は日本語ラベルには影響せず、英語ロケールでのみ大文字化する。
+class _SectionLabelText extends StatelessWidget {
+  const _SectionLabelText(this.text);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = PolarisTokens.of(context);
+    return Text(
+      text.toUpperCase(),
+      style: tokens.label.copyWith(color: tokens.textFaint),
     );
   }
 }
@@ -233,8 +312,8 @@ class _SectionHeader extends StatelessWidget {
 class _Place {
   const _Place(this.label, this.icon, this.envVar, this.relPath);
 
-  /// 表示ラベルを `AppLocalizations` から解決する関数。
-  final String Function(AppLocalizations l10n) label;
+  /// 表示ラベル。ロケールに依存しない固定の英語表記（[_defaultPlaces] 参照）。
+  final String label;
   final IconData icon;
   final String envVar;
   final String relPath;
@@ -251,32 +330,14 @@ class _Place {
   }
 }
 
-final _defaultPlaces = <_Place>[
-  _Place((l10n) => l10n.explorerPlaceHome, Icons.home_outlined, 'HOME', ''),
-  _Place(
-    (l10n) => l10n.explorerPlaceDownloads,
-    Icons.download_outlined,
-    'HOME',
-    'Downloads',
-  ),
-  _Place(
-    (l10n) => l10n.explorerPlaceDesktop,
-    Icons.desktop_mac_outlined,
-    'HOME',
-    'Desktop',
-  ),
-  _Place(
-    (l10n) => l10n.explorerPlaceDocuments,
-    Icons.description_outlined,
-    'HOME',
-    'Documents',
-  ),
-  _Place(
-    (l10n) => l10n.explorerPlaceApplications,
-    Icons.apps,
-    '__abs__',
-    '/Applications',
-  ),
+/// 場所セクションの初期項目。見出しと同じく、ラベルはロケールに依存しない
+/// 固定の英語表記にする（日英混在より英語で揃える方がバランスが良いため）。
+const _defaultPlaces = <_Place>[
+  _Place('Home', Icons.home_outlined, 'HOME', ''),
+  _Place('Downloads', Icons.download_outlined, 'HOME', 'Downloads'),
+  _Place('Desktop', Icons.desktop_mac_outlined, 'HOME', 'Desktop'),
+  _Place('Documents', Icons.description_outlined, 'HOME', 'Documents'),
+  _Place('Applications', Icons.apps, '__abs__', '/Applications'),
 ];
 
 class _PlaceTile extends ConsumerWidget {
@@ -292,33 +353,80 @@ class _PlaceTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final colors = Theme.of(context).colorScheme;
+    final tokens = PolarisTokens.of(context);
     final path = place.envVar == '__abs__' ? place.relPath : place.resolve();
     final isCurrent = path != null && path == currentPath && !suppressHighlight;
     return InkWell(
       onTap: path == null ? null : () => navigateInFocusedExplorer(ref, path),
-      child: Container(
-        color: isCurrent ? colors.primary.withValues(alpha: 0.1) : null,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-        child: Row(
-          children: [
-            Icon(
-              place.icon,
-              size: 18,
-              color: isCurrent ? colors.primary : colors.onSurfaceVariant,
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                place.label(AppLocalizations.of(context)),
-                style: Theme.of(context).textTheme.bodyMedium,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ],
+      child: _SidebarRow(
+        selected: isCurrent,
+        icon: Icon(
+          place.icon,
+          size: PolarisIconSize.standard,
+          color: isCurrent ? tokens.accent : tokens.textDim,
         ),
+        label: place.label,
       ),
+    );
+  }
+}
+
+/// サイドバーの行 1 段の共通スキャフォールド（Polaris / ADR-0038 D12）。
+/// 選択時は surfaceHi の塗り＋左 2px アクセントバー＋アクセント文字。
+class _SidebarRow extends StatelessWidget {
+  const _SidebarRow({
+    required this.selected,
+    required this.icon,
+    required this.label,
+    this.indent = 16,
+  });
+
+  final bool selected;
+  final Widget icon;
+  final String label;
+  final double indent;
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = PolarisTokens.of(context);
+    return Stack(
+      children: [
+        Container(
+          color: selected ? tokens.surfaceHi : null,
+          // 行は固定高さ。中身（アイコン 18px）は中央寄せになる。詰まり／
+          // 広がりをパディングで微調整せず、グリッド値の行高で決める。
+          height: PolarisTokens.space7,
+          padding: EdgeInsets.fromLTRB(
+            indent,
+            0,
+            PolarisTokens.space4,
+            0,
+          ),
+          child: Row(
+            children: [
+              icon,
+              const SizedBox(width: PolarisTokens.space2),
+              Expanded(
+                child: Text(
+                  label,
+                  style: tokens.body.copyWith(
+                    color: selected ? tokens.accent : tokens.text,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+        ),
+        if (selected)
+          Positioned(
+            left: 0,
+            top: 4,
+            bottom: 4,
+            child: Container(width: 2, color: tokens.accent),
+          ),
+      ],
     );
   }
 }
@@ -336,12 +444,19 @@ class _OpenOtherFolderTile extends ConsumerWidget {
         }
         navigateInFocusedExplorer(ref, picked);
       },
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      child: Container(
+        height: PolarisTokens.space7,
+        padding: const EdgeInsets.symmetric(
+          horizontal: PolarisTokens.space4,
+        ),
         child: Row(
           children: [
-            Icon(Icons.more_horiz, size: 18, color: colors.onSurfaceVariant),
-            const SizedBox(width: 10),
+            Icon(
+              Icons.more_horiz,
+              size: PolarisIconSize.standard,
+              color: colors.onSurfaceVariant,
+            ),
+            const SizedBox(width: PolarisTokens.space2),
             Expanded(
               child: Text(
                 AppLocalizations.of(context).explorerOpenOtherFolder,
@@ -374,37 +489,19 @@ class _FavoritesHeader extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final colors = Theme.of(context).colorScheme;
     final l10n = AppLocalizations.of(context);
     return GestureDetector(
       onSecondaryTapDown: (details) =>
           _showContextMenu(context, ref, details.globalPosition),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 12, 8, 4),
-        child: Row(
-          children: [
-            Expanded(
-              child: Text(
-                l10n.explorerSidebarFavorites,
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: colors.onSurfaceVariant,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-            Builder(
-              builder: (buttonContext) => IconButton(
-                icon: const Icon(Icons.add, size: 18),
-                tooltip: l10n.explorerFavoritesAddTooltip,
-                visualDensity: VisualDensity.compact,
-                onPressed: () => _showContextMenu(
-                  context,
-                  ref,
-                  _menuAnchorBelowButton(buttonContext),
-                ),
-              ),
-            ),
-          ],
+      child: _SidebarSectionHeader(
+        'Favorites',
+        action: _SectionHeaderAddButton(
+          tooltip: l10n.explorerFavoritesAddTooltip,
+          onPressed: (buttonContext) => _showContextMenu(
+            context,
+            ref,
+            _menuAnchorBelowButton(buttonContext),
+          ),
         ),
       ),
     );
@@ -425,14 +522,16 @@ class _FavoritesHeader extends ConsumerWidget {
         Offset.zero & overlay.size,
       ),
       items: [
-        PopupMenuItem(
+        polarisPopupMenuItem<_FavoritesHeaderAction>(
+          context,
           value: _FavoritesHeaderAction.addCurrent,
           enabled: path != null,
-          child: Text(l10n.explorerRegisterCurrentDirectory),
+          label: l10n.explorerRegisterCurrentDirectory,
         ),
-        PopupMenuItem(
+        polarisPopupMenuItem<_FavoritesHeaderAction>(
+          context,
           value: _FavoritesHeaderAction.newFolder,
-          child: Text(l10n.explorerNewFavoriteFolder),
+          label: l10n.explorerNewFavoriteFolder,
         ),
       ],
     );
@@ -503,7 +602,12 @@ class _EmptyFavoritesHint extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
+      padding: const EdgeInsets.fromLTRB(
+        PolarisTokens.space4,
+        PolarisTokens.space1,
+        PolarisTokens.space4,
+        PolarisTokens.space1,
+      ),
       child: Text(
         AppLocalizations.of(context).explorerFavoritesEmptyHint,
         style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -529,13 +633,10 @@ class _FavoriteTile extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final colors = Theme.of(context).colorScheme;
     final isHovering = useState(false);
-    final Color? backgroundColor = isHovering.value
-        ? colors.primary.withValues(alpha: 0.18)
-        : isCurrent
-        ? colors.primary.withValues(alpha: 0.1)
-        : null;
+    final tokens = PolarisTokens.of(context);
+    // 現在地、または drop ホバー中は強調（どちらも surfaceHi / D12）。
+    final highlighted = isHovering.value || isCurrent;
     // フォルダへ移動するための内部 DnD（ADR-0029、ランチャーと同パターン）。
     // OS ファイルドロップ用の DropRegion を内側に保持したまま、外側を
     // LongPressDraggable で包む。
@@ -543,15 +644,15 @@ class _FavoriteTile extends HookConsumerWidget {
       data: favorite,
       feedback: Material(
         elevation: 4,
-        borderRadius: BorderRadius.circular(2),
+        borderRadius: BorderRadius.circular(tokens.radius),
         child: SizedBox(
           width: ExplorerSidebar.width - 16,
-          child: _row(context, backgroundColor: null),
+          child: _row(context, highlighted: false),
         ),
       ),
       childWhenDragging: Opacity(
         opacity: 0.4,
-        child: _row(context, backgroundColor: backgroundColor),
+        child: _row(context, highlighted: highlighted),
       ),
       child: DropRegion(
         formats: const [Formats.fileUri],
@@ -570,36 +671,23 @@ class _FavoriteTile extends HookConsumerWidget {
               _showMenu(context, ref, details.globalPosition),
           child: InkWell(
             onTap: () => navigateInFocusedExplorer(ref, favorite.path),
-            child: _row(context, backgroundColor: backgroundColor),
+            child: _row(context, highlighted: highlighted),
           ),
         ),
       ),
     );
   }
 
-  Widget _row(BuildContext context, {required Color? backgroundColor}) {
-    final colors = Theme.of(context).colorScheme;
-    return Container(
-      color: backgroundColor,
-      padding: EdgeInsets.fromLTRB(indented ? 32 : 16, 6, 16, 6),
-      child: Row(
-        children: [
-          Icon(
-            Icons.folder_outlined,
-            size: 18,
-            color: isCurrent ? colors.primary : colors.onSurfaceVariant,
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              favorite.name,
-              style: Theme.of(context).textTheme.bodyMedium,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
+  Widget _row(BuildContext context, {required bool highlighted}) {
+    final tokens = PolarisTokens.of(context);
+    return _SidebarRow(
+      selected: highlighted,
+      indent: indented ? 32 : 16,
+      icon: PolarisTypeIcon(
+        isDir: true,
+        color: highlighted ? tokens.accent : tokens.textDim,
       ),
+      label: favorite.name,
     );
   }
 
@@ -618,19 +706,17 @@ class _FavoriteTile extends HookConsumerWidget {
         position.dy,
       ),
       items: [
-        PopupMenuItem(
+        polarisPopupMenuItem<_FavoriteAction>(
+          context,
           value: _FavoriteAction.rename,
-          child: ListTile(
-            leading: const Icon(Icons.edit_outlined),
-            title: Text(l10n.explorerRenameTitle),
-          ),
+          icon: Icons.edit_outlined,
+          label: l10n.explorerRenameTitle,
         ),
-        PopupMenuItem(
+        polarisPopupMenuItem<_FavoriteAction>(
+          context,
           value: _FavoriteAction.remove,
-          child: ListTile(
-            leading: const Icon(Icons.delete_outline),
-            title: Text(l10n.explorerRemoveFromFavorites),
-          ),
+          icon: Icons.delete_outline,
+          label: l10n.explorerRemoveFromFavorites,
         ),
       ],
     );
@@ -693,20 +779,23 @@ class _FavoriteFolderTile extends ConsumerWidget {
             onTap: onToggle,
             child: Container(
               color: hover ? colors.primary.withValues(alpha: 0.12) : null,
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              height: PolarisTokens.space7,
+              padding: const EdgeInsets.symmetric(
+                horizontal: PolarisTokens.space3,
+              ),
               child: Row(
                 children: [
                   Icon(
                     expanded ? Icons.arrow_drop_down : Icons.arrow_right,
-                    size: 20,
+                    size: PolarisIconSize.standard,
                     color: colors.onSurfaceVariant,
                   ),
                   Icon(
                     Icons.folder_outlined,
-                    size: 18,
+                    size: PolarisIconSize.standard,
                     color: colors.secondary,
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: PolarisTokens.space2),
                   Expanded(
                     child: Text(
                       folder.name,
@@ -738,13 +827,17 @@ class _FavoriteFolderTile extends ConsumerWidget {
         Offset.zero & overlay.size,
       ),
       items: [
-        PopupMenuItem(
+        polarisPopupMenuItem<_FavoriteFolderAction>(
+          context,
           value: _FavoriteFolderAction.rename,
-          child: Text(l10n.explorerRenameTitle),
+          icon: Icons.edit_outlined,
+          label: l10n.explorerRenameTitle,
         ),
-        PopupMenuItem(
+        polarisPopupMenuItem<_FavoriteFolderAction>(
+          context,
           value: _FavoriteFolderAction.delete,
-          child: Text(l10n.folderDeleteWithContentsMenuItem),
+          icon: Icons.delete_outline,
+          label: l10n.folderDeleteWithContentsMenuItem,
         ),
       ],
     );
@@ -767,24 +860,15 @@ class _FavoriteFolderTile extends ConsumerWidget {
         if (!context.mounted) {
           return;
         }
-        final confirmed = await showDialog<bool>(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: Text(l10n.folderDeleteConfirmTitle),
-            content: Text(l10n.folderDeleteConfirmMessage(folder.name)),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(false),
-                child: Text(l10n.buttonCancel),
-              ),
-              FilledButton(
-                onPressed: () => Navigator.of(context).pop(true),
-                child: Text(l10n.buttonDelete),
-              ),
-            ],
-          ),
+        final confirmed = await showPolarisConfirm(
+          context,
+          title: l10n.folderDeleteConfirmTitle,
+          message: l10n.folderDeleteConfirmMessage(folder.name),
+          confirmLabel: l10n.buttonDelete,
+          cancelLabel: l10n.buttonCancel,
+          destructive: true,
         );
-        if (confirmed ?? false) {
+        if (confirmed) {
           await notifier.deleteFavoriteFolder(folder.id);
         }
     }
@@ -800,7 +884,7 @@ class _FavoriteRootDropZone extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final colors = Theme.of(context).colorScheme;
+    final tokens = PolarisTokens.of(context);
     return DragTarget<ExplorerFavorite>(
       onWillAcceptWithDetails: (details) => details.data.folderId != null,
       onAcceptWithDetails: (details) async {
@@ -811,15 +895,14 @@ class _FavoriteRootDropZone extends ConsumerWidget {
       builder: (context, candidate, rejected) {
         final hover = candidate.isNotEmpty;
         return Container(
-          color: hover ? colors.primary.withValues(alpha: 0.12) : null,
-          padding: const EdgeInsets.fromLTRB(16, 6, 16, 4),
-          child: Text(
-            AppLocalizations.of(context).unclassified,
-            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: colors.onSurfaceVariant,
-              fontWeight: FontWeight.w600,
-            ),
+          color: hover ? tokens.surfaceHi : null,
+          padding: const EdgeInsets.fromLTRB(
+            PolarisTokens.space4,
+            PolarisTokens.space2,
+            PolarisTokens.space4,
+            PolarisTokens.space1,
           ),
+          child: const _SectionLabelText('Unclassified'),
         );
       },
     );
@@ -831,37 +914,19 @@ class _FavoriteRootDropZone extends ConsumerWidget {
 class _LauncherHeader extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final colors = Theme.of(context).colorScheme;
     final l10n = AppLocalizations.of(context);
     return GestureDetector(
       onSecondaryTapDown: (details) =>
           _showContextMenu(context, ref, details.globalPosition),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 12, 8, 4),
-        child: Row(
-          children: [
-            Expanded(
-              child: Text(
-                l10n.explorerSidebarLaunchers,
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: colors.onSurfaceVariant,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-            Builder(
-              builder: (buttonContext) => IconButton(
-                icon: const Icon(Icons.add, size: 18),
-                tooltip: l10n.explorerLaunchersAddTooltip,
-                visualDensity: VisualDensity.compact,
-                onPressed: () => _showContextMenu(
-                  context,
-                  ref,
-                  _menuAnchorBelowButton(buttonContext),
-                ),
-              ),
-            ),
-          ],
+      child: _SidebarSectionHeader(
+        'Launcher',
+        action: _SectionHeaderAddButton(
+          tooltip: l10n.explorerLaunchersAddTooltip,
+          onPressed: (buttonContext) => _showContextMenu(
+            context,
+            ref,
+            _menuAnchorBelowButton(buttonContext),
+          ),
         ),
       ),
     );
@@ -881,13 +946,15 @@ class _LauncherHeader extends ConsumerWidget {
         Offset.zero & overlay.size,
       ),
       items: [
-        PopupMenuItem(
+        polarisPopupMenuItem<_LauncherHeaderAction>(
+          context,
           value: _LauncherHeaderAction.newEntry,
-          child: Text(l10n.explorerNewLauncherEntry),
+          label: l10n.explorerNewLauncherEntry,
         ),
-        PopupMenuItem(
+        polarisPopupMenuItem<_LauncherHeaderAction>(
+          context,
           value: _LauncherHeaderAction.newFolder,
-          child: Text(l10n.explorerNewLauncherFolder),
+          label: l10n.explorerNewLauncherFolder,
         ),
       ],
     );
@@ -927,7 +994,12 @@ class _EmptyLauncherHint extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
+      padding: const EdgeInsets.fromLTRB(
+        PolarisTokens.space4,
+        PolarisTokens.space1,
+        PolarisTokens.space4,
+        PolarisTokens.space1,
+      ),
       child: Text(
         AppLocalizations.of(context).explorerLaunchersRegisterHint,
         style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -947,18 +1019,25 @@ class _LauncherManageTile extends StatelessWidget {
     final colors = Theme.of(context).colorScheme;
     return InkWell(
       onTap: () => const LauncherManagementRoute().push<void>(context),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      child: Container(
+        height: PolarisTokens.space7,
+        padding: const EdgeInsets.symmetric(
+          horizontal: PolarisTokens.space4,
+        ),
         child: Row(
           children: [
-            Icon(Icons.tune, size: 18, color: colors.onSurfaceVariant),
-            const SizedBox(width: 10),
+            Icon(
+              Icons.tune,
+              size: PolarisIconSize.standard,
+              color: colors.onSurfaceVariant,
+            ),
+            const SizedBox(width: PolarisTokens.space2),
             Expanded(
               child: Text(
                 AppLocalizations.of(context).explorerManageLaunchers,
                 style: Theme.of(
                   context,
-                ).textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant),
+                ).textTheme.bodyMedium?.copyWith(color: colors.onSurfaceVariant),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -980,11 +1059,12 @@ class _LauncherTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final tokens = PolarisTokens.of(context);
     return LongPressDraggable<LauncherEntry>(
       data: entry,
       feedback: Material(
         elevation: 4,
-        borderRadius: BorderRadius.circular(2),
+        borderRadius: BorderRadius.circular(tokens.radius),
         child: SizedBox(
           width: ExplorerSidebar.width - 16,
           child: _tile(context, ref, dragging: false),
@@ -1002,12 +1082,22 @@ class _LauncherTile extends ConsumerWidget {
     final colors = Theme.of(context).colorScheme;
     return InkWell(
       onTap: dragging ? null : () => launchLauncherEntry(ref, entry),
-      child: Padding(
-        padding: EdgeInsets.fromLTRB(indented ? 32 : 16, 6, 16, 6),
+      child: Container(
+        height: PolarisTokens.space7,
+        padding: EdgeInsets.fromLTRB(
+          indented ? PolarisTokens.space8 : PolarisTokens.space4,
+          0,
+          PolarisTokens.space4,
+          0,
+        ),
         child: Row(
           children: [
-            Icon(Icons.bolt, size: 18, color: colors.primary),
-            const SizedBox(width: 10),
+            Icon(
+              Icons.bolt,
+              size: PolarisIconSize.standard,
+              color: colors.primary,
+            ),
+            const SizedBox(width: PolarisTokens.space2),
             Expanded(
               child: Text(
                 entry.displayName,
@@ -1054,20 +1144,23 @@ class _LauncherFolderTile extends ConsumerWidget {
             onTap: onToggle,
             child: Container(
               color: hover ? colors.primary.withValues(alpha: 0.12) : null,
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              height: PolarisTokens.space7,
+              padding: const EdgeInsets.symmetric(
+                horizontal: PolarisTokens.space3,
+              ),
               child: Row(
                 children: [
                   Icon(
                     expanded ? Icons.arrow_drop_down : Icons.arrow_right,
-                    size: 20,
+                    size: PolarisIconSize.standard,
                     color: colors.onSurfaceVariant,
                   ),
                   Icon(
                     Icons.folder_outlined,
-                    size: 18,
+                    size: PolarisIconSize.standard,
                     color: colors.secondary,
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: PolarisTokens.space2),
                   Expanded(
                     child: Text(
                       folder.name,
@@ -1099,13 +1192,17 @@ class _LauncherFolderTile extends ConsumerWidget {
         Offset.zero & overlay.size,
       ),
       items: [
-        PopupMenuItem(
+        polarisPopupMenuItem<_LauncherFolderAction>(
+          context,
           value: _LauncherFolderAction.rename,
-          child: Text(l10n.explorerRenameTitle),
+          icon: Icons.edit_outlined,
+          label: l10n.explorerRenameTitle,
         ),
-        PopupMenuItem(
+        polarisPopupMenuItem<_LauncherFolderAction>(
+          context,
           value: _LauncherFolderAction.delete,
-          child: Text(l10n.folderDeleteWithContentsMenuItem),
+          icon: Icons.delete_outline,
+          label: l10n.folderDeleteWithContentsMenuItem,
         ),
       ],
     );
@@ -1129,24 +1226,15 @@ class _LauncherFolderTile extends ConsumerWidget {
         if (!context.mounted) {
           return;
         }
-        final confirmed = await showDialog<bool>(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: Text(l10n.folderDeleteConfirmTitle),
-            content: Text(l10n.folderDeleteConfirmMessage(folder.name)),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(false),
-                child: Text(l10n.buttonCancel),
-              ),
-              FilledButton(
-                onPressed: () => Navigator.of(context).pop(true),
-                child: Text(l10n.buttonDelete),
-              ),
-            ],
-          ),
+        final confirmed = await showPolarisConfirm(
+          context,
+          title: l10n.folderDeleteConfirmTitle,
+          message: l10n.folderDeleteConfirmMessage(folder.name),
+          confirmLabel: l10n.buttonDelete,
+          cancelLabel: l10n.buttonCancel,
+          destructive: true,
         );
-        if (confirmed ?? false) {
+        if (confirmed) {
           await ref.read(launcherFoldersProvider.notifier).delete(folder.id);
         }
     }
@@ -1161,7 +1249,7 @@ class _LauncherRootDropZone extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final colors = Theme.of(context).colorScheme;
+    final tokens = PolarisTokens.of(context);
     return DragTarget<LauncherEntry>(
       onWillAcceptWithDetails: (details) => details.data.folderId != null,
       onAcceptWithDetails: (details) async {
@@ -1172,15 +1260,14 @@ class _LauncherRootDropZone extends ConsumerWidget {
       builder: (context, candidate, rejected) {
         final hover = candidate.isNotEmpty;
         return Container(
-          color: hover ? colors.primary.withValues(alpha: 0.12) : null,
-          padding: const EdgeInsets.fromLTRB(16, 6, 16, 4),
-          child: Text(
-            AppLocalizations.of(context).unclassified,
-            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: colors.onSurfaceVariant,
-              fontWeight: FontWeight.w600,
-            ),
+          color: hover ? tokens.surfaceHi : null,
+          padding: const EdgeInsets.fromLTRB(
+            PolarisTokens.space4,
+            PolarisTokens.space2,
+            PolarisTokens.space4,
+            PolarisTokens.space1,
           ),
+          child: const _SectionLabelText('Unclassified'),
         );
       },
     );
@@ -1217,12 +1304,19 @@ class _RunningTile extends ConsumerWidget {
           workspace.addTerminalTab(PaneSlotId.bottom, args: adhocArgs);
         }
       },
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      child: Container(
+        height: PolarisTokens.space7,
+        padding: const EdgeInsets.symmetric(
+          horizontal: PolarisTokens.space4,
+        ),
         child: Row(
           children: [
-            SizedBox(width: 18, height: 18, child: sessionStateAvatar(state)),
-            const SizedBox(width: 10),
+            SizedBox(
+              width: 18,
+              height: 18,
+              child: sessionStateAvatar(PolarisTokens.of(context), state),
+            ),
+            const SizedBox(width: PolarisTokens.space2),
             Expanded(
               child: Text(
                 adhocArgs.displayName,
@@ -1232,8 +1326,10 @@ class _RunningTile extends ConsumerWidget {
               ),
             ),
             IconButton(
-              icon: const Icon(Icons.close, size: 16),
-              tooltip: AppLocalizations.of(context).explorerSessionDiscardTooltip,
+              icon: const Icon(Icons.close, size: PolarisIconSize.standard),
+              tooltip: AppLocalizations.of(
+                context,
+              ).explorerSessionDiscardTooltip,
               visualDensity: VisualDensity.compact,
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
@@ -1277,7 +1373,12 @@ class _RunningEmptyTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
+      padding: const EdgeInsets.fromLTRB(
+        PolarisTokens.space4,
+        PolarisTokens.space1,
+        PolarisTokens.space4,
+        PolarisTokens.space1,
+      ),
       child: Text(
         AppLocalizations.of(context).explorerRunningEmpty,
         style: Theme.of(context).textTheme.bodySmall?.copyWith(

@@ -1,5 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:roola/data/appearance/appearance_settings.dart';
+import 'package:roola/data/appearance/polaris_accent.dart';
 
 part 'appearance_settings_dto.g.dart';
 
@@ -8,11 +9,10 @@ part 'appearance_settings_dto.g.dart';
 class AppearanceSettingsDto {
   AppearanceSettingsDto({
     required this.mode,
-    this.solidColor,
-    this.imagePath,
     this.transparencyOpacity,
     this.transparentCenterImagePath,
     this.transparentCenterImageMtime,
+    this.accent,
   });
 
   factory AppearanceSettingsDto.fromJson(Map<String, dynamic> json) =>
@@ -21,16 +21,13 @@ class AppearanceSettingsDto {
   factory AppearanceSettingsDto.fromEntity(AppearanceSettings entity) =>
       AppearanceSettingsDto(
         mode: entity.mode.name,
-        solidColor: entity.solidColor,
-        imagePath: entity.imagePath,
         transparencyOpacity: entity.transparencyOpacity,
         transparentCenterImagePath: entity.transparentCenterImagePath,
         transparentCenterImageMtime: entity.transparentCenterImageMtime,
+        accent: entity.accent.name,
       );
 
   final String mode;
-  final int? solidColor;
-  final String? imagePath;
 
   /// 旧バージョンの設定ファイルには存在しないため nullable。
   /// `toEntity` で fallback として既定値（0.8）を当てる。
@@ -43,20 +40,28 @@ class AppearanceSettingsDto {
   /// state の equality 破りに使う。
   final int? transparentCenterImageMtime;
 
+  /// アクセント色（`PolarisAccent` の名前）。旧バージョンの設定ファイルには
+  /// 存在しないため nullable。`toEntity` で既定（gold）にフォールバックする。
+  final String? accent;
+
   Map<String, dynamic> toJson() => _$AppearanceSettingsDtoToJson(this);
 
   AppearanceSettings toEntity() {
     final defaults = AppearanceSettings.defaults();
     return AppearanceSettings(
+      // 旧 solid / image / gradient が保存されていた設定ファイルは、未知の
+      // モード名として不透明（opaque）にフォールバックする。
       mode: AppearanceMode.values.firstWhere(
         (m) => m.name == mode,
-        orElse: () => AppearanceMode.transparent,
+        orElse: () => AppearanceMode.opaque,
       ),
-      solidColor: solidColor,
-      imagePath: imagePath,
       transparencyOpacity: transparencyOpacity ?? defaults.transparencyOpacity,
       transparentCenterImagePath: transparentCenterImagePath,
       transparentCenterImageMtime: transparentCenterImageMtime,
+      accent: PolarisAccent.values.firstWhere(
+        (a) => a.name == accent,
+        orElse: () => PolarisAccent.gold,
+      ),
     );
   }
 }

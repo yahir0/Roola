@@ -8,42 +8,42 @@ part of 'explorer_item_selection.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
-/// エクスプローラタブごとに「いま選択中の 1 アイテム」の絶対パスを保持する
-/// Notifier（`family(tabId)` / ADR-0027）。
+/// エクスプローラタブごとに選択状態を保持する Notifier
+/// （`family(tabId)` / ADR-0027）。
 ///
-/// 操作モデル（ADR-0021）: シングルクリックで選択（このパスをセット）、
-/// ダブルクリックで遷移／オープン、選択中に `C` キー連打で選択パスを
-/// クリップボードへコピー。
+/// 操作モデル（ADR-0021 / ADR-0038 D12）: シングルクリックで単一選択、
+/// ⌘+クリックで選択へ加除（主選択はクリックした行へ移る）、ダブルクリックで
+/// 遷移／オープン。
 ///
 /// 永続化は不要。別ディレクトリへ navigate したタイミングでクリアする運用
-/// （呼び出し側で `clear` または `select(null)`）。タブを閉じたときは
-/// `Workspace.closeTab` から明示 invalidate される。
+/// （呼び出し側で [clear]）。タブを閉じたときは `Workspace.closeTab` から
+/// 明示 invalidate される。
 
 @ProviderFor(ExplorerItemSelection)
 final explorerItemSelectionProvider = ExplorerItemSelectionFamily._();
 
-/// エクスプローラタブごとに「いま選択中の 1 アイテム」の絶対パスを保持する
-/// Notifier（`family(tabId)` / ADR-0027）。
+/// エクスプローラタブごとに選択状態を保持する Notifier
+/// （`family(tabId)` / ADR-0027）。
 ///
-/// 操作モデル（ADR-0021）: シングルクリックで選択（このパスをセット）、
-/// ダブルクリックで遷移／オープン、選択中に `C` キー連打で選択パスを
-/// クリップボードへコピー。
+/// 操作モデル（ADR-0021 / ADR-0038 D12）: シングルクリックで単一選択、
+/// ⌘+クリックで選択へ加除（主選択はクリックした行へ移る）、ダブルクリックで
+/// 遷移／オープン。
 ///
 /// 永続化は不要。別ディレクトリへ navigate したタイミングでクリアする運用
-/// （呼び出し側で `clear` または `select(null)`）。タブを閉じたときは
-/// `Workspace.closeTab` から明示 invalidate される。
+/// （呼び出し側で [clear]）。タブを閉じたときは `Workspace.closeTab` から
+/// 明示 invalidate される。
 final class ExplorerItemSelectionProvider
-    extends $NotifierProvider<ExplorerItemSelection, String?> {
-  /// エクスプローラタブごとに「いま選択中の 1 アイテム」の絶対パスを保持する
-  /// Notifier（`family(tabId)` / ADR-0027）。
+    extends $NotifierProvider<ExplorerItemSelection, ExplorerSelection> {
+  /// エクスプローラタブごとに選択状態を保持する Notifier
+  /// （`family(tabId)` / ADR-0027）。
   ///
-  /// 操作モデル（ADR-0021）: シングルクリックで選択（このパスをセット）、
-  /// ダブルクリックで遷移／オープン、選択中に `C` キー連打で選択パスを
-  /// クリップボードへコピー。
+  /// 操作モデル（ADR-0021 / ADR-0038 D12）: シングルクリックで単一選択、
+  /// ⌘+クリックで選択へ加除（主選択はクリックした行へ移る）、ダブルクリックで
+  /// 遷移／オープン。
   ///
   /// 永続化は不要。別ディレクトリへ navigate したタイミングでクリアする運用
-  /// （呼び出し側で `clear` または `select(null)`）。タブを閉じたときは
-  /// `Workspace.closeTab` から明示 invalidate される。
+  /// （呼び出し側で [clear]）。タブを閉じたときは `Workspace.closeTab` から
+  /// 明示 invalidate される。
   ExplorerItemSelectionProvider._({
     required ExplorerItemSelectionFamily super.from,
     required String super.argument,
@@ -70,10 +70,10 @@ final class ExplorerItemSelectionProvider
   ExplorerItemSelection create() => ExplorerItemSelection();
 
   /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(String? value) {
+  Override overrideWithValue(ExplorerSelection value) {
     return $ProviderOverride(
       origin: this,
-      providerOverride: $SyncValueProvider<String?>(value),
+      providerOverride: $SyncValueProvider<ExplorerSelection>(value),
     );
   }
 
@@ -89,26 +89,26 @@ final class ExplorerItemSelectionProvider
 }
 
 String _$explorerItemSelectionHash() =>
-    r'01f52c9778c4129f9e9de5570618bb58b8634e1f';
+    r'1a9370a731fadc28f6a74f9def0b7adcf47b8fb3';
 
-/// エクスプローラタブごとに「いま選択中の 1 アイテム」の絶対パスを保持する
-/// Notifier（`family(tabId)` / ADR-0027）。
+/// エクスプローラタブごとに選択状態を保持する Notifier
+/// （`family(tabId)` / ADR-0027）。
 ///
-/// 操作モデル（ADR-0021）: シングルクリックで選択（このパスをセット）、
-/// ダブルクリックで遷移／オープン、選択中に `C` キー連打で選択パスを
-/// クリップボードへコピー。
+/// 操作モデル（ADR-0021 / ADR-0038 D12）: シングルクリックで単一選択、
+/// ⌘+クリックで選択へ加除（主選択はクリックした行へ移る）、ダブルクリックで
+/// 遷移／オープン。
 ///
 /// 永続化は不要。別ディレクトリへ navigate したタイミングでクリアする運用
-/// （呼び出し側で `clear` または `select(null)`）。タブを閉じたときは
-/// `Workspace.closeTab` から明示 invalidate される。
+/// （呼び出し側で [clear]）。タブを閉じたときは `Workspace.closeTab` から
+/// 明示 invalidate される。
 
 final class ExplorerItemSelectionFamily extends $Family
     with
         $ClassFamilyOverride<
           ExplorerItemSelection,
-          String?,
-          String?,
-          String?,
+          ExplorerSelection,
+          ExplorerSelection,
+          ExplorerSelection,
           String
         > {
   ExplorerItemSelectionFamily._()
@@ -120,16 +120,16 @@ final class ExplorerItemSelectionFamily extends $Family
         isAutoDispose: true,
       );
 
-  /// エクスプローラタブごとに「いま選択中の 1 アイテム」の絶対パスを保持する
-  /// Notifier（`family(tabId)` / ADR-0027）。
+  /// エクスプローラタブごとに選択状態を保持する Notifier
+  /// （`family(tabId)` / ADR-0027）。
   ///
-  /// 操作モデル（ADR-0021）: シングルクリックで選択（このパスをセット）、
-  /// ダブルクリックで遷移／オープン、選択中に `C` キー連打で選択パスを
-  /// クリップボードへコピー。
+  /// 操作モデル（ADR-0021 / ADR-0038 D12）: シングルクリックで単一選択、
+  /// ⌘+クリックで選択へ加除（主選択はクリックした行へ移る）、ダブルクリックで
+  /// 遷移／オープン。
   ///
   /// 永続化は不要。別ディレクトリへ navigate したタイミングでクリアする運用
-  /// （呼び出し側で `clear` または `select(null)`）。タブを閉じたときは
-  /// `Workspace.closeTab` から明示 invalidate される。
+  /// （呼び出し側で [clear]）。タブを閉じたときは `Workspace.closeTab` から
+  /// 明示 invalidate される。
 
   ExplorerItemSelectionProvider call(String tabId) =>
       ExplorerItemSelectionProvider._(argument: tabId, from: this);
@@ -138,31 +138,31 @@ final class ExplorerItemSelectionFamily extends $Family
   String toString() => r'explorerItemSelectionProvider';
 }
 
-/// エクスプローラタブごとに「いま選択中の 1 アイテム」の絶対パスを保持する
-/// Notifier（`family(tabId)` / ADR-0027）。
+/// エクスプローラタブごとに選択状態を保持する Notifier
+/// （`family(tabId)` / ADR-0027）。
 ///
-/// 操作モデル（ADR-0021）: シングルクリックで選択（このパスをセット）、
-/// ダブルクリックで遷移／オープン、選択中に `C` キー連打で選択パスを
-/// クリップボードへコピー。
+/// 操作モデル（ADR-0021 / ADR-0038 D12）: シングルクリックで単一選択、
+/// ⌘+クリックで選択へ加除（主選択はクリックした行へ移る）、ダブルクリックで
+/// 遷移／オープン。
 ///
 /// 永続化は不要。別ディレクトリへ navigate したタイミングでクリアする運用
-/// （呼び出し側で `clear` または `select(null)`）。タブを閉じたときは
-/// `Workspace.closeTab` から明示 invalidate される。
+/// （呼び出し側で [clear]）。タブを閉じたときは `Workspace.closeTab` から
+/// 明示 invalidate される。
 
-abstract class _$ExplorerItemSelection extends $Notifier<String?> {
+abstract class _$ExplorerItemSelection extends $Notifier<ExplorerSelection> {
   late final _$args = ref.$arg as String;
   String get tabId => _$args;
 
-  String? build(String tabId);
+  ExplorerSelection build(String tabId);
   @$mustCallSuper
   @override
   void runBuild() {
-    final ref = this.ref as $Ref<String?, String?>;
+    final ref = this.ref as $Ref<ExplorerSelection, ExplorerSelection>;
     final element =
         ref.element
             as $ClassProviderElement<
-              AnyNotifier<String?, String?>,
-              String?,
+              AnyNotifier<ExplorerSelection, ExplorerSelection>,
+              ExplorerSelection,
               Object?,
               Object?
             >;

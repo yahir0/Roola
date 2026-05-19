@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:roola/app/theme.dart';
 import 'package:roola/data/git/git_commit.dart';
 import 'package:roola/data/git/git_graph_row.dart';
 import 'package:roola/l10n/app_localizations.dart';
@@ -8,6 +10,7 @@ import 'package:roola/ui/git/git_diff_view.dart';
 import 'package:roola/ui/git/git_graph_painter.dart';
 import 'package:roola/ui/git/git_view_model.dart';
 import 'package:roola/ui/git/git_view_state.dart';
+import 'package:roola/ui/workspace/workspace_split.dart';
 
 /// 履歴行 1 行の高さ。
 const double _rowHeight = 30;
@@ -22,7 +25,7 @@ const int _maxLanesShown = 12;
 ///
 /// コミットグラフ（`CustomPaint`）の一覧と、選択コミットの詳細（変更ファイル
 /// 一覧）を表示する（ADR-0030）。
-class GitHistorySection extends ConsumerWidget {
+class GitHistorySection extends HookConsumerWidget {
   const GitHistorySection({
     required this.tabId,
     required this.state,
@@ -34,6 +37,9 @@ class GitHistorySection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // コミット選択時のリスト↔詳細パネルの分割比（リスト側の占有率）。
+    final listRatio = useState(0.6);
+
     if (state.graph.isEmpty) {
       return Center(child: Text(AppLocalizations.of(context).gitNoCommits));
     }
@@ -47,32 +53,39 @@ class GitHistorySection extends ConsumerWidget {
     final graphWidth =
         (maxLanes.clamp(1, _maxLanesShown)) * _laneWidth + _laneWidth;
 
-    return Column(
-      children: [
-        Expanded(
-          child: ListView.builder(
-            itemCount: state.graph.length + (state.hasMoreHistory ? 1 : 0),
-            itemExtent: _rowHeight,
-            itemBuilder: (context, index) {
-              if (index >= state.graph.length) {
-                return _LoadMoreRow(
-                  busy: state.runningOperation == GitOperation.loadMore,
-                  onPressed: notifier.loadMoreHistory,
-                );
-              }
-              final row = state.graph[index];
-              return _CommitRow(
-                tabId: tabId,
-                row: row,
-                graphWidth: graphWidth,
-                selected: row.commit.sha == state.selectedSha,
-              );
-            },
-          ),
-        ),
-        if (state.selectedSha != null)
-          _CommitDetail(tabId: tabId, state: state),
-      ],
+    final list = ListView.builder(
+      itemCount: state.graph.length + (state.hasMoreHistory ? 1 : 0),
+      itemExtent: _rowHeight,
+      itemBuilder: (context, index) {
+        if (index >= state.graph.length) {
+          return _LoadMoreRow(
+            busy: state.runningOperation == GitOperation.loadMore,
+            onPressed: notifier.loadMoreHistory,
+          );
+        }
+        final row = state.graph[index];
+        return _CommitRow(
+          tabId: tabId,
+          row: row,
+          graphWidth: graphWidth,
+          selected: row.commit.sha == state.selectedSha,
+        );
+      },
+    );
+
+    // コミット未選択ならリストのみ。選択中はリストと詳細パネルをドラッグ可能な
+    // スプリッタで分割し、詳細パネルの高さをユーザーが調整できるようにする。
+    if (state.selectedSha == null) {
+      return list;
+    }
+    return WorkspaceSplit(
+      axis: Axis.vertical,
+      ratio: listRatio.value,
+      onRatioChanged: (r) => listRatio.value = r.clamp(0.15, 0.85),
+      // 詳細パネルがヘッダーより小さくなって溢れないよう最小高を確保する。
+      minPaneSize: 72,
+      first: list,
+      second: _CommitDetail(tabId: tabId, state: state),
     );
   }
 }
@@ -116,7 +129,7 @@ class _CommitRow extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final notifier = ref.read(gitViewModelProvider(tabId).notifier);
-    final colors = Theme.of(context).colorScheme;
+    final tokens = PolarisTokens.of(context);
     final commit = row.commit;
 
     return InkWell(
@@ -128,8 +141,8 @@ class _CommitRow extends ConsumerWidget {
         }
       },
       child: Container(
-        color: selected ? colors.primary.withValues(alpha: 0.16) : null,
-        padding: const EdgeInsets.only(right: 8),
+        color: selected ? tokens.surfaceHi : null,
+        padding: const EdgeInsets.only(right: PolarisTokens.space2),
         child: Row(
           children: [
             SizedBox(
@@ -141,16 +154,19 @@ class _CommitRow extends ConsumerWidget {
                   laneWidth: _laneWidth,
                   dotRadius: 5,
                   lineWidth: 2,
+                  laneColors: GitGraphPainter.paletteFor(tokens),
+                  dotInnerColor: tokens.well,
                 ),
               ),
             ),
-            // ref ラベル・subject・作者は flex で必ず行内に収める。
-            // 固定幅は日付と SHA のみ（いずれも幅が一定）。
+            // subject・作者は flex で行内に収める。ref チップは内容なりの幅で
+            // 表示し（潰れて文字が読めなくならないよう）、長い ref のみ上限で
+            // 省略する。固定幅は日付と SHA のみ（いずれも幅が一定）。
             Expanded(
               child: Row(
                 children: [
                   for (final refLabel in commit.refs.take(3))
-                    Flexible(child: _RefChip(label: refLabel)),
+                    _RefChip(label: refLabel),
                   Expanded(
                     flex: 5,
                     child: Text(
@@ -160,7 +176,7 @@ class _CommitRow extends ConsumerWidget {
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: PolarisTokens.space2),
                   Flexible(
                     flex: 2,
                     child: Text(
@@ -168,25 +184,25 @@ class _CommitRow extends ConsumerWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       textAlign: TextAlign.end,
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: colors.onSurfaceVariant,
-                      ),
+                      style: Theme.of(
+                        context,
+                      ).textTheme.labelSmall?.copyWith(color: tokens.textDim),
                     ),
                   ),
                 ],
               ),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: PolarisTokens.space3),
             Text(
               _formatDate(commit.date),
               style: Theme.of(
                 context,
-              ).textTheme.labelSmall?.copyWith(color: colors.onSurfaceVariant),
+              ).textTheme.labelSmall?.copyWith(color: tokens.textDim),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: PolarisTokens.space3),
             Text(
               commit.shortSha,
-              style: const TextStyle(fontFamily: 'SarasaTermJ', fontSize: 11),
+              style: const TextStyle(fontFamily: 'SarasaTermJ', fontSize: 13),
             ),
           ],
         ),
@@ -202,22 +218,35 @@ class _RefChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
+    final tokens = PolarisTokens.of(context);
     final isHead = label.startsWith('HEAD');
     final isTag = label.startsWith('tag:');
     final text = isTag ? label.substring(4).trim() : label;
+    // 1 アクセント色のまま 3 種を塗り/枠/無彩で描き分ける（ADR-0038 D4）。
+    // HEAD = アクセント塗り、タグ = アクセント枠のみ、ブランチ = surfaceHi。
     final bg = isHead
-        ? colors.primary
+        ? tokens.accent
         : isTag
-        ? const Color(0xFFE0A030)
-        : colors.surfaceContainerHighest;
-    final fg = isHead ? colors.onPrimary : colors.onSurface;
+        ? Colors.transparent
+        : tokens.surfaceHi;
+    final fg = isHead
+        ? tokens.onAccent
+        : isTag
+        ? tokens.accent
+        : tokens.text;
     return Container(
-      margin: const EdgeInsets.only(right: 4),
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+      margin: const EdgeInsets.only(right: PolarisTokens.space1),
+      // 幅は内容なり。短い ref（HEAD など）は全文表示し、長い ref 名だけ
+      // 上限で省略表示にして行を圧迫しすぎないようにする。
+      constraints: const BoxConstraints(maxWidth: 160),
+      padding: const EdgeInsets.symmetric(
+        horizontal: PolarisTokens.space2,
+        vertical: 1,
+      ),
       decoration: BoxDecoration(
         color: bg,
-        borderRadius: BorderRadius.circular(2),
+        border: isTag ? Border.all(color: tokens.accent) : null,
+        borderRadius: BorderRadius.circular(tokens.radius),
       ),
       // アイコンをインライン（WidgetSpan）にして Flex を持たせない。
       // こうすると親 Flexible が幅を極端に絞っても、Row のように
@@ -228,7 +257,7 @@ class _RefChip extends StatelessWidget {
             WidgetSpan(
               alignment: PlaceholderAlignment.middle,
               child: Padding(
-                padding: const EdgeInsets.only(right: 3),
+                padding: const EdgeInsets.only(right: PolarisTokens.space1),
                 child: Icon(
                   isTag ? Icons.sell_outlined : Icons.commit,
                   size: 11,
@@ -262,101 +291,131 @@ class _CommitDetail extends ConsumerWidget {
     final commit = _findCommit(sha);
 
     return Container(
-      height: 188,
+      // 高さは親（WorkspaceSplit）から受ける。固定高にしない。リストとの
+      // 境界線はスプリッタのハンドルが担うので top border は持たない。
       decoration: BoxDecoration(
         color: colors.surfaceContainerHighest.withValues(alpha: 0.3),
-        border: Border(top: BorderSide(color: Theme.of(context).dividerColor)),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(12, 8, 4, 4),
-            child: Row(
+      // パネルがヘッダーより低く潰されても RenderFlex が溢れないよう、Column は
+      // 最低高で組み、入り切らない分はコンテナ側でクリップする。
+      clipBehavior: Clip.hardEdge,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          const minHeight = 80.0;
+          final height = constraints.maxHeight < minHeight
+              ? minHeight
+              : constraints.maxHeight;
+          return OverflowBox(
+            minHeight: height,
+            maxHeight: height,
+            alignment: Alignment.topCenter,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    PolarisTokens.space3,
+                    PolarisTokens.space2,
+                    PolarisTokens.space1,
+                    PolarisTokens.space1,
+                  ),
+                  child: Row(
                     children: [
-                      Text(
-                        commit?.subject ?? sha,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.titleSmall,
-                      ),
-                      if (commit != null)
-                        Text(
-                          '${commit.shortSha} · ${commit.authorName} · '
-                          '${_formatDate(commit.date)}',
-                          style: Theme.of(context).textTheme.labelSmall
-                              ?.copyWith(color: colors.onSurfaceVariant),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              commit?.subject ?? sha,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context).textTheme.titleSmall,
+                            ),
+                            if (commit != null)
+                              Text(
+                                '${commit.shortSha} · ${commit.authorName} · '
+                                '${_formatDate(commit.date)}',
+                                style: Theme.of(context).textTheme.labelSmall
+                                    ?.copyWith(color: colors.onSurfaceVariant),
+                              ),
+                          ],
                         ),
+                      ),
+                      IconButton(
+                        icon: const Icon(
+                          Icons.close,
+                          size: PolarisIconSize.standard,
+                        ),
+                        tooltip: AppLocalizations.of(
+                          context,
+                        ).gitCloseDetailsTooltip,
+                        visualDensity: VisualDensity.compact,
+                        onPressed: notifier.clearSelection,
+                      ),
                     ],
                   ),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.close, size: 16),
-                  tooltip: AppLocalizations.of(context).gitCloseDetailsTooltip,
-                  visualDensity: VisualDensity.compact,
-                  onPressed: notifier.clearSelection,
+                const Divider(height: 1),
+                Expanded(
+                  child: state.selectedCommitFiles.isEmpty
+                      ? Center(
+                          child: Text(
+                            AppLocalizations.of(context).gitLoadingChangedFiles,
+                            style: const TextStyle(fontSize: 13),
+                          ),
+                        )
+                      : ListView(
+                          children: [
+                            for (final file in state.selectedCommitFiles)
+                              InkWell(
+                                onTap: () => showGitDiffDialog(
+                                  context,
+                                  title: file.displayPath,
+                                  load: () =>
+                                      notifier.commitFileDiff(sha, file.path),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: PolarisTokens.space3,
+                                    vertical: PolarisTokens.space1,
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      SizedBox(
+                                        width: 16,
+                                        child: Text(
+                                          gitChangeLetter(file.type),
+                                          style: TextStyle(
+                                            color: gitChangeColor(
+                                              PolarisTokens.of(context),
+                                              file.type,
+                                            ),
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 13,
+                                          ),
+                                        ),
+                                      ),
+                                      Expanded(
+                                        child: Text(
+                                          file.displayPath,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: Theme.of(
+                                            context,
+                                          ).textTheme.bodySmall,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
                 ),
               ],
             ),
-          ),
-          const Divider(height: 1),
-          Expanded(
-            child: state.selectedCommitFiles.isEmpty
-                ? Center(
-                    child: Text(
-                      AppLocalizations.of(context).gitLoadingChangedFiles,
-                      style: const TextStyle(fontSize: 12),
-                    ),
-                  )
-                : ListView(
-                    children: [
-                      for (final file in state.selectedCommitFiles)
-                        InkWell(
-                          onTap: () => showGitDiffDialog(
-                            context,
-                            title: file.displayPath,
-                            load: () => notifier.commitFileDiff(sha, file.path),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 4,
-                            ),
-                            child: Row(
-                              children: [
-                                SizedBox(
-                                  width: 16,
-                                  child: Text(
-                                    gitChangeLetter(file.type),
-                                    style: TextStyle(
-                                      color: gitChangeColor(file.type),
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ),
-                                Expanded(
-                                  child: Text(
-                                    file.displayPath,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.bodySmall,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-          ),
-        ],
+          );
+        },
       ),
     );
   }

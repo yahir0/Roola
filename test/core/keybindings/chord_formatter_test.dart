@@ -46,28 +46,15 @@ void main() {
         formatChord(_chord(LogicalKeyboardKey.backspace, meta: true)),
         '⌘⌫',
       );
-      expect(
-        formatChord(_chord(LogicalKeyboardKey.arrowUp, meta: true)),
-        '⌘↑',
-      );
-      expect(
-        formatChord(_chord(LogicalKeyboardKey.enter, meta: true)),
-        '⌘↩',
-      );
-      expect(
-        formatChord(_chord(LogicalKeyboardKey.tab, control: true)),
-        '⌃⇥',
-      );
+      expect(formatChord(_chord(LogicalKeyboardKey.arrowUp, meta: true)), '⌘↑');
+      expect(formatChord(_chord(LogicalKeyboardKey.enter, meta: true)), '⌘↩');
+      expect(formatChord(_chord(LogicalKeyboardKey.tab, control: true)), '⌃⇥');
     });
   });
 
   group('toSingleActivator', () {
     test('修飾キーとトリガキーが伝わる', () {
-      final chord = _chord(
-        LogicalKeyboardKey.keyC,
-        meta: true,
-        shift: true,
-      );
+      final chord = _chord(LogicalKeyboardKey.keyC, meta: true, shift: true);
       final activator = toSingleActivator(chord);
       expect(activator.trigger, LogicalKeyboardKey.keyC);
       expect(activator.meta, isTrue);

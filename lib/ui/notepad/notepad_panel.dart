@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:roola/app/theme.dart';
 import 'package:roola/l10n/app_localizations.dart';
 
 import 'notepad_line_gutter.dart';
@@ -20,13 +21,14 @@ class NotepadPanel extends HookConsumerWidget {
   final VoidCallback onClose;
 
   /// 本文と行番号で共有するテキストメトリクス。
-  static const double _fontSize = 13;
+  static const double _fontSize = 14;
   static const double _lineHeightFactor = 1.5;
   static const double _lineHeight = _fontSize * _lineHeightFactor;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final tokens = PolarisTokens.of(context);
     final l10n = AppLocalizations.of(context);
 
     final controller = useTextEditingController(
@@ -55,17 +57,19 @@ class NotepadPanel extends HookConsumerWidget {
       forceStrutHeight: true,
     );
     final numberStyle = baseStyle.copyWith(
-      fontSize: 11,
+      fontSize: 13,
       color: theme.colorScheme.onSurfaceVariant,
     );
 
     return Material(
-      elevation: 10,
+      // フローティングパネル（ADR-0036）。Polaris は影を抑えるため
+      // elevation は最小限にとどめ、分離は 1px ボーダーで示す（ADR-0038 D3）。
+      elevation: 4,
       color: theme.colorScheme.surface,
       clipBehavior: Clip.antiAlias,
       shape: RoundedRectangleBorder(
         side: BorderSide(color: theme.dividerColor),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(tokens.radius),
       ),
       child: SizedBox(
         width: 380,
@@ -105,15 +109,18 @@ class _NotepadHeader extends StatelessWidget {
     return Container(
       height: 36,
       color: theme.colorScheme.surfaceContainerHighest,
-      padding: const EdgeInsets.only(left: 12, right: 4),
+      padding: const EdgeInsets.only(
+        left: PolarisTokens.space3,
+        right: PolarisTokens.space1,
+      ),
       child: Row(
         children: [
           Icon(
             Icons.sticky_note_2_outlined,
-            size: 16,
+            size: PolarisIconSize.standard,
             color: theme.colorScheme.onSurfaceVariant,
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: PolarisTokens.space2),
           Expanded(
             child: Text(
               title,
@@ -122,7 +129,7 @@ class _NotepadHeader extends StatelessWidget {
             ),
           ),
           IconButton(
-            icon: const Icon(Icons.close, size: 16),
+            icon: const Icon(Icons.close, size: PolarisIconSize.standard),
             tooltip: AppLocalizations.of(context).buttonClose,
             onPressed: onClose,
             visualDensity: VisualDensity.compact,

@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:roola/app/router.dart';
+import 'package:roola/app/theme.dart';
 import 'package:roola/core/health/claude_health_check.dart';
 import 'package:roola/core/system/explorer_file_ops.dart';
 import 'package:roola/core/system/file_opener.dart';
@@ -18,6 +19,7 @@ import 'package:roola/data/repo_explorer/explorer_settings_repository_impl.dart'
 import 'package:roola/data/workspace/workspace_layout.dart';
 import 'package:roola/l10n/app_localizations.dart';
 import 'package:roola/ui/common/command_menu_item.dart';
+import 'package:roola/ui/common/polaris_glyphs.dart';
 import 'package:roola/ui/explorer/explorer_clipboard_provider.dart';
 import 'package:roola/ui/explorer/explorer_commands.dart';
 import 'package:roola/ui/explorer/explorer_item_selection.dart';
@@ -77,14 +79,13 @@ Future<void> showExplorerContextMenu(
       command: CommandId.revealInFinder,
       value: const _ActionRevealInFinder(),
     ),
-    PopupMenuItem(
+    polarisPopupMenuItem<ExplorerNodeAction>(
+      context,
       value: const _ActionAddToFavorite(),
-      child: ListTile(
-        leading: const Icon(Icons.star_outline),
-        title: Text(l10n.explorerContextMenuAddFavorite),
-      ),
+      icon: Icons.star_outline,
+      label: l10n.explorerContextMenuAddFavorite,
     ),
-    const PopupMenuDivider(),
+    const PopupMenuDivider(height: polarisMenuDividerHeight),
     commandPopupMenuItem<ExplorerNodeAction>(
       context,
       ref,
@@ -104,7 +105,7 @@ Future<void> showExplorerContextMenu(
         command: CommandId.renameItem,
         value: const _ActionRename(),
       ),
-    const PopupMenuDivider(),
+    const PopupMenuDivider(height: polarisMenuDividerHeight),
     if (showCopy)
       commandPopupMenuItem<ExplorerNodeAction>(
         context,
@@ -126,7 +127,7 @@ Future<void> showExplorerContextMenu(
         value: const _ActionPaste(),
       ),
     if (showDelete) ...[
-      const PopupMenuDivider(),
+      const PopupMenuDivider(height: polarisMenuDividerHeight),
       commandPopupMenuItem<ExplorerNodeAction>(
         context,
         ref,
@@ -134,7 +135,7 @@ Future<void> showExplorerContextMenu(
         value: const _ActionMoveToTrash(),
       ),
     ],
-    const PopupMenuDivider(),
+    const PopupMenuDivider(height: polarisMenuDividerHeight),
     commandPopupMenuItem<ExplorerNodeAction>(
       context,
       ref,
@@ -143,27 +144,25 @@ Future<void> showExplorerContextMenu(
     ),
   ];
   if (claudeAvailable && node.skillNames.isNotEmpty) {
-    items.add(const PopupMenuDivider());
+    items.add(const PopupMenuDivider(height: polarisMenuDividerHeight));
     for (final skill in node.skillNames) {
       items.add(
-        PopupMenuItem(
+        polarisPopupMenuItem<ExplorerNodeAction>(
+          context,
           value: _ActionRunSkill(skill),
-          child: ListTile(
-            leading: const Icon(Icons.play_arrow),
-            title: Text(l10n.explorerContextMenuRunSkill(skill)),
-          ),
+          icon: Icons.play_arrow,
+          label: l10n.explorerContextMenuRunSkill(skill),
         ),
       );
     }
-    items.add(const PopupMenuDivider());
+    items.add(const PopupMenuDivider(height: polarisMenuDividerHeight));
     for (final skill in node.skillNames) {
       items.add(
-        PopupMenuItem(
+        polarisPopupMenuItem<ExplorerNodeAction>(
+          context,
           value: _ActionRegisterSkill(skill),
-          child: ListTile(
-            leading: const Icon(Icons.add_circle_outline),
-            title: Text(l10n.explorerContextMenuRegisterSkill(skill)),
-          ),
+          icon: Icons.add_circle_outline,
+          label: l10n.explorerContextMenuRegisterSkill(skill),
         ),
       );
     }
@@ -209,19 +208,17 @@ Future<void> showFileContextMenu(
         command: CommandId.openItem,
         value: _FileAction.open,
       ),
-      PopupMenuItem(
+      polarisPopupMenuItem<_FileAction>(
+        context,
         value: _FileAction.openWith,
-        child: ListTile(
-          leading: const Icon(Icons.apps),
-          title: Text(l10n.explorerContextMenuOpenWith),
-        ),
+        icon: Icons.apps,
+        label: l10n.explorerContextMenuOpenWith,
       ),
-      PopupMenuItem(
+      polarisPopupMenuItem<_FileAction>(
+        context,
         value: _FileAction.openInVim,
-        child: ListTile(
-          leading: const Icon(Icons.edit_note),
-          title: Text(l10n.explorerContextMenuOpenInVim),
-        ),
+        icon: Icons.edit_note,
+        label: l10n.explorerContextMenuOpenInVim,
       ),
       commandPopupMenuItem<_FileAction>(
         context,
@@ -229,7 +226,7 @@ Future<void> showFileContextMenu(
         command: CommandId.revealInFinder,
         value: _FileAction.revealInFinder,
       ),
-      const PopupMenuDivider(),
+      const PopupMenuDivider(height: polarisMenuDividerHeight),
       commandPopupMenuItem<_FileAction>(
         context,
         ref,
@@ -248,14 +245,14 @@ Future<void> showFileContextMenu(
         command: CommandId.copyPath,
         value: _FileAction.copyPath,
       ),
-      const PopupMenuDivider(),
+      const PopupMenuDivider(height: polarisMenuDividerHeight),
       commandPopupMenuItem<_FileAction>(
         context,
         ref,
         command: CommandId.moveToTrash,
         value: _FileAction.moveToTrash,
       ),
-      const PopupMenuDivider(),
+      const PopupMenuDivider(height: polarisMenuDividerHeight),
       commandPopupMenuItem<_FileAction>(
         context,
         ref,
@@ -384,9 +381,9 @@ Future<void> _handleDirectoryAction(
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            AppLocalizations.of(context).explorerSnackbarAddedFavorite(
-              node.name,
-            ),
+            AppLocalizations.of(
+              context,
+            ).explorerSnackbarAddedFavorite(node.name),
           ),
           duration: const Duration(seconds: 2),
         ),
@@ -474,11 +471,7 @@ Future<void> _renameAndRefresh(
 
 /// OS クリップボードのファイル URI を [targetDir] にコピーする。
 /// 実処理は `runPaste`。
-Future<void> _pasteInto(
-  BuildContext context,
-  WidgetRef ref,
-  String targetDir,
-) {
+Future<void> _pasteInto(BuildContext context, WidgetRef ref, String targetDir) {
   return runPaste(
     context,
     ref,
@@ -672,8 +665,13 @@ class ExplorerParentDropTile extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final tabId = ref.watch(currentTabIdProvider);
     final parentPath = parentOfPath(currentPath);
-    final colors = Theme.of(context).colorScheme;
+    final tokens = PolarisTokens.of(context);
     final isHovering = useState(false);
+    final mouseHover = useState(false);
+    final isCompact =
+        (ref.watch(explorerSettingsProvider).value?.listDensity ??
+            ExplorerListDensity.comfortable) ==
+        ExplorerListDensity.compact;
     return DropRegion(
       formats: const [Formats.fileUri],
       hitTestBehavior: HitTestBehavior.opaque,
@@ -692,37 +690,49 @@ class ExplorerParentDropTile extends HookConsumerWidget {
         isHovering.value = false;
         await performFileDrop(context, ref, event, parentPath);
       },
-      child: InkWell(
-        // ADR-0021: 他ディレクトリと同様にダブルクリックで遷移する。
-        onDoubleTap: () => ref
-            .read(explorerViewModelProvider(tabId).notifier)
-            .navigateTo(parentPath),
-        child: Container(
-          color: isHovering.value
-              ? colors.primary.withValues(alpha: 0.12)
-              : null,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          child: Row(
-            children: [
-              Icon(Icons.arrow_upward, color: colors.onSurfaceVariant),
-              const SizedBox(width: 16),
-              Text(
-                AppLocalizations.of(context).explorerParentDirectoryLabel,
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  parentPath,
-                  textAlign: TextAlign.right,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: colors.onSurfaceVariant,
+      child: MouseRegion(
+        onEnter: (_) => mouseHover.value = true,
+        onExit: (_) => mouseHover.value = false,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          // ADR-0021: 他ディレクトリと同様にダブルクリックで遷移する。
+          onDoubleTap: () => ref
+              .read(explorerViewModelProvider(tabId).notifier)
+              .navigateTo(parentPath),
+          child: Container(
+            height: explorerRowHeight(isCompact),
+            color: isHovering.value
+                ? tokens.surfaceHi
+                : mouseHover.value
+                ? tokens.surface
+                : null,
+            padding: const EdgeInsets.symmetric(
+              horizontal: PolarisTokens.space4,
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.arrow_upward,
+                  size: PolarisIconSize.standard,
+                  color: tokens.textDim,
+                ),
+                const SizedBox(width: PolarisTokens.space3),
+                Text(
+                  AppLocalizations.of(context).explorerParentDirectoryLabel,
+                  style: tokens.body.copyWith(color: tokens.textDim),
+                ),
+                const SizedBox(width: PolarisTokens.space3),
+                Expanded(
+                  child: Text(
+                    parentPath,
+                    textAlign: TextAlign.right,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: tokens.mono.copyWith(color: tokens.textFaint),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -798,6 +808,40 @@ class _ActionRegisterSkill extends ExplorerNodeAction {
 /// の余白部分も含む）で左クリック / 右クリックを受け付ける。
 /// ディレクトリはドラッグソース＋ドロップターゲット、ファイルは
 /// ドラッグソースのみ。
+/// ファイル一覧の行高（4px グリッド / ADR-0038 D6）。計器ディスプレイの
+/// 走査線のように行を密に揃えるため、行間の `Divider` は引かず固定高にする。
+/// comfortable で Skill 名サブタイトルを出す行（[skillSubtitle]）だけは
+/// 2 行ぶんの高さを取る（ADR-0024）。
+double explorerRowHeight(bool compact, {bool skillSubtitle = false}) =>
+    compact ? 24 : (skillSubtitle ? 44 : 28);
+
+/// Skill 検知済みディレクトリの末尾に出す最小バッジ（雷マーク＋件数）。
+/// 行高を揃えるため `Chip` でなくインラインの小要素にする。
+class _SkillBadge extends StatelessWidget {
+  const _SkillBadge({required this.names, required this.color});
+
+  final List<String> names;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: 'Skill: ${names.join(', ')}',
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.bolt, size: PolarisIconSize.small, color: color),
+          const SizedBox(width: 2),
+          Text(
+            '${names.length}',
+            style: PolarisTokens.of(context).mono.copyWith(color: color),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class ExplorerNodeTile extends ConsumerWidget {
   const ExplorerNodeTile({required this.node, super.key});
 
@@ -822,6 +866,7 @@ class _DirectoryTile extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isHovering = useState(false);
+    final mouseHover = useState(false);
     return DropRegion(
       formats: const [Formats.fileUri],
       hitTestBehavior: HitTestBehavior.opaque,
@@ -842,138 +887,228 @@ class _DirectoryTile extends HookConsumerWidget {
           return DragItem(suggestedName: node.name, localData: node.path)
             ..add(Formats.fileUri(Uri.file(node.path)));
         },
-        child: DraggableWidget(child: _content(context, ref, isHovering.value)),
-      ),
-    );
-  }
-
-  Widget _content(BuildContext context, WidgetRef ref, bool isDropHovering) {
-    // Claude CLI 未導入時は Skill 検知関連の表示を完全に消す（ADR-0022）。
-    final claudeAvailable = ref.watch(claudeAvailableProvider);
-    final hasSkill = claudeAvailable && node.skillNames.isNotEmpty;
-    final colors = Theme.of(context).colorScheme;
-    final tabId = ref.watch(currentTabIdProvider);
-    final isSelected =
-        ref.watch(explorerItemSelectionProvider(tabId)) == node.path;
-    // ADR-0024: compact ではサイドバーと同じ縦幅・1 行表示にして Skill 表示を省略する。
-    final density =
-        ref.watch(explorerSettingsProvider).value?.listDensity ??
-        ExplorerListDensity.comfortable;
-    final isCompact = density == ExplorerListDensity.compact;
-    final showSkill = hasSkill && !isCompact;
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onSecondaryTapDown: (details) =>
-          showExplorerContextMenu(context, ref, node, details.globalPosition),
-      child: InkWell(
-        // ADR-0021: シングルクリックで選択、ダブルクリックで遷移。
-        onTap: () => ref
-            .read(explorerItemSelectionProvider(tabId).notifier)
-            .select(node.path),
-        onDoubleTap: () => ref
-            .read(explorerViewModelProvider(tabId).notifier)
-            .navigateTo(node.path),
-        child: Container(
-          color: isDropHovering
-              ? colors.primary.withValues(alpha: 0.12)
-              : (isSelected ? colors.primary.withValues(alpha: 0.16) : null),
-          padding: EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: isCompact ? 6 : 12,
-          ),
-          child: Row(
-            children: [
-              Icon(
-                hasSkill ? Icons.folder_special : Icons.folder,
-                size: isCompact ? 18 : null,
-                color: hasSkill ? colors.primary : colors.onSurfaceVariant,
-              ),
-              SizedBox(width: isCompact ? 12 : 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      node.name,
-                      style: Theme.of(context).textTheme.bodyMedium,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    if (showSkill)
-                      Text(
-                        'Skill: ${node.skillNames.join(', ')}',
-                        style: Theme.of(context).textTheme.bodySmall,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                  ],
-                ),
-              ),
-              if (showSkill)
-                Chip(
-                  visualDensity: VisualDensity.compact,
-                  label: Text('${node.skillNames.length}'),
-                  avatar: const Icon(Icons.bolt, size: 14),
-                ),
-            ],
+        child: DraggableWidget(
+          child: MouseRegion(
+            onEnter: (_) => mouseHover.value = true,
+            onExit: (_) => mouseHover.value = false,
+            child: _content(
+              context,
+              ref,
+              isDropHovering: isHovering.value,
+              isMouseHovering: mouseHover.value,
+            ),
           ),
         ),
       ),
     );
   }
+
+  Widget _content(
+    BuildContext context,
+    WidgetRef ref, {
+    required bool isDropHovering,
+    required bool isMouseHovering,
+  }) {
+    // Claude CLI 未導入時は Skill 検知関連の表示を完全に消す（ADR-0022）。
+    final claudeAvailable = ref.watch(claudeAvailableProvider);
+    final hasSkill = claudeAvailable && node.skillNames.isNotEmpty;
+    final tokens = PolarisTokens.of(context);
+    final tabId = ref.watch(currentTabIdProvider);
+    final selection = ref.watch(explorerItemSelectionProvider(tabId));
+    final isSelected = selection.contains(node.path);
+    // 主選択（アンカー）のみフルアクセント点灯。それ以外は控えめな塗り（D12）。
+    final isPrimary = selection.isPrimary(node.path);
+    // ADR-0024: compact は 1 行（Skill バッジのみ）、comfortable は Skill
+    // 検知時にスキル名のサブタイトル行を足した 2 行にして密度差を持たせる。
+    final density =
+        ref.watch(explorerSettingsProvider).value?.listDensity ??
+        ExplorerListDensity.comfortable;
+    final isCompact = density == ExplorerListDensity.compact;
+    final showSkillSubtitle = hasSkill && !isCompact;
+    // ホバーは surface、選択・drop ホバーは surfaceHi（ADR-0038 D3）。
+    final Color? rowColor = (isDropHovering || isSelected)
+        ? tokens.surfaceHi
+        : isMouseHovering
+        ? tokens.surface
+        : null;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onSecondaryTapDown: (details) =>
+          showExplorerContextMenu(context, ref, node, details.globalPosition),
+      // ADR-0021: シングルクリックで選択、ダブルクリックで遷移。
+      // ⌘+クリックは選択へ加除する（ADR-0038 D12）。
+      onTap: () {
+        final notifier = ref.read(
+          explorerItemSelectionProvider(tabId).notifier,
+        );
+        if (HardwareKeyboard.instance.isMetaPressed) {
+          notifier.toggle(node.path);
+        } else {
+          notifier.select(node.path);
+        }
+      },
+      onDoubleTap: () => ref
+          .read(explorerViewModelProvider(tabId).notifier)
+          .navigateTo(node.path),
+      child: Stack(
+        children: [
+          Container(
+            height: explorerRowHeight(
+              isCompact,
+              skillSubtitle: showSkillSubtitle,
+            ),
+            color: rowColor,
+            padding: const EdgeInsets.symmetric(
+              horizontal: PolarisTokens.space4,
+            ),
+            child: Row(
+              children: [
+                // フォルダの型アイコンは常にアクセント色（D4）。
+                PolarisTypeIcon(
+                  isDir: true,
+                  color: tokens.accent,
+                  size: isCompact
+                      ? PolarisIconSize.small
+                      : PolarisIconSize.standard,
+                ),
+                const SizedBox(width: PolarisTokens.space3),
+                Expanded(
+                  // comfortable で Skill 検知済みなら、フォルダ名の下に
+                  // 検知したスキル名をサブタイトル行として出す（ADR-0024）。
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        node.name,
+                        style: tokens.body.copyWith(
+                          color: isPrimary ? tokens.accent : tokens.text,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      if (showSkillSubtitle)
+                        Text(
+                          'Skill: ${node.skillNames.join(', ')}',
+                          style: tokens.meta.copyWith(
+                            color: tokens.textFaint,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                    ],
+                  ),
+                ),
+                if (hasSkill) ...[
+                  const SizedBox(width: PolarisTokens.space2),
+                  _SkillBadge(names: node.skillNames, color: tokens.accent),
+                ],
+              ],
+            ),
+          ),
+          if (isPrimary) _PrimaryAccentBar(color: tokens.accent),
+        ],
+      ),
+    );
+  }
 }
 
-class _FileTile extends ConsumerWidget {
+/// 主選択行の左端に立てる 2px のアクセントバー（ADR-0038 D12）。
+class _PrimaryAccentBar extends StatelessWidget {
+  const _PrimaryAccentBar({required this.color});
+
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned(
+      left: 0,
+      top: 4,
+      bottom: 4,
+      child: Container(width: 2, color: color),
+    );
+  }
+}
+
+class _FileTile extends HookConsumerWidget {
   const _FileTile({required this.node});
 
   final ExplorerFileNode node;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final colors = Theme.of(context).colorScheme;
-    final icon = _iconForName(node.name);
+    final tokens = PolarisTokens.of(context);
     final tabId = ref.watch(currentTabIdProvider);
-    final isSelected =
-        ref.watch(explorerItemSelectionProvider(tabId)) == node.path;
+    final selection = ref.watch(explorerItemSelectionProvider(tabId));
+    final isSelected = selection.contains(node.path);
+    // 主選択（アンカー）のみフルアクセント点灯（ADR-0038 D12）。
+    final isPrimary = selection.isPrimary(node.path);
     // ADR-0024: ディレクトリタイルと同じく compact ではサイドバーと同じ縦幅。
     final density =
         ref.watch(explorerSettingsProvider).value?.listDensity ??
         ExplorerListDensity.comfortable;
     final isCompact = density == ExplorerListDensity.compact;
-    final content = GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onSecondaryTapDown: (details) =>
-          showFileContextMenu(context, ref, node, details.globalPosition),
-      child: InkWell(
+    final mouseHover = useState(false);
+    // ホバーは surface、選択は surfaceHi（ADR-0038 D3）。
+    final Color? rowColor = isSelected
+        ? tokens.surfaceHi
+        : mouseHover.value
+        ? tokens.surface
+        : null;
+    final content = MouseRegion(
+      onEnter: (_) => mouseHover.value = true,
+      onExit: (_) => mouseHover.value = false,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onSecondaryTapDown: (details) =>
+            showFileContextMenu(context, ref, node, details.globalPosition),
         // ADR-0021: シングルクリックで選択、ダブルクリックで開く。
-        onTap: () => ref
-            .read(explorerItemSelectionProvider(tabId).notifier)
-            .select(node.path),
+        // ⌘+クリックは選択へ加除する（ADR-0038 D12）。
+        onTap: () {
+          final notifier = ref.read(
+            explorerItemSelectionProvider(tabId).notifier,
+          );
+          if (HardwareKeyboard.instance.isMetaPressed) {
+            notifier.toggle(node.path);
+          } else {
+            notifier.select(node.path);
+          }
+        },
         onDoubleTap: () => ref.read(fileOpenerProvider).open(node.path),
-        child: Container(
-          color: isSelected ? colors.primary.withValues(alpha: 0.16) : null,
-          padding: EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: isCompact ? 6 : 12,
-          ),
-          child: Row(
-            children: [
-              Icon(
-                icon,
-                size: isCompact ? 18 : null,
-                color: colors.onSurfaceVariant,
+        child: Stack(
+          children: [
+            Container(
+              height: explorerRowHeight(isCompact),
+              color: rowColor,
+              padding: const EdgeInsets.symmetric(
+                horizontal: PolarisTokens.space4,
               ),
-              SizedBox(width: isCompact ? 12 : 16),
-              Expanded(
-                child: Text(
-                  node.name,
-                  style: Theme.of(context).textTheme.bodyMedium,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
+              child: Row(
+                children: [
+                  // ファイルの型アイコンは主選択時のみアクセント点灯（D12）。
+                  PolarisTypeIcon(
+                    isDir: false,
+                    color: isPrimary ? tokens.accent : tokens.textFaint,
+                    size: isCompact
+                        ? PolarisIconSize.small
+                        : PolarisIconSize.standard,
+                  ),
+                  const SizedBox(width: PolarisTokens.space3),
+                  Expanded(
+                    child: Text(
+                      node.name,
+                      style: tokens.body.copyWith(
+                        color: isPrimary ? tokens.accent : tokens.text,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+            if (isPrimary) _PrimaryAccentBar(color: tokens.accent),
+          ],
         ),
       ),
     );
@@ -986,35 +1121,6 @@ class _FileTile extends ConsumerWidget {
       },
       child: DraggableWidget(child: content),
     );
-  }
-
-  /// 拡張子からざっくりアイコンを決める。厳密に判別する必要は無く、
-  /// ディレクトリと区別がつけばよい程度。
-  IconData _iconForName(String name) {
-    final lower = name.toLowerCase();
-    if (lower.endsWith('.md') || lower.endsWith('.txt')) {
-      return Icons.description;
-    }
-    if (lower.endsWith('.json') ||
-        lower.endsWith('.yaml') ||
-        lower.endsWith('.yml') ||
-        lower.endsWith('.toml')) {
-      return Icons.data_object;
-    }
-    if (lower.endsWith('.png') ||
-        lower.endsWith('.jpg') ||
-        lower.endsWith('.jpeg') ||
-        lower.endsWith('.gif') ||
-        lower.endsWith('.webp') ||
-        lower.endsWith('.svg')) {
-      return Icons.image;
-    }
-    if (lower.endsWith('.zip') ||
-        lower.endsWith('.tar') ||
-        lower.endsWith('.gz')) {
-      return Icons.folder_zip;
-    }
-    return Icons.insert_drive_file;
   }
 }
 

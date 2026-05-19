@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:roola/app/theme.dart';
 import 'package:roola/core/skill/skill_scanner.dart';
 import 'package:roola/data/repo_explorer/explorer_node.dart';
 import 'package:roola/l10n/app_localizations.dart';
+import 'package:roola/ui/common/polaris_display_panel.dart';
 import 'package:roola/ui/explorer/explorer_item_selection.dart';
 import 'package:roola/ui/explorer/explorer_node_tile.dart';
 import 'package:roola/ui/explorer/explorer_path_bar.dart';
@@ -25,14 +27,23 @@ class ExplorerTabBody extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final tabId = ref.watch(currentTabIdProvider);
     final state = ref.watch(explorerViewModelProvider(tabId));
-    return Column(
-      children: [
-        _PaneHeader(tabId: tabId, currentPath: state.currentPath),
-        const Divider(height: 1),
-        Expanded(
-          child: _DirectoryListing(tabId: tabId, state: state),
+    final tokens = PolarisTokens.of(context);
+    // 筐体（bg）の中に計器ディスプレイパネル（well）を 1 枚嵌め込む。
+    // パネル内は [コントロール行][1px 継ぎ目][一覧] を地続きに並べ、ヘッダと
+    // 一覧を「1 個の計器」として見せる（ADR-0038 D3）。
+    return ColoredBox(
+      color: tokens.bg,
+      child: PolarisDisplayPanel(
+        child: Column(
+          children: [
+            _PaneHeader(tabId: tabId, currentPath: state.currentPath),
+            Container(height: 1, color: tokens.line),
+            Expanded(
+              child: _DirectoryListing(tabId: tabId, state: state),
+            ),
+          ],
         ),
-      ],
+      ),
     );
   }
 }
@@ -49,36 +60,66 @@ class _PaneHeader extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final notifier = ref.read(explorerViewModelProvider(tabId).notifier);
     final l10n = AppLocalizations.of(context);
+    // 計器パネル内側の最上段＝コントロール行。4px グリッドに乗せる。
     return Padding(
-      padding: const EdgeInsets.fromLTRB(8, 4, 8, 4),
+      padding: const EdgeInsets.fromLTRB(
+        PolarisTokens.space2,
+        PolarisTokens.space1,
+        PolarisTokens.space2,
+        PolarisTokens.space1,
+      ),
       child: Row(
         children: [
-          IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 16),
+          _NavButton(
+            icon: Icons.arrow_back_ios_new_rounded,
             tooltip: l10n.navBack,
-            visualDensity: VisualDensity.compact,
             onPressed: notifier.canGoBack ? notifier.goBack : null,
           ),
-          IconButton(
-            icon: const Icon(Icons.arrow_forward_ios_rounded, size: 16),
+          _NavButton(
+            icon: Icons.arrow_forward_ios_rounded,
             tooltip: l10n.navForward,
-            visualDensity: VisualDensity.compact,
             onPressed: notifier.canGoForward ? notifier.goForward : null,
           ),
-          IconButton(
-            icon: const Icon(Icons.arrow_upward_rounded, size: 16),
+          _NavButton(
+            icon: Icons.arrow_upward_rounded,
             tooltip: l10n.navUp,
-            visualDensity: VisualDensity.compact,
             onPressed: notifier.goUp,
           ),
-          const SizedBox(width: 4),
+          const SizedBox(width: PolarisTokens.space2),
           Expanded(
             child: ExplorerPathBar(tabId: tabId, currentPath: currentPath),
           ),
-          const SizedBox(width: 4),
+          const SizedBox(width: PolarisTokens.space2),
           _OpenGitButton(currentPath: currentPath),
         ],
       ),
+    );
+  }
+}
+
+/// コントロール行のナビゲーションボタン。28px 角の `IconButton`。
+/// 戻る / 進む / 上の主要操作のため、視認とクリックに十分な大きさを確保する
+/// （機能優先・視認性を犠牲にしない / ADR-0038）。
+class _NavButton extends StatelessWidget {
+  const _NavButton({
+    required this.icon,
+    required this.tooltip,
+    required this.onPressed,
+  });
+
+  final IconData icon;
+  final String tooltip;
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      icon: Icon(icon, size: PolarisIconSize.standard),
+      tooltip: tooltip,
+      visualDensity: VisualDensity.compact,
+      padding: EdgeInsets.zero,
+      constraints: const BoxConstraints.tightFor(width: 28, height: 28),
+      onPressed: onPressed,
     );
   }
 }
@@ -93,16 +134,19 @@ class _OpenGitButton extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // 結果は gitRepositoryRootProvider が family(パス)単位でキャッシュする。
-    final repoRoot = ref
-        .watch(gitRepositoryRootProvider(currentPath))
-        .value;
+    final repoRoot = ref.watch(gitRepositoryRootProvider(currentPath)).value;
     final l10n = AppLocalizations.of(context);
     return IconButton(
-      icon: const Icon(Icons.account_tree_outlined, size: 16),
+      icon: const Icon(
+        Icons.account_tree_outlined,
+        size: PolarisIconSize.standard,
+      ),
       tooltip: repoRoot != null
           ? l10n.explorerOpenGitViewTooltip
           : l10n.explorerNotGitRepository,
       visualDensity: VisualDensity.compact,
+      padding: EdgeInsets.zero,
+      constraints: const BoxConstraints.tightFor(width: 28, height: 28),
       onPressed: repoRoot == null
           ? null
           : () => ref.read(workspaceProvider.notifier).openGitTab(repoRoot),
@@ -145,17 +189,18 @@ class _DirectoryListing extends HookConsumerWidget {
       // スクロール位置を先頭に戻す。
       key: ValueKey('explorer-body:$tabId:${state.currentPath}'),
       slivers: [
-        const SliverPadding(padding: EdgeInsets.only(top: 8)),
-        if (showParentTile) ...[
+        const SliverPadding(
+          padding: EdgeInsets.only(top: PolarisTokens.space1),
+        ),
+        if (showParentTile)
           SliverToBoxAdapter(
             child: ExplorerParentDropTile(currentPath: state.currentPath),
           ),
-          const SliverToBoxAdapter(child: Divider(height: 1)),
-        ],
+        // 計器ディスプレイの走査線のように行を密に並べる。仕切り線は引かず
+        // ホバー / 選択の塗りで行を分ける（ADR-0038 D3）。
         if (!isEmpty)
-          SliverList.separated(
+          SliverList.builder(
             itemCount: state.children.length,
-            separatorBuilder: (_, _) => const Divider(height: 1),
             itemBuilder: (_, i) => ExplorerNodeTile(node: state.children[i]),
           ),
         if (isEmpty)
@@ -200,7 +245,7 @@ class _CurrentDirBackdrop extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isHovering = useState(false);
-    final colors = Theme.of(context).colorScheme;
+    final tokens = PolarisTokens.of(context);
     return DropRegion(
       formats: const [Formats.fileUri],
       hitTestBehavior: HitTestBehavior.opaque,
@@ -230,9 +275,7 @@ class _CurrentDirBackdrop extends HookConsumerWidget {
           );
         },
         child: Container(
-          color: isHovering.value
-              ? colors.primary.withValues(alpha: 0.08)
-              : null,
+          color: isHovering.value ? tokens.surface : null,
           child: showEmptyHint
               ? const _EmptyPlaceholder()
               : const SizedBox.expand(),
@@ -257,8 +300,8 @@ class _EmptyPlaceholder extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.folder_off_outlined, size: 64),
-          const SizedBox(height: 12),
+          const Icon(Icons.folder_off_outlined, size: PolarisIconSize.hero),
+          const SizedBox(height: PolarisTokens.space3),
           Text(l10n.explorerNoItems),
         ],
       ),

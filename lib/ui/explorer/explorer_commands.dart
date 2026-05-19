@@ -11,6 +11,7 @@ import 'package:roola/data/repo_explorer/explorer_settings.dart';
 import 'package:roola/data/repo_explorer/explorer_settings_repository_impl.dart';
 import 'package:roola/data/workspace/workspace_layout.dart';
 import 'package:roola/l10n/app_localizations.dart';
+import 'package:roola/ui/common/polaris_dialog.dart';
 import 'package:roola/ui/common/prompt_name_dialog.dart';
 import 'package:roola/ui/explorer/explorer_clipboard_provider.dart';
 import 'package:roola/ui/explorer/explorer_properties_dialog.dart';
@@ -159,27 +160,15 @@ Future<void> runMoveToTrash(
   required String explorerTabId,
 }) async {
   final l10n = AppLocalizations.of(context);
-  final confirmed = await showDialog<bool>(
-    context: context,
-    builder: (context) {
-      final l10n = AppLocalizations.of(context);
-      return AlertDialog(
-        title: Text(l10n.explorerDeleteConfirmTitle),
-        content: Text(l10n.explorerDeleteConfirmMessage(displayName)),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: Text(l10n.buttonCancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: Text(l10n.buttonDelete),
-          ),
-        ],
-      );
-    },
+  final confirmed = await showPolarisConfirm(
+    context,
+    title: l10n.explorerDeleteConfirmTitle,
+    message: l10n.explorerDeleteConfirmMessage(displayName),
+    confirmLabel: l10n.buttonDelete,
+    cancelLabel: l10n.buttonCancel,
+    destructive: true,
   );
-  if (confirmed != true || !context.mounted) {
+  if (!confirmed || !context.mounted) {
     return;
   }
   try {
@@ -201,15 +190,15 @@ Future<void> runMoveToTrash(
 }
 
 /// 絶対パス文字列を OS クリップボードにテキストとして書き込む。
-Future<void> runCopyPath(
-  BuildContext context, {
-  required String path,
-}) async {
+Future<void> runCopyPath(BuildContext context, {required String path}) async {
   await Clipboard.setData(ClipboardData(text: path));
   if (!context.mounted) {
     return;
   }
-  _snack(context, AppLocalizations.of(context).explorerSnackbarPathCopied(path));
+  _snack(
+    context,
+    AppLocalizations.of(context).explorerSnackbarPathCopied(path),
+  );
 }
 
 /// アイテムを OS クリップボードへファイルとしてコピーする。
@@ -280,10 +269,9 @@ void runOpenTerminalHere(
     displayName: '$displayName (Terminal)',
     action: const LauncherAction.openHere(),
   );
-  ref.read(workspaceProvider.notifier).addTerminalTab(
-        PaneSlotId.bottom,
-        args: args,
-      );
+  ref
+      .read(workspaceProvider.notifier)
+      .addTerminalTab(PaneSlotId.bottom, args: args);
 }
 
 /// [dirPath] で Claude Code を開く（bottom ペインに新規ターミナルタブ）。
@@ -301,8 +289,7 @@ void runOpenClaudeHere(
       keepShellAfterExit: false,
     ),
   );
-  ref.read(workspaceProvider.notifier).addTerminalTab(
-        PaneSlotId.bottom,
-        args: args,
-      );
+  ref
+      .read(workspaceProvider.notifier)
+      .addTerminalTab(PaneSlotId.bottom, args: args);
 }

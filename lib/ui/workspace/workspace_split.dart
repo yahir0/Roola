@@ -13,6 +13,7 @@ class WorkspaceSplit extends StatelessWidget {
     required this.onRatioChanged,
     required this.first,
     required this.second,
+    this.minPaneSize = 0,
     super.key,
   });
 
@@ -21,6 +22,10 @@ class WorkspaceSplit extends StatelessWidget {
   final ValueChanged<double> onRatioChanged;
   final Widget first;
   final Widget second;
+
+  /// 各ペインの最小サイズ（px）。ドラッグしてもこれより小さくならない。
+  /// 利用可能サイズが `minPaneSize * 2` 未満のときは比率のみで分割する。
+  final double minPaneSize;
 
   /// ドラッグハンドルの厚み（px）。
   static const double _handleThickness = 6;
@@ -33,7 +38,10 @@ class WorkspaceSplit extends StatelessWidget {
             ? constraints.maxWidth
             : constraints.maxHeight;
         final usable = (extent - _handleThickness).clamp(0.0, double.infinity);
-        final firstSize = usable * ratio;
+        // 各ペインを minPaneSize 以上に保つ。usable が足りないときは比率のみ。
+        final firstSize = usable >= minPaneSize * 2
+            ? (usable * ratio).clamp(minPaneSize, usable - minPaneSize)
+            : usable * ratio;
         final secondSize = usable - firstSize;
         final isHorizontal = axis == Axis.horizontal;
         final children = <Widget>[

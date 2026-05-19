@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:roola/app/theme.dart';
 import 'package:roola/core/keybindings/chord_conflict.dart';
 import 'package:roola/core/keybindings/chord_formatter.dart';
 import 'package:roola/core/keybindings/key_chord_recorder.dart';
@@ -9,6 +10,7 @@ import 'package:roola/data/keybindings/effective_keybindings.dart';
 import 'package:roola/data/keybindings/key_chord.dart';
 import 'package:roola/l10n/app_localizations.dart';
 import 'package:roola/ui/common/command_l10n.dart';
+import 'package:roola/ui/common/polaris_dialog.dart';
 
 /// キーレコーダ表示中フラグ（ADR-0033）。
 ///
@@ -24,8 +26,9 @@ class KeybindingRecording extends Notifier<bool> {
   void setActive({required bool active}) => state = active;
 }
 
-final keybindingRecordingProvider =
-    NotifierProvider<KeybindingRecording, bool>(KeybindingRecording.new);
+final keybindingRecordingProvider = NotifierProvider<KeybindingRecording, bool>(
+  KeybindingRecording.new,
+);
 
 /// [target] コマンドへ割り当てるキーコンビをユーザーに入力させる。
 /// 確定されたら [KeyChord] を、キャンセルされたら null を返す。
@@ -52,15 +55,11 @@ class _KeyChordRecorderDialog extends HookConsumerWidget {
     // 表示中はメニューバーの key equivalent を無効化する。
     useEffect(() {
       Future.microtask(() {
-        ref
-            .read(keybindingRecordingProvider.notifier)
-            .setActive(active: true);
+        ref.read(keybindingRecordingProvider.notifier).setActive(active: true);
       });
       focusNode.requestFocus();
       return () {
-        ref
-            .read(keybindingRecordingProvider.notifier)
-            .setActive(active: false);
+        ref.read(keybindingRecordingProvider.notifier).setActive(active: false);
       };
     }, const []);
 
@@ -89,9 +88,11 @@ class _KeyChordRecorderDialog extends HookConsumerWidget {
     }
     final canConfirm = chord != null && error == null;
     final colors = Theme.of(context).colorScheme;
+    final tokens = PolarisTokens.of(context);
 
-    return AlertDialog(
-      title: Text(l10n.keyChordRecorderTitle(l10n.commandLabel(target))),
+    return PolarisDialog(
+      title: l10n.keyChordRecorderTitle(l10n.commandLabel(target)),
+      width: 400,
       content: Focus(
         focusNode: focusNode,
         autofocus: true,
@@ -109,14 +110,16 @@ class _KeyChordRecorderDialog extends HookConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(l10n.keyChordRecorderInstructions),
-            const SizedBox(height: 16),
+            const SizedBox(height: PolarisTokens.space4),
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 16),
+              padding: const EdgeInsets.symmetric(
+                vertical: PolarisTokens.space4,
+              ),
               decoration: BoxDecoration(
                 color: colors.surfaceContainerHigh,
                 border: Border.all(color: colors.outlineVariant),
-                borderRadius: BorderRadius.circular(4),
+                borderRadius: BorderRadius.circular(tokens.radius),
               ),
               child: Center(
                 child: Text(
@@ -128,7 +131,7 @@ class _KeyChordRecorderDialog extends HookConsumerWidget {
               ),
             ),
             if (error != null) ...[
-              const SizedBox(height: 12),
+              const SizedBox(height: PolarisTokens.space3),
               Text(
                 error,
                 style: Theme.of(
@@ -140,14 +143,12 @@ class _KeyChordRecorderDialog extends HookConsumerWidget {
         ),
       ),
       actions: [
-        TextButton(
+        OutlinedButton(
           onPressed: () => Navigator.of(context).pop(),
           child: Text(l10n.buttonCancel),
         ),
         FilledButton(
-          onPressed: canConfirm
-              ? () => Navigator.of(context).pop(chord)
-              : null,
+          onPressed: canConfirm ? () => Navigator.of(context).pop(chord) : null,
           child: Text(l10n.buttonConfirm),
         ),
       ],

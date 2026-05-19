@@ -20,28 +20,37 @@ void main() {
     }
   });
 
-  test('load returns transparent default when file does not exist', () async {
+  test('load returns opaque default when file does not exist', () async {
     final settings = await repo.load();
-    expect(settings.mode, AppearanceMode.transparent);
-    expect(settings.solidColor, isNull);
-    expect(settings.imagePath, isNull);
+    expect(settings.mode, AppearanceMode.opaque);
   });
 
-  test('save then load round-trips solid color', () async {
+  test('save then load round-trips transparent settings', () async {
     const settings = AppearanceSettings(
-      mode: AppearanceMode.solid,
-      solidColor: 0xFFABCDEF,
+      mode: AppearanceMode.transparent,
+      transparencyOpacity: 0.5,
     );
     await repo.save(settings);
     final loaded = await repo.load();
-    expect(loaded.mode, AppearanceMode.solid);
-    expect(loaded.solidColor, 0xFFABCDEF);
+    expect(loaded.mode, AppearanceMode.transparent);
+    expect(loaded.transparencyOpacity, 0.5);
   });
 
   test('load returns defaults for malformed JSON', () async {
     await AppPaths(root: tempDir).ensureDirectories();
     await File('${tempDir.path}/appearance.json').writeAsString('not json');
     final loaded = await repo.load();
-    expect(loaded.mode, AppearanceMode.transparent);
+    expect(loaded.mode, AppearanceMode.opaque);
+  });
+
+  test('legacy solid mode falls back to opaque', () async {
+    // 旧バージョンの solid / image / gradient は廃止済み。未知のモード名は
+    // 不透明（opaque）にフォールバックする（ADR-0038）。
+    await AppPaths(root: tempDir).ensureDirectories();
+    await File(
+      '${tempDir.path}/appearance.json',
+    ).writeAsString('{"mode":"solid","solidColor":4290000000}');
+    final loaded = await repo.load();
+    expect(loaded.mode, AppearanceMode.opaque);
   });
 }
