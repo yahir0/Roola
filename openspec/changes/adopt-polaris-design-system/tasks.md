@@ -109,5 +109,10 @@
 - [x] 7.4 角丸を R=2px から R=4px へ。2px が大パネルで直角に見えたため。
       `BorderRadius.circular(2)` のハードコードを全廃し `PolarisTokens.radius`
       に集約。ADR-0038 D6 を改定
+- [x] 7.6 外観機能（背景）を Polaris と整合させる。Polaris と相反する 単色 /
+      画像 / グラデーションモードを廃止し、`opaque` / `transparent` の 2 択へ
+      整理。`_AppearanceLayer` が常に不透明グラファイトの基底層を敷くよう修正
+      （ターミナル・設定画面が透明な穴になる不具合を解消）、透過は UI 全体を
+      `Opacity` で一括半透明合成する。ADR-0038 D14 を追加
 - [ ] 7.5 デザインの継続的な詰め（実機で見ながら調整）。完了し満足したら
       本 change を `/opsx:archive` でアーカイブする
