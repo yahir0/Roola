@@ -55,7 +55,10 @@ void main() {
     await container.read(keybindingsProvider.future);
     final notifier = container.read(keybindingsProvider.notifier);
 
-    await notifier.setChord(CommandId.copyPath, _chord(LogicalKeyboardKey.keyZ));
+    await notifier.setChord(
+      CommandId.copyPath,
+      _chord(LogicalKeyboardKey.keyZ),
+    );
     await notifier.resetToDefault(CommandId.copyPath);
 
     expect(
@@ -73,8 +76,14 @@ void main() {
     await container.read(keybindingsProvider.future);
     final notifier = container.read(keybindingsProvider.notifier);
 
-    await notifier.setChord(CommandId.copyPath, _chord(LogicalKeyboardKey.keyZ));
-    await notifier.setChord(CommandId.closeTab, _chord(LogicalKeyboardKey.keyX));
+    await notifier.setChord(
+      CommandId.copyPath,
+      _chord(LogicalKeyboardKey.keyZ),
+    );
+    await notifier.setChord(
+      CommandId.closeTab,
+      _chord(LogicalKeyboardKey.keyX),
+    );
     await notifier.resetAll();
 
     expect(container.read(keybindingsProvider).value!.overrides, isEmpty);
