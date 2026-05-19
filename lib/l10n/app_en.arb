@@ -412,6 +412,20 @@
   "notepadTitle": "Notepad",
   "notepadHint": "Jot a note…",
 
+  "activityMonitorCpuTooltip": "CPU {percent}%",
+  "@activityMonitorCpuTooltip": {
+    "placeholders": { "percent": { "type": "String" } }
+  },
+  "activityMonitorMemoryTooltip": "Memory {percent}%",
+  "@activityMonitorMemoryTooltip": {
+    "placeholders": { "percent": { "type": "String" } }
+  },
+  "activityMonitorCpuPopoverTitle": "Top processes — CPU",
+  "activityMonitorMemoryPopoverTitle": "Top processes — Memory",
+  "activityMonitorColumnCpu": "CPU",
+  "activityMonitorColumnMemory": "MEM",
+  "activityMonitorEmpty": "No process data available",
+
   "buttonDiscard": "Discard",
   "buttonRename": "Rename",
 

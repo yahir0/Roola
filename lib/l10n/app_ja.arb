@@ -439,6 +439,20 @@
   "notepadTitle": "ノートパッド",
   "notepadHint": "メモを入力…",
 
+  "activityMonitorCpuTooltip": "CPU {percent}%",
+  "@activityMonitorCpuTooltip": {
+    "placeholders": { "percent": { "type": "String" } }
+  },
+  "activityMonitorMemoryTooltip": "メモリ {percent}%",
+  "@activityMonitorMemoryTooltip": {
+    "placeholders": { "percent": { "type": "String" } }
+  },
+  "activityMonitorCpuPopoverTitle": "CPU 上位プロセス",
+  "activityMonitorMemoryPopoverTitle": "メモリ上位プロセス",
+  "activityMonitorColumnCpu": "CPU",
+  "activityMonitorColumnMemory": "メモリ",
+  "activityMonitorEmpty": "プロセス情報を取得できません",
+
   "buttonDiscard": "破棄",
   "buttonRename": "リネーム",
 
