@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:roola/app/theme.dart';
 import 'package:roola/data/git/git_commit.dart';
@@ -9,6 +10,7 @@ import 'package:roola/ui/git/git_diff_view.dart';
 import 'package:roola/ui/git/git_graph_painter.dart';
 import 'package:roola/ui/git/git_view_model.dart';
 import 'package:roola/ui/git/git_view_state.dart';
+import 'package:roola/ui/workspace/workspace_split.dart';
 
 /// 履歴行 1 行の高さ。
 const double _rowHeight = 30;
@@ -23,7 +25,7 @@ const int _maxLanesShown = 12;
 ///
 /// コミットグラフ（`CustomPaint`）の一覧と、選択コミットの詳細（変更ファイル
 /// 一覧）を表示する（ADR-0030）。
-class GitHistorySection extends ConsumerWidget {
+class GitHistorySection extends HookConsumerWidget {
   const GitHistorySection({
     required this.tabId,
     required this.state,
@@ -35,6 +37,9 @@ class GitHistorySection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // コミット選択時のリスト↔詳細パネルの分割比（リスト側の占有率）。
+    final listRatio = useState(0.6);
+
     if (state.graph.isEmpty) {
       return Center(child: Text(AppLocalizations.of(context).gitNoCommits));
     }
@@ -48,38 +53,37 @@ class GitHistorySection extends ConsumerWidget {
     final graphWidth =
         (maxLanes.clamp(1, _maxLanesShown)) * _laneWidth + _laneWidth;
 
-    return Column(
-      children: [
-        // 履歴リストと詳細パネルはセクションの高さを flex で分け合う。
-        // 詳細を固定高にするとセクションが縮んだとき収まらず溢れる。
-        Expanded(
-          flex: 3,
-          child: ListView.builder(
-            itemCount: state.graph.length + (state.hasMoreHistory ? 1 : 0),
-            itemExtent: _rowHeight,
-            itemBuilder: (context, index) {
-              if (index >= state.graph.length) {
-                return _LoadMoreRow(
-                  busy: state.runningOperation == GitOperation.loadMore,
-                  onPressed: notifier.loadMoreHistory,
-                );
-              }
-              final row = state.graph[index];
-              return _CommitRow(
-                tabId: tabId,
-                row: row,
-                graphWidth: graphWidth,
-                selected: row.commit.sha == state.selectedSha,
-              );
-            },
-          ),
-        ),
-        if (state.selectedSha != null)
-          Expanded(
-            flex: 2,
-            child: _CommitDetail(tabId: tabId, state: state),
-          ),
-      ],
+    final list = ListView.builder(
+      itemCount: state.graph.length + (state.hasMoreHistory ? 1 : 0),
+      itemExtent: _rowHeight,
+      itemBuilder: (context, index) {
+        if (index >= state.graph.length) {
+          return _LoadMoreRow(
+            busy: state.runningOperation == GitOperation.loadMore,
+            onPressed: notifier.loadMoreHistory,
+          );
+        }
+        final row = state.graph[index];
+        return _CommitRow(
+          tabId: tabId,
+          row: row,
+          graphWidth: graphWidth,
+          selected: row.commit.sha == state.selectedSha,
+        );
+      },
+    );
+
+    // コミット未選択ならリストのみ。選択中はリストと詳細パネルをドラッグ可能な
+    // スプリッタで分割し、詳細パネルの高さをユーザーが調整できるようにする。
+    if (state.selectedSha == null) {
+      return list;
+    }
+    return WorkspaceSplit(
+      axis: Axis.vertical,
+      ratio: listRatio.value,
+      onRatioChanged: (r) => listRatio.value = r.clamp(0.15, 0.85),
+      first: list,
+      second: _CommitDetail(tabId: tabId, state: state),
     );
   }
 }
@@ -285,10 +289,10 @@ class _CommitDetail extends ConsumerWidget {
     final commit = _findCommit(sha);
 
     return Container(
-      // 高さは親の Expanded から受ける（固定高にしない。上のコメント参照）。
+      // 高さは親（WorkspaceSplit）から受ける。固定高にしない。リストとの
+      // 境界線はスプリッタのハンドルが担うので top border は持たない。
       decoration: BoxDecoration(
         color: colors.surfaceContainerHighest.withValues(alpha: 0.3),
-        border: Border(top: BorderSide(color: Theme.of(context).dividerColor)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,

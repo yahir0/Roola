@@ -14,6 +14,7 @@ import 'package:roola/ui/git/git_view_model.dart';
 import 'package:roola/ui/git/git_view_state.dart';
 import 'package:roola/ui/workspace/current_tab_id_provider.dart';
 import 'package:roola/ui/workspace/workspace_provider.dart';
+import 'package:roola/ui/workspace/workspace_split.dart';
 import 'package:uuid/uuid.dart';
 
 const _uuid = Uuid();
@@ -114,6 +115,8 @@ class _GitWorkspace extends HookWidget {
   Widget build(BuildContext context) {
     final changesCollapsed = useState(false);
     final historyCollapsed = useState(false);
+    // Changes / History スプリッタの分割比（Changes 側の占有率）。
+    final splitRatio = useState(0.6);
     final narrowSection = useState(_Section.changes);
     final changedCount =
         (state.status?.staged.length ?? 0) +
@@ -146,6 +149,7 @@ class _GitWorkspace extends HookWidget {
                     state: state,
                     changesCollapsed: changesCollapsed,
                     historyCollapsed: historyCollapsed,
+                    splitRatio: splitRatio,
                     changedCount: changedCount,
                   );
                 },
@@ -164,6 +168,7 @@ class _WideBody extends StatelessWidget {
     required this.state,
     required this.changesCollapsed,
     required this.historyCollapsed,
+    required this.splitRatio,
     required this.changedCount,
   });
 
@@ -171,50 +176,70 @@ class _WideBody extends StatelessWidget {
   final GitViewState state;
   final ValueNotifier<bool> changesCollapsed;
   final ValueNotifier<bool> historyCollapsed;
+
+  /// Changes セクションの占有率（残りが History）。スプリッタのドラッグで更新。
+  final ValueNotifier<double> splitRatio;
   final int changedCount;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final children = <Widget>[
-      _SectionHeader(
-        title: l10n.gitTabChanges,
-        count: changedCount,
-        collapsed: changesCollapsed.value,
-        onToggle: () => changesCollapsed.value = !changesCollapsed.value,
-      ),
-    ];
-    if (!changesCollapsed.value) {
-      children.add(
-        Expanded(
-          // Changes セクションを既定で広めに取り、ファイル一覧が
-          // コミット欄に潰されないようにする。
-          flex: historyCollapsed.value ? 1 : 3,
-          child: GitChangesSection(tabId: tabId, state: state),
-        ),
-      );
-    }
-    children.add(const Divider(height: 1));
-    children.add(
-      _SectionHeader(
-        title: l10n.gitTabHistory,
-        count: state.graph.length,
-        collapsed: historyCollapsed.value,
-        onToggle: () => historyCollapsed.value = !historyCollapsed.value,
-      ),
+    final changesOpen = !changesCollapsed.value;
+    final historyOpen = !historyCollapsed.value;
+
+    final changesHeader = _SectionHeader(
+      title: l10n.gitTabChanges,
+      count: changedCount,
+      collapsed: changesCollapsed.value,
+      onToggle: () => changesCollapsed.value = !changesCollapsed.value,
     );
-    if (!historyCollapsed.value) {
-      children.add(
-        Expanded(
-          flex: changesCollapsed.value ? 1 : 2,
-          child: GitHistorySection(tabId: tabId, state: state),
-        ),
+    final historyHeader = _SectionHeader(
+      title: l10n.gitTabHistory,
+      count: state.graph.length,
+      collapsed: historyCollapsed.value,
+      onToggle: () => historyCollapsed.value = !historyCollapsed.value,
+    );
+
+    // 両方開いているときだけ、Changes / History をドラッグ可能なスプリッタで
+    // 分割する（ハンドルを上下に動かして高さ配分を変えられる）。どちらかが
+    // 畳まれていれば本体は 1 つ以下なので、単純に縦に積む。
+    if (changesOpen && historyOpen) {
+      return Column(
+        children: [
+          changesHeader,
+          Expanded(
+            child: WorkspaceSplit(
+              axis: Axis.vertical,
+              ratio: splitRatio.value,
+              onRatioChanged: (r) => splitRatio.value = r.clamp(0.1, 0.9),
+              first: GitChangesSection(tabId: tabId, state: state),
+              second: Column(
+                children: [
+                  historyHeader,
+                  Expanded(
+                    child: GitHistorySection(tabId: tabId, state: state),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       );
     }
-    if (changesCollapsed.value && historyCollapsed.value) {
-      children.add(const Expanded(child: SizedBox.shrink()));
-    }
-    return Column(children: children);
+
+    return Column(
+      children: [
+        changesHeader,
+        if (changesOpen)
+          Expanded(child: GitChangesSection(tabId: tabId, state: state)),
+        const Divider(height: 1),
+        historyHeader,
+        if (historyOpen)
+          Expanded(child: GitHistorySection(tabId: tabId, state: state)),
+        if (!changesOpen && !historyOpen)
+          const Expanded(child: SizedBox.shrink()),
+      ],
+    );
   }
 }
 
