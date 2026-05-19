@@ -30,6 +30,7 @@ import 'package:window_manager/window_manager.dart';
 class MacosWindowAppBar extends StatelessWidget implements PreferredSizeWidget {
   const MacosWindowAppBar({
     this.title,
+    this.titleSpacing,
     this.actions,
     this.onBack,
     this.onForward,
@@ -51,6 +52,11 @@ class MacosWindowAppBar extends StatelessWidget implements PreferredSizeWidget {
   static const double _navButtonWidth = 48;
 
   final Widget? title;
+
+  /// [title] の左余白。null だと AppBar 標準（16px）。トップバー左端の信号灯
+  /// 領域の直後にワードマーク等を詰めて置きたい場合に小さい値を渡す。
+  final double? titleSpacing;
+
   final List<Widget>? actions;
 
   /// back ボタンの動作を上書きする callback。null の場合は
@@ -88,8 +94,13 @@ class MacosWindowAppBar extends StatelessWidget implements PreferredSizeWidget {
         (showBack ? _navButtonWidth : 0) + (showForward ? _navButtonWidth : 0);
     return AppBar(
       title: title,
+      titleSpacing: titleSpacing,
       toolbarHeight: _toolbarHeight,
       actions: actions,
+      // アクション群が筐体右端に貼り付くと窮屈なので 8px の余白を挟む。
+      // `actions` の要素数を変えないので、macOS のタイトル中央寄せ判定
+      // （アクション 2 個未満で中央）には影響しない。
+      actionsPadding: const EdgeInsets.only(right: 8),
       bottom: bottom,
       automaticallyImplyLeading: false,
       // `TitleBarStyle.hidden` でネイティブのタイトルバーを消しているため、
