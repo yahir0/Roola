@@ -17,6 +17,7 @@ import 'package:roola/data/terminal_runner/terminal_run_state.dart';
 import 'package:roola/data/workspace/workspace_layout.dart';
 import 'package:roola/data/workspace/workspace_tab.dart';
 import 'package:roola/l10n/app_localizations.dart';
+import 'package:roola/ui/common/command_menu_item.dart';
 import 'package:roola/ui/common/polaris_dialog.dart';
 import 'package:roola/ui/common/polaris_glyphs.dart';
 import 'package:roola/ui/common/prompt_name_dialog.dart';
@@ -521,14 +522,16 @@ class _FavoritesHeader extends ConsumerWidget {
         Offset.zero & overlay.size,
       ),
       items: [
-        PopupMenuItem(
+        polarisPopupMenuItem<_FavoritesHeaderAction>(
+          context,
           value: _FavoritesHeaderAction.addCurrent,
           enabled: path != null,
-          child: Text(l10n.explorerRegisterCurrentDirectory),
+          label: l10n.explorerRegisterCurrentDirectory,
         ),
-        PopupMenuItem(
+        polarisPopupMenuItem<_FavoritesHeaderAction>(
+          context,
           value: _FavoritesHeaderAction.newFolder,
-          child: Text(l10n.explorerNewFavoriteFolder),
+          label: l10n.explorerNewFavoriteFolder,
         ),
       ],
     );
@@ -703,19 +706,17 @@ class _FavoriteTile extends HookConsumerWidget {
         position.dy,
       ),
       items: [
-        PopupMenuItem(
+        polarisPopupMenuItem<_FavoriteAction>(
+          context,
           value: _FavoriteAction.rename,
-          child: ListTile(
-            leading: const Icon(Icons.edit_outlined),
-            title: Text(l10n.explorerRenameTitle),
-          ),
+          icon: Icons.edit_outlined,
+          label: l10n.explorerRenameTitle,
         ),
-        PopupMenuItem(
+        polarisPopupMenuItem<_FavoriteAction>(
+          context,
           value: _FavoriteAction.remove,
-          child: ListTile(
-            leading: const Icon(Icons.delete_outline),
-            title: Text(l10n.explorerRemoveFromFavorites),
-          ),
+          icon: Icons.delete_outline,
+          label: l10n.explorerRemoveFromFavorites,
         ),
       ],
     );
@@ -826,13 +827,17 @@ class _FavoriteFolderTile extends ConsumerWidget {
         Offset.zero & overlay.size,
       ),
       items: [
-        PopupMenuItem(
+        polarisPopupMenuItem<_FavoriteFolderAction>(
+          context,
           value: _FavoriteFolderAction.rename,
-          child: Text(l10n.explorerRenameTitle),
+          icon: Icons.edit_outlined,
+          label: l10n.explorerRenameTitle,
         ),
-        PopupMenuItem(
+        polarisPopupMenuItem<_FavoriteFolderAction>(
+          context,
           value: _FavoriteFolderAction.delete,
-          child: Text(l10n.folderDeleteWithContentsMenuItem),
+          icon: Icons.delete_outline,
+          label: l10n.folderDeleteWithContentsMenuItem,
         ),
       ],
     );
@@ -941,13 +946,15 @@ class _LauncherHeader extends ConsumerWidget {
         Offset.zero & overlay.size,
       ),
       items: [
-        PopupMenuItem(
+        polarisPopupMenuItem<_LauncherHeaderAction>(
+          context,
           value: _LauncherHeaderAction.newEntry,
-          child: Text(l10n.explorerNewLauncherEntry),
+          label: l10n.explorerNewLauncherEntry,
         ),
-        PopupMenuItem(
+        polarisPopupMenuItem<_LauncherHeaderAction>(
+          context,
           value: _LauncherHeaderAction.newFolder,
-          child: Text(l10n.explorerNewLauncherFolder),
+          label: l10n.explorerNewLauncherFolder,
         ),
       ],
     );
@@ -1185,13 +1192,17 @@ class _LauncherFolderTile extends ConsumerWidget {
         Offset.zero & overlay.size,
       ),
       items: [
-        PopupMenuItem(
+        polarisPopupMenuItem<_LauncherFolderAction>(
+          context,
           value: _LauncherFolderAction.rename,
-          child: Text(l10n.explorerRenameTitle),
+          icon: Icons.edit_outlined,
+          label: l10n.explorerRenameTitle,
         ),
-        PopupMenuItem(
+        polarisPopupMenuItem<_LauncherFolderAction>(
+          context,
           value: _LauncherFolderAction.delete,
-          child: Text(l10n.folderDeleteWithContentsMenuItem),
+          icon: Icons.delete_outline,
+          label: l10n.folderDeleteWithContentsMenuItem,
         ),
       ],
     );

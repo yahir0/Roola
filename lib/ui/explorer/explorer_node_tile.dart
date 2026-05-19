@@ -79,14 +79,13 @@ Future<void> showExplorerContextMenu(
       command: CommandId.revealInFinder,
       value: const _ActionRevealInFinder(),
     ),
-    PopupMenuItem(
+    polarisPopupMenuItem<ExplorerNodeAction>(
+      context,
       value: const _ActionAddToFavorite(),
-      child: ListTile(
-        leading: const Icon(Icons.star_outline),
-        title: Text(l10n.explorerContextMenuAddFavorite),
-      ),
+      icon: Icons.star_outline,
+      label: l10n.explorerContextMenuAddFavorite,
     ),
-    const PopupMenuDivider(),
+    const PopupMenuDivider(height: polarisMenuDividerHeight),
     commandPopupMenuItem<ExplorerNodeAction>(
       context,
       ref,
@@ -106,7 +105,7 @@ Future<void> showExplorerContextMenu(
         command: CommandId.renameItem,
         value: const _ActionRename(),
       ),
-    const PopupMenuDivider(),
+    const PopupMenuDivider(height: polarisMenuDividerHeight),
     if (showCopy)
       commandPopupMenuItem<ExplorerNodeAction>(
         context,
@@ -128,7 +127,7 @@ Future<void> showExplorerContextMenu(
         value: const _ActionPaste(),
       ),
     if (showDelete) ...[
-      const PopupMenuDivider(),
+      const PopupMenuDivider(height: polarisMenuDividerHeight),
       commandPopupMenuItem<ExplorerNodeAction>(
         context,
         ref,
@@ -136,7 +135,7 @@ Future<void> showExplorerContextMenu(
         value: const _ActionMoveToTrash(),
       ),
     ],
-    const PopupMenuDivider(),
+    const PopupMenuDivider(height: polarisMenuDividerHeight),
     commandPopupMenuItem<ExplorerNodeAction>(
       context,
       ref,
@@ -145,27 +144,25 @@ Future<void> showExplorerContextMenu(
     ),
   ];
   if (claudeAvailable && node.skillNames.isNotEmpty) {
-    items.add(const PopupMenuDivider());
+    items.add(const PopupMenuDivider(height: polarisMenuDividerHeight));
     for (final skill in node.skillNames) {
       items.add(
-        PopupMenuItem(
+        polarisPopupMenuItem<ExplorerNodeAction>(
+          context,
           value: _ActionRunSkill(skill),
-          child: ListTile(
-            leading: const Icon(Icons.play_arrow),
-            title: Text(l10n.explorerContextMenuRunSkill(skill)),
-          ),
+          icon: Icons.play_arrow,
+          label: l10n.explorerContextMenuRunSkill(skill),
         ),
       );
     }
-    items.add(const PopupMenuDivider());
+    items.add(const PopupMenuDivider(height: polarisMenuDividerHeight));
     for (final skill in node.skillNames) {
       items.add(
-        PopupMenuItem(
+        polarisPopupMenuItem<ExplorerNodeAction>(
+          context,
           value: _ActionRegisterSkill(skill),
-          child: ListTile(
-            leading: const Icon(Icons.add_circle_outline),
-            title: Text(l10n.explorerContextMenuRegisterSkill(skill)),
-          ),
+          icon: Icons.add_circle_outline,
+          label: l10n.explorerContextMenuRegisterSkill(skill),
         ),
       );
     }
@@ -211,19 +208,17 @@ Future<void> showFileContextMenu(
         command: CommandId.openItem,
         value: _FileAction.open,
       ),
-      PopupMenuItem(
+      polarisPopupMenuItem<_FileAction>(
+        context,
         value: _FileAction.openWith,
-        child: ListTile(
-          leading: const Icon(Icons.apps),
-          title: Text(l10n.explorerContextMenuOpenWith),
-        ),
+        icon: Icons.apps,
+        label: l10n.explorerContextMenuOpenWith,
       ),
-      PopupMenuItem(
+      polarisPopupMenuItem<_FileAction>(
+        context,
         value: _FileAction.openInVim,
-        child: ListTile(
-          leading: const Icon(Icons.edit_note),
-          title: Text(l10n.explorerContextMenuOpenInVim),
-        ),
+        icon: Icons.edit_note,
+        label: l10n.explorerContextMenuOpenInVim,
       ),
       commandPopupMenuItem<_FileAction>(
         context,
@@ -231,7 +226,7 @@ Future<void> showFileContextMenu(
         command: CommandId.revealInFinder,
         value: _FileAction.revealInFinder,
       ),
-      const PopupMenuDivider(),
+      const PopupMenuDivider(height: polarisMenuDividerHeight),
       commandPopupMenuItem<_FileAction>(
         context,
         ref,
@@ -250,14 +245,14 @@ Future<void> showFileContextMenu(
         command: CommandId.copyPath,
         value: _FileAction.copyPath,
       ),
-      const PopupMenuDivider(),
+      const PopupMenuDivider(height: polarisMenuDividerHeight),
       commandPopupMenuItem<_FileAction>(
         context,
         ref,
         command: CommandId.moveToTrash,
         value: _FileAction.moveToTrash,
       ),
-      const PopupMenuDivider(),
+      const PopupMenuDivider(height: polarisMenuDividerHeight),
       commandPopupMenuItem<_FileAction>(
         context,
         ref,
