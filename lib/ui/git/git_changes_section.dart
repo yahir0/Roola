@@ -175,18 +175,24 @@ class _CleanPlaceholder extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+    // 狭レイアウトでは縦スロットが hero アイコン＋余白＋テキストより数 px
+    // 低くなることがある。scaleDown で縮めて確実に収め overflow を避ける
+    // （通常の高さでは原寸のまま）。
     return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            Icons.check_circle_outline,
-            size: PolarisIconSize.hero,
-            color: colors.primary,
-          ),
-          const SizedBox(height: PolarisTokens.space2),
-          Text(AppLocalizations.of(context).gitWorkingTreeClean),
-        ],
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.check_circle_outline,
+              size: PolarisIconSize.hero,
+              color: colors.primary,
+            ),
+            const SizedBox(height: PolarisTokens.space2),
+            Text(AppLocalizations.of(context).gitWorkingTreeClean),
+          ],
+        ),
       ),
     );
   }

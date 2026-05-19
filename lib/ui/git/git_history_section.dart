@@ -159,37 +159,53 @@ class _CommitRow extends ConsumerWidget {
                 ),
               ),
             ),
-            // subject・作者は flex で行内に収める。ref チップは内容なりの幅で
-            // 表示し（潰れて文字が読めなくならないよう）、長い ref のみ上限で
-            // 省略する。固定幅は日付と SHA のみ（いずれも幅が一定）。
+            // ref チップ・subject・作者を 1 行に収める。ref チップは内容なり
+            // の幅で出したい（HEAD 等が省略で消えないように）が、subject の
+            // 場所を必ず残すため「行幅の半分」を上限にする。上限内なら自然幅、
+            // 上限を超える長い / 多い ref のときだけ _RefChip 内で省略表示。
+            // subject は残り幅を埋め、固定幅は日付と SHA のみ。
             Expanded(
-              child: Row(
-                children: [
-                  for (final refLabel in commit.refs.take(3))
-                    _RefChip(label: refLabel),
-                  Expanded(
-                    flex: 5,
-                    child: Text(
-                      commit.subject,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                  ),
-                  const SizedBox(width: PolarisTokens.space2),
-                  Flexible(
-                    flex: 2,
-                    child: Text(
-                      commit.authorName,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.end,
-                      style: Theme.of(
-                        context,
-                      ).textTheme.labelSmall?.copyWith(color: tokens.textDim),
-                    ),
-                  ),
-                ],
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  return Row(
+                    children: [
+                      if (commit.refs.isNotEmpty)
+                        ConstrainedBox(
+                          constraints: BoxConstraints(
+                            maxWidth: constraints.maxWidth / 2,
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              for (final refLabel in commit.refs.take(3))
+                                Flexible(child: _RefChip(label: refLabel)),
+                            ],
+                          ),
+                        ),
+                      Expanded(
+                        flex: 5,
+                        child: Text(
+                          commit.subject,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ),
+                      const SizedBox(width: PolarisTokens.space2),
+                      Flexible(
+                        flex: 2,
+                        child: Text(
+                          commit.authorName,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.end,
+                          style: Theme.of(context).textTheme.labelSmall
+                              ?.copyWith(color: tokens.textDim),
+                        ),
+                      ),
+                    ],
+                  );
+                },
               ),
             ),
             const SizedBox(width: PolarisTokens.space3),
