@@ -10,6 +10,7 @@ PODS:
     - FlutterMacOS
   - screen_retriever_macos (0.0.1):
     - FlutterMacOS
+  - Sparkle (2.9.2)
   - super_native_extensions (0.0.1):
     - FlutterMacOS
   - window_manager (0.5.0):
@@ -22,8 +23,13 @@ DEPENDENCIES:
   - FlutterMacOS (from `Flutter/ephemeral`)
   - irondash_engine_context (from `Flutter/ephemeral/.symlinks/plugins/irondash_engine_context/macos`)
   - screen_retriever_macos (from `Flutter/ephemeral/.symlinks/plugins/screen_retriever_macos/macos`)
+  - Sparkle (~> 2.6)
   - super_native_extensions (from `Flutter/ephemeral/.symlinks/plugins/super_native_extensions/macos`)
   - window_manager (from `Flutter/ephemeral/.symlinks/plugins/window_manager/macos`)
+
+SPEC REPOS:
+  trunk:
+    - Sparkle
 
 EXTERNAL SOURCES:
   device_info_plus:
@@ -50,9 +56,10 @@ SPEC CHECKSUMS:
   FlutterMacOS: d0db08ddef1a9af05a5ec4b724367152bb0500b1
   irondash_engine_context: da62996ee25616d2f01bbeb85dc115d813359478
   screen_retriever_macos: 776e0fa5d42c6163d2bf772d22478df4b302b161
+  Sparkle: 2d0c930d42d53ee0fdf98bbb342c08eaf18ab5f0
   super_native_extensions: 85efee3a7495b46b04befcfc86ed12069264ebf3
   window_manager: e25faf20d88283a0d46e7b1a759d07261ca27575
 
-PODFILE CHECKSUM: 89c84cf5c2351c1e554c6dea18d31a879fc3a19e
+PODFILE CHECKSUM: 59414ad939722bd01f4e2ff1750b73705eb211d4
 
 COCOAPODS: 1.16.2
