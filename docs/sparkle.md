@@ -68,20 +68,31 @@ mkdir -p /tmp/sparkle && tar -xJf /tmp/sparkle.tar.xz -C /tmp/sparkle
 
 ### 3. GitHub Repository Secret に秘密鍵を登録
 
-CI が appcast.xml を署名するために、Keychain に保存された秘密鍵を base64 で
+CI が appcast.xml を署名するために、Keychain に保存された秘密鍵を
 `SPARKLE_PRIVATE_KEY_BASE64` という Secret に登録する。
 
+Sparkle が Keychain に保存しているのは **既に base64 でエンコードされた 44 文字の
+文字列**（ed25519 の 32 バイト seed を base64 化したもの）。`generate_appcast` の
+`--ed-key-file` はこの 44 文字をそのまま受け取る仕様なので、**追加の base64
+エンコードはしない**。`security -w` の出力末尾の改行だけ取り除いてクリップボードに
+送る:
+
 ```bash
-# Keychain から秘密鍵を base64 で取り出してクリップボードへ
 security find-generic-password -s "https://sparkle-project.org" -a "ed25519" -w \
-  | base64 | pbcopy
+  | tr -d '\n' | pbcopy
 ```
 
 → GitHub Settings → Secrets and variables → Actions → New repository secret
-で `SPARKLE_PRIVATE_KEY_BASE64` として登録。
+で `SPARKLE_PRIVATE_KEY_BASE64` として登録（Secret 名に `_BASE64` が付いて
+いるのは「中身が base64 文字列」という意味であって「もう一度 base64 化する」
+ではない）。
 
 > ⚠️ 秘密鍵は **絶対に公開しない**。Repository Secret に入っているぶんは
 > Actions の log 上でもマスクされる。
+>
+> ⚠️ うっかり `... | base64 | pbcopy` のように **base64 を二重にかけて
+> 登録すると CI が "Failed to decode private and public keys from secret
+> data" で失敗する**。必ず上記の通り base64 を 1 回だけにすること。
 
 ### 4. GitHub Pages で appcast.xml を配信できるようにする
 
