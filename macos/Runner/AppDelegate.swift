@@ -11,28 +11,21 @@ class AppDelegate: FlutterAppDelegate {
   /// 埋める前の状態）では nil のままで Sparkle 関連 API は no-op。
   /// セットアップ手順は docs/release.md の Sparkle セクション参照。
   private lazy var updaterController: SPUStandardUpdaterController? = {
-    NSLog("Roola/Sparkle: lazy updaterController initializer entered")
-    let bundleId = Bundle.main.bundleIdentifier ?? "<nil>"
-    NSLog("Roola/Sparkle: Bundle.main.bundleIdentifier = %@", bundleId)
     let feedURL =
       (Bundle.main.object(forInfoDictionaryKey: "SUFeedURL") as? String) ?? ""
     let publicKey =
       (Bundle.main.object(forInfoDictionaryKey: "SUPublicEDKey") as? String) ?? ""
-    NSLog("Roola/Sparkle: SUFeedURL length=%d, SUPublicEDKey length=%d", feedURL.count, publicKey.count)
     guard !feedURL.isEmpty, !publicKey.isEmpty else {
       NSLog(
-        "Roola/Sparkle: SUFeedURL or SUPublicEDKey is not configured; auto-updates disabled."
+        "Sparkle: SUFeedURL or SUPublicEDKey is not configured; auto-updates disabled."
       )
       return nil
     }
-    NSLog("Roola/Sparkle: Initializing SPUStandardUpdaterController...")
-    let controller = SPUStandardUpdaterController(
+    return SPUStandardUpdaterController(
       startingUpdater: true,
       updaterDelegate: nil,
       userDriverDelegate: nil
     )
-    NSLog("Roola/Sparkle: SPUStandardUpdaterController initialized successfully")
-    return controller
   }()
 
   override init() {
@@ -42,16 +35,19 @@ class AppDelegate: FlutterAppDelegate {
     // 詳細・代替案は ADR-0025 を参照。
     signal(SIGPIPE, SIG_IGN)
     super.init()
-  }
-
-  override func applicationDidFinishLaunching(_ notification: Notification) {
-    NSLog("Roola/Sparkle: applicationDidFinishLaunching - entering")
-    super.applicationDidFinishLaunching(notification)
-    NSLog("Roola/Sparkle: applicationDidFinishLaunching - super returned, triggering updaterController")
-    // 起動直後に lazy 初期化を発火させ、Info.plist 設定済みなら自動チェックを
-    // スタートさせる（未設定なら no-op で何も起きない）。
-    let controller = updaterController
-    NSLog("Roola/Sparkle: applicationDidFinishLaunching - updaterController = %@", controller != nil ? "non-nil" : "nil")
+    // Sparkle 自動更新を init 時点で発火させる。
+    //
+    // 当初は applicationDidFinishLaunching(_:) を override してそこで触る
+    // 設計にしていたが、macOS 26 系で Swift 側の `Notification` を引数に取る
+    // override が Obj-C 側からのディスパッチで unrecognized selector になり
+    // AppKit が落ちる現象を確認した（具体的には NSApplication が
+    // applicationDidFinishLaunching: を送った瞬間に NSNotification→Notification
+    // ブリッジの thunk 内で例外）。FlutterAppDelegate 側の同メソッドは Obj-C
+    // 実装で正常に呼ばれるので、override を消して親に任せ、Sparkle init は
+    // init() の中で済ませる。SPUStandardUpdaterController(startingUpdater:
+    // true, ...) は app launch の前後どちらでも安全に呼べる設計（内部で適切に
+    // バックグラウンドスケジュールする）。
+    _ = updaterController
   }
 
   override func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
