@@ -1,8 +1,33 @@
 import Cocoa
 import FlutterMacOS
+import Sparkle
 
 @main
 class AppDelegate: FlutterAppDelegate {
+  /// Sparkle の自動更新コントローラ（Phase A）。
+  ///
+  /// `SUFeedURL` と `SUPublicEDKey` が Info.plist に設定されている場合のみ
+  /// バックグラウンドの自動チェックを開始する。未設定（公開後の Phase B で
+  /// 埋める前の状態）では nil のままで Sparkle 関連 API は no-op。
+  /// セットアップ手順は docs/release.md の Sparkle セクション参照。
+  private lazy var updaterController: SPUStandardUpdaterController? = {
+    let feedURL =
+      (Bundle.main.object(forInfoDictionaryKey: "SUFeedURL") as? String) ?? ""
+    let publicKey =
+      (Bundle.main.object(forInfoDictionaryKey: "SUPublicEDKey") as? String) ?? ""
+    guard !feedURL.isEmpty, !publicKey.isEmpty else {
+      NSLog(
+        "Sparkle: SUFeedURL or SUPublicEDKey is not configured; auto-updates disabled."
+      )
+      return nil
+    }
+    return SPUStandardUpdaterController(
+      startingUpdater: true,
+      updaterDelegate: nil,
+      userDriverDelegate: nil
+    )
+  }()
+
   override init() {
     // GUI 起動経路 (Dock / Finder / open) では stdout/stderr の宛先が早期に
     // クローズされる場合があり、Dart / Flutter Engine が write した瞬間に
@@ -10,6 +35,13 @@ class AppDelegate: FlutterAppDelegate {
     // 詳細・代替案は ADR-0025 を参照。
     signal(SIGPIPE, SIG_IGN)
     super.init()
+  }
+
+  override func applicationDidFinishLaunching(_ notification: Notification) {
+    super.applicationDidFinishLaunching(notification)
+    // 起動直後に lazy 初期化を発火させ、Info.plist 設定済みなら自動チェックを
+    // スタートさせる（未設定なら no-op で何も起きない）。
+    _ = updaterController
   }
 
   override func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
