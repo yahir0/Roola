@@ -262,7 +262,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get settingsClaudeFeature3 =>
-      'ランチャー登録時に「Claude Skill」動作タイプを選べる（Skill 名を指定して `claude /skillname` を起動）';
+      'ランチャー登録時に「Claude Code Skill」動作タイプを選べる（Skill 名を指定して `claude /skillname` を起動）';
 
   @override
   String get settingsClaudeInstallTitle => 'インストール手順';
@@ -637,7 +637,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String explorerClaudeDisplayName(String name) {
-    return '$name (Claude)';
+    return '$name (Claude Code)';
   }
 
   @override
@@ -688,7 +688,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get entryEditActionRunCommand => 'コマンド実行';
 
   @override
-  String get entryEditActionClaudeSkill => 'Claude Skill';
+  String get entryEditActionClaudeSkill => 'Claude Code Skill';
 
   @override
   String get entryEditClaudeUnavailableNoticeCurrent =>
@@ -696,7 +696,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get entryEditClaudeUnavailableNoticeGeneral =>
-      'Claude Code が未導入のため「Claude Skill」タイプは無効化されています。「設定」画面のインストール手順を参照してください。';
+      'Claude Code が未導入のため「Claude Code Skill」タイプは無効化されています。「設定」画面のインストール手順を参照してください。';
 
   @override
   String get entryEditOpenHereDescription =>
@@ -790,7 +790,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String launcherActionLabelClaudeSkill(String skillName) {
-    return '動作: Claude Skill — $skillName';
+    return '動作: Claude Code Skill — $skillName';
   }
 
   @override

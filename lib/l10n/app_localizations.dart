@@ -581,7 +581,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsClaudeFeature3.
   ///
   /// In ja, this message translates to:
-  /// **'ランチャー登録時に「Claude Skill」動作タイプを選べる（Skill 名を指定して `claude /skillname` を起動）'**
+  /// **'ランチャー登録時に「Claude Code Skill」動作タイプを選べる（Skill 名を指定して `claude /skillname` を起動）'**
   String get settingsClaudeFeature3;
 
   /// No description provided for @settingsClaudeInstallTitle.
@@ -1229,7 +1229,7 @@ abstract class AppLocalizations {
   /// No description provided for @explorerClaudeDisplayName.
   ///
   /// In ja, this message translates to:
-  /// **'{name} (Claude)'**
+  /// **'{name} (Claude Code)'**
   String explorerClaudeDisplayName(String name);
 
   /// No description provided for @folderDeleteConfirmTitle.
@@ -1325,7 +1325,7 @@ abstract class AppLocalizations {
   /// No description provided for @entryEditActionClaudeSkill.
   ///
   /// In ja, this message translates to:
-  /// **'Claude Skill'**
+  /// **'Claude Code Skill'**
   String get entryEditActionClaudeSkill;
 
   /// No description provided for @entryEditClaudeUnavailableNoticeCurrent.
@@ -1337,7 +1337,7 @@ abstract class AppLocalizations {
   /// No description provided for @entryEditClaudeUnavailableNoticeGeneral.
   ///
   /// In ja, this message translates to:
-  /// **'Claude Code が未導入のため「Claude Skill」タイプは無効化されています。「設定」画面のインストール手順を参照してください。'**
+  /// **'Claude Code が未導入のため「Claude Code Skill」タイプは無効化されています。「設定」画面のインストール手順を参照してください。'**
   String get entryEditClaudeUnavailableNoticeGeneral;
 
   /// No description provided for @entryEditOpenHereDescription.
@@ -1499,7 +1499,7 @@ abstract class AppLocalizations {
   /// No description provided for @launcherActionLabelClaudeSkill.
   ///
   /// In ja, this message translates to:
-  /// **'動作: Claude Skill — {skillName}'**
+  /// **'動作: Claude Code Skill — {skillName}'**
   String launcherActionLabelClaudeSkill(String skillName);
 
   /// No description provided for @gitMenuRefresh.
