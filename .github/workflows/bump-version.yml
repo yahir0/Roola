@@ -1,0 +1,172 @@
+# pubspec.yaml の version を bump して main に push、`v<semver>` タグを切るだけの
+# 単独ワークフロー。タグ push を release.yml が拾ってビルド・署名・公証・appcast 生成
+# まで一気に走る想定。
+#
+# トリガー: workflow_dispatch のみ（Actions タブ から手動実行）
+#
+# 入力:
+#   - bump_type: patch / minor / major / manual の 4 択
+#   - manual_version: bump_type=manual のとき必須。X.Y.Z 形式
+#
+# build 番号 (+N) は常に +1。pubspec.yaml の +N は CFBundleVersion になり、Apple は
+# monotonic な整数を要求するので semver と独立に単調増加させる。
+#
+# release.yml を連鎖起動するには PAT が必要（GITHUB_TOKEN で push したイベントは他の
+# workflow を triggers しない仕様）。`RELEASE_TRIGGER_PAT` という Secret に
+# fine-grained PAT（contents: write）を入れておくと自動連鎖する。未設定なら GITHUB_TOKEN
+# でフォールバックし、Summary で「release を手動で起動してください」と案内する。
+
+name: Bump version
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump_type:
+        description: 'どのバージョン要素を上げるか'
+        required: true
+        type: choice
+        default: patch
+        options:
+          - patch
+          - minor
+          - major
+          - manual
+      manual_version:
+        description: 'manual の場合の semver (例: 0.1.0)。bump_type=manual のときだけ使う'
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          # PAT があればそれを使う（release.yml を自動連鎖させるため）。
+          # 無ければ GITHUB_TOKEN にフォールバック（連鎖はしないが push は通る）。
+          token: ${{ secrets.RELEASE_TRIGGER_PAT || secrets.GITHUB_TOKEN }}
+
+      - name: Calculate new version
+        id: calc
+        env:
+          BUMP_TYPE: ${{ inputs.bump_type }}
+          MANUAL_VERSION: ${{ inputs.manual_version }}
+        run: |
+          set -euo pipefail
+
+          # 現在の version を pubspec.yaml から抽出（例: "0.0.12+12"）
+          CURRENT=$(grep -E '^version:' pubspec.yaml | sed -E 's/^version:[[:space:]]*//')
+          SEMVER="${CURRENT%+*}"
+          BUILD="${CURRENT#*+}"
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$SEMVER"
+
+          case "$BUMP_TYPE" in
+            patch)
+              NEW_SEMVER="${MAJOR}.${MINOR}.$((PATCH + 1))"
+              ;;
+            minor)
+              NEW_SEMVER="${MAJOR}.$((MINOR + 1)).0"
+              ;;
+            major)
+              NEW_SEMVER="$((MAJOR + 1)).0.0"
+              ;;
+            manual)
+              if [ -z "$MANUAL_VERSION" ]; then
+                echo "::error::bump_type=manual の場合は manual_version を指定してください" >&2
+                exit 1
+              fi
+              if ! [[ "$MANUAL_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+                echo "::error::manual_version は X.Y.Z 形式で指定してください (got: $MANUAL_VERSION)" >&2
+                exit 1
+              fi
+              NEW_SEMVER="$MANUAL_VERSION"
+              ;;
+            *)
+              echo "::error::Unknown bump_type: $BUMP_TYPE" >&2
+              exit 1
+              ;;
+          esac
+
+          # version 後退ガード（バックワード bump を防ぐ）
+          if ! printf '%s\n%s\n' "$SEMVER" "$NEW_SEMVER" | sort -V -C; then
+            echo "::error::New version ($NEW_SEMVER) is not greater than current ($SEMVER)" >&2
+            exit 1
+          fi
+          if [ "$SEMVER" = "$NEW_SEMVER" ]; then
+            echo "::error::New version ($NEW_SEMVER) equals current ($SEMVER)" >&2
+            exit 1
+          fi
+
+          NEW_BUILD=$((BUILD + 1))
+          NEW_VERSION="${NEW_SEMVER}+${NEW_BUILD}"
+          TAG="v${NEW_SEMVER}"
+
+          echo "current=$CURRENT" >> "$GITHUB_OUTPUT"
+          echo "new_version=$NEW_VERSION" >> "$GITHUB_OUTPUT"
+          echo "new_semver=$NEW_SEMVER" >> "$GITHUB_OUTPUT"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+
+          echo "Bumping: $CURRENT -> $NEW_VERSION (tag: $TAG)"
+
+      - name: Refuse if tag already exists
+        env:
+          TAG: ${{ steps.calc.outputs.tag }}
+        run: |
+          if git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
+            echo "::error::Tag $TAG already exists. 異なるバージョンを指定してください。"
+            exit 1
+          fi
+
+      - name: Update pubspec.yaml
+        env:
+          NEW_VERSION: ${{ steps.calc.outputs.new_version }}
+        run: |
+          # macOS と Linux で sed -i の引数が違うので Linux 前提（ubuntu-latest）
+          sed -i -E "s/^version:[[:space:]]*.*/version: ${NEW_VERSION}/" pubspec.yaml
+          echo "--- updated pubspec.yaml (version line) ---"
+          grep -E '^version:' pubspec.yaml
+
+      - name: Commit, push, and tag
+        env:
+          NEW_VERSION: ${{ steps.calc.outputs.new_version }}
+          TAG: ${{ steps.calc.outputs.tag }}
+        run: |
+          git config user.email "actions@github.com"
+          git config user.name "GitHub Actions"
+          git add pubspec.yaml
+          git commit -m "chore: バージョンを ${NEW_VERSION} にインクリメントする"
+          git push origin HEAD:main
+          git tag -a "$TAG" -m "Roola $TAG"
+          git push origin "$TAG"
+
+      - name: Summary
+        env:
+          CURRENT: ${{ steps.calc.outputs.current }}
+          NEW_VERSION: ${{ steps.calc.outputs.new_version }}
+          TAG: ${{ steps.calc.outputs.tag }}
+          HAS_PAT: ${{ secrets.RELEASE_TRIGGER_PAT != '' }}
+        run: |
+          {
+            echo "## Version bumped"
+            echo ""
+            echo "| 項目 | 値 |"
+            echo "|---|---|"
+            echo "| 旧バージョン | \`$CURRENT\` |"
+            echo "| 新バージョン | \`$NEW_VERSION\` |"
+            echo "| タグ | \`$TAG\` |"
+            echo ""
+            if [ "$HAS_PAT" = "true" ]; then
+              echo "✅ \`RELEASE_TRIGGER_PAT\` で push したため、Release ワークフローが自動連鎖して走ります（Actions タブで進行確認）。"
+            else
+              echo "⚠️ \`RELEASE_TRIGGER_PAT\` が未設定のため、Release ワークフローは自動起動しません。Actions → Release → Run workflow から手動で起動してください（main ブランチを選択）。"
+              echo ""
+              echo "あるいは [fine-grained PAT](https://github.com/settings/personal-access-tokens) を作って Repository Secrets に \`RELEASE_TRIGGER_PAT\` として登録すると次回から自動連鎖します。必要権限: Repository contents (Read & Write)。"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"

@@ -86,18 +86,34 @@ Apple Developer Portal の [Membership](https://developer.apple.com/account/#/me
 
 ## リリース手順（本番）
 
-1. **手動実行で動作確認**（任意・初回や Sparkle / 依存追加直後は推奨）:
-   - Actions タブ → Release ワークフロー → Run workflow（main ブランチ）
-   - 完走したら Artifacts から DMG を落として手元で開いて Gatekeeper 通過確認
-2. **バージョンを bump**: `pubspec.yaml` の `version: 0.0.x+x` を更新してコミット
-3. **タグを切って push**:
-   ```bash
-   git tag v0.0.x
-   git push origin v0.0.x
-   ```
-4. **CI を待つ**: ビルド → 署名 → 公証 → ステープル → DMG を Releases にアップロード（約 10〜15 分）
-5. **Release ノートを編集**: GitHub Releases ページで自動生成された変更履歴を必要に応じて整える
-6. **動作確認**: 別 Mac もしくは別ユーザーで DMG をダウンロードして起動確認
+### A. ブラウザだけで完結する方法（推奨）
+
+1. **Actions タブ → "Bump version" ワークフロー → Run workflow**
+   - `bump_type`: `patch` / `minor` / `major` / `manual` から選択
+   - `manual_version`: `bump_type=manual` のときだけ `0.1.0` 等の semver を入力
+2. ワークフローが `pubspec.yaml` を更新 → main に commit + push → `vX.Y.Z` タグを push
+3. タグ push をトリガに Release ワークフローが自動連鎖（[後述の PAT 設定](#自動連鎖のための-pat-設定) が前提）
+4. 完了後、GitHub Releases ページで自動生成された変更履歴を必要に応じて整える
+5. 動作確認: 別 Mac もしくは別ユーザーで DMG をダウンロードして起動確認
+
+#### 自動連鎖のための PAT 設定
+
+GitHub Actions のデフォルト `GITHUB_TOKEN` で push したイベントは **他のワークフローを起動しない** 仕様（無限ループ防止）のため、Bump version → Release の自動連鎖には Personal Access Token (PAT) が必要。
+
+設定手順:
+
+1. [https://github.com/settings/personal-access-tokens](https://github.com/settings/personal-access-tokens) で **Fine-grained personal access token** を新規作成
+2. **Resource owner**: あなた、**Repository access**: Roola のみ
+3. **Repository permissions**: `Contents` を **Read and write**
+4. 生成された token をコピー
+5. Repository Settings → Secrets and variables → Actions で `RELEASE_TRIGGER_PAT` という名前で登録
+
+PAT 未設定でも Bump version は動きますが、その場合は Release を Actions タブから手動で起動する必要があります（Bump version の Summary に案内が出ます）。
+
+### B. ローカルから tag push する方法（緊急時）
+
+1. `pubspec.yaml` の `version: X.Y.Z+N` を手動で更新 → コミット → push
+2. `git tag vX.Y.Z && git push origin vX.Y.Z` で Release ワークフローが起動
 
 ### 失敗時の典型パターン
 
