@@ -30,6 +30,13 @@ target 'Runner' do
   use_frameworks!
 
   flutter_install_all_macos_pods File.dirname(File.realpath(__FILE__))
+
+  # Sparkle: 自前 DMG 配布の自動更新（appcast + EdDSA 署名）。
+  # Phase A は Pod 追加 + AppDelegate 初期化までで、Info.plist の SUFeedURL /
+  # SUPublicEDKey は未設定（自動更新は無効）。公開後に EdDSA 鍵生成 + appcast 配信
+  # を Phase B として整える。詳細は docs/release.md の Sparkle セクション参照。
+  pod 'Sparkle', '~> 2.6'
+
   target 'RunnerTests' do
     inherit! :search_paths
   end
