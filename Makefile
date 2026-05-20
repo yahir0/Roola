@@ -80,6 +80,25 @@ sign: build ## Developer ID で .app を Hardened Runtime 付きで再帰署名
 	@find "$(APP_BUNDLE)/Contents/Frameworks" -type f \( -name "*.dylib" -o -name "*.so" \) \
 		-exec codesign --force --options runtime --timestamp \
 			--sign "$(SIGN_IDENTITY)" {} \;
+	@# Sparkle.framework の内側にネストされている XPC Service / Autoupdate /
+	@# Updater.app は CocoaPods 配布時点で Sparkle プロジェクト側の証明書で
+	@# 署名されている。公証 (notarize) は「全実体が同じ Developer ID + Hardened
+	@# Runtime + secure timestamp で再署名されている」ことを要求するため、
+	@# framework 全体署名の前に内側から順に上書き署名する。順序は奥 → 外。
+	@SPARKLE_FW="$(APP_BUNDLE)/Contents/Frameworks/Sparkle.framework"; \
+	if [ -d "$$SPARKLE_FW" ]; then \
+		echo "Re-signing Sparkle nested binaries ..."; \
+		for path in \
+			"$$SPARKLE_FW/Versions/Current/XPCServices/Installer.xpc" \
+			"$$SPARKLE_FW/Versions/Current/XPCServices/Downloader.xpc" \
+			"$$SPARKLE_FW/Versions/Current/Updater.app" \
+			"$$SPARKLE_FW/Versions/Current/Autoupdate" ; do \
+			if [ -e "$$path" ]; then \
+				codesign --force --options runtime --timestamp \
+					--sign "$(SIGN_IDENTITY)" "$$path"; \
+			fi; \
+		done; \
+	fi
 	@find "$(APP_BUNDLE)/Contents/Frameworks" -type d -name "*.framework" \
 		-exec codesign --force --options runtime --timestamp \
 			--sign "$(SIGN_IDENTITY)" {} \;
