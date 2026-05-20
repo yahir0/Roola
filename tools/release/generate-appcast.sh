@@ -66,12 +66,26 @@ trap cleanup EXIT
 
 cp "$DMG_PATH" "$INPUT_DIR/"
 
-# EdDSA 秘密鍵の取り扱い
+# EdDSA 秘密鍵の取り扱い。
+#
+# Sparkle の sign_update / generate_appcast が --ed-key-file に期待するのは
+# 「base64 でエンコードされた秘密鍵を 1 行のテキストとして書いたファイル」。
+# Keychain に保存されているのは raw 64 バイトの key データで、ユーザーは
+# `security ... -w | base64` でこれを base64 エンコードしてから Secret に
+# 貼っている。つまり SPARKLE_PRIVATE_KEY_BASE64 の中身は「raw bytes を base64
+# したもの」= Sparkle が期待するファイル形式そのもの。
+#
+# 以前ここで base64 --decode していたが、それをやると raw bytes をファイルに
+# 書いてしまい sign_update が String として読めず "Private key not found in
+# the argument" で落ちる。デコードせず env をそのままファイルに流し込むのが
+# 正解（前後の空白・改行だけは念のため取り除く）。
 KEY_ARGS=()
 if [ -n "${SPARKLE_PRIVATE_KEY_BASE64:-}" ]; then
   KEY_FILE="$(mktemp -t sparkle-key-XXXXXX)"
   CLEANUP_PATHS+=("$KEY_FILE")
-  printf '%s' "$SPARKLE_PRIVATE_KEY_BASE64" | base64 --decode > "$KEY_FILE"
+  printf '%s' "$SPARKLE_PRIVATE_KEY_BASE64" \
+    | tr -d '[:space:]' \
+    > "$KEY_FILE"
   chmod 600 "$KEY_FILE"
   KEY_ARGS=(--ed-key-file "$KEY_FILE")
   echo "Using EdDSA key from SPARKLE_PRIVATE_KEY_BASE64 env var" >&2
