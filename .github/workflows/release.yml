@@ -105,7 +105,23 @@ jobs:
           codesign --verify --deep --strict --verbose=2 /tmp/roola-verify/Roola.app
           hdiutil detach /tmp/roola-verify
 
+      # 手動実行 (workflow_dispatch) でも DMG を Actions の Artifacts から
+      # 取り出せるようにしておく。タグを切る前の動作確認に使う。
+      # retention-days はデフォルト 90 日。
+      - name: Upload DMG as workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Roola-dmg
+          path: build/Roola.dmg
+          if-no-files-found: error
+
+      # GitHub Releases へのアップロードは「タグ push」をトリガにした実行
+      # のときだけ実施する。workflow_dispatch（main 直接実行）ではタグが無く、
+      # softprops/action-gh-release が "GitHub Releases requires a tag" で
+      # 落ちるため、ここでスキップする。動作確認用 DMG は上のアーティファクト
+      # から取得すれば良い。
       - name: Upload DMG to GitHub Releases
+        if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
           files: build/Roola.dmg

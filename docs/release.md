@@ -73,18 +73,29 @@ Apple Developer Portal の [Membership](https://developer.apple.com/account/#/me
 
 > ⚠️ 通常の Apple ID パスワードではなく **App-specific** が必要。
 
-## リリース手順
+## ワークフローの 2 つの起動経路
 
-1. **バージョンを bump**: `pubspec.yaml` の `version: 0.0.x+x` を更新してコミット
-2. **タグを切って push**:
+| 起動経路 | 目的 | Release 作成 | DMG の取得方法 |
+|---|---|---|---|
+| `workflow_dispatch`（手動実行） | パイプライン検証 / 動作確認 | ❌ しない | Actions の Run 詳細 → Artifacts から `Roola-dmg` をダウンロード |
+| `git push --tags`（`v*` タグ push） | 正規リリース | ✅ する | GitHub Releases ページ |
+
+手動実行は **タグ無しで安全に dry-run できる** ように、Release アップロードのステップだけスキップする設計（[release.yml](../.github/workflows/release.yml) の `if: startsWith(github.ref, 'refs/tags/')` を参照）。
+
+## リリース手順（本番）
+
+1. **手動実行で動作確認**（任意・初回や Sparkle / 依存追加直後は推奨）:
+   - Actions タブ → Release ワークフロー → Run workflow（main ブランチ）
+   - 完走したら Artifacts から DMG を落として手元で開いて Gatekeeper 通過確認
+2. **バージョンを bump**: `pubspec.yaml` の `version: 0.0.x+x` を更新してコミット
+3. **タグを切って push**:
    ```bash
    git tag v0.0.x
    git push origin v0.0.x
    ```
-3. **CI を待つ**: GitHub Actions の "Release" ワークフローが自動実行され、約
-   10〜15 分でビルド → 署名 → 公証 → ステープル → DMG アップロードまで完了する
-4. **Release ノートを編集**: GitHub Releases ページで自動生成された変更履歴を必要に応じて整える
-5. **動作確認**: 別 Mac もしくは別ユーザーで DMG をダウンロードして起動確認
+4. **CI を待つ**: ビルド → 署名 → 公証 → ステープル → DMG を Releases にアップロード（約 10〜15 分）
+5. **Release ノートを編集**: GitHub Releases ページで自動生成された変更履歴を必要に応じて整える
+6. **動作確認**: 別 Mac もしくは別ユーザーで DMG をダウンロードして起動確認
 
 ### 失敗時の典型パターン
 
