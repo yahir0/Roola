@@ -66,54 +66,60 @@ mkdir -p /tmp/sparkle && tar -xJf /tmp/sparkle.tar.xz -C /tmp/sparkle
 これでアプリ起動時に `updaterController` が初期化され、Sparkle が自動チェック
 を開始する。
 
-### 3. GitHub Pages で appcast.xml を配信
+### 3. GitHub Repository Secret に秘密鍵を登録
 
-Settings → Pages → Source を `Deploy from a branch` にし、`gh-pages` ブランチ
-の root を選ぶ。Phase B 後のリリース時に `appcast.xml` をこのブランチに push
-すれば `https://yahir0.github.io/Roola/appcast.xml` で配信される。
+CI が appcast.xml を署名するために、Keychain に保存された秘密鍵を base64 で
+`SPARKLE_PRIVATE_KEY_BASE64` という Secret に登録する。
 
-### 4. リリースワークフローに appcast 生成を組み込む
-
-`.github/workflows/release.yml` の `Upload DMG to GitHub Releases` ステップの
-後に以下相当を追加（鍵管理 + `generate_appcast` ツール呼び出し）:
-
-```yaml
-- name: Generate and publish appcast
-  env:
-    SPARKLE_PRIVATE_KEY_BASE64: ${{ secrets.SPARKLE_PRIVATE_KEY_BASE64 }}
-  run: |
-    # 秘密鍵を一時 Keychain に注入
-    echo "$SPARKLE_PRIVATE_KEY_BASE64" | base64 --decode | \
-      security import /dev/stdin -k "$RUNNER_TEMP/build.keychain-db" \
-      -P "" -T "$SPARKLE_BIN_PATH/generate_appcast"
-
-    # 全 Releases から DMG を取得
-    mkdir -p /tmp/appcast-cache
-    gh release list --limit 100 --json tagName -q '.[].tagName' | while read tag; do
-      gh release download "$tag" --dir "/tmp/appcast-cache" --pattern "*.dmg" || true
-    done
-
-    # appcast.xml 生成 + 秘密鍵で署名
-    "$SPARKLE_BIN_PATH/generate_appcast" /tmp/appcast-cache \
-      --link "https://github.com/yahir0/Roola/releases" \
-      --download-url-prefix "https://github.com/yahir0/Roola/releases/download/"
-
-    # gh-pages ブランチに push
-    git checkout gh-pages
-    cp /tmp/appcast-cache/appcast.xml .
-    git add appcast.xml
-    git -c user.email=actions@github.com -c user.name=GitHub commit \
-      -m "chore: update appcast for $GITHUB_REF_NAME"
-    git push origin gh-pages
+```bash
+# Keychain から秘密鍵を base64 で取り出してクリップボードへ
+security find-generic-password -s "https://sparkle-project.org" -a "ed25519" -w \
+  | base64 | pbcopy
 ```
 
-必要な追加 Secret:
+→ GitHub Settings → Secrets and variables → Actions → New repository secret
+で `SPARKLE_PRIVATE_KEY_BASE64` として登録。
 
-| Secret | 取得方法 |
-|---|---|
-| `SPARKLE_PRIVATE_KEY_BASE64` | Keychain から `Sparkle EdDSA Private Key` を抽出して base64。`security find-generic-password -s "https://sparkle-project.org" -a "ed25519" -w \| base64 \| pbcopy` |
+> ⚠️ 秘密鍵は **絶対に公開しない**。Repository Secret に入っているぶんは
+> Actions の log 上でもマスクされる。
 
-### 5. "Check for Updates..." メニューの追加（任意）
+### 4. GitHub Pages で appcast.xml を配信できるようにする
+
+リリースワークフローは appcast.xml を **`gh-pages` ブランチ** に push する。
+GitHub Pages 側で当該ブランチを source にすると、初回 push の数十秒後に
+`https://yahir0.github.io/Roola/appcast.xml` で配信される。
+
+手順:
+
+1. Settings → Pages → Source = `Deploy from a branch`
+2. Branch = `gh-pages`、Folder = `/ (root)`
+3. Save
+
+> 💡 `gh-pages` ブランチはリリースワークフローが初回 tag push 時に自動で
+> 作成する（orphan branch）ので、事前に手動で作る必要はない。
+> ただし **GitHub Pages の Source 選択は Pages 設定 UI 上での手動操作が必要**。
+> 初回 push 後に上記設定を行うと反映される。
+
+### 5. リリースワークフロー（自動）
+
+`.github/workflows/release.yml` には既に **appcast 生成 + gh-pages push の
+ステップが組み込まれている**。`SPARKLE_PRIVATE_KEY_BASE64` Secret が未設定
+のときは no-op で素通りするので、Phase A 状態でも安全。Secret 登録後の
+最初のタグ push から appcast.xml が gh-pages に出始める。
+
+ローカルで appcast.xml の見た目を確認したいときは:
+
+```bash
+# 既にローカル make dist で build/Roola.dmg ができている前提
+./tools/release/generate-appcast.sh \
+  build/Roola.dmg \
+  https://github.com/yahir0/Roola/releases/download/v0.0.7/ \
+  /tmp/appcast-output
+
+cat /tmp/appcast-output/appcast.xml
+```
+
+### 6. "Check for Updates..." メニューの追加（任意）
 
 `PlatformMenuBar`（Flutter 側）と Sparkle（Swift 側）の橋渡しに
 MethodChannel を 1 本噛ませる必要がある。手順:

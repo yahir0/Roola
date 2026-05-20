@@ -129,6 +129,69 @@ jobs:
           draft: false
           fail_on_unmatched_files: true
 
+      # Sparkle 自動更新用の appcast.xml を生成し gh-pages ブランチに publish する
+      # （ADR-0036 ではなく Sparkle Phase B、詳細は docs/sparkle.md）。
+      # - 「最新版だけを appcast に載せる」方式。Sparkle 旧版ユーザーは常に最新版
+      #   への更新案内を受け取れる
+      # - SPARKLE_PRIVATE_KEY_BASE64 が未設定の段階では skip（Phase A 互換）
+      # - GitHub Pages の有効化は手動セットアップが必要（docs/sparkle.md 参照）
+      - name: Generate and publish appcast.xml
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          SPARKLE_PRIVATE_KEY_BASE64: ${{ secrets.SPARKLE_PRIVATE_KEY_BASE64 }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          # Phase A 互換: 秘密鍵 Secret が未設定なら no-op 終了。Phase B 設定
+          # 完了（Secret 登録 + GitHub Pages 有効化）後から実働する。
+          if [ -z "${SPARKLE_PRIVATE_KEY_BASE64}" ]; then
+            echo "SPARKLE_PRIVATE_KEY_BASE64 is not set; skipping appcast publish."
+            echo "See docs/sparkle.md to enable Sparkle auto-updates."
+            exit 0
+          fi
+
+          TAG="${GITHUB_REF#refs/tags/}"
+
+          # 1. appcast.xml を生成（DMG + 秘密鍵から）
+          ./tools/release/generate-appcast.sh \
+            build/Roola.dmg \
+            "https://github.com/${GITHUB_REPOSITORY}/releases/download/${TAG}/" \
+            /tmp/appcast-output
+
+          # 2. gh-pages ブランチをチェックアウト（存在しなければ orphan で作る）。
+          #    appcast.xml だけを置く運用にする（GitHub Pages は /appcast.xml
+          #    を直接 serve できるので index.html は不要）。
+          PAGES_DIR="/tmp/gh-pages"
+          REPO_URL="https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          if git ls-remote --exit-code --heads "$REPO_URL" gh-pages > /dev/null 2>&1; then
+            git clone --branch gh-pages --depth 1 "$REPO_URL" "$PAGES_DIR"
+          else
+            echo "gh-pages branch does not exist; creating orphan branch..."
+            git clone --depth 1 "$REPO_URL" "$PAGES_DIR"
+            cd "$PAGES_DIR"
+            git checkout --orphan gh-pages
+            git rm -rf . >/dev/null 2>&1 || true
+            # appcast.xml が初回 commit となる。GitHub Pages は当該ブランチに
+            # 何もファイルがない状態で commit すると拒否するため、ここでは
+            # ファイルを置かず、後段の appcast コピー後に最初の commit を打つ。
+            cd -
+          fi
+
+          # 3. appcast.xml を更新してコミット & push（orphan 分岐の初回 commit
+          #    も含めて一律にここで扱う）
+          cp /tmp/appcast-output/appcast.xml "$PAGES_DIR/appcast.xml"
+          cd "$PAGES_DIR"
+          git add appcast.xml
+          if git diff --cached --quiet; then
+            echo "No changes to appcast.xml; skipping push."
+          else
+            git -c user.email=actions@github.com -c user.name="GitHub Actions" \
+              commit -m "chore: update appcast for $TAG"
+            git push origin gh-pages
+            echo "Published appcast.xml for $TAG to gh-pages"
+          fi
+
       # 失敗時も keychain を必ず破棄する。default keychain も復元する。
       - name: Cleanup keychain
         if: always()
