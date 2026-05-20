@@ -101,26 +101,6 @@ class AppearanceSettingsNotifier extends AsyncNotifier<AppearanceSettings> {
       return next;
     });
   }
-
-  /// 透過モード時の中央画像パスを設定する。null を渡すとクリア。
-  /// 同じパスに上書きしたケースでも state の equality を確実に破る
-  /// ため、ファイルの更新時刻（mtime）も併せて state に書き込む。
-  /// これがないと Riverpod が「state 変化なし」と判定し widget の
-  /// rebuild が走らず、Image widget が古いままになる。
-  Future<void> setTransparentCenterImagePath(String? path) async {
-    final mtime = path != null && File(path).existsSync()
-        ? File(path).lastModifiedSync().millisecondsSinceEpoch
-        : null;
-    final current = state.value ?? AppearanceSettings.defaults();
-    final next = current.copyWith(
-      transparentCenterImagePath: path,
-      transparentCenterImageMtime: mtime,
-    );
-    state = await AsyncValue.guard(() async {
-      await _repository.save(next);
-      return next;
-    });
-  }
 }
 
 final appearanceSettingsProvider =

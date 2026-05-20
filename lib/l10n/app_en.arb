@@ -140,10 +140,6 @@
   "appearanceModeTransparent": "Transparent",
   "appearanceAccentLabel": "Accent color",
   "appearanceOpacityLabel": "Opacity",
-  "appearanceImageSelectButton": "Select image",
-  "appearanceCenterImageLabel": "Center image",
-  "appearanceCenterImageDescription": "Overlaid in the center of the window (about 60% of the shorter side).",
-  "appearanceCenterImageClear": "Clear",
 
   "keybindingsPageTitle": "Keyboard shortcuts",
   "keybindingsIntro": "Click a row to change its shortcut. It must include at least one modifier key (⌘ ⌥ ⌃ ⇧), and a key combination that conflicts with another command cannot be saved.",

@@ -376,19 +376,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get appearanceOpacityLabel => 'Opacity';
 
   @override
-  String get appearanceImageSelectButton => 'Select image';
-
-  @override
-  String get appearanceCenterImageLabel => 'Center image';
-
-  @override
-  String get appearanceCenterImageDescription =>
-      'Overlaid in the center of the window (about 60% of the shorter side).';
-
-  @override
-  String get appearanceCenterImageClear => 'Clear';
-
-  @override
   String get keybindingsPageTitle => 'Keyboard shortcuts';
 
   @override
