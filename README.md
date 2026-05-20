@@ -1,8 +1,8 @@
+# Roola
+
 <p align="center">
   <img src="./docs/images/icon.png" width="128" alt="Roola icon" />
 </p>
-
-# Roola
 
 **Universal terminal launcher for macOS.**
 ファイルをブラウズし、よく使う「ディレクトリ + 動作」をワンクリックで起動できる、アプリ内 PTY ターミナルつきランチャー。
