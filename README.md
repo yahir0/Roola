@@ -183,6 +183,24 @@ make dist            # 上記 + Apple へ提出して公証 + ステープル
 make reset           # 永続化されたエントリ・設定を削除
 ```
 
+## Project status / Support
+
+Roola は個人の週末プロジェクトとして開発されている OSS です。「自分が使うため」が
+第一の目的で、コミュニティサポート義務は負いません。
+
+- **Issue / PR の方針**:
+  - issue は再現可能な最小ケース（[テンプレート](./.github/ISSUE_TEMPLATE/bug_report.md)
+    に沿った報告）から優先的に扱います。要望系の issue にも反応しない可能性があります。
+  - PR は歓迎しますが、メンテナの方針に合わないものは merge されないこともあります。
+    大きい変更を送る前に、まず issue で方針を確認することをお勧めします。
+  - CLA（Contributor License Agreement）は取りません。
+- **ロードマップは公開しません**。次に何を作るかはメンテナの気分次第です。
+- **後方互換性は最小限**: メジャーバージョン 0.x の間は破壊的変更が予告なく入ります。
+
+商用サポートが必要な方は別途相談してください（連絡先は [GitHub プロフィール](https://github.com/yahir0) を参照）。
+
 ## ライセンス
 
-未定（公開時に設定）。
+[MIT License](./LICENSE)
+
+Copyright (c) 2026 Yahiro
