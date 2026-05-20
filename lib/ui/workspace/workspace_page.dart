@@ -44,16 +44,24 @@ class WorkspacePage extends HookWidget {
           // （ADR-0039）。
           const ActivityMonitorBar(),
           const SizedBox(width: PolarisTokens.space2),
-          IconButton(
-            icon: const Icon(Icons.sticky_note_2_outlined),
-            tooltip: l10n.notepadButtonTooltip,
-            isSelected: notepadOpen.value,
-            onPressed: () => notepadOpen.value = !notepadOpen.value,
+          // クリック後やパネル閉じ時に IconButton が keyboard focus を握り、
+          // 灰色のフォーカス枠が残って「勝手に選択されている」ように見える
+          // のを防ぐ。これらのアクションはマウス操作 + ショートカット
+          // （ADR-0033）で叩く前提なので、Tab 遷移の対象から外す。
+          ExcludeFocus(
+            child: IconButton(
+              icon: const Icon(Icons.sticky_note_2_outlined),
+              tooltip: l10n.notepadButtonTooltip,
+              isSelected: notepadOpen.value,
+              onPressed: () => notepadOpen.value = !notepadOpen.value,
+            ),
           ),
-          IconButton(
-            icon: const Icon(Icons.settings),
-            tooltip: l10n.settingsButtonTooltip,
-            onPressed: () => const SettingsRoute().push<void>(context),
+          ExcludeFocus(
+            child: IconButton(
+              icon: const Icon(Icons.settings),
+              tooltip: l10n.settingsButtonTooltip,
+              onPressed: () => const SettingsRoute().push<void>(context),
+            ),
           ),
         ],
       ),
