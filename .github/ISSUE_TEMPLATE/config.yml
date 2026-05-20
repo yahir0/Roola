@@ -1,0 +1,2 @@
+# 空 issue（New blank issue）を無効化する。テンプレートに沿って報告してもらう。
+blank_issues_enabled: false
