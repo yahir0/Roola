@@ -30,6 +30,16 @@
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
+	<!-- AppKit / Cocoa が認識するサポート言語の宣言。Flutter 側の多言語化
+	     (ARB) とは別レイヤで、ここに ja を入れないと Sparkle や標準
+	     ダイアログが英語のままになる。Sparkle 2 は ja を含む多数の言語の
+	     翻訳を framework 内に持っており、ここで宣言されていればシステム
+	     ロケールに従って自動で当たる。 -->
+	<key>CFBundleLocalizations</key>
+	<array>
+		<string>en</string>
+		<string>ja</string>
+	</array>
 	<!-- Sparkle 自動更新 (docs/sparkle.md / ADR は無し)
 	     SUFeedURL は gh-pages ブランチ + GitHub Pages で配信される appcast.xml
 	     SUPublicEDKey は EdDSA 鍵ペアの公開鍵側。秘密鍵側は
