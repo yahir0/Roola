@@ -10,7 +10,8 @@
 ## 必要な Repository Secrets
 
 `Settings → Secrets and variables → Actions → New repository secret` から
-以下の 7 つを登録する。
+以下を登録する（7 つは署名・公証用で必須、1 つは Sparkle Phase B 用で
+任意）。
 
 | 名前 | 値 | 取得方法 |
 |---|---|---|
@@ -21,6 +22,7 @@
 | `APPLE_ID` | Apple ID（メールアドレス） | あなたの Apple ID |
 | `APPLE_TEAM_ID` | 10 文字の Team ID | [手順 4](#4-apple_team_id) |
 | `APPLE_APP_PASSWORD` | App-specific password | [手順 5](#5-apple_app_password) |
+| `SPARKLE_PRIVATE_KEY_BASE64`（任意） | Sparkle EdDSA 秘密鍵の base64。**未設定なら appcast 生成は no-op** | [docs/sparkle.md](./sparkle.md) |
 
 ### 1. `MACOS_CERT_BASE64` / `MACOS_CERT_PASSWORD`
 
