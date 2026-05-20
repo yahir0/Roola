@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:roola/app/app.dart';
+import 'package:roola/app/license_bootstrap.dart';
 import 'package:roola/core/storage/app_paths.dart';
 import 'package:roola/data/launcher_entry/launcher_entry_repository_impl.dart';
 import 'package:roola/data/locale/locale_settings_repository_impl.dart';
@@ -12,6 +13,11 @@ import 'package:window_manager/window_manager.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await windowManager.ensureInitialized();
+
+  // ネイティブ依存（Sparkle / SwiftTerm）のライセンスを LicenseRegistry に
+  // 追加する（ADR-0040）。`showLicensePage` までに登録されていればよいので
+  // 同期的な await は不要（callback は遅延評価される）。
+  await registerNativeLicenses();
 
   const windowOptions = WindowOptions(
     size: Size(1024, 720),

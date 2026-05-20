@@ -1,6 +1,8 @@
 import 'package:flutter/widgets.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:roola/app/about.dart';
 import 'package:roola/app/command_dispatcher.dart';
+import 'package:roola/app/router.dart';
 import 'package:roola/core/keybindings/chord_formatter.dart';
 import 'package:roola/data/keybindings/command_id.dart';
 import 'package:roola/data/keybindings/effective_keybindings.dart';
@@ -50,8 +52,19 @@ class AppMenuBar extends ConsumerWidget {
       PlatformMenu(
         label: l10n.appMenuRoola,
         menus: [
-          const PlatformProvidedMenuItem(
-            type: PlatformProvidedMenuItemType.about,
+          // macOS 標準の About 項目は `PlatformProvidedMenuItem.about` で
+          // 出せるが、それだと OS 既定のダイアログ（Info.plist のみ参照）が
+          // 開く。OSS ライセンスの「ライセンスを表示」ボタン付き
+          // [showAboutDialog] に差し替えるために、自前の `PlatformMenuItem`
+          // にする（ADR-0040）。
+          PlatformMenuItem(
+            label: l10n.aboutMenuItem,
+            onSelected: () {
+              final context = rootNavigatorKey.currentContext;
+              if (context != null) {
+                showRoolaAboutDialog(context);
+              }
+            },
           ),
           PlatformMenuItemGroup(
             members: [

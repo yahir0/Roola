@@ -55,6 +55,9 @@ dependencies:
   uuid: ^4.5.3
   super_clipboard: ^0.9.0
   super_drag_and_drop: ^0.9.0
+  # About ダイアログでアプリのバージョン（CFBundleShortVersionString +
+  # CFBundleVersion）を実行時に取得するために使う（ADR-0040）。
+  package_info_plus: ^9.0.0
 
 dev_dependencies:
   flutter_test:
@@ -102,6 +105,13 @@ flutter:
         - asset: assets/fonts/SarasaTermJ-Regular.ttf
         - asset: assets/fonts/SarasaTermJ-Bold.ttf
           weight: 700
+
+  # ネイティブ依存（CocoaPods 経由の Sparkle、Swift Package Manager 経由の
+  # SwiftTerm）のライセンス全文。`LicenseRegistry` には pub のパッケージしか
+  # 自動収集されないため、起動時に `lib/app/license_bootstrap.dart` で
+  # アセットから読み込んで `LicenseRegistry.addLicense()` する（ADR-0040）。
+  assets:
+    - assets/licenses/
 
   # To add assets to your application, add an assets section, like this:
   # assets:

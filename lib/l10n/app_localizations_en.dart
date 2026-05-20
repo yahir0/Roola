@@ -314,6 +314,45 @@ class AppLocalizationsEn extends AppLocalizations {
       'Go back / forward one step in directory history (same as ← → in the AppBar)';
 
   @override
+  String get settingsAboutTitle => 'About Roola';
+
+  @override
+  String get settingsAboutDescription =>
+      'View the app version and licenses of the open-source software used by this app.';
+
+  @override
+  String get settingsAboutOpenButton => 'About Roola…';
+
+  @override
+  String get aboutMenuItem => 'About Roola…';
+
+  @override
+  String get aboutLegalese =>
+      'Copyright © 2026 Yahiro\nDistributed under the MIT License.';
+
+  @override
+  String get aboutViewLicensesButton => 'View licenses';
+
+  @override
+  String get licensesPageTitle => 'Open source licenses';
+
+  @override
+  String licensesEntryCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count licenses',
+      one: '$count license',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String licensesLoadError(String error) {
+    return 'Failed to load licenses: $error';
+  }
+
+  @override
   String get appearanceTitle => 'Appearance';
 
   @override

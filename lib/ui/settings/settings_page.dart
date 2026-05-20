@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:roola/app/about.dart';
 import 'package:roola/app/router.dart';
 import 'package:roola/app/theme.dart';
 import 'package:roola/core/health/claude_health_check.dart';
@@ -38,6 +39,59 @@ class SettingsPage extends ConsumerWidget {
           _ClaudeIntegrationSection(),
           Divider(height: 32),
           _ShortcutsSection(),
+          Divider(height: 32),
+          _AboutSection(),
+        ],
+      ),
+    );
+  }
+}
+
+/// アプリ情報セクション（ADR-0040）。
+///
+/// アプリ名・バージョン・著作権と、OSS ライセンス一覧への導線を表示する。
+/// 「Roola について…」ボタンを押すと [showRoolaAboutDialog] が開き、
+/// Flutter 標準 [AboutDialog] の「ライセンスを表示」ボタンから
+/// [showLicensePage] に遷移できる。
+class _AboutSection extends StatelessWidget {
+  const _AboutSection();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final colors = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        PolarisTokens.space6,
+        PolarisTokens.space2,
+        PolarisTokens.space6,
+        PolarisTokens.space6,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            l10n.settingsAboutTitle,
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: PolarisTokens.space1),
+          Text(
+            l10n.settingsAboutDescription,
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant),
+          ),
+          const SizedBox(height: PolarisTokens.space3),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: OutlinedButton.icon(
+              icon: const Icon(Icons.info_outline),
+              label: Text(l10n.settingsAboutOpenButton),
+              onPressed: () => showRoolaAboutDialog(context),
+            ),
+          ),
         ],
       ),
     );

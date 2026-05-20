@@ -307,6 +307,38 @@ class AppLocalizationsJa extends AppLocalizations {
       'ディレクトリ履歴を 1 つ戻る / 進む（AppBar の ← → と同等）';
 
   @override
+  String get settingsAboutTitle => 'Roola について';
+
+  @override
+  String get settingsAboutDescription =>
+      'アプリのバージョンと、本アプリで利用しているオープンソースソフトウェアのライセンスを確認できます。';
+
+  @override
+  String get settingsAboutOpenButton => 'Roola について…';
+
+  @override
+  String get aboutMenuItem => 'Roola について…';
+
+  @override
+  String get aboutLegalese => 'Copyright © 2026 Yahiro\nMIT License で配布しています。';
+
+  @override
+  String get aboutViewLicensesButton => 'ライセンスを表示';
+
+  @override
+  String get licensesPageTitle => 'オープンソースライセンス';
+
+  @override
+  String licensesEntryCount(int count) {
+    return '$count 件のライセンス';
+  }
+
+  @override
+  String licensesLoadError(String error) {
+    return 'ライセンスの読み込みに失敗しました: $error';
+  }
+
+  @override
   String get appearanceTitle => '外観';
 
   @override
