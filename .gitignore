@@ -52,3 +52,20 @@ dart_defines/*.local.json
 *.swp
 *.swo
 *~
+
+# Secrets / credentials の保険（うっかり commit 防止）。
+# 実際にこの種のファイルを置く運用は今のところないが、将来事故ったとき
+# のガードレールとして広めに弾いておく。
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+*.p12
+*.p8
+*.mobileprovision
+*.cer
+secrets.*
+**/credentials.json
+**/google-services.json
+**/GoogleService-Info.plist

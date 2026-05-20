@@ -22,11 +22,16 @@ DMG_VOLUME := Roola Installer
 
 # 配布用署名・公証の設定。
 # - SIGN_IDENTITY: codesign に渡す Developer ID Application 証明書の識別子。
+#   各メンテナの環境に依存するため、ここではデフォルトを置かない。
+#   使い方:
+#     make dist SIGN_IDENTITY="Developer ID Application: NAME (TEAMID)" \
+#               NOTARY_PROFILE=my-notary-profile
+#   もしくは shell の環境変数 / direnv 等で渡す。
 # - NOTARY_PROFILE: xcrun notarytool store-credentials で Keychain に保存した
 #   プロファイル名。
 # - ENTITLEMENTS: メインアプリ署名時に焼き付ける entitlements。
-SIGN_IDENTITY  ?= Developer ID Application: YAHIRO SUGIYAMA (5NDCZDZ75J)
-NOTARY_PROFILE ?= roola-notary
+SIGN_IDENTITY  ?=
+NOTARY_PROFILE ?=
 ENTITLEMENTS   := macos/Runner/Release.entitlements
 
 .DEFAULT_GOAL := help
@@ -65,6 +70,12 @@ build: ## Release ビルド（$(APP_BUNDLE) に出力）
 	$(FLUTTER) build macos --release $(DEFINES)
 
 sign: build ## Developer ID で .app を Hardened Runtime 付きで再帰署名
+	@if [ -z "$(SIGN_IDENTITY)" ]; then \
+		echo "Error: SIGN_IDENTITY が未設定です。"; \
+		echo "  例: make sign SIGN_IDENTITY=\"Developer ID Application: NAME (TEAMID)\""; \
+		echo "  または環境変数で渡してください。"; \
+		exit 1; \
+	fi
 	@echo "Signing inner contents under $(APP_BUNDLE) ..."
 	@find "$(APP_BUNDLE)/Contents/Frameworks" -type f \( -name "*.dylib" -o -name "*.so" \) \
 		-exec codesign --force --options runtime --timestamp \
@@ -88,6 +99,13 @@ dmg: sign ## Release ビルド + 署名 + DMG 作成（$(DMG_PATH) に出力）
 	@echo "DMG: $(DMG_PATH)"
 
 notarize: ## DMG を Apple に提出し、公証の完了まで待つ（要: make dmg 済み）
+	@if [ -z "$(NOTARY_PROFILE)" ]; then \
+		echo "Error: NOTARY_PROFILE が未設定です。"; \
+		echo "  事前に xcrun notarytool store-credentials で Keychain に保存し、"; \
+		echo "  そのプロファイル名を渡してください。"; \
+		echo "  例: make notarize NOTARY_PROFILE=my-notary-profile"; \
+		exit 1; \
+	fi
 	@xcrun notarytool submit "$(DMG_PATH)" \
 		--keychain-profile "$(NOTARY_PROFILE)" --wait
 
