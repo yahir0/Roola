@@ -11,21 +11,28 @@ class AppDelegate: FlutterAppDelegate {
   /// 埋める前の状態）では nil のままで Sparkle 関連 API は no-op。
   /// セットアップ手順は docs/release.md の Sparkle セクション参照。
   private lazy var updaterController: SPUStandardUpdaterController? = {
+    NSLog("Roola/Sparkle: lazy updaterController initializer entered")
+    let bundleId = Bundle.main.bundleIdentifier ?? "<nil>"
+    NSLog("Roola/Sparkle: Bundle.main.bundleIdentifier = %@", bundleId)
     let feedURL =
       (Bundle.main.object(forInfoDictionaryKey: "SUFeedURL") as? String) ?? ""
     let publicKey =
       (Bundle.main.object(forInfoDictionaryKey: "SUPublicEDKey") as? String) ?? ""
+    NSLog("Roola/Sparkle: SUFeedURL length=%d, SUPublicEDKey length=%d", feedURL.count, publicKey.count)
     guard !feedURL.isEmpty, !publicKey.isEmpty else {
       NSLog(
-        "Sparkle: SUFeedURL or SUPublicEDKey is not configured; auto-updates disabled."
+        "Roola/Sparkle: SUFeedURL or SUPublicEDKey is not configured; auto-updates disabled."
       )
       return nil
     }
-    return SPUStandardUpdaterController(
+    NSLog("Roola/Sparkle: Initializing SPUStandardUpdaterController...")
+    let controller = SPUStandardUpdaterController(
       startingUpdater: true,
       updaterDelegate: nil,
       userDriverDelegate: nil
     )
+    NSLog("Roola/Sparkle: SPUStandardUpdaterController initialized successfully")
+    return controller
   }()
 
   override init() {
@@ -38,10 +45,13 @@ class AppDelegate: FlutterAppDelegate {
   }
 
   override func applicationDidFinishLaunching(_ notification: Notification) {
+    NSLog("Roola/Sparkle: applicationDidFinishLaunching - entering")
     super.applicationDidFinishLaunching(notification)
+    NSLog("Roola/Sparkle: applicationDidFinishLaunching - super returned, triggering updaterController")
     // 起動直後に lazy 初期化を発火させ、Info.plist 設定済みなら自動チェックを
     // スタートさせる（未設定なら no-op で何も起きない）。
-    _ = updaterController
+    let controller = updaterController
+    NSLog("Roola/Sparkle: applicationDidFinishLaunching - updaterController = %@", controller != nil ? "non-nil" : "nil")
   }
 
   override func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
