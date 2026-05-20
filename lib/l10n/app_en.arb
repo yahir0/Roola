@@ -98,7 +98,7 @@
   "settingsClaudeFeatures": "Features that get enabled",
   "settingsClaudeFeature1": "Auto-detects `.claude/skills/` in explorer folders and shows a special icon and Skill chips",
   "settingsClaudeFeature2": "Adds \"Open Claude Code\", \"Run Skill now\", and \"Register Skill to launcher\" to the right-click menu",
-  "settingsClaudeFeature3": "Lets you pick the \"Claude Skill\" action type when registering a launcher entry (runs `claude /skillname` with the given Skill name)",
+  "settingsClaudeFeature3": "Lets you pick the \"Claude Code Skill\" action type when registering a launcher entry (runs `claude /skillname` with the given Skill name)",
   "settingsClaudeInstallTitle": "Installation steps",
   "settingsClaudeInstallInstructions": "With Node.js 18+ installed, run the following command:",
   "settingsClaudeInstallCopyTooltip": "Copy command",
@@ -280,7 +280,7 @@
   "@explorerTerminalDisplayName": {
     "placeholders": { "name": { "type": "String" } }
   },
-  "explorerClaudeDisplayName": "{name} (Claude)",
+  "explorerClaudeDisplayName": "{name} (Claude Code)",
   "@explorerClaudeDisplayName": {
     "placeholders": { "name": { "type": "String" } }
   },
@@ -304,9 +304,9 @@
   "entryEditActionTypeLabel": "Action",
   "entryEditActionOpenHere": "Open only",
   "entryEditActionRunCommand": "Run command",
-  "entryEditActionClaudeSkill": "Claude Skill",
+  "entryEditActionClaudeSkill": "Claude Code Skill",
   "entryEditClaudeUnavailableNoticeCurrent": "Claude Code is not installed. This entry is a Skill type, so it cannot be launched even if saved. See the installation steps on the \"Settings\" screen.",
-  "entryEditClaudeUnavailableNoticeGeneral": "The \"Claude Skill\" type is disabled because Claude Code is not installed. See the installation steps on the \"Settings\" screen.",
+  "entryEditClaudeUnavailableNoticeGeneral": "The \"Claude Code Skill\" type is disabled because Claude Code is not installed. See the installation steps on the \"Settings\" screen.",
   "entryEditOpenHereDescription": "Starts a login shell ($SHELL) in the specified working directory and stops at the prompt.",
   "entryEditCommandLabel": "Command to run",
   "entryEditCommandHint": "npm run dev",
@@ -346,7 +346,7 @@
   "@launcherActionLabelRunCommand": {
     "placeholders": { "command": { "type": "String" } }
   },
-  "launcherActionLabelClaudeSkill": "Action: Claude Skill — {skillName}",
+  "launcherActionLabelClaudeSkill": "Action: Claude Code Skill — {skillName}",
   "@launcherActionLabelClaudeSkill": {
     "placeholders": { "skillName": { "type": "String" } }
   },

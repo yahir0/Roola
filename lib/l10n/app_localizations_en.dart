@@ -266,7 +266,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsClaudeFeature3 =>
-      'Lets you pick the \"Claude Skill\" action type when registering a launcher entry (runs `claude /skillname` with the given Skill name)';
+      'Lets you pick the \"Claude Code Skill\" action type when registering a launcher entry (runs `claude /skillname` with the given Skill name)';
 
   @override
   String get settingsClaudeInstallTitle => 'Installation steps';
@@ -651,7 +651,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String explorerClaudeDisplayName(String name) {
-    return '$name (Claude)';
+    return '$name (Claude Code)';
   }
 
   @override
@@ -703,7 +703,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get entryEditActionRunCommand => 'Run command';
 
   @override
-  String get entryEditActionClaudeSkill => 'Claude Skill';
+  String get entryEditActionClaudeSkill => 'Claude Code Skill';
 
   @override
   String get entryEditClaudeUnavailableNoticeCurrent =>
@@ -711,7 +711,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get entryEditClaudeUnavailableNoticeGeneral =>
-      'The \"Claude Skill\" type is disabled because Claude Code is not installed. See the installation steps on the \"Settings\" screen.';
+      'The \"Claude Code Skill\" type is disabled because Claude Code is not installed. See the installation steps on the \"Settings\" screen.';
 
   @override
   String get entryEditOpenHereDescription =>
@@ -808,7 +808,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String launcherActionLabelClaudeSkill(String skillName) {
-    return 'Action: Claude Skill — $skillName';
+    return 'Action: Claude Code Skill — $skillName';
   }
 
   @override

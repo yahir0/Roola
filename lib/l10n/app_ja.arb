@@ -98,7 +98,7 @@
   "settingsClaudeFeatures": "有効化される機能",
   "settingsClaudeFeature1": "エクスプローラのフォルダで `.claude/skills/` を自動検知し、特別アイコンと Skill チップを表示",
   "settingsClaudeFeature2": "右クリックメニューに「Claude Code を開く」「Skill を即実行」「Skill をランチャーに登録」を追加",
-  "settingsClaudeFeature3": "ランチャー登録時に「Claude Skill」動作タイプを選べる（Skill 名を指定して `claude /skillname` を起動）",
+  "settingsClaudeFeature3": "ランチャー登録時に「Claude Code Skill」動作タイプを選べる（Skill 名を指定して `claude /skillname` を起動）",
   "settingsClaudeInstallTitle": "インストール手順",
   "settingsClaudeInstallInstructions": "Node.js 18+ がある状態で次のコマンドを実行してください:",
   "settingsClaudeInstallCopyTooltip": "コマンドをコピー",
@@ -307,7 +307,7 @@
   "@explorerTerminalDisplayName": {
     "placeholders": { "name": { "type": "String" } }
   },
-  "explorerClaudeDisplayName": "{name} (Claude)",
+  "explorerClaudeDisplayName": "{name} (Claude Code)",
   "@explorerClaudeDisplayName": {
     "placeholders": { "name": { "type": "String" } }
   },
@@ -331,9 +331,9 @@
   "entryEditActionTypeLabel": "動作",
   "entryEditActionOpenHere": "開くだけ",
   "entryEditActionRunCommand": "コマンド実行",
-  "entryEditActionClaudeSkill": "Claude Skill",
+  "entryEditActionClaudeSkill": "Claude Code Skill",
   "entryEditClaudeUnavailableNoticeCurrent": "Claude Code が未導入です。このエントリは Skill タイプですが、保存しても起動できません。「設定」画面のインストール手順を参照してください。",
-  "entryEditClaudeUnavailableNoticeGeneral": "Claude Code が未導入のため「Claude Skill」タイプは無効化されています。「設定」画面のインストール手順を参照してください。",
+  "entryEditClaudeUnavailableNoticeGeneral": "Claude Code が未導入のため「Claude Code Skill」タイプは無効化されています。「設定」画面のインストール手順を参照してください。",
   "entryEditOpenHereDescription": "指定した作業ディレクトリでログインシェル ($SHELL) を起動し、プロンプトで停止します。",
   "entryEditCommandLabel": "実行コマンド",
   "entryEditCommandHint": "npm run dev",
@@ -373,7 +373,7 @@
   "@launcherActionLabelRunCommand": {
     "placeholders": { "command": { "type": "String" } }
   },
-  "launcherActionLabelClaudeSkill": "動作: Claude Skill — {skillName}",
+  "launcherActionLabelClaudeSkill": "動作: Claude Code Skill — {skillName}",
   "@launcherActionLabelClaudeSkill": {
     "placeholders": { "skillName": { "type": "String" } }
   },
