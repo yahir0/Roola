@@ -1,0 +1,12 @@
+# GitHub Sponsors の "Sponsor" ボタンをリポジトリ右上に表示する。
+#
+# このファイルだけでは Sponsors は有効化されない。下記の手順を別途実施する:
+#   1. https://github.com/sponsors/dashboard で個人アカウントの Sponsors を申請
+#   2. 銀行口座 / Stripe Connect を連携
+#   3. Tier を設定（README にも控えめにリンクを置く）
+#   4. README の Project status / Support セクションでも Sponsor 導線を案内
+#
+# Sponsor になっても **特別なサポートは提供しない** ことを Tier 説明に明記する
+# （保守義務を負わない方針に合わせる）。
+
+github: yahir0
