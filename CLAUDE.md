@@ -145,4 +145,4 @@ Mac 向けの汎用ターミナルランチャーアプリ（Flutter Desktop / m
 
 ## ライセンス
 
-未定（公開時に設定）。
+[MIT License](./LICENSE)
