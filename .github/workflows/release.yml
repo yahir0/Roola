@@ -1,0 +1,121 @@
+# タグ push をトリガーに macOS 向け Roola を 署名 → 公証 → ステープル まで実行し、
+# 完成した DMG を GitHub Releases にアップロードするワークフロー。
+#
+# 必要な Repository Secrets は docs/release.md を参照。
+#
+# トリガー: `git tag v0.0.7 && git push --tags` 等で `v*` タグが push されたとき。
+# 手動実行も可能（workflow_dispatch）。
+
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write # GitHub Release の作成・アセットアップロードに必要
+
+jobs:
+  build-and-release:
+    runs-on: macos-14
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # `.fvmrc` の Flutter バージョンを setup に渡す。
+      - name: Read Flutter version from .fvmrc
+        id: fvm
+        run: |
+          VERSION=$(jq -r '.flutter' .fvmrc)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ steps.fvm.outputs.version }}
+          channel: stable
+          cache: true
+
+      - name: Install dependencies and run codegen
+        run: |
+          flutter pub get
+          dart run build_runner build --delete-conflicting-outputs
+
+      # 一時 keychain に証明書をインポートし、codesign が引けるようにする。
+      # notarytool 用のプロファイルも同じ keychain に保存する。
+      - name: Setup signing keychain
+        env:
+          CERT_BASE64: ${{ secrets.MACOS_CERT_BASE64 }}
+          CERT_PASSWORD: ${{ secrets.MACOS_CERT_PASSWORD }}
+          KEYCHAIN_PASSWORD: ${{ secrets.MACOS_KEYCHAIN_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
+        run: |
+          KEYCHAIN_PATH="$RUNNER_TEMP/build.keychain-db"
+
+          # 既存をクリーンに（基本的にはランナーが新規だが念のため）
+          security delete-keychain "$KEYCHAIN_PATH" 2>/dev/null || true
+
+          # 一時 keychain 作成 + 6 時間ロック解除
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+
+          # 検索パスに追加し、default にも指定する
+          security list-keychains -d user -s "$KEYCHAIN_PATH" login.keychain-db
+          security default-keychain -d user -s "$KEYCHAIN_PATH"
+
+          # 証明書インポート
+          CERT_PATH="$RUNNER_TEMP/cert.p12"
+          echo "$CERT_BASE64" | base64 --decode -o "$CERT_PATH"
+          security import "$CERT_PATH" -k "$KEYCHAIN_PATH" -P "$CERT_PASSWORD" \
+            -T /usr/bin/codesign -T /usr/bin/security
+          security set-key-partition-list -S apple-tool:,apple:,codesign: \
+            -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          rm -f "$CERT_PATH"
+
+          # notarytool プロファイルを同 keychain に保存
+          xcrun notarytool store-credentials roola-notary \
+            --apple-id "$APPLE_ID" \
+            --team-id "$APPLE_TEAM_ID" \
+            --password "$APPLE_APP_PASSWORD" \
+            --keychain "$KEYCHAIN_PATH"
+
+      - name: Build, sign, notarize, and staple
+        env:
+          SIGN_IDENTITY: ${{ secrets.MACOS_SIGN_IDENTITY }}
+        run: |
+          make dist SIGN_IDENTITY="$SIGN_IDENTITY" NOTARY_PROFILE=roola-notary
+
+      - name: Verify DMG
+        run: |
+          if [ ! -f build/Roola.dmg ]; then
+            echo "Error: DMG not produced at build/Roola.dmg"
+            exit 1
+          fi
+          # 公証ステープルが効いているか検証
+          xcrun stapler validate build/Roola.dmg
+          # codesign の検証
+          hdiutil attach -nobrowse -readonly build/Roola.dmg -mountpoint /tmp/roola-verify
+          codesign --verify --deep --strict --verbose=2 /tmp/roola-verify/Roola.app
+          hdiutil detach /tmp/roola-verify
+
+      - name: Upload DMG to GitHub Releases
+        uses: softprops/action-gh-release@v2
+        with:
+          files: build/Roola.dmg
+          generate_release_notes: true
+          draft: false
+          fail_on_unmatched_files: true
+
+      # 失敗時も keychain を必ず破棄する。default keychain も復元する。
+      - name: Cleanup keychain
+        if: always()
+        run: |
+          security default-keychain -d user -s login.keychain-db 2>/dev/null || true
+          security delete-keychain "$RUNNER_TEMP/build.keychain-db" 2>/dev/null || true

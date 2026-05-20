@@ -199,6 +199,8 @@ make dist            # 上記 + Apple へ提出して公証 + ステープル
 make reset           # 永続化されたエントリ・設定を削除
 ```
 
+リリース手順（タグ push で自動配布）は [docs/release.md](./docs/release.md) を参照。
+
 ## Project status / Support
 
 Roola は個人の週末プロジェクトとして開発されている OSS です。「自分が使うため」が
