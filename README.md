@@ -1,15 +1,19 @@
-# Roola
-
 <p align="center">
-  <img src="./docs/images/icon.png" width="128" alt="Roola icon" />
+  <img src="./docs/images/icon.png" width="120" alt="Roola icon" />
 </p>
 
-**Universal terminal launcher for macOS.**
-ファイルをブラウズし、よく使う「ディレクトリ + 動作」をワンクリックで起動できる、アプリ内 PTY ターミナルつきランチャー。
+<h1 align="center">Roola</h1>
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
-![Platform: macOS](https://img.shields.io/badge/platform-macOS%2014%2B-lightgrey)
-![Built with Flutter](https://img.shields.io/badge/built%20with-Flutter-02569B?logo=flutter&logoColor=white)
+<p align="center">
+  <strong>Universal terminal launcher for macOS.</strong><br>
+  ファイルをブラウズし、よく使う「ディレクトリ + 動作」をワンクリックで起動できる、アプリ内 PTY ターミナルつきランチャー。
+</p>
+
+<p align="center">
+  <a href="./LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT" /></a>
+  <img src="https://img.shields.io/badge/platform-macOS%2014%2B-lightgrey" alt="Platform: macOS" />
+  <img src="https://img.shields.io/badge/built%20with-Flutter-02569B?logo=flutter&logoColor=white" alt="Built with Flutter" />
+</p>
 
 > Compatible with [Claude Code](https://docs.claude.com/claude-code) — インストール済みなら Skill 実行・対話セッション起動などの統合 UI が自動で有効化されます。インストールされていなくても汎用ランチャーとして動きます（ADR-0016 / ADR-0022）。
 
