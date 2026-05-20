@@ -692,6 +692,30 @@ abstract class AppLocalizations {
   /// **'Copyright © 2026 Yahiro\nMIT License で配布しています。'**
   String get aboutLegalese;
 
+  /// No description provided for @aboutViewLicensesButton.
+  ///
+  /// In ja, this message translates to:
+  /// **'ライセンスを表示'**
+  String get aboutViewLicensesButton;
+
+  /// No description provided for @licensesPageTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'オープンソースライセンス'**
+  String get licensesPageTitle;
+
+  /// No description provided for @licensesEntryCount.
+  ///
+  /// In ja, this message translates to:
+  /// **'{count} 件のライセンス'**
+  String licensesEntryCount(int count);
+
+  /// No description provided for @licensesLoadError.
+  ///
+  /// In ja, this message translates to:
+  /// **'ライセンスの読み込みに失敗しました: {error}'**
+  String licensesLoadError(String error);
+
   /// No description provided for @appearanceTitle.
   ///
   /// In ja, this message translates to:

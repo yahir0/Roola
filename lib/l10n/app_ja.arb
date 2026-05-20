@@ -119,6 +119,16 @@
   "settingsAboutOpenButton": "Roola について…",
   "aboutMenuItem": "Roola について…",
   "aboutLegalese": "Copyright © 2026 Yahiro\nMIT License で配布しています。",
+  "aboutViewLicensesButton": "ライセンスを表示",
+  "licensesPageTitle": "オープンソースライセンス",
+  "licensesEntryCount": "{count} 件のライセンス",
+  "@licensesEntryCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "licensesLoadError": "ライセンスの読み込みに失敗しました: {error}",
+  "@licensesLoadError": {
+    "placeholders": { "error": { "type": "String" } }
+  },
 
   "appearanceTitle": "外観",
   "appearanceLoadError": "外観設定の読み込みに失敗しました: {error}",

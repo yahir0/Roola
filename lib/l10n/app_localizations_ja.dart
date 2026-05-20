@@ -323,6 +323,22 @@ class AppLocalizationsJa extends AppLocalizations {
   String get aboutLegalese => 'Copyright © 2026 Yahiro\nMIT License で配布しています。';
 
   @override
+  String get aboutViewLicensesButton => 'ライセンスを表示';
+
+  @override
+  String get licensesPageTitle => 'オープンソースライセンス';
+
+  @override
+  String licensesEntryCount(int count) {
+    return '$count 件のライセンス';
+  }
+
+  @override
+  String licensesLoadError(String error) {
+    return 'ライセンスの読み込みに失敗しました: $error';
+  }
+
+  @override
   String get appearanceTitle => '外観';
 
   @override

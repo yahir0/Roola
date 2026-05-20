@@ -119,6 +119,16 @@
   "settingsAboutOpenButton": "About Roola…",
   "aboutMenuItem": "About Roola…",
   "aboutLegalese": "Copyright © 2026 Yahiro\nDistributed under the MIT License.",
+  "aboutViewLicensesButton": "View licenses",
+  "licensesPageTitle": "Open source licenses",
+  "licensesEntryCount": "{count, plural, one{{count} license} other{{count} licenses}}",
+  "@licensesEntryCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "licensesLoadError": "Failed to load licenses: {error}",
+  "@licensesLoadError": {
+    "placeholders": { "error": { "type": "String" } }
+  },
 
   "appearanceTitle": "Appearance",
   "appearanceLoadError": "Failed to load appearance settings: {error}",

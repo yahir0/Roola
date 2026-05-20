@@ -331,6 +331,28 @@ class AppLocalizationsEn extends AppLocalizations {
       'Copyright © 2026 Yahiro\nDistributed under the MIT License.';
 
   @override
+  String get aboutViewLicensesButton => 'View licenses';
+
+  @override
+  String get licensesPageTitle => 'Open source licenses';
+
+  @override
+  String licensesEntryCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count licenses',
+      one: '$count license',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String licensesLoadError(String error) {
+    return 'Failed to load licenses: $error';
+  }
+
+  @override
   String get appearanceTitle => 'Appearance';
 
   @override
