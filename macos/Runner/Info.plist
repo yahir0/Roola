@@ -30,5 +30,17 @@
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
+	<!-- Sparkle 自動更新 (docs/sparkle.md / ADR は無し)
+	     SUFeedURL は gh-pages ブランチ + GitHub Pages で配信される appcast.xml
+	     SUPublicEDKey は EdDSA 鍵ペアの公開鍵側。秘密鍵側は
+	     SPARKLE_PRIVATE_KEY_BASE64 Secret として CI に登録済みで、
+	     リリースワークフローが appcast.xml の各エントリを署名する。
+	     SUEnableAutomaticChecks=true でアプリ起動時 + 24h 毎にチェックを走らせる -->
+	<key>SUFeedURL</key>
+	<string>https://yahir0.github.io/Roola/appcast.xml</string>
+	<key>SUPublicEDKey</key>
+	<string>EEFD65po9ggBgEW9Pg8jvHEXsBjOFdrrEzm2A9+imtM=</string>
+	<key>SUEnableAutomaticChecks</key>
+	<true/>
 </dict>
 </plist>
