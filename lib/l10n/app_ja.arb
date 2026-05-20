@@ -124,10 +124,6 @@
   "appearanceModeTransparent": "透過",
   "appearanceAccentLabel": "アクセントカラー",
   "appearanceOpacityLabel": "不透明度",
-  "appearanceImageSelectButton": "画像を選択",
-  "appearanceCenterImageLabel": "中央画像",
-  "appearanceCenterImageDescription": "ウィンドウの中央に重ねて表示します（短辺の 60% 程度のサイズ）。",
-  "appearanceCenterImageClear": "クリア",
 
   "keybindingsPageTitle": "キーボードショートカット",
   "keybindingsIntro": "行をクリックしてショートカットを変更できます。修飾キー（⌘ ⌥ ⌃ ⇧）を 1 つ以上含める必要があり、他のコマンドと重複するキーは保存できません。",

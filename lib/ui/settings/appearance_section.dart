@@ -1,13 +1,9 @@
-import 'dart:io';
-
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:roola/app/theme.dart';
 import 'package:roola/data/appearance/appearance_settings.dart';
 import 'package:roola/data/appearance/appearance_settings_repository_impl.dart';
 import 'package:roola/data/appearance/polaris_accent.dart';
-import 'package:roola/data/launcher_entry/launcher_entry_repository_impl.dart';
 import 'package:roola/l10n/app_localizations.dart';
 
 /// 設定画面に組み込む「外観」セクション。
@@ -112,41 +108,14 @@ class _Body extends ConsumerWidget {
             },
           ),
           const SizedBox(height: PolarisTokens.space4),
-          if (settings.mode == AppearanceMode.transparent) ...[
+          if (settings.mode == AppearanceMode.transparent)
             _OpacitySlider(
               value: settings.transparencyOpacity,
               onChanged: notifier.setTransparencyOpacity,
             ),
-            const SizedBox(height: PolarisTokens.space4),
-            _CenterImagePicker(
-              imagePath: settings.transparentCenterImagePath,
-              onPick: () => _pickAndSaveCenterImage(context, ref, notifier),
-              onClear: () => notifier.setTransparentCenterImagePath(null),
-            ),
-          ],
         ],
       ),
     );
-  }
-
-  Future<void> _pickAndSaveCenterImage(
-    BuildContext context,
-    WidgetRef ref,
-    AppearanceSettingsNotifier notifier,
-  ) async {
-    final result = await FilePicker.pickFiles(type: FileType.image);
-    final src = result?.files.single.path;
-    if (src == null) {
-      return;
-    }
-    final paths = ref.read(appPathsProvider);
-    final dest = paths.transparentCenterImageFile;
-    await File(src).copy(dest.path);
-    // 同じパスに上書き保存しただけでは Flutter の ImageCache が古いバイト列を
-    // 返し続け、再起動するまで描画が更新されない。該当パスの FileImage を
-    // cache から落として強制再読み込みする。
-    await FileImage(dest).evict();
-    await notifier.setTransparentCenterImagePath(dest.path);
   }
 }
 
@@ -175,81 +144,6 @@ class _OpacitySlider extends StatelessWidget {
           divisions: 20,
           label: '$percent%',
           onChanged: onChanged,
-        ),
-      ],
-    );
-  }
-}
-
-/// 透過モード時に中央へ重ねる画像のピッカー。
-class _CenterImagePicker extends StatelessWidget {
-  const _CenterImagePicker({
-    required this.imagePath,
-    required this.onPick,
-    required this.onClear,
-  });
-
-  final String? imagePath;
-  final VoidCallback onPick;
-  final VoidCallback onClear;
-
-  @override
-  Widget build(BuildContext context) {
-    final file = imagePath != null ? File(imagePath!) : null;
-    final hasImage = file != null && file.existsSync();
-    final l10n = AppLocalizations.of(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          l10n.appearanceCenterImageLabel,
-          style: Theme.of(context).textTheme.bodyMedium,
-        ),
-        const SizedBox(height: PolarisTokens.space1),
-        Text(
-          l10n.appearanceCenterImageDescription,
-          style: Theme.of(context).textTheme.bodySmall,
-        ),
-        const SizedBox(height: PolarisTokens.space2),
-        Row(
-          children: [
-            Container(
-              width: 96,
-              height: 96,
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                shape: BoxShape.circle,
-              ),
-              clipBehavior: Clip.antiAlias,
-              child: hasImage
-                  ? Image.file(
-                      file,
-                      // 同パス上書きで Image が再リゾルブされない問題対策
-                      key: ValueKey(file.lastModifiedSync()),
-                      fit: BoxFit.cover,
-                    )
-                  : const Icon(Icons.image_outlined, size: 32),
-            ),
-            const SizedBox(width: PolarisTokens.space4),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                FilledButton.icon(
-                  icon: const Icon(Icons.upload_file),
-                  label: Text(l10n.appearanceImageSelectButton),
-                  onPressed: onPick,
-                ),
-                if (hasImage) ...[
-                  const SizedBox(height: PolarisTokens.space2),
-                  TextButton.icon(
-                    icon: const Icon(Icons.clear),
-                    label: Text(l10n.appearanceCenterImageClear),
-                    onPressed: onClear,
-                  ),
-                ],
-              ],
-            ),
-          ],
         ),
       ],
     );

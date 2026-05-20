@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:roola/app/app_menu_bar.dart';
@@ -15,9 +13,8 @@ import 'package:roola/ui/common/mouse_navigation_listener.dart';
 /// アプリ最上位の Widget。
 ///
 /// `ProviderScope` の内側に置く前提で、`MaterialApp.router` を組み立てる。
-/// 背景は `appearanceSettingsProvider` の値に応じて 透過 / 単色 / 画像 /
-/// グラデーション を切り替える。テーマは Polaris のダーク専用テーマ
-/// （ADR-0038）に固定する。
+/// 背景は `appearanceSettingsProvider` の値に応じて 不透明 / 透過 を切り替える
+/// （ADR-0038）。テーマは Polaris のダーク専用テーマに固定する。
 class App extends ConsumerWidget {
   const App({super.key});
 
@@ -85,8 +82,6 @@ class _AppearanceLayer extends StatelessWidget {
       ),
       AppearanceMode.transparent => _TransparentLayer(
         opacity: appearance.transparencyOpacity,
-        centerImagePath: appearance.transparentCenterImagePath,
-        centerImageMtime: appearance.transparentCenterImageMtime,
         child: child,
       ),
     };
@@ -95,77 +90,23 @@ class _AppearanceLayer extends StatelessWidget {
 
 /// 透過モードのレイヤー。
 ///
-/// 不透明グラファイトの基底層 → （中央画像）→ UI の順に重ねた全体を、1 枚の
-/// [Opacity] で半透明合成する。個々のサーフェスを半透明化するとトーン階層
-/// （`well` / `bg`）が重なる箇所でアルファが二重掛けされ濁るが、[Opacity] は
-/// 子ツリーを一旦合成してから 1 度だけアルファを掛けるため、トーン階層を
-/// 保ったまま均一に透ける。基底層があることで、UI が背景を塗らない領域も
-/// 同じ濃さの半透明グラファイトになる。`opacity` が 1.0 のとき [Opacity] は
-/// no-op。
-///
-/// `centerImagePath` が指定されていれば、基底層と UI の間に円形画像を挟む
-/// （日本国旗の赤円のイメージ）。UI が半透明なので画像は透けて見え、クリック
-/// 入力は [IgnorePointer] で UI 側へ素通りさせる。
+/// 不透明グラファイトの基底層 → UI の順に重ねた全体を、1 枚の [Opacity] で
+/// 半透明合成する。個々のサーフェスを半透明化するとトーン階層（`well` / `bg`）
+/// が重なる箇所でアルファが二重掛けされ濁るが、[Opacity] は子ツリーを一旦
+/// 合成してから 1 度だけアルファを掛けるため、トーン階層を保ったまま均一に
+/// 透ける。基底層があることで、UI が背景を塗らない領域も同じ濃さの半透明
+/// グラファイトになる。`opacity` が 1.0 のとき [Opacity] は no-op。
 class _TransparentLayer extends StatelessWidget {
-  const _TransparentLayer({
-    required this.opacity,
-    required this.centerImagePath,
-    required this.centerImageMtime,
-    required this.child,
-  });
+  const _TransparentLayer({required this.opacity, required this.child});
 
   final double opacity;
-  final String? centerImagePath;
-
-  /// 中央画像の更新時刻。Image widget の ValueKey に乗せて、同じパスに
-  /// 上書き保存された場合でも widget remount を強制する。
-  final int? centerImageMtime;
   final Widget child;
-
-  /// 中央画像のサイズ。短辺の 60% — 日本国旗の赤円の比率。
-  static const double _centerSizeRatio = 0.6;
 
   @override
   Widget build(BuildContext context) {
-    final hasCenterImage =
-        centerImagePath != null && File(centerImagePath!).existsSync();
-    final Widget content;
-    if (!hasCenterImage) {
-      content = ColoredBox(color: AppTheme.tokens.bg, child: child);
-    } else {
-      content = Stack(
-        fit: StackFit.expand,
-        children: [
-          ColoredBox(color: AppTheme.tokens.bg),
-          Center(
-            child: IgnorePointer(
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  final size =
-                      constraints.biggest.shortestSide * _centerSizeRatio;
-                  // 同じパスに上書き保存した直後は `FileImage` の equality が
-                  // 一致するため `Image` widget が再リゾルブせず古い画像のまま。
-                  // state 側で渡される更新時刻を ValueKey に乗せて widget を
-                  // 強制 remount し、新しいバイト列を読み直す。
-                  return ClipOval(
-                    child: SizedBox(
-                      width: size,
-                      height: size,
-                      child: Image.file(
-                        File(centerImagePath!),
-                        key: ValueKey(centerImageMtime),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-          ),
-          child,
-        ],
-      );
-    }
-    return Opacity(opacity: opacity, child: content);
+    return Opacity(
+      opacity: opacity,
+      child: ColoredBox(color: AppTheme.tokens.bg, child: child),
+    );
   }
 }

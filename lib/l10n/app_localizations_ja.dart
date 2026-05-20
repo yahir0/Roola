@@ -330,19 +330,6 @@ class AppLocalizationsJa extends AppLocalizations {
   String get appearanceOpacityLabel => '不透明度';
 
   @override
-  String get appearanceImageSelectButton => '画像を選択';
-
-  @override
-  String get appearanceCenterImageLabel => '中央画像';
-
-  @override
-  String get appearanceCenterImageDescription =>
-      'ウィンドウの中央に重ねて表示します（短辺の 60% 程度のサイズ）。';
-
-  @override
-  String get appearanceCenterImageClear => 'クリア';
-
-  @override
   String get keybindingsPageTitle => 'キーボードショートカット';
 
   @override

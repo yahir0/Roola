@@ -11,9 +11,6 @@ AppearanceSettingsDto _$AppearanceSettingsDtoFromJson(
 ) => AppearanceSettingsDto(
   mode: json['mode'] as String,
   transparencyOpacity: (json['transparencyOpacity'] as num?)?.toDouble(),
-  transparentCenterImagePath: json['transparentCenterImagePath'] as String?,
-  transparentCenterImageMtime: (json['transparentCenterImageMtime'] as num?)
-      ?.toInt(),
   accent: json['accent'] as String?,
 );
 
@@ -22,7 +19,5 @@ Map<String, dynamic> _$AppearanceSettingsDtoToJson(
 ) => <String, dynamic>{
   'mode': instance.mode,
   'transparencyOpacity': instance.transparencyOpacity,
-  'transparentCenterImagePath': instance.transparentCenterImagePath,
-  'transparentCenterImageMtime': instance.transparentCenterImageMtime,
   'accent': instance.accent,
 };

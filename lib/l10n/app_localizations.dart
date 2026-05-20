@@ -704,30 +704,6 @@ abstract class AppLocalizations {
   /// **'不透明度'**
   String get appearanceOpacityLabel;
 
-  /// No description provided for @appearanceImageSelectButton.
-  ///
-  /// In ja, this message translates to:
-  /// **'画像を選択'**
-  String get appearanceImageSelectButton;
-
-  /// No description provided for @appearanceCenterImageLabel.
-  ///
-  /// In ja, this message translates to:
-  /// **'中央画像'**
-  String get appearanceCenterImageLabel;
-
-  /// No description provided for @appearanceCenterImageDescription.
-  ///
-  /// In ja, this message translates to:
-  /// **'ウィンドウの中央に重ねて表示します（短辺の 60% 程度のサイズ）。'**
-  String get appearanceCenterImageDescription;
-
-  /// No description provided for @appearanceCenterImageClear.
-  ///
-  /// In ja, this message translates to:
-  /// **'クリア'**
-  String get appearanceCenterImageClear;
-
   /// No description provided for @keybindingsPageTitle.
   ///
   /// In ja, this message translates to:
