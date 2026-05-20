@@ -314,6 +314,23 @@ class AppLocalizationsEn extends AppLocalizations {
       'Go back / forward one step in directory history (same as ← → in the AppBar)';
 
   @override
+  String get settingsAboutTitle => 'About Roola';
+
+  @override
+  String get settingsAboutDescription =>
+      'View the app version and licenses of the open-source software used by this app.';
+
+  @override
+  String get settingsAboutOpenButton => 'About Roola…';
+
+  @override
+  String get aboutMenuItem => 'About Roola…';
+
+  @override
+  String get aboutLegalese =>
+      'Copyright © 2026 Yahiro\nDistributed under the MIT License.';
+
+  @override
   String get appearanceTitle => 'Appearance';
 
   @override

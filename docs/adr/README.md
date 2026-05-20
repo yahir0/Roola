@@ -43,6 +43,9 @@
 | [0035](./0035-reserve-text-editing-shortcuts.md) | ⌘C/⌘V/⌘X/⌘A/⌘Z をテキスト編集用に予約し、コマンド割り当て不可とする | Accepted |
 | [0036](./0036-notepad-floating-panel.md) | ノートパッドをワークスペース外のフローティングパネルとして実装する | Accepted |
 | [0037](./0037-terminal-focus-bridge.md) | ターミナルのプラットフォームビューと Flutter フォーカスを橋渡しする | Accepted |
+| [0038](./0038-polaris-design-system.md) | Polaris デザインシステムを採用する（ADR-0020 を Supersede） | Accepted |
+| [0039](./0039-activity-monitor.md) | トップバーにアクティビティモニタ（CPU / メモリ監視）を追加する | Accepted |
+| [0040](./0040-about-and-licenses.md) | About ダイアログと OSS ライセンス画面を提供する | Accepted |
 
 ## フォーマット
 

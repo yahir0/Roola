@@ -114,6 +114,12 @@
   "settingsMouseRightClick": "Context menu (operations specific to folders / files)",
   "settingsMouseNavigation": "Go back / forward one step in directory history (same as ← → in the AppBar)",
 
+  "settingsAboutTitle": "About Roola",
+  "settingsAboutDescription": "View the app version and licenses of the open-source software used by this app.",
+  "settingsAboutOpenButton": "About Roola…",
+  "aboutMenuItem": "About Roola…",
+  "aboutLegalese": "Copyright © 2026 Yahiro\nDistributed under the MIT License.",
+
   "appearanceTitle": "Appearance",
   "appearanceLoadError": "Failed to load appearance settings: {error}",
   "@appearanceLoadError": {

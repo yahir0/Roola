@@ -662,6 +662,36 @@ abstract class AppLocalizations {
   /// **'ディレクトリ履歴を 1 つ戻る / 進む（AppBar の ← → と同等）'**
   String get settingsMouseNavigation;
 
+  /// No description provided for @settingsAboutTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'Roola について'**
+  String get settingsAboutTitle;
+
+  /// No description provided for @settingsAboutDescription.
+  ///
+  /// In ja, this message translates to:
+  /// **'アプリのバージョンと、本アプリで利用しているオープンソースソフトウェアのライセンスを確認できます。'**
+  String get settingsAboutDescription;
+
+  /// No description provided for @settingsAboutOpenButton.
+  ///
+  /// In ja, this message translates to:
+  /// **'Roola について…'**
+  String get settingsAboutOpenButton;
+
+  /// No description provided for @aboutMenuItem.
+  ///
+  /// In ja, this message translates to:
+  /// **'Roola について…'**
+  String get aboutMenuItem;
+
+  /// No description provided for @aboutLegalese.
+  ///
+  /// In ja, this message translates to:
+  /// **'Copyright © 2026 Yahiro\nMIT License で配布しています。'**
+  String get aboutLegalese;
+
   /// No description provided for @appearanceTitle.
   ///
   /// In ja, this message translates to:
