@@ -3,6 +3,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:roola/app/theme.dart';
 import 'package:roola/l10n/app_localizations.dart';
 import 'package:roola/ui/about/license_browser_page.dart';
+import 'package:roola/ui/common/instant_material_route.dart';
 
 /// About ダイアログを開く（ADR-0040）。
 ///
@@ -59,7 +60,7 @@ class _AboutDialog extends StatelessWidget {
           onPressed: () {
             Navigator.of(context).pop();
             Navigator.of(context).push(
-              MaterialPageRoute<void>(
+              InstantMaterialRoute<void>(
                 builder: (_) => const LicenseBrowserPage(),
               ),
             );
