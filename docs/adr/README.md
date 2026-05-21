@@ -48,6 +48,7 @@
 | [0040](./0040-about-and-licenses.md) | About ダイアログと OSS ライセンス画面を提供する | Accepted |
 | [0041](./0041-realtime-fs-watch.md) | Explorer / Git ビューを FSEvents 監視で自動更新する | Accepted |
 | [0042](./0042-discard-workspace-on-exit.md) | アプリ終了時にワークスペースを破棄し、起動は既定 seed で始める（ADR-0028 を Supersede） | Accepted |
+| [0043](./0043-manual-update-check.md) | メニューから手動でアップデート確認を呼べるようにする | Accepted |
 
 ## フォーマット
 

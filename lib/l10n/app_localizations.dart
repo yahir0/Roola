@@ -686,6 +686,12 @@ abstract class AppLocalizations {
   /// **'Roola について…'**
   String get aboutMenuItem;
 
+  /// No description provided for @checkForUpdatesMenuItem.
+  ///
+  /// In ja, this message translates to:
+  /// **'アップデートを確認…'**
+  String get checkForUpdatesMenuItem;
+
   /// No description provided for @aboutLegalese.
   ///
   /// In ja, this message translates to:

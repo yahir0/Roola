@@ -118,6 +118,7 @@
   "settingsAboutDescription": "View the app version and licenses of the open-source software used by this app.",
   "settingsAboutOpenButton": "About Roola…",
   "aboutMenuItem": "About Roola…",
+  "checkForUpdatesMenuItem": "Check for Updates…",
   "aboutLegalese": "Copyright © 2026 Yahiro\nDistributed under the MIT License.",
   "aboutViewLicensesButton": "View licenses",
   "licensesPageTitle": "Open source licenses",

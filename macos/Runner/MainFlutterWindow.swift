@@ -181,6 +181,33 @@ class MainFlutterWindow: NSWindow {
       }
     }
 
+    // 手動アップデート確認（ADR-0043）。Dart 側からは `roola/updater` の
+    // `checkForUpdates` を呼ぶ。Sparkle のチェック実行は AppDelegate が持つ
+    // `SPUStandardUpdaterController` の責務なので、ここから直接実行せず
+    // AppDelegate.checkForUpdates(_:) に転送する。
+    let updaterChannel = FlutterMethodChannel(
+      name: "roola/updater",
+      binaryMessenger: flutterViewController.engine.binaryMessenger
+    )
+    updaterChannel.setMethodCallHandler { call, result in
+      guard call.method == "checkForUpdates" else {
+        result(FlutterMethodNotImplemented)
+        return
+      }
+      if let delegate = NSApp.delegate as? AppDelegate {
+        delegate.checkForUpdates(nil)
+        result(nil)
+      } else {
+        result(
+          FlutterError(
+            code: "DELEGATE_MISSING",
+            message: "AppDelegate is unavailable",
+            details: nil
+          )
+        )
+      }
+    }
+
     // システムメトリクス（ADR-0039）。Dart 側からは `roola/system/metrics`
     // の `getSystemMetrics`（1 秒ポーリング）/ `getTopProcesses`
     // （ポップオーバーを開いたとき）を呼ぶ。`metricsProvider` は CPU の

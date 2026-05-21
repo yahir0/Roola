@@ -54,6 +54,18 @@ class AppDelegate: FlutterAppDelegate {
     return true
   }
 
+  /// メニューバー「Roola > アップデートを確認…」（ADR-0043）から呼ばれる
+  /// 手動アップデートチェック。
+  ///
+  /// `MainFlutterWindow` の `roola/updater` MethodChannel が、Dart の
+  /// `SparkleUpdater.checkForUpdates()` を `NSApp.delegate as? AppDelegate`
+  /// 経由でこのメソッドに転送する。`updaterController` が nil（Info.plist の
+  /// SUFeedURL / SUPublicEDKey が未設定）の場合は no-op。Sparkle 側が UI を
+  /// 持つので Dart 側へ追加情報は返さない。
+  @objc func checkForUpdates(_ sender: Any?) {
+    updaterController?.checkForUpdates(sender)
+  }
+
   override func applicationSupportsSecureRestorableState(_ app: NSApplication) -> Bool {
     return true
   }

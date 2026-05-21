@@ -118,6 +118,7 @@
   "settingsAboutDescription": "アプリのバージョンと、本アプリで利用しているオープンソースソフトウェアのライセンスを確認できます。",
   "settingsAboutOpenButton": "Roola について…",
   "aboutMenuItem": "Roola について…",
+  "checkForUpdatesMenuItem": "アップデートを確認…",
   "aboutLegalese": "Copyright © 2026 Yahiro\nMIT License で配布しています。",
   "aboutViewLicensesButton": "ライセンスを表示",
   "licensesPageTitle": "オープンソースライセンス",
