@@ -53,6 +53,7 @@
 | [0045](./0045-sidebar-favorite-tree.md) | サイドバーのお気に入りを Win2000 風ツリーで展開する | Accepted |
 | [0046](./0046-explorer-file-preview-pane.md) | Explorer に読み取り専用ファイルプレビューパネルを追加する | Accepted |
 | [0047](./0047-terminal-autoscroll-on-drag-subclass.md) | ターミナル選択ドラッグ中の自動スクロールを `TerminalView` のサブクラスで補う | Accepted |
+| [0048](./0048-activity-monitor-disk-network-io.md) | アクティビティモニタにディスク I/O とネットワーク I/O を追加する | Accepted |
 
 ## フォーマット
 

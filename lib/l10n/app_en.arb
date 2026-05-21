@@ -454,8 +454,19 @@
   },
   "activityMonitorCpuPopoverTitle": "Top processes — CPU",
   "activityMonitorMemoryPopoverTitle": "Top processes — Memory",
+  "activityMonitorDiskPopoverTitle": "Top processes — Disk I/O",
+  "activityMonitorNetworkPopoverTitle": "Top processes — Network I/O",
   "activityMonitorColumnCpu": "CPU",
   "activityMonitorColumnMemory": "MEM",
+  "activityMonitorColumnIo": "I/O",
+  "activityMonitorDiskTooltip": "Disk I/O {rate}",
+  "@activityMonitorDiskTooltip": {
+    "placeholders": { "rate": { "type": "String" } }
+  },
+  "activityMonitorNetworkTooltip": "Network I/O {rate}",
+  "@activityMonitorNetworkTooltip": {
+    "placeholders": { "rate": { "type": "String" } }
+  },
   "activityMonitorEmpty": "No process data available",
 
   "buttonDiscard": "Discard",

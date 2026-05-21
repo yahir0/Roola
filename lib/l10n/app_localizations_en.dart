@@ -1034,10 +1034,30 @@ class AppLocalizationsEn extends AppLocalizations {
   String get activityMonitorMemoryPopoverTitle => 'Top processes — Memory';
 
   @override
+  String get activityMonitorDiskPopoverTitle => 'Top processes — Disk I/O';
+
+  @override
+  String get activityMonitorNetworkPopoverTitle =>
+      'Top processes — Network I/O';
+
+  @override
   String get activityMonitorColumnCpu => 'CPU';
 
   @override
   String get activityMonitorColumnMemory => 'MEM';
+
+  @override
+  String get activityMonitorColumnIo => 'I/O';
+
+  @override
+  String activityMonitorDiskTooltip(String rate) {
+    return 'Disk I/O $rate';
+  }
+
+  @override
+  String activityMonitorNetworkTooltip(String rate) {
+    return 'Network I/O $rate';
+  }
 
   @override
   String get activityMonitorEmpty => 'No process data available';
