@@ -3,6 +3,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:roola/app/theme.dart';
 import 'package:roola/l10n/app_localizations.dart';
+import 'package:roola/ui/activity_monitor/activity_monitor_popover_layer.dart';
 import 'package:roola/ui/activity_monitor/activity_monitor_view_model.dart';
 
 /// トップバーに常駐するアクティビティモニタ（ADR-0039）。
@@ -53,19 +54,27 @@ class _ActivityGaugeButton extends HookConsumerWidget {
         ? l10n.activityMonitorCpuTooltip(value)
         : l10n.activityMonitorMemoryTooltip(value);
 
-    return MouseRegion(
-      onEnter: (_) => hovering.value = true,
-      onExit: (_) => hovering.value = false,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: () => ref.read(activityPopoverProvider.notifier).toggle(kind),
-        child: Tooltip(
-          message: tooltip,
-          child: _ActivityGauge(
-            icon: isCpu ? Icons.speed : Icons.memory,
-            ratio: ratio,
-            percent: percent,
-            active: isOpen || hovering.value,
+    // ゲージ自身もポップオーバーの TapRegion グループに含める。グループ
+    // 内クリックは onTapOutside を発火させないため、ポップオーバーが開いて
+    // いる状態でゲージをクリックすると「外側で閉じる」と「toggle で開閉」
+    // が二重発火しない（外側 close が先行すると、その後の toggle が再オー
+    // プンしてしまう）。
+    return TapRegion(
+      groupId: activityPopoverGroupId,
+      child: MouseRegion(
+        onEnter: (_) => hovering.value = true,
+        onExit: (_) => hovering.value = false,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () => ref.read(activityPopoverProvider.notifier).toggle(kind),
+          child: Tooltip(
+            message: tooltip,
+            child: _ActivityGauge(
+              icon: isCpu ? Icons.speed : Icons.memory,
+              ratio: ratio,
+              percent: percent,
+              active: isOpen || hovering.value,
+            ),
           ),
         ),
       ),
