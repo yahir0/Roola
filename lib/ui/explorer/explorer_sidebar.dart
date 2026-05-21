@@ -12,6 +12,7 @@ import 'package:roola/data/launcher_entry/launcher_folder.dart';
 import 'package:roola/data/launcher_entry/launcher_folders_provider.dart';
 import 'package:roola/data/repo_explorer/explorer_settings.dart';
 import 'package:roola/data/repo_explorer/explorer_settings_repository_impl.dart';
+import 'package:roola/data/repo_explorer/favorite_tree_provider.dart';
 import 'package:roola/data/skill_session/active_sessions.dart';
 import 'package:roola/data/terminal_runner/terminal_run_state.dart';
 import 'package:roola/data/workspace/workspace_layout.dart';
@@ -103,6 +104,17 @@ class ExplorerSidebar extends HookConsumerWidget {
       return null;
     }, [favoriteFolders]);
 
+    // お気に入りツリーの展開状態（パスを保持・セッション内のみ・永続化なし）。
+    // Win2000 風のディレクトリツリー表示用（_FavoriteTile / _FavoriteTreeChild）。
+    final expandedTreePaths = useState<Set<String>>(const {});
+    void toggleTreePath(String path) {
+      final next = Set<String>.from(expandedTreePaths.value);
+      if (!next.add(path)) {
+        next.remove(path);
+      }
+      expandedTreePaths.value = next;
+    }
+
     final favoritePaths = {for (final f in favorites) f.path};
     final hasFavoriteAtCurrent =
         currentPath != null && favoritePaths.contains(currentPath);
@@ -157,11 +169,20 @@ class ExplorerSidebar extends HookConsumerWidget {
                     favorite: fav,
                     isCurrent: fav.path == currentPath,
                     indented: true,
+                    expandedTreePaths: expandedTreePaths.value,
+                    onToggleTreePath: toggleTreePath,
+                    currentPath: currentPath,
                   ),
             ],
             if (favoriteFolders.isNotEmpty) const _FavoriteRootDropZone(),
             for (final fav in favorites.where((f) => f.folderId == null))
-              _FavoriteTile(favorite: fav, isCurrent: fav.path == currentPath),
+              _FavoriteTile(
+                favorite: fav,
+                isCurrent: fav.path == currentPath,
+                expandedTreePaths: expandedTreePaths.value,
+                onToggleTreePath: toggleTreePath,
+                currentPath: currentPath,
+              ),
           ],
           const SizedBox(height: PolarisTokens.space2),
           const Divider(height: 1),
@@ -378,13 +399,11 @@ class _SidebarRow extends StatelessWidget {
     required this.selected,
     required this.icon,
     required this.label,
-    this.indent = 16,
   });
 
   final bool selected;
   final Widget icon;
   final String label;
-  final double indent;
 
   @override
   Widget build(BuildContext context) {
@@ -396,8 +415,8 @@ class _SidebarRow extends StatelessWidget {
           // 行は固定高さ。中身（アイコン 18px）は中央寄せになる。詰まり／
           // 広がりをパディングで微調整せず、グリッド値の行高で決める。
           height: PolarisTokens.space7,
-          padding: EdgeInsets.fromLTRB(
-            indent,
+          padding: const EdgeInsets.fromLTRB(
+            16,
             0,
             PolarisTokens.space4,
             0,
@@ -622,11 +641,24 @@ class _FavoriteTile extends HookConsumerWidget {
   const _FavoriteTile({
     required this.favorite,
     required this.isCurrent,
+    required this.expandedTreePaths,
+    required this.onToggleTreePath,
+    required this.currentPath,
     this.indented = false,
   });
 
   final ExplorerFavorite favorite;
   final bool isCurrent;
+
+  /// 展開中ツリーパスの集合（サイドバーで保持。永続化なし）。
+  final Set<String> expandedTreePaths;
+
+  /// ツリー展開のトグル。chevron クリックで呼ばれる。
+  final void Function(String) onToggleTreePath;
+
+  /// フォーカス中エクスプローラの currentPath。サブディレクトリツリーの
+  /// 行をハイライト判定するために配下まで降りる。
+  final String? currentPath;
 
   /// フォルダ配下のお気に入りなら `true`。先頭インデントを深くする。
   final bool indented;
@@ -637,22 +669,23 @@ class _FavoriteTile extends HookConsumerWidget {
     final tokens = PolarisTokens.of(context);
     // 現在地、または drop ホバー中は強調（どちらも surfaceHi / D12）。
     final highlighted = isHovering.value || isCurrent;
+    final isExpanded = expandedTreePaths.contains(favorite.path);
     // フォルダへ移動するための内部 DnD（ADR-0029、ランチャーと同パターン）。
     // OS ファイルドロップ用の DropRegion を内側に保持したまま、外側を
     // LongPressDraggable で包む。
-    return LongPressDraggable<ExplorerFavorite>(
+    final tile = LongPressDraggable<ExplorerFavorite>(
       data: favorite,
       feedback: Material(
         elevation: 4,
         borderRadius: BorderRadius.circular(tokens.radius),
         child: SizedBox(
           width: ExplorerSidebar.width - 16,
-          child: _row(context, highlighted: false),
+          child: _row(context, highlighted: false, isExpanded: isExpanded),
         ),
       ),
       childWhenDragging: Opacity(
         opacity: 0.4,
-        child: _row(context, highlighted: highlighted),
+        child: _row(context, highlighted: highlighted, isExpanded: isExpanded),
       ),
       child: DropRegion(
         formats: const [Formats.fileUri],
@@ -671,23 +704,59 @@ class _FavoriteTile extends HookConsumerWidget {
               _showMenu(context, ref, details.globalPosition),
           child: InkWell(
             onTap: () => navigateInFocusedExplorer(ref, favorite.path),
-            child: _row(context, highlighted: highlighted),
+            child: _row(
+              context,
+              highlighted: highlighted,
+              isExpanded: isExpanded,
+            ),
           ),
         ),
       ),
     );
+    // 展開中はサブディレクトリツリーを下に並べる（Win2000 風）。
+    // ツリー描画は [_FavoriteTreeChild] が再帰的に行う。
+    if (!isExpanded) {
+      return tile;
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        tile,
+        for (final child in ref.watch(
+          favoriteTreeChildrenProvider(favorite.path),
+        ))
+          _FavoriteTreeChild(
+            path: child.path,
+            name: child.name,
+            depth: indented ? 2 : 1,
+            currentPath: currentPath,
+            expandedTreePaths: expandedTreePaths,
+            onToggleTreePath: onToggleTreePath,
+          ),
+      ],
+    );
   }
 
-  Widget _row(BuildContext context, {required bool highlighted}) {
-    final tokens = PolarisTokens.of(context);
-    return _SidebarRow(
-      selected: highlighted,
-      indent: indented ? 32 : 16,
+  Widget _row(
+    BuildContext context, {
+    required bool highlighted,
+    required bool isExpanded,
+  }) {
+    return _FavoriteTreeRow(
+      // 既存の _SidebarRow と同じ indent（top-level=16, indented=32）。
+      // chevron はこの indent 内側に置く（label の開始位置は chevron 込みで
+      // 右にずれる）。
+      baseIndent: indented ? 32 : 16,
+      isExpanded: isExpanded,
+      onToggleChevron: () => onToggleTreePath(favorite.path),
       icon: PolarisTypeIcon(
         isDir: true,
-        color: highlighted ? tokens.accent : tokens.textDim,
+        color: highlighted
+            ? PolarisTokens.of(context).accent
+            : PolarisTokens.of(context).textDim,
       ),
       label: favorite.name,
+      highlighted: highlighted,
     );
   }
 
@@ -744,6 +813,176 @@ class _FavoriteTile extends HookConsumerWidget {
 enum _FavoriteAction { rename, remove }
 
 enum _FavoritesHeaderAction { newFolder, addCurrent }
+
+/// お気に入りツリー（[_FavoriteTile] / [_FavoriteTreeChild]）の 1 行を描く
+/// 共通行 widget。chevron + アイコン + ラベルを横並びにし、chevron だけは
+/// 別 hit target で展開トグルを受ける。
+///
+/// `_FavoriteFolderTile`（フォルダ＝ユーザー命名グループ）は **太い三角**
+/// `arrow_drop_down/arrow_right`（standard サイズ）を使うのに対し、こちら
+/// （実ファイルシステムのツリー）は **細いシェブロン** `expand_more/chevron_right`
+/// （small サイズ）を使う。chevron の太さと leading icon（Polaris カスタム）
+/// で「ラベル付きグループ」と「filesystem パス」を視覚的に分ける。
+class _FavoriteTreeRow extends StatelessWidget {
+  const _FavoriteTreeRow({
+    required this.baseIndent,
+    required this.isExpanded,
+    required this.onToggleChevron,
+    required this.icon,
+    required this.label,
+    required this.highlighted,
+  });
+
+  /// 行の左端から chevron 領域開始までの px。階層が深くなるほど大きい。
+  final double baseIndent;
+  final bool isExpanded;
+  final VoidCallback onToggleChevron;
+  final Widget icon;
+  final String label;
+  final bool highlighted;
+
+  /// chevron の見かけ + hit 領域の幅（px）。アイコン 16 + 余白で 20。
+  static const double _chevronSlotWidth = 20;
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = PolarisTokens.of(context);
+    return Stack(
+      children: [
+        Container(
+          color: highlighted ? tokens.surfaceHi : null,
+          height: PolarisTokens.space7,
+          padding: EdgeInsets.fromLTRB(
+            baseIndent,
+            0,
+            PolarisTokens.space4,
+            0,
+          ),
+          child: Row(
+            children: [
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: onToggleChevron,
+                child: SizedBox(
+                  width: _chevronSlotWidth,
+                  height: PolarisTokens.space7,
+                  child: Center(
+                    child: Icon(
+                      isExpanded
+                          ? Icons.expand_more
+                          : Icons.chevron_right,
+                      size: PolarisIconSize.small,
+                      color: tokens.textDim,
+                    ),
+                  ),
+                ),
+              ),
+              icon,
+              const SizedBox(width: PolarisTokens.space2),
+              Expanded(
+                child: Text(
+                  label,
+                  style: tokens.body.copyWith(
+                    color: highlighted ? tokens.accent : tokens.text,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+        ),
+        if (highlighted)
+          Positioned(
+            left: 0,
+            top: 4,
+            bottom: 4,
+            child: Container(width: 2, color: tokens.accent),
+          ),
+      ],
+    );
+  }
+}
+
+/// お気に入り配下のサブディレクトリツリー 1 ノード（再帰）。
+///
+/// chevron で展開すると配下のサブディレクトリをさらに [_FavoriteTreeChild]
+/// として並べる。ラベルクリックで [navigateInFocusedExplorer] を呼んで
+/// フォーカス中エクスプローラを当該パスへ遷移させる。
+///
+/// 内部 DnD（お気に入りグループ移動）や rename / remove メニューは持たない:
+/// これは「実 filesystem のパス参照」で、お気に入りそのものではないため。
+class _FavoriteTreeChild extends HookConsumerWidget {
+  const _FavoriteTreeChild({
+    required this.path,
+    required this.name,
+    required this.depth,
+    required this.currentPath,
+    required this.expandedTreePaths,
+    required this.onToggleTreePath,
+  });
+
+  final String path;
+  final String name;
+
+  /// お気に入り根を 0 として、何階層下か。インデント幅の係数になる。
+  final int depth;
+
+  final String? currentPath;
+  final Set<String> expandedTreePaths;
+  final void Function(String) onToggleTreePath;
+
+  /// 1 階層ごとに増やすインデント幅（px）。サイドバー幅が狭いので 12 で抑える。
+  static const double _perLevelIndent = 12;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isHovering = useState(false);
+    final tokens = PolarisTokens.of(context);
+    final isCurrent = path == currentPath;
+    final highlighted = isHovering.value || isCurrent;
+    final isExpanded = expandedTreePaths.contains(path);
+    // depth=1 はお気に入り直下。お気に入り行の baseIndent（16）と chevron
+    // 幅（20）= 36 を起点に、さらに depth ぶんインデントする。
+    final baseIndent = 16 + (depth * _perLevelIndent);
+    final row = MouseRegion(
+      onEnter: (_) => isHovering.value = true,
+      onExit: (_) => isHovering.value = false,
+      child: InkWell(
+        onTap: () => navigateInFocusedExplorer(ref, path),
+        child: _FavoriteTreeRow(
+          baseIndent: baseIndent,
+          isExpanded: isExpanded,
+          onToggleChevron: () => onToggleTreePath(path),
+          icon: PolarisTypeIcon(
+            isDir: true,
+            color: highlighted ? tokens.accent : tokens.textDim,
+          ),
+          label: name,
+          highlighted: highlighted,
+        ),
+      ),
+    );
+    if (!isExpanded) {
+      return row;
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        row,
+        for (final child in ref.watch(favoriteTreeChildrenProvider(path)))
+          _FavoriteTreeChild(
+            path: child.path,
+            name: child.name,
+            depth: depth + 1,
+            currentPath: currentPath,
+            expandedTreePaths: expandedTreePaths,
+            onToggleTreePath: onToggleTreePath,
+          ),
+      ],
+    );
+  }
+}
 
 /// お気に入りフォルダ 1 件分のヘッダタイル（ADR-0029）。
 ///
