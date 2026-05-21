@@ -27,23 +27,46 @@ class SessionView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final pageState = ref.watch(adhocRunViewModelProvider(args));
     final notifier = ref.read(adhocRunViewModelProvider(args).notifier);
+    final tokens = PolarisTokens.of(context);
 
-    return Column(
-      children: [
-        _SessionHeader(
-          title: pageState.entry.displayName,
-          state: pageState.runState,
-          onRestart: notifier.restart,
-        ),
-        const Divider(height: 1),
-        Expanded(
-          child: TerminalSurface(
-            // ad-hoc セッション id をタブ固有のチャネル id として使う。
-            channelId: args.adhocId,
-            runner: pageState.runner,
+    // Polaris の 3 トーン階層（ADR-0038 D3 改訂）に従い、ターミナルは「機材
+    // 本体」トーン（`machine`）の地に置く。Explorer / Git のような well パネル
+    // ではなく、ヘッダ（bg）と機材面（machine）を 1px 継ぎ目で分けるだけのフラ
+    // ット構成。well とインセット枠は使わない（ターミナルは「計器を読む」ので
+    // はなく「機械を叩く」面なので、計器ディスプレイの語彙を流用すると思想
+    // がブレる）。
+    //
+    // SwiftTerm 側は背景透過（`nativeBackgroundColor = .clear`）なので、
+    // 下地の `machine` トーンがそのまま地として透ける。文字が縁にギリギリ
+    // 寄らないよう薄いインナーパディングを入れる。
+    return ColoredBox(
+      color: tokens.bg,
+      child: Column(
+        children: [
+          _SessionHeader(
+            title: pageState.entry.displayName,
+            state: pageState.runState,
+            onRestart: notifier.restart,
           ),
-        ),
-      ],
+          Container(height: 1, color: tokens.line),
+          Expanded(
+            child: ColoredBox(
+              color: tokens.machine,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: PolarisTokens.space2,
+                  vertical: PolarisTokens.space1,
+                ),
+                child: TerminalSurface(
+                  // ad-hoc セッション id をタブ固有のチャネル id として使う。
+                  channelId: args.adhocId,
+                  runner: pageState.runner,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
