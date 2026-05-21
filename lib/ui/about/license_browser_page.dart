@@ -4,6 +4,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:roola/app/theme.dart';
 import 'package:roola/l10n/app_localizations.dart';
 import 'package:roola/ui/about/package_license_detail_page.dart';
+import 'package:roola/ui/common/instant_material_route.dart';
 import 'package:roola/ui/common/macos_window_app_bar.dart';
 
 /// 本アプリで利用している OSS のライセンス一覧画面（ADR-0040）。
@@ -46,10 +47,11 @@ Future<List<_PackageLicenses>> _loadPackages() async {
       byPackage.putIfAbsent(pkg, () => <LicenseEntry>[]).add(entry);
     }
   }
-  final packages = byPackage.entries
-      .map((e) => _PackageLicenses(name: e.key, entries: e.value))
-      .toList()
-    ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+  final packages =
+      byPackage.entries
+          .map((e) => _PackageLicenses(name: e.key, entries: e.value))
+          .toList()
+        ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
   return packages;
 }
 
@@ -75,7 +77,7 @@ class _PackageList extends StatelessWidget {
           ),
           onTap: () {
             Navigator.of(context).push(
-              MaterialPageRoute<void>(
+              InstantMaterialRoute<void>(
                 builder: (_) => PackageLicenseDetailPage(
                   packageName: pkg.name,
                   entries: pkg.entries,
