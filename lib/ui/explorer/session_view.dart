@@ -30,29 +30,38 @@ class SessionView extends ConsumerWidget {
     final notifier = ref.read(adhocRunViewModelProvider(args).notifier);
     final tokens = PolarisTokens.of(context);
 
-    // git タブと同じく、ヘッダ＝クローム（bg）／ターミナル本体＝計器ディスプレイ
-    // パネル（well にインセット）の 2 トーン構成（ADR-0038 D3）。SwiftTerm 側は
-    // 背景透過（`nativeBackgroundColor = .clear`）にしてあるので、パネルの well
-    // トーンがそのまま地として透ける。
+    // Explorer タブと同じく、ヘッダと本体を 1 枚の計器ディスプレイパネル
+    // （well にインセット）に嵌め込み、内部に 1px の継ぎ目で分けて「1 個の計器」
+    // として見せる（ADR-0038 D3）。SwiftTerm 側は背景透過（native の
+    // `nativeBackgroundColor = .clear`）にしてあるので、パネルの well トーンが
+    // そのまま地として透ける。ターミナル本体の周囲にはインナーパディングを
+    // 入れて、文字が well の縁にギリギリ寄らないようにする。
     return ColoredBox(
       color: tokens.bg,
-      child: Column(
-        children: [
-          _SessionHeader(
-            title: pageState.entry.displayName,
-            state: pageState.runState,
-            onRestart: notifier.restart,
-          ),
-          Expanded(
-            child: PolarisDisplayPanel(
-              child: TerminalSurface(
-                // ad-hoc セッション id をタブ固有のチャネル id として使う。
-                channelId: args.adhocId,
-                runner: pageState.runner,
+      child: PolarisDisplayPanel(
+        child: Column(
+          children: [
+            _SessionHeader(
+              title: pageState.entry.displayName,
+              state: pageState.runState,
+              onRestart: notifier.restart,
+            ),
+            Container(height: 1, color: tokens.line),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: PolarisTokens.space2,
+                  vertical: PolarisTokens.space1,
+                ),
+                child: TerminalSurface(
+                  // ad-hoc セッション id をタブ固有のチャネル id として使う。
+                  channelId: args.adhocId,
+                  runner: pageState.runner,
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
