@@ -169,6 +169,21 @@
     "placeholders": { "input": { "type": "String" } }
   },
 
+  "filePreviewTitle": "Preview",
+  "filePreviewEmpty": "Select a file to preview",
+  "filePreviewBinary": "Preview unavailable (binary file)",
+  "filePreviewTooLarge": "File too large to preview ({size})",
+  "@filePreviewTooLarge": {
+    "placeholders": { "size": { "type": "String" } }
+  },
+  "filePreviewFailed": "Cannot show preview: {message}",
+  "@filePreviewFailed": {
+    "placeholders": { "message": { "type": "String" } }
+  },
+  "filePreviewTruncated": "Showing the beginning of the file only",
+  "filePreviewRefreshTooltip": "Reload",
+  "filePreviewToggleTooltip": "Toggle preview panel",
+
   "explorerPropertyTitle": "Properties",
   "explorerPropertyPathNotFound": "Target does not exist: {path}",
   "@explorerPropertyPathNotFound": {

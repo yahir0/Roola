@@ -421,6 +421,34 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String get filePreviewTitle => 'プレビュー';
+
+  @override
+  String get filePreviewEmpty => 'ファイルを選択してプレビュー';
+
+  @override
+  String get filePreviewBinary => 'プレビュー不可（バイナリファイル）';
+
+  @override
+  String filePreviewTooLarge(String size) {
+    return 'ファイルが大きすぎます ($size)';
+  }
+
+  @override
+  String filePreviewFailed(String message) {
+    return 'プレビューを表示できません: $message';
+  }
+
+  @override
+  String get filePreviewTruncated => '先頭部分のみ表示しています';
+
+  @override
+  String get filePreviewRefreshTooltip => '再読込';
+
+  @override
+  String get filePreviewToggleTooltip => 'プレビューパネルの表示切替';
+
+  @override
   String get explorerPropertyTitle => 'プロパティ';
 
   @override

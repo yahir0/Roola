@@ -169,6 +169,21 @@
     "placeholders": { "input": { "type": "String" } }
   },
 
+  "filePreviewTitle": "プレビュー",
+  "filePreviewEmpty": "ファイルを選択してプレビュー",
+  "filePreviewBinary": "プレビュー不可（バイナリファイル）",
+  "filePreviewTooLarge": "ファイルが大きすぎます ({size})",
+  "@filePreviewTooLarge": {
+    "placeholders": { "size": { "type": "String" } }
+  },
+  "filePreviewFailed": "プレビューを表示できません: {message}",
+  "@filePreviewFailed": {
+    "placeholders": { "message": { "type": "String" } }
+  },
+  "filePreviewTruncated": "先頭部分のみ表示しています",
+  "filePreviewRefreshTooltip": "再読込",
+  "filePreviewToggleTooltip": "プレビューパネルの表示切替",
+
   "explorerPropertyTitle": "プロパティ",
   "explorerPropertyPathNotFound": "対象が存在しません: {path}",
   "@explorerPropertyPathNotFound": {

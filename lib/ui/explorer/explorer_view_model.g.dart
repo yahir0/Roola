@@ -103,7 +103,7 @@ final class ExplorerViewModelProvider
   }
 }
 
-String _$explorerViewModelHash() => r'fd9e5578620b640d130de39d85e9748660f676c9';
+String _$explorerViewModelHash() => r'd2f64e34a8ab9740ad82d640128e85fedc3b6525';
 
 /// エクスプローラタブの ViewModel（`family(tabId)` / ADR-0027）。
 ///

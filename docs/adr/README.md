@@ -49,6 +49,9 @@
 | [0041](./0041-realtime-fs-watch.md) | Explorer / Git ビューを FSEvents 監視で自動更新する | Accepted |
 | [0042](./0042-discard-workspace-on-exit.md) | アプリ終了時にワークスペースを破棄し、起動は既定 seed で始める（ADR-0028 を Supersede） | Accepted |
 | [0043](./0043-manual-update-check.md) | メニューから手動でアップデート確認を呼べるようにする | Accepted |
+| [0044](./0044-tile-context-menu-current-folder.md) | タイル右クリックメニューに「現在のフォルダ」項目を追加する | Accepted |
+| [0045](./0045-sidebar-favorite-tree.md) | サイドバーのお気に入りを Win2000 風ツリーで展開する | Accepted |
+| [0046](./0046-explorer-file-preview-pane.md) | Explorer に読み取り専用ファイルプレビューパネルを追加する | Accepted |
 
 ## フォーマット
 
