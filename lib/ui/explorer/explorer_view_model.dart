@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:roola/data/fs_watcher/directory_watcher.dart';
 import 'package:roola/data/repo_explorer/explorer_directory_loader.dart';
 import 'package:roola/data/repo_explorer/explorer_node.dart';
 import 'package:roola/data/workspace/workspace_tab.dart';
@@ -43,9 +45,11 @@ abstract class ExplorerState with _$ExplorerState {
 @Riverpod(keepAlive: true)
 class ExplorerViewModel extends _$ExplorerViewModel {
   static const _loader = ExplorerDirectoryLoader();
+  static const _watcher = DirectoryWatcher();
 
   final List<String> _history = [];
   int _historyCursor = -1;
+  StreamSubscription<void>? _watchSub;
 
   @override
   ExplorerState build(String tabId) {
@@ -57,6 +61,11 @@ class ExplorerViewModel extends _$ExplorerViewModel {
       ..clear()
       ..add(start);
     _historyCursor = 0;
+    ref.onDispose(() {
+      _watchSub?.cancel();
+      _watchSub = null;
+    });
+    _startWatch(start);
     return ExplorerState(
       root: start,
       currentPath: start,
@@ -118,9 +127,22 @@ class ExplorerViewModel extends _$ExplorerViewModel {
   }
 
   /// state と `workspaceProvider` のタブパスを path に揃える共通処理。
+  /// 監視先も新しいパス直下に貼り直す（ADR-0041）。
   void _applyPath(String path) {
     state = state.copyWith(currentPath: path, children: _loader.load(path));
     ref.read(workspaceProvider.notifier).updateTabPath(tabId, path);
+    _startWatch(path);
+  }
+
+  /// `path` 直下を監視し、外部からの変更（Finder / CLI など）に追随する。
+  /// 既存の購読は破棄してから新規に貼り直す。
+  void _startWatch(String path) {
+    _watchSub?.cancel();
+    _watchSub = _watcher.watch(path).listen((_) {
+      if (state.currentPath == path) {
+        state = state.copyWith(children: _loader.load(path));
+      }
+    });
   }
 
   static String _parentOf(String path) {

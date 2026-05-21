@@ -46,6 +46,7 @@
 | [0038](./0038-polaris-design-system.md) | Polaris デザインシステムを採用する（ADR-0020 を Supersede） | Accepted |
 | [0039](./0039-activity-monitor.md) | トップバーにアクティビティモニタ（CPU / メモリ監視）を追加する | Accepted |
 | [0040](./0040-about-and-licenses.md) | About ダイアログと OSS ライセンス画面を提供する | Accepted |
+| [0041](./0041-realtime-fs-watch.md) | Explorer / Git ビューを FSEvents 監視で自動更新する | Accepted |
 
 ## フォーマット
 

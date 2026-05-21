@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:roola/core/exceptions/app_exception.dart';
+import 'package:roola/data/fs_watcher/directory_watcher.dart';
 import 'package:roola/data/git/git_diff.dart';
 import 'package:roola/data/git/git_graph_layout.dart';
 import 'package:roola/data/git/git_status.dart';
@@ -25,6 +28,10 @@ const int _historyPageSize = 200;
 /// 明示 invalidate される。
 @Riverpod(keepAlive: true)
 class GitViewModel extends _$GitViewModel {
+  static const _watcher = DirectoryWatcher();
+
+  StreamSubscription<void>? _watchSub;
+
   @override
   Future<GitViewState> build(String tabId) async {
     final tab = ref.read(workspaceProvider.notifier).tabById(tabId);
@@ -39,6 +46,12 @@ class GitViewModel extends _$GitViewModel {
       return GitViewState(repoRoot: repoRoot, gitMissing: true);
     }
 
+    ref.onDispose(() {
+      _watchSub?.cancel();
+      _watchSub = null;
+    });
+    _startWatch(repoRoot);
+
     try {
       return await _load(repoRoot);
     } on AppException catch (e) {
@@ -48,6 +61,50 @@ class GitViewModel extends _$GitViewModel {
         notice: GitNotice(kind: GitNoticeKind.error, message: _messageOf(e)),
       );
     }
+  }
+
+  /// repoRoot を再帰監視し、作業ツリー / `.git` の変更で再ロードする
+  /// （ADR-0041）。`.git/objects/`・`.git/logs/`・`.git/lfs/` 配下はノイズ源と
+  /// して除外する。自プロセスが git コマンド実行中（`runningOperation != null`）
+  /// は再ロードをスキップする（_perform 側が完了時に再ロードするため）。
+  void _startWatch(String repoRoot) {
+    _watchSub?.cancel();
+    _watchSub = _watcher
+        .watch(
+          repoRoot,
+          recursive: true,
+          exclude: _shouldIgnoreGitPath,
+        )
+        .listen((_) async {
+          final current = _current;
+          if (current == null || current.isBusy) {
+            return;
+          }
+          try {
+            final reloaded = await _load(current.repoRoot);
+            // 監視イベントは時間差で到着し得るので、再ロード中に他の操作で
+            // state が動いていた場合は notice 等の最新情報を温存する。
+            final latest = _current ?? current;
+            state = AsyncData(
+              reloaded.copyWith(
+                runningOperation: latest.runningOperation,
+                notice: latest.notice,
+                selectedSha: latest.selectedSha,
+                selectedCommitFiles: latest.selectedCommitFiles,
+              ),
+            );
+          } on AppException {
+            // 監視起因の再ロード失敗は notice を立てないで握り潰す。次の
+            // 変更イベント、もしくはユーザー操作で復帰すれば良い。
+          }
+        });
+  }
+
+  /// `.git/` 配下でノイズ源になりやすいサブパスを除外する。
+  static bool _shouldIgnoreGitPath(String relativePath) {
+    return relativePath.startsWith('.git/objects/') ||
+        relativePath.startsWith('.git/logs/') ||
+        relativePath.startsWith('.git/lfs/');
   }
 
   /// status / branches / log / stash をまとめて取得して [GitViewState] を組む。
