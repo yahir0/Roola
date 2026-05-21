@@ -59,6 +59,12 @@ dependencies:
   # CFBundleVersion）を実行時に取得するために使う（ADR-0040）。
   package_info_plus: ^9.0.0
 
+  # Explorer タブの読み取り専用ファイルプレビューパネル用（ADR-0046）。
+  # シンタックスハイライトのみを担当する最小コンポーネント（編集 UI を
+  # 内包する flutter_code_editor は意図的に採用しない）。テーマは
+  # Polaris トークンから組み立てた Map<String, TextStyle> を渡す。
+  flutter_highlight: ^0.7.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

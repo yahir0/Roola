@@ -860,6 +860,54 @@ abstract class AppLocalizations {
   /// **'パスが存在しません: {input}'**
   String explorerPathNotFound(String input);
 
+  /// No description provided for @filePreviewTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'プレビュー'**
+  String get filePreviewTitle;
+
+  /// No description provided for @filePreviewEmpty.
+  ///
+  /// In ja, this message translates to:
+  /// **'ファイルを選択してプレビュー'**
+  String get filePreviewEmpty;
+
+  /// No description provided for @filePreviewBinary.
+  ///
+  /// In ja, this message translates to:
+  /// **'プレビュー不可（バイナリファイル）'**
+  String get filePreviewBinary;
+
+  /// No description provided for @filePreviewTooLarge.
+  ///
+  /// In ja, this message translates to:
+  /// **'ファイルが大きすぎます ({size})'**
+  String filePreviewTooLarge(String size);
+
+  /// No description provided for @filePreviewFailed.
+  ///
+  /// In ja, this message translates to:
+  /// **'プレビューを表示できません: {message}'**
+  String filePreviewFailed(String message);
+
+  /// No description provided for @filePreviewTruncated.
+  ///
+  /// In ja, this message translates to:
+  /// **'先頭部分のみ表示しています'**
+  String get filePreviewTruncated;
+
+  /// No description provided for @filePreviewRefreshTooltip.
+  ///
+  /// In ja, this message translates to:
+  /// **'再読込'**
+  String get filePreviewRefreshTooltip;
+
+  /// No description provided for @filePreviewToggleTooltip.
+  ///
+  /// In ja, this message translates to:
+  /// **'プレビューパネルの表示切替'**
+  String get filePreviewToggleTooltip;
+
   /// No description provided for @explorerPropertyTitle.
   ///
   /// In ja, this message translates to:

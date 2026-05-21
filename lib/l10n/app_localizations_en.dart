@@ -438,6 +438,34 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get filePreviewTitle => 'Preview';
+
+  @override
+  String get filePreviewEmpty => 'Select a file to preview';
+
+  @override
+  String get filePreviewBinary => 'Preview unavailable (binary file)';
+
+  @override
+  String filePreviewTooLarge(String size) {
+    return 'File too large to preview ($size)';
+  }
+
+  @override
+  String filePreviewFailed(String message) {
+    return 'Cannot show preview: $message';
+  }
+
+  @override
+  String get filePreviewTruncated => 'Showing the beginning of the file only';
+
+  @override
+  String get filePreviewRefreshTooltip => 'Reload';
+
+  @override
+  String get filePreviewToggleTooltip => 'Toggle preview panel';
+
+  @override
   String get explorerPropertyTitle => 'Properties';
 
   @override

@@ -10,27 +10,39 @@ import 'package:roola/ui/explorer/explorer_item_selection.dart';
 import 'package:roola/ui/explorer/explorer_node_tile.dart';
 import 'package:roola/ui/explorer/explorer_path_bar.dart';
 import 'package:roola/ui/explorer/explorer_view_model.dart';
+import 'package:roola/ui/explorer/file_preview/file_preview_layout_provider.dart';
+import 'package:roola/ui/explorer/file_preview/file_preview_pane.dart';
 import 'package:roola/ui/git/git_view_model.dart';
 import 'package:roola/ui/workspace/current_tab_id_provider.dart';
 import 'package:roola/ui/workspace/workspace_provider.dart';
 import 'package:super_drag_and_drop/super_drag_and_drop.dart';
 
-/// エクスプローラタブ 1 つ分の body（ADR-0026）。
+/// エクスプローラタブ 1 つ分の body（ADR-0026 / ADR-0046）。
 ///
-/// 上端にペインヘッダ（戻る / 進む / パスバー）、その下にディレクトリ一覧を
-/// 縦に並べる。`currentTabIdProvider` から自タブ id を取得し、per-tab の
-/// `explorerViewModelProvider(tabId)` を購読する（ADR-0027）。
+/// 上端にペインヘッダ（戻る / 進む / パスバー）、その下にディレクトリ一覧と
+/// 読み取り専用ファイルプレビューを横並びで表示する。プレビューパネルは
+/// pane header のトグルで表示 / 非表示を切替えられる。`currentTabIdProvider`
+/// から自タブ id を取得し、per-tab の `explorerViewModelProvider(tabId)`
+/// を購読する（ADR-0027）。
 class ExplorerTabBody extends ConsumerWidget {
   const ExplorerTabBody({super.key});
+
+  /// プレビュー表示時の最小幅 — 左ペイン（ディレクトリ一覧）と右ペイン
+  /// （プレビュー）。これより狭くなるレイアウトでは split 自体を諦めて
+  /// 一覧のみを描画する（ADR-0046 / Decision 2）。
+  static const double _listingMinWidth = 240;
+  static const double _previewMinWidth = 280;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final tabId = ref.watch(currentTabIdProvider);
     final state = ref.watch(explorerViewModelProvider(tabId));
+    final layout = ref.watch(filePreviewLayoutProvider(tabId));
     final tokens = PolarisTokens.of(context);
     // 筐体（bg）の中に計器ディスプレイパネル（well）を 1 枚嵌め込む。
-    // パネル内は [コントロール行][1px 継ぎ目][一覧] を地続きに並べ、ヘッダと
-    // 一覧を「1 個の計器」として見せる（ADR-0038 D3）。
+    // パネル内は [コントロール行][1px 継ぎ目][一覧（+ プレビュー）] を地続き
+    // に並べ、1 個の計器として見せる（ADR-0038 D3）。プレビュー有効時は
+    // 一覧の右に 1px の縦線で区切ってプレビューパネルを並べる（ADR-0046）。
     return ColoredBox(
       color: tokens.bg,
       child: PolarisDisplayPanel(
@@ -39,9 +51,89 @@ class ExplorerTabBody extends ConsumerWidget {
             _PaneHeader(tabId: tabId, currentPath: state.currentPath),
             Container(height: 1, color: tokens.line),
             Expanded(
-              child: _DirectoryListing(tabId: tabId, state: state),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final listing = _DirectoryListing(tabId: tabId, state: state);
+                  if (!layout.visible) return listing;
+                  // splitter（中央 1px の縦線 + ドラッグ用 6px ヒット領域）を
+                  // 1 本挟む。タブ body が狭すぎるときは split を諦めて
+                  // 一覧のみ表示する。splitter の実幅は `_PreviewSplitter`
+                  // 側の Container(width: 6) に一致させる必要がある（不一致
+                  // だと listing + splitter + preview の合計が usable と
+                  // ズレて Row が overflow する）。
+                  final total = constraints.maxWidth;
+                  const splitterWidth = _PreviewSplitter.hitWidth;
+                  final usable = total - splitterWidth;
+                  if (usable < _listingMinWidth + _previewMinWidth) {
+                    return listing;
+                  }
+                  var listingWidth = usable * layout.ratio;
+                  if (listingWidth < _listingMinWidth) {
+                    listingWidth = _listingMinWidth;
+                  }
+                  if (usable - listingWidth < _previewMinWidth) {
+                    listingWidth = usable - _previewMinWidth;
+                  }
+                  final previewWidth = usable - listingWidth;
+                  return Row(
+                    children: [
+                      SizedBox(width: listingWidth, child: listing),
+                      _PreviewSplitter(
+                        tabId: tabId,
+                        usableWidth: usable,
+                      ),
+                      SizedBox(
+                        width: previewWidth,
+                        child: FilePreviewPane(tabId: tabId),
+                      ),
+                    ],
+                  );
+                },
+              ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// 一覧とプレビューの間を区切る 1px の縦線 + ドラッグハンドル
+/// （ADR-0046 / Decision 2）。
+///
+/// 視覚は 1px だが、当たり判定を 6px に広げてドラッグしやすくする。マウス
+/// カーソルは左右リサイズのものに切り替える。Drag で `setRatio` を更新する。
+class _PreviewSplitter extends ConsumerWidget {
+  const _PreviewSplitter({required this.tabId, required this.usableWidth});
+
+  /// splitter の総幅（中央 1px 線 + 左右の透明ヒット領域）。親の Row 側で
+  /// listing / preview のサイズ計算に用いるため public な定数として公開する。
+  static const double hitWidth = 6;
+
+  final String tabId;
+  final double usableWidth;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final tokens = PolarisTokens.of(context);
+    return MouseRegion(
+      cursor: SystemMouseCursors.resizeColumn,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onHorizontalDragUpdate: (details) {
+          if (usableWidth <= 0) return;
+          final currentRatio = ref
+              .read(filePreviewLayoutProvider(tabId))
+              .ratio;
+          final deltaRatio = details.delta.dx / usableWidth;
+          ref
+              .read(filePreviewLayoutProvider(tabId).notifier)
+              .setRatio(currentRatio + deltaRatio);
+        },
+        child: Container(
+          width: hitWidth,
+          alignment: Alignment.center,
+          child: Container(width: 1, color: tokens.line),
         ),
       ),
     );
@@ -85,14 +177,52 @@ class _PaneHeader extends ConsumerWidget {
             tooltip: l10n.navUp,
             onPressed: notifier.goUp,
           ),
-          const SizedBox(width: PolarisTokens.space2),
+          // パスバー前後の余白は space1（4px）まで詰める。3 ペイン × タブの
+          // 狭い構成では Explorer ペインが横半分しか無く、トグルボタンを
+          // 追加すると space2（8px）×2 ぶんが overflow を生むため
+          // （ADR-0046 で 5px overflow が観測されたため詰めた）。
+          const SizedBox(width: PolarisTokens.space1),
           Expanded(
             child: ExplorerPathBar(tabId: tabId, currentPath: currentPath),
           ),
-          const SizedBox(width: PolarisTokens.space2),
+          const SizedBox(width: PolarisTokens.space1),
+          _PreviewToggleButton(tabId: tabId),
           _OpenGitButton(currentPath: currentPath),
         ],
       ),
+    );
+  }
+}
+
+/// プレビューパネルの可視状態をトグルするツールバーボタン（ADR-0046）。
+/// 現在の表示状態でアイコンを切替え、tooltip に統一文言を出す。
+class _PreviewToggleButton extends ConsumerWidget {
+  const _PreviewToggleButton({required this.tabId});
+
+  final String tabId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final visible = ref.watch(
+      filePreviewLayoutProvider(
+        tabId,
+      ).select((s) => s.visible),
+    );
+    final l10n = AppLocalizations.of(context);
+    return IconButton(
+      icon: Icon(
+        visible
+            ? Icons.vertical_split_rounded
+            : Icons.crop_square_rounded,
+        size: PolarisIconSize.standard,
+      ),
+      tooltip: l10n.filePreviewToggleTooltip,
+      visualDensity: VisualDensity.compact,
+      padding: EdgeInsets.zero,
+      constraints: const BoxConstraints.tightFor(width: 28, height: 28),
+      onPressed: () => ref
+          .read(filePreviewLayoutProvider(tabId).notifier)
+          .toggleVisible(),
     );
   }
 }
