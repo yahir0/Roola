@@ -40,10 +40,7 @@ class FilePreviewRepository {
     try {
       sizeBytes = await file.length();
     } on FileSystemException catch (e) {
-      return FilePreviewContent.failed(
-        path: path,
-        message: e.message,
-      );
+      return FilePreviewContent.failed(path: path, message: e.message);
     }
 
     if (sizeBytes > _rejectThresholdBytes) {
@@ -62,10 +59,7 @@ class FilePreviewRepository {
         await raf.close();
       }
     } on FileSystemException catch (e) {
-      return FilePreviewContent.failed(
-        path: path,
-        message: e.message,
-      );
+      return FilePreviewContent.failed(path: path, message: e.message);
     }
 
     if (_containsNullByte(headBytes)) {
@@ -83,10 +77,7 @@ class FilePreviewRepository {
       try {
         bodyBytes = await file.readAsBytes();
       } on FileSystemException catch (e) {
-        return FilePreviewContent.failed(
-          path: path,
-          message: e.message,
-        );
+        return FilePreviewContent.failed(path: path, message: e.message);
       }
       isTruncated = false;
     } else {
@@ -99,10 +90,7 @@ class FilePreviewRepository {
           await raf.close();
         }
       } on FileSystemException catch (e) {
-        return FilePreviewContent.failed(
-          path: path,
-          message: e.message,
-        );
+        return FilePreviewContent.failed(path: path, message: e.message);
       }
       isTruncated = true;
     }

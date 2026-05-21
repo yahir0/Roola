@@ -70,7 +70,8 @@ void main() {
   test('16 MiB 超は FilePreviewTooLarge', () async {
     // 真に 16 MiB 超のファイルを作る代わりに sparse 風に書く。
     // 単純に 17 MiB の 'a' を書く（テスト時間に問題ない程度）。
-    final tooBig = Uint8List(17 * 1024 * 1024)..fillRange(0, 17 * 1024 * 1024, 0x61);
+    final tooBig = Uint8List(17 * 1024 * 1024)
+      ..fillRange(0, 17 * 1024 * 1024, 0x61);
     final f = makeFile('huge.txt', tooBig);
 
     final content = await repo.load(f.path);

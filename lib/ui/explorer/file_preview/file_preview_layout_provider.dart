@@ -9,10 +9,7 @@ part 'file_preview_layout_provider.g.dart';
 /// 永続化しない。アプリ再起動で既定（表示 ON / ratio 0.6）に戻る。
 @immutable
 class FilePreviewLayout {
-  const FilePreviewLayout({
-    required this.visible,
-    required this.ratio,
-  });
+  const FilePreviewLayout({required this.visible, required this.ratio});
 
   /// パネルを描画するか。false ならディレクトリ一覧がタブ body 全幅を占める。
   final bool visible;

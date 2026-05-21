@@ -89,10 +89,7 @@ void main() {
     final completer = Completer<void>();
     final sub = watcher
         .watch('${tempDir.path}/does_not_exist')
-        .listen(
-          (_) {},
-          onDone: completer.complete,
-        );
+        .listen((_) {}, onDone: completer.complete);
     addTearDown(sub.cancel);
     await completer.future.timeout(const Duration(seconds: 1));
   });
