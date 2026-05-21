@@ -1149,9 +1149,7 @@ class _DirectoryTile extends HookConsumerWidget {
                       if (showSkillSubtitle)
                         Text(
                           'Skill: ${node.skillNames.join(', ')}',
-                          style: tokens.meta.copyWith(
-                            color: tokens.textFaint,
-                          ),
+                          style: tokens.meta.copyWith(color: tokens.textFaint),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),

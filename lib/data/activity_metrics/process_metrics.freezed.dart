@@ -18,7 +18,8 @@ mixin _$ProcessMetrics {
  int get pid;/// プロセス名（実行ファイルの basename）。
  String get name;/// CPU 使用率（%）。マルチコアでは 100 を超えうる。
  double get cpuPercent;/// 常駐メモリ（RSS, bytes）。
- int get memoryBytes;
+ int get memoryBytes;/// I/O レート（B/s）。ディスク / ネットワーク ソート時のみ意味を持つ。
+ int get ioBytesPerSec;
 /// Create a copy of ProcessMetrics
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -29,16 +30,16 @@ $ProcessMetricsCopyWith<ProcessMetrics> get copyWith => _$ProcessMetricsCopyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ProcessMetrics&&(identical(other.pid, pid) || other.pid == pid)&&(identical(other.name, name) || other.name == name)&&(identical(other.cpuPercent, cpuPercent) || other.cpuPercent == cpuPercent)&&(identical(other.memoryBytes, memoryBytes) || other.memoryBytes == memoryBytes));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ProcessMetrics&&(identical(other.pid, pid) || other.pid == pid)&&(identical(other.name, name) || other.name == name)&&(identical(other.cpuPercent, cpuPercent) || other.cpuPercent == cpuPercent)&&(identical(other.memoryBytes, memoryBytes) || other.memoryBytes == memoryBytes)&&(identical(other.ioBytesPerSec, ioBytesPerSec) || other.ioBytesPerSec == ioBytesPerSec));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,pid,name,cpuPercent,memoryBytes);
+int get hashCode => Object.hash(runtimeType,pid,name,cpuPercent,memoryBytes,ioBytesPerSec);
 
 @override
 String toString() {
-  return 'ProcessMetrics(pid: $pid, name: $name, cpuPercent: $cpuPercent, memoryBytes: $memoryBytes)';
+  return 'ProcessMetrics(pid: $pid, name: $name, cpuPercent: $cpuPercent, memoryBytes: $memoryBytes, ioBytesPerSec: $ioBytesPerSec)';
 }
 
 
@@ -49,7 +50,7 @@ abstract mixin class $ProcessMetricsCopyWith<$Res>  {
   factory $ProcessMetricsCopyWith(ProcessMetrics value, $Res Function(ProcessMetrics) _then) = _$ProcessMetricsCopyWithImpl;
 @useResult
 $Res call({
- int pid, String name, double cpuPercent, int memoryBytes
+ int pid, String name, double cpuPercent, int memoryBytes, int ioBytesPerSec
 });
 
 
@@ -66,12 +67,13 @@ class _$ProcessMetricsCopyWithImpl<$Res>
 
 /// Create a copy of ProcessMetrics
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? pid = null,Object? name = null,Object? cpuPercent = null,Object? memoryBytes = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? pid = null,Object? name = null,Object? cpuPercent = null,Object? memoryBytes = null,Object? ioBytesPerSec = null,}) {
   return _then(_self.copyWith(
 pid: null == pid ? _self.pid : pid // ignore: cast_nullable_to_non_nullable
 as int,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,cpuPercent: null == cpuPercent ? _self.cpuPercent : cpuPercent // ignore: cast_nullable_to_non_nullable
 as double,memoryBytes: null == memoryBytes ? _self.memoryBytes : memoryBytes // ignore: cast_nullable_to_non_nullable
+as int,ioBytesPerSec: null == ioBytesPerSec ? _self.ioBytesPerSec : ioBytesPerSec // ignore: cast_nullable_to_non_nullable
 as int,
   ));
 }
@@ -157,10 +159,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int pid,  String name,  double cpuPercent,  int memoryBytes)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int pid,  String name,  double cpuPercent,  int memoryBytes,  int ioBytesPerSec)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ProcessMetrics() when $default != null:
-return $default(_that.pid,_that.name,_that.cpuPercent,_that.memoryBytes);case _:
+return $default(_that.pid,_that.name,_that.cpuPercent,_that.memoryBytes,_that.ioBytesPerSec);case _:
   return orElse();
 
 }
@@ -178,10 +180,10 @@ return $default(_that.pid,_that.name,_that.cpuPercent,_that.memoryBytes);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int pid,  String name,  double cpuPercent,  int memoryBytes)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int pid,  String name,  double cpuPercent,  int memoryBytes,  int ioBytesPerSec)  $default,) {final _that = this;
 switch (_that) {
 case _ProcessMetrics():
-return $default(_that.pid,_that.name,_that.cpuPercent,_that.memoryBytes);case _:
+return $default(_that.pid,_that.name,_that.cpuPercent,_that.memoryBytes,_that.ioBytesPerSec);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -198,10 +200,10 @@ return $default(_that.pid,_that.name,_that.cpuPercent,_that.memoryBytes);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int pid,  String name,  double cpuPercent,  int memoryBytes)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int pid,  String name,  double cpuPercent,  int memoryBytes,  int ioBytesPerSec)?  $default,) {final _that = this;
 switch (_that) {
 case _ProcessMetrics() when $default != null:
-return $default(_that.pid,_that.name,_that.cpuPercent,_that.memoryBytes);case _:
+return $default(_that.pid,_that.name,_that.cpuPercent,_that.memoryBytes,_that.ioBytesPerSec);case _:
   return null;
 
 }
@@ -213,7 +215,7 @@ return $default(_that.pid,_that.name,_that.cpuPercent,_that.memoryBytes);case _:
 
 
 class _ProcessMetrics implements ProcessMetrics {
-  const _ProcessMetrics({required this.pid, required this.name, required this.cpuPercent, required this.memoryBytes});
+  const _ProcessMetrics({required this.pid, required this.name, this.cpuPercent = 0, this.memoryBytes = 0, this.ioBytesPerSec = 0});
   
 
 /// プロセス ID。
@@ -221,9 +223,11 @@ class _ProcessMetrics implements ProcessMetrics {
 /// プロセス名（実行ファイルの basename）。
 @override final  String name;
 /// CPU 使用率（%）。マルチコアでは 100 を超えうる。
-@override final  double cpuPercent;
+@override@JsonKey() final  double cpuPercent;
 /// 常駐メモリ（RSS, bytes）。
-@override final  int memoryBytes;
+@override@JsonKey() final  int memoryBytes;
+/// I/O レート（B/s）。ディスク / ネットワーク ソート時のみ意味を持つ。
+@override@JsonKey() final  int ioBytesPerSec;
 
 /// Create a copy of ProcessMetrics
 /// with the given fields replaced by the non-null parameter values.
@@ -235,16 +239,16 @@ _$ProcessMetricsCopyWith<_ProcessMetrics> get copyWith => __$ProcessMetricsCopyW
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ProcessMetrics&&(identical(other.pid, pid) || other.pid == pid)&&(identical(other.name, name) || other.name == name)&&(identical(other.cpuPercent, cpuPercent) || other.cpuPercent == cpuPercent)&&(identical(other.memoryBytes, memoryBytes) || other.memoryBytes == memoryBytes));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ProcessMetrics&&(identical(other.pid, pid) || other.pid == pid)&&(identical(other.name, name) || other.name == name)&&(identical(other.cpuPercent, cpuPercent) || other.cpuPercent == cpuPercent)&&(identical(other.memoryBytes, memoryBytes) || other.memoryBytes == memoryBytes)&&(identical(other.ioBytesPerSec, ioBytesPerSec) || other.ioBytesPerSec == ioBytesPerSec));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,pid,name,cpuPercent,memoryBytes);
+int get hashCode => Object.hash(runtimeType,pid,name,cpuPercent,memoryBytes,ioBytesPerSec);
 
 @override
 String toString() {
-  return 'ProcessMetrics(pid: $pid, name: $name, cpuPercent: $cpuPercent, memoryBytes: $memoryBytes)';
+  return 'ProcessMetrics(pid: $pid, name: $name, cpuPercent: $cpuPercent, memoryBytes: $memoryBytes, ioBytesPerSec: $ioBytesPerSec)';
 }
 
 
@@ -255,7 +259,7 @@ abstract mixin class _$ProcessMetricsCopyWith<$Res> implements $ProcessMetricsCo
   factory _$ProcessMetricsCopyWith(_ProcessMetrics value, $Res Function(_ProcessMetrics) _then) = __$ProcessMetricsCopyWithImpl;
 @override @useResult
 $Res call({
- int pid, String name, double cpuPercent, int memoryBytes
+ int pid, String name, double cpuPercent, int memoryBytes, int ioBytesPerSec
 });
 
 
@@ -272,12 +276,13 @@ class __$ProcessMetricsCopyWithImpl<$Res>
 
 /// Create a copy of ProcessMetrics
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? pid = null,Object? name = null,Object? cpuPercent = null,Object? memoryBytes = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? pid = null,Object? name = null,Object? cpuPercent = null,Object? memoryBytes = null,Object? ioBytesPerSec = null,}) {
   return _then(_ProcessMetrics(
 pid: null == pid ? _self.pid : pid // ignore: cast_nullable_to_non_nullable
 as int,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,cpuPercent: null == cpuPercent ? _self.cpuPercent : cpuPercent // ignore: cast_nullable_to_non_nullable
 as double,memoryBytes: null == memoryBytes ? _self.memoryBytes : memoryBytes // ignore: cast_nullable_to_non_nullable
+as int,ioBytesPerSec: null == ioBytesPerSec ? _self.ioBytesPerSec : ioBytesPerSec // ignore: cast_nullable_to_non_nullable
 as int,
   ));
 }

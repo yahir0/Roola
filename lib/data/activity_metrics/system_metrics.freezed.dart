@@ -17,7 +17,11 @@ mixin _$SystemMetrics {
 /// システム全体の CPU 使用率（0–100）。
  double get cpuPercent;/// 使用中メモリ（bytes）。
  int get memoryUsedBytes;/// 物理メモリ総容量（bytes）。
- int get memoryTotalBytes;
+ int get memoryTotalBytes;/// ディスクからの累積読み込みバイト数（IOBlockStorageDriver 合計）。
+ int get diskReadBytes;/// ディスクへの累積書き込みバイト数（IOBlockStorageDriver 合計）。
+ int get diskWrittenBytes;/// ネットワーク受信の累積バイト数（loopback 除く全インターフェイス）。
+ int get networkInBytes;/// ネットワーク送信の累積バイト数（loopback 除く全インターフェイス）。
+ int get networkOutBytes;
 /// Create a copy of SystemMetrics
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +32,16 @@ $SystemMetricsCopyWith<SystemMetrics> get copyWith => _$SystemMetricsCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SystemMetrics&&(identical(other.cpuPercent, cpuPercent) || other.cpuPercent == cpuPercent)&&(identical(other.memoryUsedBytes, memoryUsedBytes) || other.memoryUsedBytes == memoryUsedBytes)&&(identical(other.memoryTotalBytes, memoryTotalBytes) || other.memoryTotalBytes == memoryTotalBytes));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SystemMetrics&&(identical(other.cpuPercent, cpuPercent) || other.cpuPercent == cpuPercent)&&(identical(other.memoryUsedBytes, memoryUsedBytes) || other.memoryUsedBytes == memoryUsedBytes)&&(identical(other.memoryTotalBytes, memoryTotalBytes) || other.memoryTotalBytes == memoryTotalBytes)&&(identical(other.diskReadBytes, diskReadBytes) || other.diskReadBytes == diskReadBytes)&&(identical(other.diskWrittenBytes, diskWrittenBytes) || other.diskWrittenBytes == diskWrittenBytes)&&(identical(other.networkInBytes, networkInBytes) || other.networkInBytes == networkInBytes)&&(identical(other.networkOutBytes, networkOutBytes) || other.networkOutBytes == networkOutBytes));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,cpuPercent,memoryUsedBytes,memoryTotalBytes);
+int get hashCode => Object.hash(runtimeType,cpuPercent,memoryUsedBytes,memoryTotalBytes,diskReadBytes,diskWrittenBytes,networkInBytes,networkOutBytes);
 
 @override
 String toString() {
-  return 'SystemMetrics(cpuPercent: $cpuPercent, memoryUsedBytes: $memoryUsedBytes, memoryTotalBytes: $memoryTotalBytes)';
+  return 'SystemMetrics(cpuPercent: $cpuPercent, memoryUsedBytes: $memoryUsedBytes, memoryTotalBytes: $memoryTotalBytes, diskReadBytes: $diskReadBytes, diskWrittenBytes: $diskWrittenBytes, networkInBytes: $networkInBytes, networkOutBytes: $networkOutBytes)';
 }
 
 
@@ -48,7 +52,7 @@ abstract mixin class $SystemMetricsCopyWith<$Res>  {
   factory $SystemMetricsCopyWith(SystemMetrics value, $Res Function(SystemMetrics) _then) = _$SystemMetricsCopyWithImpl;
 @useResult
 $Res call({
- double cpuPercent, int memoryUsedBytes, int memoryTotalBytes
+ double cpuPercent, int memoryUsedBytes, int memoryTotalBytes, int diskReadBytes, int diskWrittenBytes, int networkInBytes, int networkOutBytes
 });
 
 
@@ -65,11 +69,15 @@ class _$SystemMetricsCopyWithImpl<$Res>
 
 /// Create a copy of SystemMetrics
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? cpuPercent = null,Object? memoryUsedBytes = null,Object? memoryTotalBytes = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? cpuPercent = null,Object? memoryUsedBytes = null,Object? memoryTotalBytes = null,Object? diskReadBytes = null,Object? diskWrittenBytes = null,Object? networkInBytes = null,Object? networkOutBytes = null,}) {
   return _then(_self.copyWith(
 cpuPercent: null == cpuPercent ? _self.cpuPercent : cpuPercent // ignore: cast_nullable_to_non_nullable
 as double,memoryUsedBytes: null == memoryUsedBytes ? _self.memoryUsedBytes : memoryUsedBytes // ignore: cast_nullable_to_non_nullable
 as int,memoryTotalBytes: null == memoryTotalBytes ? _self.memoryTotalBytes : memoryTotalBytes // ignore: cast_nullable_to_non_nullable
+as int,diskReadBytes: null == diskReadBytes ? _self.diskReadBytes : diskReadBytes // ignore: cast_nullable_to_non_nullable
+as int,diskWrittenBytes: null == diskWrittenBytes ? _self.diskWrittenBytes : diskWrittenBytes // ignore: cast_nullable_to_non_nullable
+as int,networkInBytes: null == networkInBytes ? _self.networkInBytes : networkInBytes // ignore: cast_nullable_to_non_nullable
+as int,networkOutBytes: null == networkOutBytes ? _self.networkOutBytes : networkOutBytes // ignore: cast_nullable_to_non_nullable
 as int,
   ));
 }
@@ -155,10 +163,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( double cpuPercent,  int memoryUsedBytes,  int memoryTotalBytes)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( double cpuPercent,  int memoryUsedBytes,  int memoryTotalBytes,  int diskReadBytes,  int diskWrittenBytes,  int networkInBytes,  int networkOutBytes)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SystemMetrics() when $default != null:
-return $default(_that.cpuPercent,_that.memoryUsedBytes,_that.memoryTotalBytes);case _:
+return $default(_that.cpuPercent,_that.memoryUsedBytes,_that.memoryTotalBytes,_that.diskReadBytes,_that.diskWrittenBytes,_that.networkInBytes,_that.networkOutBytes);case _:
   return orElse();
 
 }
@@ -176,10 +184,10 @@ return $default(_that.cpuPercent,_that.memoryUsedBytes,_that.memoryTotalBytes);c
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( double cpuPercent,  int memoryUsedBytes,  int memoryTotalBytes)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( double cpuPercent,  int memoryUsedBytes,  int memoryTotalBytes,  int diskReadBytes,  int diskWrittenBytes,  int networkInBytes,  int networkOutBytes)  $default,) {final _that = this;
 switch (_that) {
 case _SystemMetrics():
-return $default(_that.cpuPercent,_that.memoryUsedBytes,_that.memoryTotalBytes);case _:
+return $default(_that.cpuPercent,_that.memoryUsedBytes,_that.memoryTotalBytes,_that.diskReadBytes,_that.diskWrittenBytes,_that.networkInBytes,_that.networkOutBytes);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -196,10 +204,10 @@ return $default(_that.cpuPercent,_that.memoryUsedBytes,_that.memoryTotalBytes);c
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( double cpuPercent,  int memoryUsedBytes,  int memoryTotalBytes)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( double cpuPercent,  int memoryUsedBytes,  int memoryTotalBytes,  int diskReadBytes,  int diskWrittenBytes,  int networkInBytes,  int networkOutBytes)?  $default,) {final _that = this;
 switch (_that) {
 case _SystemMetrics() when $default != null:
-return $default(_that.cpuPercent,_that.memoryUsedBytes,_that.memoryTotalBytes);case _:
+return $default(_that.cpuPercent,_that.memoryUsedBytes,_that.memoryTotalBytes,_that.diskReadBytes,_that.diskWrittenBytes,_that.networkInBytes,_that.networkOutBytes);case _:
   return null;
 
 }
@@ -211,7 +219,7 @@ return $default(_that.cpuPercent,_that.memoryUsedBytes,_that.memoryTotalBytes);c
 
 
 class _SystemMetrics extends SystemMetrics {
-  const _SystemMetrics({required this.cpuPercent, required this.memoryUsedBytes, required this.memoryTotalBytes}): super._();
+  const _SystemMetrics({required this.cpuPercent, required this.memoryUsedBytes, required this.memoryTotalBytes, required this.diskReadBytes, required this.diskWrittenBytes, required this.networkInBytes, required this.networkOutBytes}): super._();
   
 
 /// システム全体の CPU 使用率（0–100）。
@@ -220,6 +228,14 @@ class _SystemMetrics extends SystemMetrics {
 @override final  int memoryUsedBytes;
 /// 物理メモリ総容量（bytes）。
 @override final  int memoryTotalBytes;
+/// ディスクからの累積読み込みバイト数（IOBlockStorageDriver 合計）。
+@override final  int diskReadBytes;
+/// ディスクへの累積書き込みバイト数（IOBlockStorageDriver 合計）。
+@override final  int diskWrittenBytes;
+/// ネットワーク受信の累積バイト数（loopback 除く全インターフェイス）。
+@override final  int networkInBytes;
+/// ネットワーク送信の累積バイト数（loopback 除く全インターフェイス）。
+@override final  int networkOutBytes;
 
 /// Create a copy of SystemMetrics
 /// with the given fields replaced by the non-null parameter values.
@@ -231,16 +247,16 @@ _$SystemMetricsCopyWith<_SystemMetrics> get copyWith => __$SystemMetricsCopyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SystemMetrics&&(identical(other.cpuPercent, cpuPercent) || other.cpuPercent == cpuPercent)&&(identical(other.memoryUsedBytes, memoryUsedBytes) || other.memoryUsedBytes == memoryUsedBytes)&&(identical(other.memoryTotalBytes, memoryTotalBytes) || other.memoryTotalBytes == memoryTotalBytes));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SystemMetrics&&(identical(other.cpuPercent, cpuPercent) || other.cpuPercent == cpuPercent)&&(identical(other.memoryUsedBytes, memoryUsedBytes) || other.memoryUsedBytes == memoryUsedBytes)&&(identical(other.memoryTotalBytes, memoryTotalBytes) || other.memoryTotalBytes == memoryTotalBytes)&&(identical(other.diskReadBytes, diskReadBytes) || other.diskReadBytes == diskReadBytes)&&(identical(other.diskWrittenBytes, diskWrittenBytes) || other.diskWrittenBytes == diskWrittenBytes)&&(identical(other.networkInBytes, networkInBytes) || other.networkInBytes == networkInBytes)&&(identical(other.networkOutBytes, networkOutBytes) || other.networkOutBytes == networkOutBytes));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,cpuPercent,memoryUsedBytes,memoryTotalBytes);
+int get hashCode => Object.hash(runtimeType,cpuPercent,memoryUsedBytes,memoryTotalBytes,diskReadBytes,diskWrittenBytes,networkInBytes,networkOutBytes);
 
 @override
 String toString() {
-  return 'SystemMetrics(cpuPercent: $cpuPercent, memoryUsedBytes: $memoryUsedBytes, memoryTotalBytes: $memoryTotalBytes)';
+  return 'SystemMetrics(cpuPercent: $cpuPercent, memoryUsedBytes: $memoryUsedBytes, memoryTotalBytes: $memoryTotalBytes, diskReadBytes: $diskReadBytes, diskWrittenBytes: $diskWrittenBytes, networkInBytes: $networkInBytes, networkOutBytes: $networkOutBytes)';
 }
 
 
@@ -251,7 +267,7 @@ abstract mixin class _$SystemMetricsCopyWith<$Res> implements $SystemMetricsCopy
   factory _$SystemMetricsCopyWith(_SystemMetrics value, $Res Function(_SystemMetrics) _then) = __$SystemMetricsCopyWithImpl;
 @override @useResult
 $Res call({
- double cpuPercent, int memoryUsedBytes, int memoryTotalBytes
+ double cpuPercent, int memoryUsedBytes, int memoryTotalBytes, int diskReadBytes, int diskWrittenBytes, int networkInBytes, int networkOutBytes
 });
 
 
@@ -268,11 +284,15 @@ class __$SystemMetricsCopyWithImpl<$Res>
 
 /// Create a copy of SystemMetrics
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? cpuPercent = null,Object? memoryUsedBytes = null,Object? memoryTotalBytes = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? cpuPercent = null,Object? memoryUsedBytes = null,Object? memoryTotalBytes = null,Object? diskReadBytes = null,Object? diskWrittenBytes = null,Object? networkInBytes = null,Object? networkOutBytes = null,}) {
   return _then(_SystemMetrics(
 cpuPercent: null == cpuPercent ? _self.cpuPercent : cpuPercent // ignore: cast_nullable_to_non_nullable
 as double,memoryUsedBytes: null == memoryUsedBytes ? _self.memoryUsedBytes : memoryUsedBytes // ignore: cast_nullable_to_non_nullable
 as int,memoryTotalBytes: null == memoryTotalBytes ? _self.memoryTotalBytes : memoryTotalBytes // ignore: cast_nullable_to_non_nullable
+as int,diskReadBytes: null == diskReadBytes ? _self.diskReadBytes : diskReadBytes // ignore: cast_nullable_to_non_nullable
+as int,diskWrittenBytes: null == diskWrittenBytes ? _self.diskWrittenBytes : diskWrittenBytes // ignore: cast_nullable_to_non_nullable
+as int,networkInBytes: null == networkInBytes ? _self.networkInBytes : networkInBytes // ignore: cast_nullable_to_non_nullable
+as int,networkOutBytes: null == networkOutBytes ? _self.networkOutBytes : networkOutBytes // ignore: cast_nullable_to_non_nullable
 as int,
   ));
 }

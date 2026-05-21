@@ -481,8 +481,19 @@
   },
   "activityMonitorCpuPopoverTitle": "CPU 上位プロセス",
   "activityMonitorMemoryPopoverTitle": "メモリ上位プロセス",
+  "activityMonitorDiskPopoverTitle": "ディスク I/O 上位プロセス",
+  "activityMonitorNetworkPopoverTitle": "ネットワーク I/O 上位プロセス",
   "activityMonitorColumnCpu": "CPU",
   "activityMonitorColumnMemory": "メモリ",
+  "activityMonitorColumnIo": "I/O",
+  "activityMonitorDiskTooltip": "ディスク I/O {rate}",
+  "@activityMonitorDiskTooltip": {
+    "placeholders": { "rate": { "type": "String" } }
+  },
+  "activityMonitorNetworkTooltip": "ネットワーク I/O {rate}",
+  "@activityMonitorNetworkTooltip": {
+    "placeholders": { "rate": { "type": "String" } }
+  },
   "activityMonitorEmpty": "プロセス情報を取得できません",
 
   "buttonDiscard": "破棄",

@@ -81,7 +81,7 @@ final class FilePreviewViewModelProvider
 }
 
 String _$filePreviewViewModelHash() =>
-    r'ea1f0384755fd21525e53f92eb8c79ae17019db6';
+    r'a24de2052c6703f3a856f0462317b614a6e6f348';
 
 /// Explorer タブごとのファイルプレビュー ViewModel（ADR-0046 / ADR-0027）。
 ///

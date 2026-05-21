@@ -415,12 +415,7 @@ class _SidebarRow extends StatelessWidget {
           // 行は固定高さ。中身（アイコン 18px）は中央寄せになる。詰まり／
           // 広がりをパディングで微調整せず、グリッド値の行高で決める。
           height: PolarisTokens.space7,
-          padding: const EdgeInsets.fromLTRB(
-            16,
-            0,
-            PolarisTokens.space4,
-            0,
-          ),
+          padding: const EdgeInsets.fromLTRB(16, 0, PolarisTokens.space4, 0),
           child: Row(
             children: [
               icon,
@@ -465,9 +460,7 @@ class _OpenOtherFolderTile extends ConsumerWidget {
       },
       child: Container(
         height: PolarisTokens.space7,
-        padding: const EdgeInsets.symmetric(
-          horizontal: PolarisTokens.space4,
-        ),
+        padding: const EdgeInsets.symmetric(horizontal: PolarisTokens.space4),
         child: Row(
           children: [
             Icon(
@@ -852,12 +845,7 @@ class _FavoriteTreeRow extends StatelessWidget {
         Container(
           color: highlighted ? tokens.surfaceHi : null,
           height: PolarisTokens.space7,
-          padding: EdgeInsets.fromLTRB(
-            baseIndent,
-            0,
-            PolarisTokens.space4,
-            0,
-          ),
+          padding: EdgeInsets.fromLTRB(baseIndent, 0, PolarisTokens.space4, 0),
           child: Row(
             children: [
               GestureDetector(
@@ -868,9 +856,7 @@ class _FavoriteTreeRow extends StatelessWidget {
                   height: PolarisTokens.space7,
                   child: Center(
                     child: Icon(
-                      isExpanded
-                          ? Icons.expand_more
-                          : Icons.chevron_right,
+                      isExpanded ? Icons.expand_more : Icons.chevron_right,
                       size: PolarisIconSize.small,
                       color: tokens.textDim,
                     ),
@@ -1260,9 +1246,7 @@ class _LauncherManageTile extends StatelessWidget {
       onTap: () => const LauncherManagementRoute().push<void>(context),
       child: Container(
         height: PolarisTokens.space7,
-        padding: const EdgeInsets.symmetric(
-          horizontal: PolarisTokens.space4,
-        ),
+        padding: const EdgeInsets.symmetric(horizontal: PolarisTokens.space4),
         child: Row(
           children: [
             Icon(
@@ -1274,9 +1258,9 @@ class _LauncherManageTile extends StatelessWidget {
             Expanded(
               child: Text(
                 AppLocalizations.of(context).explorerManageLaunchers,
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyMedium?.copyWith(color: colors.onSurfaceVariant),
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: colors.onSurfaceVariant,
+                ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -1545,9 +1529,7 @@ class _RunningTile extends ConsumerWidget {
       },
       child: Container(
         height: PolarisTokens.space7,
-        padding: const EdgeInsets.symmetric(
-          horizontal: PolarisTokens.space4,
-        ),
+        padding: const EdgeInsets.symmetric(horizontal: PolarisTokens.space4),
         child: Row(
           children: [
             SizedBox(

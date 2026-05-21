@@ -28,9 +28,14 @@ class ActivityMonitorPopoverLayer extends ConsumerWidget {
     if (open == ActivityPopover.none) {
       return const SizedBox.shrink();
     }
-    final sortKey = open == ActivityPopover.cpu
-        ? ProcessSortKey.cpu
-        : ProcessSortKey.memory;
+    final sortKey = switch (open) {
+      ActivityPopover.cpu => ProcessSortKey.cpu,
+      ActivityPopover.memory => ProcessSortKey.memory,
+      ActivityPopover.disk => ProcessSortKey.disk,
+      ActivityPopover.network => ProcessSortKey.network,
+      // 上の `none` ガードで除外済み。フォールバックで cpu を返す。
+      ActivityPopover.none => ProcessSortKey.cpu,
+    };
     final notifier = ref.read(activityPopoverProvider.notifier);
 
     // 子が Positioned 1 つだけだと Stack 自身が 0×0 に縮むため、`fit` で

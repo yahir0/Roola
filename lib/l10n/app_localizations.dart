@@ -1886,6 +1886,18 @@ abstract class AppLocalizations {
   /// **'メモリ上位プロセス'**
   String get activityMonitorMemoryPopoverTitle;
 
+  /// No description provided for @activityMonitorDiskPopoverTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'ディスク I/O 上位プロセス'**
+  String get activityMonitorDiskPopoverTitle;
+
+  /// No description provided for @activityMonitorNetworkPopoverTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'ネットワーク I/O 上位プロセス'**
+  String get activityMonitorNetworkPopoverTitle;
+
   /// No description provided for @activityMonitorColumnCpu.
   ///
   /// In ja, this message translates to:
@@ -1897,6 +1909,24 @@ abstract class AppLocalizations {
   /// In ja, this message translates to:
   /// **'メモリ'**
   String get activityMonitorColumnMemory;
+
+  /// No description provided for @activityMonitorColumnIo.
+  ///
+  /// In ja, this message translates to:
+  /// **'I/O'**
+  String get activityMonitorColumnIo;
+
+  /// No description provided for @activityMonitorDiskTooltip.
+  ///
+  /// In ja, this message translates to:
+  /// **'ディスク I/O {rate}'**
+  String activityMonitorDiskTooltip(String rate);
+
+  /// No description provided for @activityMonitorNetworkTooltip.
+  ///
+  /// In ja, this message translates to:
+  /// **'ネットワーク I/O {rate}'**
+  String activityMonitorNetworkTooltip(String rate);
 
   /// No description provided for @activityMonitorEmpty.
   ///

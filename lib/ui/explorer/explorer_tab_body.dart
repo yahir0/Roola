@@ -78,10 +78,7 @@ class ExplorerTabBody extends ConsumerWidget {
                   return Row(
                     children: [
                       SizedBox(width: listingWidth, child: listing),
-                      _PreviewSplitter(
-                        tabId: tabId,
-                        usableWidth: usable,
-                      ),
+                      _PreviewSplitter(tabId: tabId, usableWidth: usable),
                       SizedBox(
                         width: previewWidth,
                         child: FilePreviewPane(tabId: tabId),
@@ -122,9 +119,7 @@ class _PreviewSplitter extends ConsumerWidget {
         behavior: HitTestBehavior.opaque,
         onHorizontalDragUpdate: (details) {
           if (usableWidth <= 0) return;
-          final currentRatio = ref
-              .read(filePreviewLayoutProvider(tabId))
-              .ratio;
+          final currentRatio = ref.read(filePreviewLayoutProvider(tabId)).ratio;
           final deltaRatio = details.delta.dx / usableWidth;
           ref
               .read(filePreviewLayoutProvider(tabId).notifier)
@@ -204,25 +199,20 @@ class _PreviewToggleButton extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final visible = ref.watch(
-      filePreviewLayoutProvider(
-        tabId,
-      ).select((s) => s.visible),
+      filePreviewLayoutProvider(tabId).select((s) => s.visible),
     );
     final l10n = AppLocalizations.of(context);
     return IconButton(
       icon: Icon(
-        visible
-            ? Icons.vertical_split_rounded
-            : Icons.crop_square_rounded,
+        visible ? Icons.vertical_split_rounded : Icons.crop_square_rounded,
         size: PolarisIconSize.standard,
       ),
       tooltip: l10n.filePreviewToggleTooltip,
       visualDensity: VisualDensity.compact,
       padding: EdgeInsets.zero,
       constraints: const BoxConstraints.tightFor(width: 28, height: 28),
-      onPressed: () => ref
-          .read(filePreviewLayoutProvider(tabId).notifier)
-          .toggleVisible(),
+      onPressed: () =>
+          ref.read(filePreviewLayoutProvider(tabId).notifier).toggleVisible(),
     );
   }
 }

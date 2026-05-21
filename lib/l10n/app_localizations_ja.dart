@@ -1008,10 +1008,29 @@ class AppLocalizationsJa extends AppLocalizations {
   String get activityMonitorMemoryPopoverTitle => 'メモリ上位プロセス';
 
   @override
+  String get activityMonitorDiskPopoverTitle => 'ディスク I/O 上位プロセス';
+
+  @override
+  String get activityMonitorNetworkPopoverTitle => 'ネットワーク I/O 上位プロセス';
+
+  @override
   String get activityMonitorColumnCpu => 'CPU';
 
   @override
   String get activityMonitorColumnMemory => 'メモリ';
+
+  @override
+  String get activityMonitorColumnIo => 'I/O';
+
+  @override
+  String activityMonitorDiskTooltip(String rate) {
+    return 'ディスク I/O $rate';
+  }
+
+  @override
+  String activityMonitorNetworkTooltip(String rate) {
+    return 'ネットワーク I/O $rate';
+  }
 
   @override
   String get activityMonitorEmpty => 'プロセス情報を取得できません';

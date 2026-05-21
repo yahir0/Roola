@@ -24,10 +24,7 @@ Map<String, TextStyle> polarisHighlightTheme(PolarisTokens tokens) {
   // 使う。Polaris では計器ディスプレイ（well）の上に置くため、地色は
   // `tokens.well` を明示する（指定しないと白が出る）。
   final base = TextStyle(color: tokens.text, backgroundColor: tokens.well);
-  final keyword = TextStyle(
-    color: tokens.accent,
-    fontWeight: FontWeight.w600,
-  );
+  final keyword = TextStyle(color: tokens.accent, fontWeight: FontWeight.w600);
   final string = TextStyle(color: tokens.signalNew);
   final number = TextStyle(color: tokens.signalModified);
   final comment = TextStyle(
