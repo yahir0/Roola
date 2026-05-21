@@ -56,7 +56,7 @@ class RoolaTerminalView: NSView, TerminalViewDelegate {
   /// Shift+Enter で送る LF（`\n`）。
   private static let lineFeed = Data([0x0a])
 
-  private let terminal: TerminalView
+  private let terminal: RoolaTerminalRenderingView
   private let dataChannel: FlutterBasicMessageChannel
   private let ctrlChannel: FlutterMethodChannel
   /// Shift+Enter を横取りするためのローカル keyDown モニタ。
@@ -67,7 +67,7 @@ class RoolaTerminalView: NSView, TerminalViewDelegate {
     messenger: FlutterBinaryMessenger,
     registrar: FlutterPluginRegistrar
   ) {
-    terminal = TerminalView(frame: .zero)
+    terminal = RoolaTerminalRenderingView(frame: .zero)
     dataChannel = FlutterBasicMessageChannel(
       name: "roola/terminal/\(channelId)",
       binaryMessenger: messenger,
@@ -244,6 +244,119 @@ class RoolaTerminalView: NSView, TerminalViewDelegate {
   ) {}
   func rangeChanged(source: TerminalView, startY: Int, endY: Int) {}
   func iTermContent(source: TerminalView, content: ArraySlice<UInt8>) {}
+}
+
+// MARK: - Terminal subclass (autoscroll on drag)
+
+/// 選択ドラッグ中、カーソルがビュー外に出たときバッファを自動スクロール
+/// する `TerminalView` サブクラス（ADR-0047）。
+///
+/// SwiftTerm の `MacTerminalView` には `autoScrollDelta` フィールドと
+/// `scrollingTimerElapsed` コールバックが存在するが、それを駆動する
+/// `Timer.scheduledTimer(...)` がどこにも書かれておらず autoscroll が
+/// 機能しない（Issue #56）。Roola 側で薄く Timer を持ち、ドラッグ中だけ
+/// `tickAutoScroll` を回して `scrollUp` / `scrollDown` を呼ぶ。
+///
+/// 選択範囲の伸張は SwiftTerm 内部の `selection` を直接触らず、同じ
+/// `NSEvent` を `super.mouseDragged(with:)` に再投入することで間接的に
+/// `selection.dragExtend(bufferPosition:)` を発火させる
+/// （`calculateMouseHit` が「同じウィンドウ座標 × 新しい yDisp = 新しい
+/// buffer 行」を返す性質を利用）。
+final class RoolaTerminalRenderingView: TerminalView {
+  /// autoscroll タイマー周期。25fps 相当。
+  private static let tickInterval: TimeInterval = 0.04
+
+  /// 1 tick あたりの最大スクロール行数。
+  private static let maxLinesPerTick = 5
+
+  /// ビュー外距離 → スクロール行数の単位（20px ごとに +1 行）。
+  private static let pixelsPerLine: CGFloat = 20
+
+  private var autoScrollTimer: Timer?
+  private var lastDragEvent: NSEvent?
+
+  override func mouseDown(with event: NSEvent) {
+    super.mouseDown(with: event)
+    startAutoScrollTimerIfNeeded()
+  }
+
+  override func mouseDragged(with event: NSEvent) {
+    super.mouseDragged(with: event)
+    lastDragEvent = event
+  }
+
+  override func mouseUp(with event: NSEvent) {
+    stopAutoScrollTimer()
+    super.mouseUp(with: event)
+  }
+
+  private func startAutoScrollTimerIfNeeded() {
+    guard autoScrollTimer == nil else { return }
+    autoScrollTimer = Timer.scheduledTimer(
+      withTimeInterval: RoolaTerminalRenderingView.tickInterval,
+      repeats: true
+    ) { [weak self] _ in
+      self?.tickAutoScroll()
+    }
+  }
+
+  private func stopAutoScrollTimer() {
+    autoScrollTimer?.invalidate()
+    autoScrollTimer = nil
+    lastDragEvent = nil
+  }
+
+  /// タイマー駆動の autoscroll 判定本体。ドラッグイベントが無い・カーソルが
+  /// ビュー内 / マウスレポーティング有効 のときは何もしない。
+  private func tickAutoScroll() {
+    guard let event = lastDragEvent else { return }
+
+    // TUI（vim 等）がマウスを内部用途で握っているときは SwiftTerm 既定の
+    // 挙動に任せて autoscroll を発動しない（ADR-0047 Decision 6）。
+    // SwiftTerm の `MouseMode.sendButtonTracking()` は internal で呼べない
+    // が、`mouseMode != .off` の全モードで SwiftTerm 側 mouseDragged が
+    // 早期 return している（あるいは button tracking 用イベントだけ送る）
+    // ため、ここでも `.off` 以外は autoscroll を諦める方が安全。
+    if getTerminal().mouseMode != .off { return }
+
+    // ウィンドウ座標 → view-local 座標。macOS のビュー座標系は y 上向き、
+    // 原点は左下なので、 y > bounds.height がビュー上端より「上」。
+    let point = convert(event.locationInWindow, from: nil)
+    let direction: ScrollDirection
+    let distance: CGFloat
+    if point.y > bounds.height {
+      direction = .up
+      distance = point.y - bounds.height
+    } else if point.y < 0 {
+      direction = .down
+      distance = -point.y
+    } else {
+      return
+    }
+
+    let lines = min(
+      max(1, Int(distance / RoolaTerminalRenderingView.pixelsPerLine)),
+      RoolaTerminalRenderingView.maxLinesPerTick
+    )
+    switch direction {
+    case .up:
+      scrollUp(lines: lines)
+    case .down:
+      scrollDown(lines: lines)
+    }
+
+    // スクロール後に同じイベントを super.mouseDragged に再投入する。
+    // SwiftTerm 側で calculateMouseHit が「同じウィンドウ座標 × 更新済み
+    // yDisp = 新しい buffer 行」を返すので、selection.dragExtend が新しく
+    // 表示された行まで選択を伸ばす（ADR-0047 Decision 4）。
+    super.mouseDragged(with: event)
+  }
+
+  /// autoscroll の方向。
+  private enum ScrollDirection {
+    case up
+    case down
+  }
 }
 
 // MARK: - Theme
