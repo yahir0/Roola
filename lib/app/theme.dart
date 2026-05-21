@@ -22,8 +22,11 @@ class AppTheme {
   /// Polaris のデザイントークン。`ThemeData.extensions` 経由で参照する。
   static const PolarisTokens tokens = PolarisTokens(
     // --- グラファイト 3 トーン階層（D3 改訂）-----------------------------
-    machine: Color(0xFF050608), // 機材本体（ターミナル）。最も深い
-    well: Color(0xFF0A0B0D), // 沈んだ計器ディスプレイ（ファイル一覧）
+    // well と同じ深さで RGB を反転（B↔R）して暖色側へ振り、機材の温度感を出す。
+    // 純黒に落とすと「素材のない空洞」となり高級感が抜けるため、深さでなく
+    // 色温度で差別化する。
+    machine: Color(0xFF0B0A09), // 機材本体（ターミナル）。ウォームグラファイト
+    well: Color(0xFF0A0B0D), // 沈んだ計器ディスプレイ（ファイル一覧）。クール
     bg: Color(0xFF121317), // 筐体の枠（トップバー/サイドバー/ステータスバー）
     topEdge: Color(0xFF2C3037), // 筐体上端が光を受ける 1px ハイライト
     surface: Color(0xFF1B1D22), // ホバー行（machine/well/bg より持ち上がる）
@@ -391,11 +394,13 @@ class PolarisTokens extends ThemeExtension<PolarisTokens> {
     required this.gridUnit,
   });
 
-  /// 機材本体の地（ターミナル）。`well` よりさらに深い、最も暗いトーン。
-  /// 計器（well）を「読む」のではなく機械を「叩く」面に使う（ADR-0038 D3 改訂）。
+  /// 機材本体の地（ターミナル）。`well` と同じ深さでわずかに暖色寄りの
+  /// ウォームグラファイト。計器（well・クール）を「読む」のではなく機械を
+  /// 「叩く」操作面に使う。色温度で差別化することで純黒の空洞に落とさない
+  /// （ADR-0038 D3 改訂）。
   final Color machine;
 
-  /// 沈んだ計器ディスプレイ（ファイル一覧の地）。中間トーン。
+  /// 沈んだ計器ディスプレイ（ファイル一覧の地）。クールグラファイト。
   final Color well;
 
   /// 筐体の枠（トップバー/サイドバー/ステータスバー）。`well` より一段明るい。
