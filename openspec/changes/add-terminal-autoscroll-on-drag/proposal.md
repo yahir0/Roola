@@ -13,8 +13,12 @@ autoscroll 用の `autoScrollDelta` フィールドと `scrollingTimerElapsed`
 がどこにもない**（grep 確認済み）。コールバックは未到達で値はセット毎に
 捨てられている。設計判断と詳細な検討経緯は ADR-0047 に記録した。
 
-上流 SwiftTerm 側の修正 PR は別途検討（Roola リポジトリ Issue #56 で追跡）
-する一方、Roola 側で先に直す。
+上流側でも [SwiftTerm#309]（"Mac: auto-scroll up and down while dragging
+selection"）として 2023-06 にメンテナ自身が報告しているが、約 3 年間
+OPEN のまま放置されており、待っても解決時期は読めない。Roola 側で先に
+直す（追跡は Roola Issue #56）。
+
+[SwiftTerm#309]: https://github.com/migueldeicaza/SwiftTerm/issues/309
 
 ## What Changes
 

@@ -197,7 +197,11 @@ terminal = RoolaTerminalRenderingView(frame: .zero)
 
 - スクロール速度の上限 5 行/tick（125 行/秒）は妥当か？ → 動作確認で
   「速すぎ / 遅すぎ」が出れば調整する。
-- 上流 SwiftTerm に PR を出すべきか → 別 issue でフォロー（[Issue #56]）。
-  本 change はあくまで Roola 側の workaround。
+- 上流 SwiftTerm に PR を出すべきか → 上流には既に [SwiftTerm#309]
+  （メンテナ自身が 2023-06 に立てた同等 issue・約 3 年 OPEN）が存在する
+  ので新規 issue 化は不要。PR を投げる価値はあるが、マージまでの時間軸が
+  読めない（[Issue #56] でフォロー）。本 change はあくまで Roola 側の
+  workaround。
 
 [Issue #56]: https://github.com/yahir0/Roola/issues/56
+[SwiftTerm#309]: https://github.com/migueldeicaza/SwiftTerm/issues/309
