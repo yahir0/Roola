@@ -28,11 +28,16 @@ const double polarisMenuDividerHeight = 9;
 /// アイコン・ラベル（・ショートカット）を [polarisMenuItemHeight] の行に
 /// 収めた、Polaris のコンテキストメニュー 1 行。`PopupMenuItem.child` に渡す。
 /// [icon] を省略するとラベルのみの行になる。
+///
+/// [hasSubmenu] を true にすると右端に「▸」マークを出す。ショートカット
+/// ではないが視覚的に「クリックすると別メニューが開く」ことを伝える指示。
+/// `shortcut` と同時指定はしない想定（shortcut が優先）。
 Widget polarisMenuRow(
   BuildContext context, {
   required String label,
   IconData? icon,
   String? shortcut,
+  bool hasSubmenu = false,
 }) {
   final tokens = PolarisTokens.of(context);
   return SizedBox(
@@ -54,6 +59,13 @@ Widget polarisMenuRow(
         if (shortcut != null) ...[
           const SizedBox(width: PolarisTokens.space5),
           Text(shortcut, style: tokens.mono.copyWith(color: tokens.textFaint)),
+        ] else if (hasSubmenu) ...[
+          const SizedBox(width: PolarisTokens.space3),
+          Icon(
+            Icons.chevron_right,
+            size: PolarisIconSize.small,
+            color: tokens.textFaint,
+          ),
         ],
       ],
     ),
@@ -62,6 +74,7 @@ Widget polarisMenuRow(
 
 /// ラベル（+ アイコン + ショートカット）を持つ Polaris の `PopupMenuItem`。
 /// [value] はメニューの戻り値型に合わせて呼び出し側が指定する。
+/// [hasSubmenu] が true なら右端に「▸」を出す（[polarisMenuRow] 参照）。
 PopupMenuItem<T> polarisPopupMenuItem<T>(
   BuildContext context, {
   required T value,
@@ -69,6 +82,7 @@ PopupMenuItem<T> polarisPopupMenuItem<T>(
   IconData? icon,
   String? shortcut,
   bool enabled = true,
+  bool hasSubmenu = false,
 }) {
   return PopupMenuItem<T>(
     value: value,
@@ -80,6 +94,7 @@ PopupMenuItem<T> polarisPopupMenuItem<T>(
       label: label,
       icon: icon,
       shortcut: shortcut,
+      hasSubmenu: hasSubmenu,
     ),
   );
 }

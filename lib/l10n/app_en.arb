@@ -224,6 +224,10 @@
   },
   "explorerContextMenuOpenWith": "Open with another application…",
   "explorerContextMenuOpenInVim": "Open in vim",
+  "explorerContextMenuCurrentFolder": "Actions for {name}",
+  "@explorerContextMenuCurrentFolder": {
+    "placeholders": { "name": { "type": "String" } }
+  },
   "explorerPickAppTitle": "Choose an app to open with",
   "explorerParentDirectoryLabel": "Up one level",
   "explorerSnackbarCopied": "Copied: {name}",
