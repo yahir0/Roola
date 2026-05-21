@@ -3,7 +3,6 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:roola/app/theme.dart';
 import 'package:roola/data/terminal_runner/terminal_run_state.dart';
 import 'package:roola/l10n/app_localizations.dart';
-import 'package:roola/ui/common/polaris_display_panel.dart';
 import 'package:roola/ui/common/session_state_icon.dart';
 import 'package:roola/ui/explorer/terminal_surface.dart';
 import 'package:roola/ui/run/adhoc_run_view_model.dart';
@@ -30,24 +29,29 @@ class SessionView extends ConsumerWidget {
     final notifier = ref.read(adhocRunViewModelProvider(args).notifier);
     final tokens = PolarisTokens.of(context);
 
-    // Explorer タブと同じく、ヘッダと本体を 1 枚の計器ディスプレイパネル
-    // （well にインセット）に嵌め込み、内部に 1px の継ぎ目で分けて「1 個の計器」
-    // として見せる（ADR-0038 D3）。SwiftTerm 側は背景透過（native の
-    // `nativeBackgroundColor = .clear`）にしてあるので、パネルの well トーンが
-    // そのまま地として透ける。ターミナル本体の周囲にはインナーパディングを
-    // 入れて、文字が well の縁にギリギリ寄らないようにする。
+    // Polaris の 3 トーン階層（ADR-0038 D3 改訂）に従い、ターミナルは「機材
+    // 本体」トーン（`machine`）の地に置く。Explorer / Git のような well パネル
+    // ではなく、ヘッダ（bg）と機材面（machine）を 1px 継ぎ目で分けるだけのフラ
+    // ット構成。well とインセット枠は使わない（ターミナルは「計器を読む」ので
+    // はなく「機械を叩く」面なので、計器ディスプレイの語彙を流用すると思想
+    // がブレる）。
+    //
+    // SwiftTerm 側は背景透過（`nativeBackgroundColor = .clear`）なので、
+    // 下地の `machine` トーンがそのまま地として透ける。文字が縁にギリギリ
+    // 寄らないよう薄いインナーパディングを入れる。
     return ColoredBox(
       color: tokens.bg,
-      child: PolarisDisplayPanel(
-        child: Column(
-          children: [
-            _SessionHeader(
-              title: pageState.entry.displayName,
-              state: pageState.runState,
-              onRestart: notifier.restart,
-            ),
-            Container(height: 1, color: tokens.line),
-            Expanded(
+      child: Column(
+        children: [
+          _SessionHeader(
+            title: pageState.entry.displayName,
+            state: pageState.runState,
+            onRestart: notifier.restart,
+          ),
+          Container(height: 1, color: tokens.line),
+          Expanded(
+            child: ColoredBox(
+              color: tokens.machine,
               child: Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: PolarisTokens.space2,
@@ -60,8 +64,8 @@ class SessionView extends ConsumerWidget {
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

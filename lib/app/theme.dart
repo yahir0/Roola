@@ -21,11 +21,12 @@ class AppTheme {
 
   /// Polaris のデザイントークン。`ThemeData.extensions` 経由で参照する。
   static const PolarisTokens tokens = PolarisTokens(
-    // --- グラファイト 2 トーン階層（D3）---------------------------------
-    well: Color(0xFF0A0B0D), // 沈んだ計器ディスプレイ（ファイル一覧）。最も暗い
+    // --- グラファイト 3 トーン階層（D3 改訂）-----------------------------
+    machine: Color(0xFF050608), // 機材本体（ターミナル）。最も深い
+    well: Color(0xFF0A0B0D), // 沈んだ計器ディスプレイ（ファイル一覧）
     bg: Color(0xFF121317), // 筐体の枠（トップバー/サイドバー/ステータスバー）
     topEdge: Color(0xFF2C3037), // 筐体上端が光を受ける 1px ハイライト
-    surface: Color(0xFF1B1D22), // ホバー行（well/bg より持ち上がる）
+    surface: Color(0xFF1B1D22), // ホバー行（machine/well/bg より持ち上がる）
     surfaceHi: Color(0xFF232730), // 選択行（控えめな塗り）
     line: Color(0xFF2A2D33), // パネルの継ぎ目（1px）。装飾線は引かない
     // --- テキスト（暗い地で痩せないよう副トーンの幅を広く取る）---------
@@ -371,6 +372,7 @@ abstract final class PolarisIconSize {
 @immutable
 class PolarisTokens extends ThemeExtension<PolarisTokens> {
   const PolarisTokens({
+    required this.machine,
     required this.well,
     required this.bg,
     required this.topEdge,
@@ -389,7 +391,11 @@ class PolarisTokens extends ThemeExtension<PolarisTokens> {
     required this.gridUnit,
   });
 
-  /// 沈んだ計器ディスプレイ（ファイル一覧の地）。最も暗いトーン。
+  /// 機材本体の地（ターミナル）。`well` よりさらに深い、最も暗いトーン。
+  /// 計器（well）を「読む」のではなく機械を「叩く」面に使う（ADR-0038 D3 改訂）。
+  final Color machine;
+
+  /// 沈んだ計器ディスプレイ（ファイル一覧の地）。中間トーン。
   final Color well;
 
   /// 筐体の枠（トップバー/サイドバー/ステータスバー）。`well` より一段明るい。
@@ -535,6 +541,7 @@ class PolarisTokens extends ThemeExtension<PolarisTokens> {
 
   @override
   PolarisTokens copyWith({
+    Color? machine,
     Color? well,
     Color? bg,
     Color? topEdge,
@@ -552,6 +559,7 @@ class PolarisTokens extends ThemeExtension<PolarisTokens> {
     double? radius,
     double? gridUnit,
   }) => PolarisTokens(
+    machine: machine ?? this.machine,
     well: well ?? this.well,
     bg: bg ?? this.bg,
     topEdge: topEdge ?? this.topEdge,
