@@ -327,6 +327,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get aboutMenuItem => 'About Roola…';
 
   @override
+  String get checkForUpdatesMenuItem => 'Check for Updates…';
+
+  @override
   String get aboutLegalese =>
       'Copyright © 2026 Yahiro\nDistributed under the MIT License.';
 

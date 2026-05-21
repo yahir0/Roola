@@ -4,6 +4,7 @@ import 'package:roola/app/about.dart';
 import 'package:roola/app/command_dispatcher.dart';
 import 'package:roola/app/router.dart';
 import 'package:roola/core/keybindings/chord_formatter.dart';
+import 'package:roola/core/system/sparkle_updater.dart';
 import 'package:roola/data/keybindings/command_id.dart';
 import 'package:roola/data/keybindings/effective_keybindings.dart';
 import 'package:roola/data/keybindings/key_chord.dart';
@@ -65,6 +66,19 @@ class AppMenuBar extends ConsumerWidget {
                 showRoolaAboutDialog(context);
               }
             },
+          ),
+          // 手動アップデート確認（ADR-0043）。Sparkle の `SPUStandardUpdater`
+          // を MethodChannel 経由で起動する。チェック結果の UI は Sparkle が
+          // 描画するため Dart 側に追加の処理は無い。
+          PlatformMenuItemGroup(
+            members: [
+              PlatformMenuItem(
+                label: l10n.checkForUpdatesMenuItem,
+                onSelected: () {
+                  ref.read(sparkleUpdaterProvider).checkForUpdates();
+                },
+              ),
+            ],
           ),
           PlatformMenuItemGroup(
             members: [

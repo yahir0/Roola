@@ -320,6 +320,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get aboutMenuItem => 'Roola について…';
 
   @override
+  String get checkForUpdatesMenuItem => 'アップデートを確認…';
+
+  @override
   String get aboutLegalese => 'Copyright © 2026 Yahiro\nMIT License で配布しています。';
 
   @override
