@@ -3,6 +3,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:roola/app/theme.dart';
 import 'package:roola/data/terminal_runner/terminal_run_state.dart';
 import 'package:roola/l10n/app_localizations.dart';
+import 'package:roola/ui/common/polaris_display_panel.dart';
 import 'package:roola/ui/common/session_state_icon.dart';
 import 'package:roola/ui/explorer/terminal_surface.dart';
 import 'package:roola/ui/run/adhoc_run_view_model.dart';
@@ -27,23 +28,32 @@ class SessionView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final pageState = ref.watch(adhocRunViewModelProvider(args));
     final notifier = ref.read(adhocRunViewModelProvider(args).notifier);
+    final tokens = PolarisTokens.of(context);
 
-    return Column(
-      children: [
-        _SessionHeader(
-          title: pageState.entry.displayName,
-          state: pageState.runState,
-          onRestart: notifier.restart,
-        ),
-        const Divider(height: 1),
-        Expanded(
-          child: TerminalSurface(
-            // ad-hoc セッション id をタブ固有のチャネル id として使う。
-            channelId: args.adhocId,
-            runner: pageState.runner,
+    // git タブと同じく、ヘッダ＝クローム（bg）／ターミナル本体＝計器ディスプレイ
+    // パネル（well にインセット）の 2 トーン構成（ADR-0038 D3）。SwiftTerm 側は
+    // 背景透過（`nativeBackgroundColor = .clear`）にしてあるので、パネルの well
+    // トーンがそのまま地として透ける。
+    return ColoredBox(
+      color: tokens.bg,
+      child: Column(
+        children: [
+          _SessionHeader(
+            title: pageState.entry.displayName,
+            state: pageState.runState,
+            onRestart: notifier.restart,
           ),
-        ),
-      ],
+          Expanded(
+            child: PolarisDisplayPanel(
+              child: TerminalSurface(
+                // ad-hoc セッション id をタブ固有のチャネル id として使う。
+                channelId: args.adhocId,
+                runner: pageState.runner,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
