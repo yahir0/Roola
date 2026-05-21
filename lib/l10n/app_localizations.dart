@@ -1124,6 +1124,12 @@ abstract class AppLocalizations {
   /// **'vim で開く'**
   String get explorerContextMenuOpenInVim;
 
+  /// No description provided for @explorerContextMenuCurrentFolder.
+  ///
+  /// In ja, this message translates to:
+  /// **'{name} で操作'**
+  String explorerContextMenuCurrentFolder(String name);
+
   /// No description provided for @explorerPickAppTitle.
   ///
   /// In ja, this message translates to:

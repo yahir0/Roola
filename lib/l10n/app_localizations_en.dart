@@ -580,6 +580,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get explorerContextMenuOpenInVim => 'Open in vim';
 
   @override
+  String explorerContextMenuCurrentFolder(String name) {
+    return 'Actions for $name';
+  }
+
+  @override
   String get explorerPickAppTitle => 'Choose an app to open with';
 
   @override

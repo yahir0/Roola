@@ -251,6 +251,10 @@
   },
   "explorerContextMenuOpenWith": "別のアプリケーションで開く…",
   "explorerContextMenuOpenInVim": "vim で開く",
+  "explorerContextMenuCurrentFolder": "{name} で操作",
+  "@explorerContextMenuCurrentFolder": {
+    "placeholders": { "name": { "type": "String" } }
+  },
   "explorerPickAppTitle": "開くアプリを選択",
   "explorerParentDirectoryLabel": "上の階層へ",
   "explorerSnackbarCopied": "コピーしました: {name}",

@@ -9,6 +9,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:roola/app/router.dart';
 import 'package:roola/app/theme.dart';
 import 'package:roola/core/health/claude_health_check.dart';
+import 'package:roola/core/skill/skill_scanner.dart';
 import 'package:roola/core/system/explorer_file_ops.dart';
 import 'package:roola/core/system/file_opener.dart';
 import 'package:roola/data/keybindings/command_id.dart';
@@ -39,6 +40,17 @@ const _uuid = Uuid();
 ///
 /// `showRename` はカレントディレクトリを対象とする backdrop からの呼び出し
 /// では false にする（「自分自身のリネーム」を同画面でやらせない）。
+///
+/// `showCurrentFolderSection` を true にすると、末尾にカレントフォルダ向け
+/// メニューへのリンク項目（「`<name>` で操作 ▸」）を出す。タイル右クリック
+/// で「ファイルが密に並んで余白で右クリックできない」状況でも、ここからカ
+/// レントフォルダの操作（Terminal Here / Skill 実行 / Paste 等）に 1 アク
+/// ションで到達できる（ADR-0044）。`node` 自身が currentPath と一致するとき
+/// （backdrop 経由・カレントフォルダ自身の再オープン経由）は重複を避けて
+/// 自動的に非表示にする。
+///
+/// `onBack` を渡すと先頭に「← 戻る」項目が並ぶ。サブメニュー（カレント
+/// フォルダ用メニュー）から元のメニューに戻るための導線（ADR-0044）。
 Future<void> showExplorerContextMenu(
   BuildContext context,
   WidgetRef ref,
@@ -47,6 +59,8 @@ Future<void> showExplorerContextMenu(
   bool showRename = true,
   bool showCopy = true,
   bool showDelete = true,
+  bool showCurrentFolderSection = true,
+  Future<void> Function()? onBack,
 }) async {
   // OS クリップボードの状態は非同期でしか取れないため、showMenu の前に
   // 一度問い合わせて「ペースト」項目の表示可否を確定させる。
@@ -60,6 +74,15 @@ Future<void> showExplorerContextMenu(
   }
   final l10n = AppLocalizations.of(context);
   final items = <PopupMenuEntry<ExplorerNodeAction>>[
+    if (onBack != null) ...[
+      polarisPopupMenuItem<ExplorerNodeAction>(
+        context,
+        value: const _ActionGoBack(),
+        icon: Icons.arrow_back,
+        label: l10n.navBack,
+      ),
+      const PopupMenuDivider(height: polarisMenuDividerHeight),
+    ],
     if (claudeAvailable)
       commandPopupMenuItem<ExplorerNodeAction>(
         context,
@@ -167,6 +190,24 @@ Future<void> showExplorerContextMenu(
       );
     }
   }
+  // 末尾に「現在のフォルダ (...)…」を追加（ADR-0044）。クリックしたノードが
+  // currentPath と一致する場合は二重表示になるので出さない。
+  final currentTabId = ref.read(currentTabIdProvider);
+  final currentPath = ref
+      .read(explorerViewModelProvider(currentTabId))
+      .currentPath;
+  if (showCurrentFolderSection && currentPath != node.path) {
+    items.add(const PopupMenuDivider(height: polarisMenuDividerHeight));
+    items.add(
+      polarisPopupMenuItem<ExplorerNodeAction>(
+        context,
+        value: const _ActionShowCurrentFolderMenu(),
+        icon: Icons.folder_open,
+        label: l10n.explorerContextMenuCurrentFolder(_basename(currentPath)),
+        hasSubmenu: true,
+      ),
+    );
+  }
 
   final selected = await showMenu<ExplorerNodeAction>(
     context: context,
@@ -181,11 +222,22 @@ Future<void> showExplorerContextMenu(
   if (selected == null || !context.mounted) {
     return;
   }
-  await _handleDirectoryAction(context, ref, node, selected);
+  await _handleDirectoryAction(
+    context,
+    ref,
+    node,
+    selected,
+    position,
+    sourceShowRename: showRename,
+    sourceShowCopy: showCopy,
+    sourceShowDelete: showDelete,
+    onBack: onBack,
+  );
 }
 
 /// ファイル用の右クリックメニュー（開く / OpenWith / Finder 表示 /
-/// 名前変更 / コピー / プロパティ）。
+/// 名前変更 / コピー / プロパティ）。末尾に「現在のフォルダ (...)…」を出し、
+/// 中からカレントフォルダ向けメニューに 1 アクションで遷移できる（ADR-0044）。
 Future<void> showFileContextMenu(
   BuildContext context,
   WidgetRef ref,
@@ -193,6 +245,10 @@ Future<void> showFileContextMenu(
   Offset position,
 ) async {
   final l10n = AppLocalizations.of(context);
+  final currentTabId = ref.read(currentTabIdProvider);
+  final currentPath = ref
+      .read(explorerViewModelProvider(currentTabId))
+      .currentPath;
   final selected = await showMenu<_FileAction>(
     context: context,
     position: RelativeRect.fromLTRB(
@@ -259,6 +315,14 @@ Future<void> showFileContextMenu(
         command: CommandId.showProperties,
         value: _FileAction.properties,
       ),
+      const PopupMenuDivider(height: polarisMenuDividerHeight),
+      polarisPopupMenuItem<_FileAction>(
+        context,
+        value: _FileAction.showCurrentFolderMenu,
+        icon: Icons.folder_open,
+        label: l10n.explorerContextMenuCurrentFolder(_basename(currentPath)),
+        hasSubmenu: true,
+      ),
     ],
   );
   if (selected == null || !context.mounted) {
@@ -311,6 +375,18 @@ Future<void> showFileContextMenu(
       await _moveToTrash(context, ref, node.path, node.name);
     case _FileAction.properties:
       await showPropertiesDialog(context, node.path);
+    case _FileAction.showCurrentFolderMenu:
+      await _showCurrentFolderMenu(
+        context,
+        ref,
+        position,
+        onBack: () async {
+          if (!context.mounted) {
+            return;
+          }
+          await showFileContextMenu(context, ref, node, position);
+        },
+      );
   }
 }
 
@@ -324,6 +400,7 @@ enum _FileAction {
   copyPath,
   moveToTrash,
   properties,
+  showCurrentFolderMenu,
 }
 
 Future<void> _handleDirectoryAction(
@@ -331,7 +408,12 @@ Future<void> _handleDirectoryAction(
   WidgetRef ref,
   ExplorerDirectoryNode node,
   ExplorerNodeAction action,
-) async {
+  Offset position, {
+  bool sourceShowRename = true,
+  bool sourceShowCopy = true,
+  bool sourceShowDelete = true,
+  Future<void> Function()? onBack,
+}) async {
   switch (action) {
     case _ActionOpenClaude():
       final adhocId = 'adhoc-${_uuid.v4()}';
@@ -433,7 +515,76 @@ Future<void> _handleDirectoryAction(
           initialSkillName: skillName,
         ).push<void>(context),
       );
+    case _ActionShowCurrentFolderMenu():
+      // 「戻る」を選んだら、現在のメニューを同じパラメータで再オープンする。
+      // `onBack` を再帰的に引き継ぐことで、戻り先からさらに上に戻る経路も
+      // 維持される。
+      await _showCurrentFolderMenu(
+        context,
+        ref,
+        position,
+        onBack: () async {
+          if (!context.mounted) {
+            return;
+          }
+          await showExplorerContextMenu(
+            context,
+            ref,
+            node,
+            position,
+            showRename: sourceShowRename,
+            showCopy: sourceShowCopy,
+            showDelete: sourceShowDelete,
+            onBack: onBack,
+          );
+        },
+      );
+    case _ActionGoBack():
+      if (onBack != null) {
+        await onBack();
+      }
   }
+}
+
+/// 現在のタブが表示しているフォルダを対象に右クリックメニューを再オープン
+/// する（ADR-0044）。クリックしたノードがファイル / 別フォルダでも、ここから
+/// カレントフォルダに対する操作（Terminal Here / Skill 実行 / Paste 等）に
+/// 到達できる。
+///
+/// `showCurrentFolderSection: false` を渡して、再帰的に同じセクションが
+/// 出るのを防ぐ。`showRename / showCopy / showDelete` も backdrop 経由と同
+/// じく false にする（カレントフォルダ自身のリネーム・コピー・削除は同画面
+/// でやらせない）。`onBack` を渡すと先頭に「戻る」項目が出る。
+Future<void> _showCurrentFolderMenu(
+  BuildContext context,
+  WidgetRef ref,
+  Offset position, {
+  Future<void> Function()? onBack,
+}) async {
+  final tabId = ref.read(currentTabIdProvider);
+  final currentPath = ref.read(explorerViewModelProvider(tabId)).currentPath;
+  final currentNode = ExplorerDirectoryNode(
+    path: currentPath,
+    name: _basename(currentPath),
+    skillNames: const SkillScanner().scan(currentPath),
+  );
+  await showExplorerContextMenu(
+    context,
+    ref,
+    currentNode,
+    position,
+    showRename: false,
+    showCopy: false,
+    showDelete: false,
+    showCurrentFolderSection: false,
+    onBack: onBack,
+  );
+}
+
+/// 絶対パスの末尾セグメントを返す。ルート（`/`）は `/` のまま返す。
+String _basename(String path) {
+  final segments = path.split('/').where((s) => s.isNotEmpty).toList();
+  return segments.isEmpty ? path : segments.last;
 }
 
 /// 新規フォルダ / 新規ファイルを [parentPath] 直下に作成する。
@@ -802,6 +953,14 @@ class _ActionRunSkill extends ExplorerNodeAction {
 class _ActionRegisterSkill extends ExplorerNodeAction {
   const _ActionRegisterSkill(this.skillName);
   final String skillName;
+}
+
+class _ActionShowCurrentFolderMenu extends ExplorerNodeAction {
+  const _ActionShowCurrentFolderMenu();
+}
+
+class _ActionGoBack extends ExplorerNodeAction {
+  const _ActionGoBack();
 }
 
 /// 1 ノード（ディレクトリ or ファイル）を表す行。タイル全体（テキスト以外
