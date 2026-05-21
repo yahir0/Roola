@@ -52,6 +52,7 @@
 | [0044](./0044-tile-context-menu-current-folder.md) | タイル右クリックメニューに「現在のフォルダ」項目を追加する | Accepted |
 | [0045](./0045-sidebar-favorite-tree.md) | サイドバーのお気に入りを Win2000 風ツリーで展開する | Accepted |
 | [0046](./0046-explorer-file-preview-pane.md) | Explorer に読み取り専用ファイルプレビューパネルを追加する | Accepted |
+| [0047](./0047-terminal-autoscroll-on-drag-subclass.md) | ターミナル選択ドラッグ中の自動スクロールを `TerminalView` のサブクラスで補う | Accepted |
 
 ## フォーマット
 
