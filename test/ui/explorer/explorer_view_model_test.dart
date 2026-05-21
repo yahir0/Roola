@@ -4,20 +4,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:roola/data/workspace/pane_slot.dart';
 import 'package:roola/data/workspace/workspace_layout.dart';
-import 'package:roola/data/workspace/workspace_repository.dart';
-import 'package:roola/data/workspace/workspace_repository_impl.dart';
 import 'package:roola/data/workspace/workspace_tab.dart';
 import 'package:roola/ui/explorer/explorer_view_model.dart';
 import 'package:roola/ui/workspace/workspace_provider.dart';
 import 'package:roola/ui/workspace/workspace_seed.dart';
-
-class _FakeWorkspaceRepository implements WorkspaceRepository {
-  @override
-  Future<WorkspaceLayout?> load() async => null;
-
-  @override
-  Future<void> save(WorkspaceLayout layout) async {}
-}
 
 void main() {
   late Directory tempDir;
@@ -55,9 +45,6 @@ void main() {
             ),
             bottom: PaneSlot.empty,
           ),
-        ),
-        workspaceRepositoryProvider.overrideWithValue(
-          _FakeWorkspaceRepository(),
         ),
       ],
     );

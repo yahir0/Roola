@@ -113,6 +113,7 @@ Mac 向けの汎用ターミナルランチャーアプリ（Flutter Desktop / m
 - ADR-0039: トップバーにアクティビティモニタ（CPU / メモリ監視）を追加する
 - ADR-0040: About ダイアログと OSS ライセンス画面を提供する
 - ADR-0041: Explorer / Git ビューを FSEvents 監視で自動更新する
+- ADR-0042: アプリ終了時にワークスペースを破棄し、起動は既定 seed で始める（ADR-0028 を Supersede）
 
 ## ディレクトリ構成
 

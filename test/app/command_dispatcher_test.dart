@@ -5,20 +5,10 @@ import 'package:roola/app/command_dispatcher.dart';
 import 'package:roola/data/keybindings/command_id.dart';
 import 'package:roola/data/workspace/pane_slot.dart';
 import 'package:roola/data/workspace/workspace_layout.dart';
-import 'package:roola/data/workspace/workspace_repository.dart';
-import 'package:roola/data/workspace/workspace_repository_impl.dart';
 import 'package:roola/data/workspace/workspace_tab.dart';
 import 'package:roola/ui/workspace/focused_tab_provider.dart';
 import 'package:roola/ui/workspace/workspace_provider.dart';
 import 'package:roola/ui/workspace/workspace_seed.dart';
-
-class _FakeWorkspaceRepository implements WorkspaceRepository {
-  @override
-  Future<WorkspaceLayout?> load() async => null;
-
-  @override
-  Future<void> save(WorkspaceLayout layout) async {}
-}
 
 PaneSlot _explorerSlot(List<String> ids) => PaneSlot(
   tabs: [for (final id in ids) WorkspaceTab.explorer(id: id, currentPath: '/')],
@@ -30,12 +20,7 @@ Future<WidgetRef> _pump(WidgetTester tester, WorkspaceLayout layout) async {
   late WidgetRef captured;
   await tester.pumpWidget(
     ProviderScope(
-      overrides: [
-        workspaceInitialLayoutProvider.overrideWithValue(layout),
-        workspaceRepositoryProvider.overrideWithValue(
-          _FakeWorkspaceRepository(),
-        ),
-      ],
+      overrides: [workspaceInitialLayoutProvider.overrideWithValue(layout)],
       child: Consumer(
         builder: (context, ref, _) {
           captured = ref;

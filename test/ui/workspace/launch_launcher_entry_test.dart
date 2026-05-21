@@ -5,19 +5,10 @@ import 'package:roola/data/launcher_entry/launcher_action.dart';
 import 'package:roola/data/launcher_entry/launcher_entry.dart';
 import 'package:roola/data/workspace/pane_slot.dart';
 import 'package:roola/data/workspace/workspace_layout.dart';
-import 'package:roola/data/workspace/workspace_repository.dart';
-import 'package:roola/data/workspace/workspace_repository_impl.dart';
 import 'package:roola/data/workspace/workspace_tab.dart';
 import 'package:roola/ui/explorer/launcher_actions.dart';
 import 'package:roola/ui/workspace/workspace_provider.dart';
 import 'package:roola/ui/workspace/workspace_seed.dart';
-
-class _FakeWorkspaceRepository implements WorkspaceRepository {
-  @override
-  Future<WorkspaceLayout?> load() async => null;
-  @override
-  Future<void> save(WorkspaceLayout layout) async {}
-}
 
 final _entry = LauncherEntry(
   id: 'entry-1',
@@ -52,9 +43,6 @@ void main() {
             topRight: PaneSlot.empty,
             bottom: PaneSlot.empty,
           ),
-        ),
-        workspaceRepositoryProvider.overrideWithValue(
-          _FakeWorkspaceRepository(),
         ),
       ],
     );

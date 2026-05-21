@@ -1,10 +1,7 @@
-import 'dart:async';
-
 import 'package:flutter/scheduler.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:roola/data/skill_session/active_sessions.dart';
 import 'package:roola/data/workspace/workspace_layout.dart';
-import 'package:roola/data/workspace/workspace_repository_impl.dart';
 import 'package:roola/data/workspace/workspace_tab.dart';
 import 'package:roola/ui/explorer/explorer_item_selection.dart';
 import 'package:roola/ui/explorer/explorer_view_model.dart';
@@ -24,22 +21,13 @@ class Workspace extends _$Workspace {
   @override
   WorkspaceLayout build() => ref.read(workspaceInitialLayoutProvider);
 
-  /// state を差し替え、新しいレイアウトを `workspace.json` に永続化する。
+  /// state を差し替える。タブ開閉 / アクティブ変更 / navigateTo（updateTabPath）/
+  /// スプリッタ比率変更のすべての変更経路はここを通る（ADR-0026）。
   ///
-  /// タブ開閉 / アクティブ変更 / navigateTo（updateTabPath）/ スプリッタ
-  /// 比率変更のすべての変更経路はここを通る（ADR-0028）。永続化は
-  /// fire-and-forget で、失敗してもアプリは継続する。
+  /// ADR-0042 に従い、レイアウトの永続化は行わない。次回起動時は常に既定
+  /// seed で開始する。
   void _apply(WorkspaceLayout next) {
     state = next;
-    unawaited(_persist(next));
-  }
-
-  Future<void> _persist(WorkspaceLayout layout) async {
-    try {
-      await ref.read(workspaceRepositoryProvider).save(layout);
-    } on Object {
-      // 永続化失敗はアプリを落とすほどではない（ADR-0028）。握り潰す。
-    }
   }
 
   /// id 一致のタブを返す。見つからなければ `null`。

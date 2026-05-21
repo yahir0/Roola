@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:roola/app/app.dart';
@@ -6,8 +8,6 @@ import 'package:roola/core/storage/app_paths.dart';
 import 'package:roola/data/launcher_entry/launcher_entry_repository_impl.dart';
 import 'package:roola/data/locale/locale_settings_repository_impl.dart';
 import 'package:roola/data/notepad/notepad_repository_impl.dart';
-import 'package:roola/data/workspace/workspace_repository_impl.dart';
-import 'package:roola/ui/workspace/workspace_seed.dart';
 import 'package:window_manager/window_manager.dart';
 
 Future<void> main() async {
@@ -44,11 +44,17 @@ Future<void> main() async {
   final paths = await AppPaths.resolve();
   await paths.ensureDirectories();
 
-  // ワークスペースレイアウトを起動時に 1 度だけ読み込み、`workspaceProvider`
-  // の初期値として注入する。永続データが無い / 壊れている / 全スロット空の
-  // 場合は `load()` が null を返すので、既定 3 ペインを seed する（ADR-0028）。
-  final loadedWorkspace = await WorkspaceRepositoryImpl(paths: paths).load();
-  final initialWorkspace = loadedWorkspace ?? seedDefaultWorkspace();
+  // ワークスペースは毎回既定 seed で開始する（ADR-0042）。旧バージョンで
+  // 書き出された `workspace.json` が残っていればベストエフォートで削除し、
+  // 次回以降に復元処理が混ざらないようにする。
+  final legacyWorkspaceFile = paths.workspaceFile;
+  if (legacyWorkspaceFile.existsSync()) {
+    try {
+      await legacyWorkspaceFile.delete();
+    } on FileSystemException {
+      // 削除できなくても致命ではない（次回も無視されるだけ）。握り潰す。
+    }
+  }
 
   // 表示言語も起動時に 1 度だけ読み込む。`MaterialApp` は初回フレームから
   // 確定したロケールで描画する必要があるため、Provider に注入する（ADR-0034）。
@@ -62,7 +68,6 @@ Future<void> main() async {
     ProviderScope(
       overrides: [
         appPathsProvider.overrideWithValue(paths),
-        workspaceInitialLayoutProvider.overrideWithValue(initialWorkspace),
         localeSettingsInitialProvider.overrideWithValue(initialLocale),
         notepadInitialContentProvider.overrideWithValue(initialNotepad),
       ],

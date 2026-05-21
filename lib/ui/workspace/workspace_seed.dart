@@ -53,8 +53,8 @@ WorkspaceLayout seedDefaultWorkspace() {
 
 /// `workspaceProvider` の初期レイアウト。
 ///
-/// 既定は [seedDefaultWorkspace]。Phase D で `main` から永続化済みレイアウト
-/// で override する（`appPathsProvider` と同じ注入パターン / ADR-0028）。
+/// 既定は [seedDefaultWorkspace] で、本体（`main`）はこれを override しない
+/// （ADR-0042）。テストでは固定レイアウトを注入するために override する。
 final workspaceInitialLayoutProvider = Provider<WorkspaceLayout>(
   (ref) => seedDefaultWorkspace(),
 );
