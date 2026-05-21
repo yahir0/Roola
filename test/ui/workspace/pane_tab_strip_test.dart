@@ -3,20 +3,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:roola/data/workspace/pane_slot.dart';
 import 'package:roola/data/workspace/workspace_layout.dart';
-import 'package:roola/data/workspace/workspace_repository.dart';
-import 'package:roola/data/workspace/workspace_repository_impl.dart';
 import 'package:roola/data/workspace/workspace_tab.dart';
 import 'package:roola/l10n/app_localizations.dart';
 import 'package:roola/ui/workspace/pane_tab_strip.dart';
 import 'package:roola/ui/workspace/workspace_provider.dart';
 import 'package:roola/ui/workspace/workspace_seed.dart';
-
-class _FakeWorkspaceRepository implements WorkspaceRepository {
-  @override
-  Future<WorkspaceLayout?> load() async => null;
-  @override
-  Future<void> save(WorkspaceLayout layout) async {}
-}
 
 /// `topLeft` スロットのタブストリップを `workspaceProvider` 連動で描画する。
 class _Harness extends ConsumerWidget {
@@ -33,10 +24,7 @@ class _Harness extends ConsumerWidget {
 
 void main() {
   Widget app(WorkspaceLayout initial) => ProviderScope(
-    overrides: [
-      workspaceInitialLayoutProvider.overrideWithValue(initial),
-      workspaceRepositoryProvider.overrideWithValue(_FakeWorkspaceRepository()),
-    ],
+    overrides: [workspaceInitialLayoutProvider.overrideWithValue(initial)],
     child: const MaterialApp(
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,

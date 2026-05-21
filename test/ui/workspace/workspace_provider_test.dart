@@ -2,20 +2,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:roola/data/workspace/pane_slot.dart';
 import 'package:roola/data/workspace/workspace_layout.dart';
-import 'package:roola/data/workspace/workspace_repository.dart';
-import 'package:roola/data/workspace/workspace_repository_impl.dart';
 import 'package:roola/data/workspace/workspace_tab.dart';
 import 'package:roola/ui/workspace/workspace_provider.dart';
 import 'package:roola/ui/workspace/workspace_seed.dart';
-
-/// 保存をしない fake リポジトリ（テストで実ファイル I/O を避ける）。
-class _FakeWorkspaceRepository implements WorkspaceRepository {
-  @override
-  Future<WorkspaceLayout?> load() async => null;
-
-  @override
-  Future<void> save(WorkspaceLayout layout) async {}
-}
 
 PaneSlot _explorerSlot(List<String> ids) => PaneSlot(
   tabs: [for (final id in ids) WorkspaceTab.explorer(id: id, currentPath: '/')],
@@ -23,10 +12,7 @@ PaneSlot _explorerSlot(List<String> ids) => PaneSlot(
 
 ProviderContainer _container(WorkspaceLayout initial) {
   final container = ProviderContainer(
-    overrides: [
-      workspaceInitialLayoutProvider.overrideWithValue(initial),
-      workspaceRepositoryProvider.overrideWithValue(_FakeWorkspaceRepository()),
-    ],
+    overrides: [workspaceInitialLayoutProvider.overrideWithValue(initial)],
   );
   addTearDown(container.dispose);
   return container;

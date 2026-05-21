@@ -1,6 +1,6 @@
 # ADR-0028: ワークスペースレイアウトの永続化とターミナル再 spawn
 
-- **Status**: Accepted
+- **Status**: Superseded by ADR-0042
 - **Date**: 2026-05-15
 
 ## Context

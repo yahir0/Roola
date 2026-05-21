@@ -33,7 +33,7 @@
 | [0025](./0025-ignore-sigpipe-on-gui-launch.md) | GUI 起動経路の SIGPIPE 即死を AppDelegate で抑止する | Accepted |
 | [0026](./0026-three-pane-tabbed-workspace.md) | `/explorer` を 3 画面タブ式ワークスペースに刷新する | Accepted |
 | [0027](./0027-per-tab-state-via-family.md) | per-tab 状態を family(tabId) + scoped Provider で実現する | Accepted |
-| [0028](./0028-workspace-persistence-and-terminal-respawn.md) | ワークスペースレイアウトの永続化とターミナル再 spawn | Accepted |
+| [0028](./0028-workspace-persistence-and-terminal-respawn.md) | ワークスペースレイアウトの永続化とターミナル再 spawn | Superseded by ADR-0042 |
 | [0029](./0029-favorite-folders-single-level.md) | エクスプローラのお気に入りをフォルダで 1 階層グループ化する | Accepted |
 | [0030](./0030-git-tab.md) | Git ビューをワークスペースタブとして追加する | Accepted |
 | [0031](./0031-terminal-swiftterm-native-view.md) | ターミナル描画を xterm.dart から SwiftTerm ネイティブビューへ移行する | Accepted |
@@ -47,6 +47,7 @@
 | [0039](./0039-activity-monitor.md) | トップバーにアクティビティモニタ（CPU / メモリ監視）を追加する | Accepted |
 | [0040](./0040-about-and-licenses.md) | About ダイアログと OSS ライセンス画面を提供する | Accepted |
 | [0041](./0041-realtime-fs-watch.md) | Explorer / Git ビューを FSEvents 監視で自動更新する | Accepted |
+| [0042](./0042-discard-workspace-on-exit.md) | アプリ終了時にワークスペースを破棄し、起動は既定 seed で始める（ADR-0028 を Supersede） | Accepted |
 
 ## フォーマット
 
