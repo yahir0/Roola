@@ -1,9 +1,16 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:roola/app/theme.dart';
+import 'package:roola/core/health/claude_health_check.dart';
 import 'package:roola/core/skill/skill_scanner.dart';
+import 'package:roola/core/system/file_opener.dart';
 import 'package:roola/data/repo_explorer/explorer_node.dart';
+import 'package:roola/data/repo_explorer/explorer_settings.dart';
+import 'package:roola/data/repo_explorer/explorer_settings_repository_impl.dart';
 import 'package:roola/l10n/app_localizations.dart';
 import 'package:roola/ui/common/polaris_display_panel.dart';
 import 'package:roola/ui/explorer/dnd_ready_provider.dart';
@@ -285,6 +292,19 @@ class _DirectoryListing extends HookConsumerWidget {
     final isEmpty = state.children.isEmpty;
     final showParentTile = state.currentPath != '/';
 
+    // キーボード操作（十字キー / Enter）を受けるためのフォーカスと、選択行を
+    // ビューポート内へ送るためのスクロール制御（ADR-0051）。一覧内の
+    // ポインタ押下でこのフォーカスを獲得し、以降は矢印キーで選択を動かせる。
+    final focusNode = useFocusNode();
+    final scrollController = useScrollController();
+    // 行高は密度設定と Skill サブタイトル有無で変わる（ADR-0024 / D6）。
+    // 選択行のスクロール位置を正確に求めるため、ここでも同じ条件で算出する。
+    final density =
+        ref.watch(explorerSettingsProvider).value?.listDensity ??
+        ExplorerListDensity.comfortable;
+    final isCompact = density == ExplorerListDensity.compact;
+    final claudeAvailable = ref.watch(claudeAvailableProvider);
+
     // currentPath が変わったら item selection を解除する。
     ref.listen<String>(
       explorerViewModelProvider(tabId).select((s) => s.currentPath),
@@ -295,7 +315,18 @@ class _DirectoryListing extends HookConsumerWidget {
       },
     );
 
+    final keyHandler = _ExplorerKeyboardNavigator(
+      ref: ref,
+      tabId: tabId,
+      children: state.children,
+      scrollController: scrollController,
+      showParentTile: showParentTile,
+      isCompact: isCompact,
+      claudeAvailable: claudeAvailable,
+    );
+
     final body = CustomScrollView(
+      controller: scrollController,
       // currentPath を含む ValueKey で、ディレクトリ切替時に再生成して
       // スクロール位置を先頭に戻す。
       key: ValueKey('explorer-body:$tabId:${state.currentPath}'),
@@ -337,7 +368,155 @@ class _DirectoryListing extends HookConsumerWidget {
 
     // パスのコピーは `copyPath` コマンド（メニューバー / 設定でカスタマイズ
     // 可能）に統合した（ADR-0033）。旧 C C 連打検出はここで廃止。
-    return body;
+    //
+    // 一覧を Focus で包み、十字キー / Enter で選択を操作できるようにする
+    // （ADR-0051）。Listener はジェスチャーアリーナと独立に pointer down を
+    // 受けるため、タイルのタップ選択と両立しつつフォーカスを獲得できる。
+    return Listener(
+      onPointerDown: (_) => focusNode.requestFocus(),
+      child: Focus(
+        focusNode: focusNode,
+        onKeyEvent: keyHandler.handle,
+        child: body,
+      ),
+    );
+  }
+}
+
+/// 一覧のキーボード操作（ADR-0051）。十字キーで選択を上下に動かし、Enter /
+/// → で開く（ディレクトリは遷移、ファイルは OS デフォルトアプリ）。← で親
+/// ディレクトリへ戻る。選択が画面外に出たら最小限スクロールして見せる。
+///
+/// マウス選択（[ExplorerItemSelection]）と同じ「主選択 1 件」モデルを共有し、
+/// 十字キーは常に単一選択を主選択へ移す。複数選択（Shift+矢印）は対象外。
+class _ExplorerKeyboardNavigator {
+  const _ExplorerKeyboardNavigator({
+    required this.ref,
+    required this.tabId,
+    required this.children,
+    required this.scrollController,
+    required this.showParentTile,
+    required this.isCompact,
+    required this.claudeAvailable,
+  });
+
+  final WidgetRef ref;
+  final String tabId;
+  final List<ExplorerNode> children;
+  final ScrollController scrollController;
+  final bool showParentTile;
+  final bool isCompact;
+  final bool claudeAvailable;
+
+  KeyEventResult handle(FocusNode node, KeyEvent event) {
+    // キーリピート（押しっぱなし）も拾い、長押しで連続スクロールできるように
+    // する。離した（Up）イベントは無視。
+    if (event is! KeyDownEvent && event is! KeyRepeatEvent) {
+      return KeyEventResult.ignored;
+    }
+    final key = event.logicalKey;
+    if (key == LogicalKeyboardKey.arrowDown) {
+      _moveSelection(1);
+      return KeyEventResult.handled;
+    }
+    if (key == LogicalKeyboardKey.arrowUp) {
+      _moveSelection(-1);
+      return KeyEventResult.handled;
+    }
+    if (key == LogicalKeyboardKey.enter ||
+        key == LogicalKeyboardKey.numpadEnter ||
+        key == LogicalKeyboardKey.arrowRight) {
+      // → はディレクトリへの侵入のみ（ファイルでは何もしない）。Enter は
+      // ファイルも開く。
+      _activatePrimary(directoryOnly: key == LogicalKeyboardKey.arrowRight);
+      return KeyEventResult.handled;
+    }
+    if (key == LogicalKeyboardKey.arrowLeft) {
+      ref.read(explorerViewModelProvider(tabId).notifier).goUp();
+      return KeyEventResult.handled;
+    }
+    return KeyEventResult.ignored;
+  }
+
+  /// 主選択を [delta]（+1 / -1）方向へ動かす。未選択なら端から開始する。
+  void _moveSelection(int delta) {
+    if (children.isEmpty) {
+      return;
+    }
+    final selection = ref.read(explorerItemSelectionProvider(tabId));
+    final current = selection.primary == null
+        ? -1
+        : children.indexWhere((n) => n.path == selection.primary);
+    final next = current < 0
+        ? (delta > 0 ? 0 : children.length - 1)
+        : (current + delta).clamp(0, children.length - 1);
+    ref
+        .read(explorerItemSelectionProvider(tabId).notifier)
+        .select(children[next].path);
+    _ensureVisible(next);
+  }
+
+  /// 主選択を開く。ディレクトリは遷移、ファイルは OS デフォルトアプリ。
+  void _activatePrimary({required bool directoryOnly}) {
+    final primary = ref.read(explorerItemSelectionProvider(tabId)).primary;
+    if (primary == null) {
+      return;
+    }
+    final index = children.indexWhere((n) => n.path == primary);
+    if (index < 0) {
+      return;
+    }
+    switch (children[index]) {
+      case ExplorerDirectoryNode(:final path):
+        ref.read(explorerViewModelProvider(tabId).notifier).navigateTo(path);
+      case ExplorerFileNode(:final path):
+        if (directoryOnly) {
+          return;
+        }
+        unawaited(ref.read(fileOpenerProvider).open(path));
+    }
+  }
+
+  /// 行 [index] が画面外なら最小限だけスクロールして見せる。行高は密度設定と
+  /// Skill サブタイトル有無で可変なため、先頭からの累積高で正確に求める
+  /// （[explorerRowHeight] と同じ条件で算出）。
+  void _ensureVisible(int index) {
+    if (!scrollController.hasClients) {
+      return;
+    }
+    var top = PolarisTokens.space1.toDouble();
+    if (showParentTile) {
+      top += explorerRowHeight(isCompact);
+    }
+    for (var i = 0; i < index; i++) {
+      top += _rowHeight(children[i]);
+    }
+    final bottom = top + _rowHeight(children[index]);
+    final position = scrollController.position;
+    final viewTop = position.pixels;
+    final viewBottom = viewTop + position.viewportDimension;
+    final double? target;
+    if (top < viewTop) {
+      target = top;
+    } else if (bottom > viewBottom) {
+      target = bottom - position.viewportDimension;
+    } else {
+      target = null;
+    }
+    if (target != null) {
+      scrollController.jumpTo(
+        target.clamp(position.minScrollExtent, position.maxScrollExtent),
+      );
+    }
+  }
+
+  double _rowHeight(ExplorerNode node) {
+    final hasSkillSubtitle =
+        !isCompact &&
+        node is ExplorerDirectoryNode &&
+        claudeAvailable &&
+        node.skillNames.isNotEmpty;
+    return explorerRowHeight(isCompact, skillSubtitle: hasSkillSubtitle);
   }
 }
 
