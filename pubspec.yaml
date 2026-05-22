@@ -1,5 +1,5 @@
 name: roola
-description: "Roola — Universal terminal launcher for macOS. Browse directories, register one-click launch entries (shell / command / Claude Code Skill), and run them in an in-app PTY terminal."
+description: "Roola — a file explorer built for developers on macOS. Browse your filesystem and launch terminals, commands, and Claude Code skills with one click, in a built-in PTY terminal workspace. For Developers."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev

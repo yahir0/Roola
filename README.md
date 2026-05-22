@@ -5,8 +5,8 @@
 <h1 align="center">Roola</h1>
 
 <p align="center">
-  <strong>Universal terminal launcher for macOS.</strong><br>
-  ファイルをブラウズし、よく使う「ディレクトリ + 動作」をワンクリックで起動できる、アプリ内 PTY ターミナルつきランチャー。
+  <strong>For Developers.</strong><br>
+  目的地へ、一瞬で。ファイル・ターミナル・Claude Code を 1 つに束ねる、開発者のための macOS ファイルエクスプローラ。
 </p>
 
 <p align="center">
@@ -23,9 +23,11 @@
 
 ## Overview (English)
 
-**Roola** is a universal terminal launcher for macOS. Browse your filesystem, register
-frequently-used **"directory + action"** pairs as one-click launchers, and run them
-inside a built-in PTY terminal — without leaving the app.
+**Roola** is a file explorer built for developers on macOS. Browse your filesystem and
+reach your destinations instantly — open a shell, run an arbitrary command, or launch a
+**Claude Code** skill with one click, all scoped to a directory and running inside a
+built-in PTY terminal. Register frequently-used **"directory + action"** pairs once, then
+launch them from the sidebar.
 
 ### Highlights
 
