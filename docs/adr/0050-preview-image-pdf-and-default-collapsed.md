@@ -1,4 +1,4 @@
-# ADR-0050: プレビューに画像 / PDF を追加し、起動時の既定を非表示にする
+# ADR-0050: プレビューに画像 / PDF を追加し、既定非表示 + 選択追従の自動開閉にする
 
 - **Status**: Accepted
 - **Date**: 2026-05-22
@@ -49,8 +49,29 @@ ADR-0046 が「フル機能エディタを内包しない」「`flutter_code_edi
 ### 2. 起動時の既定をパネル非表示にする
 
 - `FilePreviewLayout.initial` を `visible: false` に変更（split 比率 0.6 は維持）
-- ユーザーは pane header のトグルでパネルを開く。表示状態 / 横幅は引き続き
-  per-tab の in-memory（永続化しない / [ADR-0042] と整合）
+- 表示状態 / 横幅は引き続き per-tab の in-memory（永続化しない /
+  [ADR-0042] と整合）
+
+### 3. 主選択の内容に応じてパネルを自動開閉する
+
+ワンクリック（主選択）の対象に応じてプレビューパネルを自動で開閉する。
+
+- **プレビュー可能（text / image / pdf）を選択 → 自動で開く**
+- **それ以外（ディレクトリ / バイナリ / 大きすぎ / 読み込み失敗 / 非選択）
+  → 自動で閉じる**
+
+判定は `FilePreviewContent.isPreviewable`（text / image / pdf のみ true）で行う。
+`ExplorerTabBody` が `filePreviewViewModelProvider(tabId)` を `ref.listen` し、
+解決した内容で `FilePreviewLayoutNotifier.setVisible` を呼ぶ。`ref.listen` に
+よりパネル非表示時も内容 provider が生き続けるため、閉じた状態からの自動
+オープンが効く。ローディング中は据え置き（直前の表示状態を保ってちらつきを
+防ぐ）。
+
+- **ヘッダの手動トグルは残す**。自動開閉に対する一時的な上書きとして共存し、
+  次の選択変更でこの自動判定に再び従う（例: text を選択して開いた後に手動で
+  閉じても、別ファイルをクリックすると再評価される）
+- バイナリ / 大きすぎ / 失敗の placeholder（[ADR-0046]）は、手動トグルで
+  開いたときには引き続き表示される。自動では「開かない（閉じる）」だけ
 
 ## なぜ pdfrx か
 

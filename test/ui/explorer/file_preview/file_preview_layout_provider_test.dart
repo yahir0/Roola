@@ -29,6 +29,21 @@ void main() {
     expect(container.read(filePreviewLayoutProvider('tab-1')).visible, isFalse);
   });
 
+  test('setVisible は明示的に可視状態を設定する（ADR-0050）', () {
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+
+    final notifier = container.read(
+      filePreviewLayoutProvider('tab-1').notifier,
+    );
+
+    notifier.setVisible(visible: true);
+    expect(container.read(filePreviewLayoutProvider('tab-1')).visible, isTrue);
+
+    notifier.setVisible(visible: false);
+    expect(container.read(filePreviewLayoutProvider('tab-1')).visible, isFalse);
+  });
+
   test('setRatio は min/max で丸める', () {
     final container = ProviderContainer();
     addTearDown(container.dispose);

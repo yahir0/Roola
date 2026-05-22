@@ -229,8 +229,8 @@ return failed(_that.path,_that.message);case _:
 /// @nodoc
 
 
-class FilePreviewText implements FilePreviewContent {
-  const FilePreviewText({required this.path, required this.content, required this.language, required this.isTruncated});
+class FilePreviewText extends FilePreviewContent {
+  const FilePreviewText({required this.path, required this.content, required this.language, required this.isTruncated}): super._();
   
 
 @override final  String path;
@@ -301,8 +301,8 @@ as bool,
 /// @nodoc
 
 
-class FilePreviewImage implements FilePreviewContent {
-  const FilePreviewImage({required this.path});
+class FilePreviewImage extends FilePreviewContent {
+  const FilePreviewImage({required this.path}): super._();
   
 
 @override final  String path;
@@ -367,8 +367,8 @@ as String,
 /// @nodoc
 
 
-class FilePreviewPdf implements FilePreviewContent {
-  const FilePreviewPdf({required this.path});
+class FilePreviewPdf extends FilePreviewContent {
+  const FilePreviewPdf({required this.path}): super._();
   
 
 @override final  String path;
@@ -433,8 +433,8 @@ as String,
 /// @nodoc
 
 
-class FilePreviewBinary implements FilePreviewContent {
-  const FilePreviewBinary({required this.path});
+class FilePreviewBinary extends FilePreviewContent {
+  const FilePreviewBinary({required this.path}): super._();
   
 
 @override final  String path;
@@ -499,8 +499,8 @@ as String,
 /// @nodoc
 
 
-class FilePreviewTooLarge implements FilePreviewContent {
-  const FilePreviewTooLarge({required this.path, required this.sizeBytes});
+class FilePreviewTooLarge extends FilePreviewContent {
+  const FilePreviewTooLarge({required this.path, required this.sizeBytes}): super._();
   
 
 @override final  String path;
@@ -567,8 +567,8 @@ as int,
 /// @nodoc
 
 
-class FilePreviewFailed implements FilePreviewContent {
-  const FilePreviewFailed({required this.path, required this.message});
+class FilePreviewFailed extends FilePreviewContent {
+  const FilePreviewFailed({required this.path, required this.message}): super._();
   
 
 @override final  String path;

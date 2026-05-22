@@ -11,6 +11,8 @@ part 'file_preview_content.freezed.dart';
 /// UI 層（`Image.file` / pdfrx）に委ねる。
 @freezed
 sealed class FilePreviewContent with _$FilePreviewContent {
+  const FilePreviewContent._();
+
   /// テキストとして読み出せたファイル。[language] は `flutter_highlight` の
   /// 言語 ID（拡張子 / shebang から判定、未知なら null でプレーンテキスト）。
   /// [isTruncated] が true のとき [content] はファイル先頭の一部だけを含む。
@@ -45,4 +47,12 @@ sealed class FilePreviewContent with _$FilePreviewContent {
     required String path,
     required String message,
   }) = FilePreviewFailed;
+
+  /// プレビュー領域に実際の内容を描画できる種別か（text / image / pdf）。
+  /// バイナリ / 大きすぎ / 失敗は false。選択追従でパネルを自動開閉する
+  /// 判定に使う（ADR-0050）。
+  bool get isPreviewable =>
+      this is FilePreviewText ||
+      this is FilePreviewImage ||
+      this is FilePreviewPdf;
 }

@@ -13,6 +13,7 @@ import 'package:roola/ui/explorer/explorer_path_bar.dart';
 import 'package:roola/ui/explorer/explorer_view_model.dart';
 import 'package:roola/ui/explorer/file_preview/file_preview_layout_provider.dart';
 import 'package:roola/ui/explorer/file_preview/file_preview_pane.dart';
+import 'package:roola/ui/explorer/file_preview/file_preview_view_model.dart';
 import 'package:roola/ui/git/git_view_model.dart';
 import 'package:roola/ui/workspace/current_tab_id_provider.dart';
 import 'package:roola/ui/workspace/workspace_provider.dart';
@@ -40,6 +41,25 @@ class ExplorerTabBody extends ConsumerWidget {
     final state = ref.watch(explorerViewModelProvider(tabId));
     final layout = ref.watch(filePreviewLayoutProvider(tabId));
     final tokens = PolarisTokens.of(context);
+
+    // 主選択の内容に応じてプレビューパネルを自動開閉する（ADR-0050）。
+    // text / image / pdf を選択したら開き、ディレクトリ / バイナリ /
+    // 大きすぎ / 失敗を選択したら閉じる。ローディング中は据え置き
+    // （直前の状態を保ってちらつきを防ぐ）。`ref.listen` は内容 provider を
+    // パネル非表示時も生かし続けるため、閉じた状態からの自動オープンが効く。
+    // ヘッダの手動トグルは一時的な上書きで、次の選択変更でこの自動判定に
+    // 再び従う。
+    ref.listen(filePreviewViewModelProvider(tabId), (_, next) {
+      next.when(
+        data: (content) => ref
+            .read(filePreviewLayoutProvider(tabId).notifier)
+            .setVisible(visible: content?.isPreviewable ?? false),
+        loading: () {},
+        error: (_, _) => ref
+            .read(filePreviewLayoutProvider(tabId).notifier)
+            .setVisible(visible: false),
+      );
+    });
     // 筐体（bg）の中に計器ディスプレイパネル（well）を 1 枚嵌め込む。
     // パネル内は [コントロール行][1px 継ぎ目][一覧（+ プレビュー）] を地続き
     // に並べ、1 個の計器として見せる（ADR-0038 D3）。プレビュー有効時は
