@@ -50,23 +50,25 @@ class DirectoryWatcher {
           controller.close();
           return;
         }
-        sub = dir.watch(recursive: recursive).listen(
-          (event) {
-            if (exclude != null) {
-              final rel = _relativize(path, event.path);
-              if (exclude(rel)) {
-                return;
-              }
-            }
-            emit();
-          },
-          onError: (Object _, StackTrace _) {
-            // 監視ソースが死んだら無理せず Stream を閉じる。フォールバック
-            // のポーリングは入れない（ADR-0041 / 失敗時の挙動）。
-            controller.close();
-          },
-          cancelOnError: true,
-        );
+        sub = dir
+            .watch(recursive: recursive)
+            .listen(
+              (event) {
+                if (exclude != null) {
+                  final rel = _relativize(path, event.path);
+                  if (exclude(rel)) {
+                    return;
+                  }
+                }
+                emit();
+              },
+              onError: (Object _, StackTrace _) {
+                // 監視ソースが死んだら無理せず Stream を閉じる。フォールバック
+                // のポーリングは入れない（ADR-0041 / 失敗時の挙動）。
+                controller.close();
+              },
+              cancelOnError: true,
+            );
       } on FileSystemException {
         controller.close();
       }

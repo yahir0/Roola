@@ -28,9 +28,7 @@ class _FakeRepository extends SystemMetricsRepository {
 
 Widget _app() => ProviderScope(
   overrides: [
-    systemMetricsRepositoryProvider.overrideWithValue(
-      const _FakeRepository(),
-    ),
+    systemMetricsRepositoryProvider.overrideWithValue(const _FakeRepository()),
   ],
   child: const MaterialApp(
     localizationsDelegates: AppLocalizations.localizationsDelegates,

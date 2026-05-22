@@ -232,11 +232,15 @@ class _WideBody extends StatelessWidget {
       children: [
         changesHeader,
         if (changesOpen)
-          Expanded(child: GitChangesSection(tabId: tabId, state: state)),
+          Expanded(
+            child: GitChangesSection(tabId: tabId, state: state),
+          ),
         const Divider(height: 1),
         historyHeader,
         if (historyOpen)
-          Expanded(child: GitHistorySection(tabId: tabId, state: state)),
+          Expanded(
+            child: GitHistorySection(tabId: tabId, state: state),
+          ),
         if (!changesOpen && !historyOpen)
           const Expanded(child: SizedBox.shrink()),
       ],

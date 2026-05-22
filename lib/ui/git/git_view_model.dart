@@ -70,11 +70,7 @@ class GitViewModel extends _$GitViewModel {
   void _startWatch(String repoRoot) {
     _watchSub?.cancel();
     _watchSub = _watcher
-        .watch(
-          repoRoot,
-          recursive: true,
-          exclude: _shouldIgnoreGitPath,
-        )
+        .watch(repoRoot, recursive: true, exclude: _shouldIgnoreGitPath)
         .listen((_) async {
           final current = _current;
           if (current == null || current.isBusy) {
