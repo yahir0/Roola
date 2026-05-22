@@ -39,7 +39,11 @@ class _AboutDialog extends StatelessWidget {
     final colors = Theme.of(context).colorScheme;
     final version = '${packageInfo.version} (${packageInfo.buildNumber})';
     return AlertDialog(
-      icon: Icon(Icons.terminal, size: 48, color: colors.primary),
+      icon: Image.asset(
+        'assets/branding/roola_icon.png',
+        width: 64,
+        height: 64,
+      ),
       title: const Text('Roola'),
       content: Column(
         mainAxisSize: MainAxisSize.min,
