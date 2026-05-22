@@ -44,8 +44,21 @@ TOTAL = 5
 def latin(size, weight=None):
     f = ImageFont.truetype(FONT_LATIN, size)
     if weight is not None:
+        # SFNS.ttf は可変フォント（Width / Optical Size / GRAD / Weight の 4 軸）。
+        # set_variation_by_axes は全軸を順番に渡す必要があるため、軸名で組み立てる。
+        # サイトのワードマーク（SF Pro Display・太字）に合わせ、Weight を指定し
+        # Optical Size を実サイズへ寄せて Display 字形にする（Width/GRAD は既定）。
         try:
-            f.set_variation_by_axes([weight])
+            coords = []
+            for a in f.get_variation_axes():
+                name = a["name"].decode() if isinstance(a["name"], bytes) else a["name"]
+                if name == "Weight":
+                    coords.append(weight)
+                elif name == "Optical Size":
+                    coords.append(min(size, a["maximum"]))
+                else:
+                    coords.append(a["default"])
+            f.set_variation_by_axes(coords)
         except Exception:
             pass
     return f
@@ -117,8 +130,15 @@ def draw_wordmark(draw, cx, y, size, fill):
 
 
 # 常設スローガン。ワードマーク直下にゴールドで置く。
+# サイト hero は textTransform: uppercase + letter-spacing: 0.18em なので、それに合わせる
+# （全大文字「FOR DEVELOPERS.」、字間 0.18em。旧: 混在表記 + 固定 2px ≒ 0.05em で詰まっていた）。
+SLOGAN_TRACK_RATIO = 0.18
+
+
 def draw_slogan(draw, cx, y, size=40):
-    centered_kern(draw, cx, y, "For Developers.", latin(size, weight=560), GOLD, 2)
+    centered_kern(
+        draw, cx, y, "FOR DEVELOPERS.", latin(size, weight=560), GOLD, size * SLOGAN_TRACK_RATIO
+    )
 
 
 def base_canvas():
@@ -197,15 +217,16 @@ def slide_cover():
     img.alpha_composite(icon, (ix, iy))
 
     d = ImageDraw.Draw(img)
-    draw_wordmark(d, cx, 624, 124, TEXT)
-    draw_slogan(d, cx, 756, 40)
-    d.rounded_rectangle([cx - 44, 832, cx + 44, 836], radius=2, fill=GOLD)
+    # HP のヒーローと同じ順序: アイコン → FOR DEVELOPERS.（小・ゴールド）→ Roola → 目的地へ…
+    # スローガンはワードマークの上に小さく置く。HP に無い金色の区切り線は引かない。
+    draw_slogan(d, cx, 596, 26)
+    draw_wordmark(d, cx, 640, 124, TEXT)
 
-    centered_kern(d, cx, 872, "目的地へ、一瞬で。", ja(48, bold=True), TEXT, 3)
-    centered_kern(d, cx, 952, "ファイル・ターミナル・Claude Code を、ワンクリックで。", ja(27), TEXT_DIM, 1)
+    centered_kern(d, cx, 832, "目的地へ、一瞬で。", ja(48, bold=True), TEXT, 3)
+    centered_kern(d, cx, 912, "ファイル・ターミナル・コマンドを、ワンクリックで。", ja(27), TEXT_DIM, 1)
 
     # スワイプ誘導
-    centered_kern(d, cx, 1108, "スワイプで機能紹介  →", ja(30, bold=True), GOLD, 2)
+    centered_kern(d, cx, 1100, "スワイプで機能紹介  →", ja(30, bold=True), GOLD, 2)
     page_dots(img, 0)
     img.convert("RGB").save(os.path.join(OUT, "01_cover.png"))
     print("wrote 01_cover.png")
