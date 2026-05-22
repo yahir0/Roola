@@ -82,11 +82,12 @@ final activityTopProcessesProvider = FutureProvider.autoDispose
       final processes = await ref
           .read(systemMetricsRepositoryProvider)
           .fetchProcesses();
-      final sorted = [...processes]..sort(
-        (a, b) => switch (sortKey) {
-          ProcessSortKey.cpu => b.cpuPercent.compareTo(a.cpuPercent),
-          ProcessSortKey.memory => b.memoryBytes.compareTo(a.memoryBytes),
-        },
-      );
+      final sorted = [...processes]
+        ..sort(
+          (a, b) => switch (sortKey) {
+            ProcessSortKey.cpu => b.cpuPercent.compareTo(a.cpuPercent),
+            ProcessSortKey.memory => b.memoryBytes.compareTo(a.memoryBytes),
+          },
+        );
       return sorted.take(activityTopProcessLimit).toList();
     });

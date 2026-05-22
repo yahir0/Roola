@@ -29,7 +29,6 @@ abstract class SystemMetrics with _$SystemMetrics {
   );
 
   /// メモリ使用率（0–100）。総容量が不明なときは 0。
-  double get memoryPercent => memoryTotalBytes <= 0
-      ? 0
-      : memoryUsedBytes / memoryTotalBytes * 100;
+  double get memoryPercent =>
+      memoryTotalBytes <= 0 ? 0 : memoryUsedBytes / memoryTotalBytes * 100;
 }

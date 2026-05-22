@@ -41,7 +41,8 @@ void main() {
   ProviderContainer makeContainer({
     Map<String, FilePreviewContent>? responses,
   }) {
-    final stubbed = responses ??
+    final stubbed =
+        responses ??
         {
           textFile.path: FilePreviewContent.text(
             path: textFile.path,
@@ -80,9 +81,9 @@ void main() {
         ),
       },
     );
-    container.read(explorerItemSelectionProvider('tab-1').notifier).select(
-      subDir.path,
-    );
+    container
+        .read(explorerItemSelectionProvider('tab-1').notifier)
+        .select(subDir.path);
 
     final value = await container.read(
       filePreviewViewModelProvider('tab-1').future,
@@ -93,9 +94,9 @@ void main() {
 
   test('主選択がファイルのとき repository.load を呼んで結果を返す', () async {
     final container = makeContainer();
-    container.read(explorerItemSelectionProvider('tab-1').notifier).select(
-      textFile.path,
-    );
+    container
+        .read(explorerItemSelectionProvider('tab-1').notifier)
+        .select(textFile.path);
 
     final value = await container.read(
       filePreviewViewModelProvider('tab-1').future,
@@ -109,9 +110,9 @@ void main() {
 
   test('reload() で再取得される', () async {
     final container = makeContainer();
-    container.read(explorerItemSelectionProvider('tab-1').notifier).select(
-      textFile.path,
-    );
+    container
+        .read(explorerItemSelectionProvider('tab-1').notifier)
+        .select(textFile.path);
 
     // `.future` を read だけしてしまうと subscription が即切れて autoDispose
     // が走り、reload 後の再 build と subscribe のタイミングがずれて null が
@@ -137,9 +138,9 @@ void main() {
 
   test('別タブの主選択は独立している（family の分離）', () async {
     final container = makeContainer();
-    container.read(explorerItemSelectionProvider('tab-A').notifier).select(
-      textFile.path,
-    );
+    container
+        .read(explorerItemSelectionProvider('tab-A').notifier)
+        .select(textFile.path);
 
     final a = await container.read(
       filePreviewViewModelProvider('tab-A').future,

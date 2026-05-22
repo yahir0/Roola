@@ -52,9 +52,7 @@ class ActivityMonitorPopover extends ConsumerWidget {
               data: (list) => list.isEmpty
                   ? _EmptyMessage(message: l10n.activityMonitorEmpty)
                   : Column(
-                      children: [
-                        for (final p in list) _ProcessRow(process: p),
-                      ],
+                      children: [for (final p in list) _ProcessRow(process: p)],
                     ),
               // 取得中は空の枠を出す（スピナーは出さない / ADR-0038 D7）。
               loading: () => const SizedBox(height: PolarisTokens.space6),
@@ -82,10 +80,7 @@ class _Header extends StatelessWidget {
         horizontal: PolarisTokens.space3,
         vertical: PolarisTokens.space2,
       ),
-      child: Text(
-        title,
-        style: tokens.label.copyWith(color: tokens.textFaint),
-      ),
+      child: Text(title, style: tokens.label.copyWith(color: tokens.textFaint)),
     );
   }
 }
