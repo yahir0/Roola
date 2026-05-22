@@ -902,11 +902,17 @@ abstract class AppLocalizations {
   /// **'再読込'**
   String get filePreviewRefreshTooltip;
 
-  /// No description provided for @filePreviewToggleTooltip.
+  /// No description provided for @filePreviewImageError.
   ///
   /// In ja, this message translates to:
-  /// **'プレビューパネルの表示切替'**
-  String get filePreviewToggleTooltip;
+  /// **'画像を表示できません'**
+  String get filePreviewImageError;
+
+  /// No description provided for @filePreviewPdfError.
+  ///
+  /// In ja, this message translates to:
+  /// **'PDF を表示できません'**
+  String get filePreviewPdfError;
 
   /// No description provided for @explorerPropertyTitle.
   ///

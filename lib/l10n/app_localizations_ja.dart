@@ -446,7 +446,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get filePreviewRefreshTooltip => '再読込';
 
   @override
-  String get filePreviewToggleTooltip => 'プレビューパネルの表示切替';
+  String get filePreviewImageError => '画像を表示できません';
+
+  @override
+  String get filePreviewPdfError => 'PDF を表示できません';
 
   @override
   String get explorerPropertyTitle => 'プロパティ';

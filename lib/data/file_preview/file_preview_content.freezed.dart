@@ -86,11 +86,13 @@ extension FilePreviewContentPatterns on FilePreviewContent {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( FilePreviewText value)?  text,TResult Function( FilePreviewBinary value)?  binary,TResult Function( FilePreviewTooLarge value)?  tooLarge,TResult Function( FilePreviewFailed value)?  failed,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( FilePreviewText value)?  text,TResult Function( FilePreviewImage value)?  image,TResult Function( FilePreviewPdf value)?  pdf,TResult Function( FilePreviewBinary value)?  binary,TResult Function( FilePreviewTooLarge value)?  tooLarge,TResult Function( FilePreviewFailed value)?  failed,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
 case FilePreviewText() when text != null:
-return text(_that);case FilePreviewBinary() when binary != null:
+return text(_that);case FilePreviewImage() when image != null:
+return image(_that);case FilePreviewPdf() when pdf != null:
+return pdf(_that);case FilePreviewBinary() when binary != null:
 return binary(_that);case FilePreviewTooLarge() when tooLarge != null:
 return tooLarge(_that);case FilePreviewFailed() when failed != null:
 return failed(_that);case _:
@@ -111,11 +113,13 @@ return failed(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( FilePreviewText value)  text,required TResult Function( FilePreviewBinary value)  binary,required TResult Function( FilePreviewTooLarge value)  tooLarge,required TResult Function( FilePreviewFailed value)  failed,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( FilePreviewText value)  text,required TResult Function( FilePreviewImage value)  image,required TResult Function( FilePreviewPdf value)  pdf,required TResult Function( FilePreviewBinary value)  binary,required TResult Function( FilePreviewTooLarge value)  tooLarge,required TResult Function( FilePreviewFailed value)  failed,}){
 final _that = this;
 switch (_that) {
 case FilePreviewText():
-return text(_that);case FilePreviewBinary():
+return text(_that);case FilePreviewImage():
+return image(_that);case FilePreviewPdf():
+return pdf(_that);case FilePreviewBinary():
 return binary(_that);case FilePreviewTooLarge():
 return tooLarge(_that);case FilePreviewFailed():
 return failed(_that);}
@@ -132,11 +136,13 @@ return failed(_that);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( FilePreviewText value)?  text,TResult? Function( FilePreviewBinary value)?  binary,TResult? Function( FilePreviewTooLarge value)?  tooLarge,TResult? Function( FilePreviewFailed value)?  failed,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( FilePreviewText value)?  text,TResult? Function( FilePreviewImage value)?  image,TResult? Function( FilePreviewPdf value)?  pdf,TResult? Function( FilePreviewBinary value)?  binary,TResult? Function( FilePreviewTooLarge value)?  tooLarge,TResult? Function( FilePreviewFailed value)?  failed,}){
 final _that = this;
 switch (_that) {
 case FilePreviewText() when text != null:
-return text(_that);case FilePreviewBinary() when binary != null:
+return text(_that);case FilePreviewImage() when image != null:
+return image(_that);case FilePreviewPdf() when pdf != null:
+return pdf(_that);case FilePreviewBinary() when binary != null:
 return binary(_that);case FilePreviewTooLarge() when tooLarge != null:
 return tooLarge(_that);case FilePreviewFailed() when failed != null:
 return failed(_that);case _:
@@ -156,10 +162,12 @@ return failed(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( String path,  String content,  String? language,  bool isTruncated)?  text,TResult Function( String path)?  binary,TResult Function( String path,  int sizeBytes)?  tooLarge,TResult Function( String path,  String message)?  failed,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( String path,  String content,  String? language,  bool isTruncated)?  text,TResult Function( String path)?  image,TResult Function( String path)?  pdf,TResult Function( String path)?  binary,TResult Function( String path,  int sizeBytes)?  tooLarge,TResult Function( String path,  String message)?  failed,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case FilePreviewText() when text != null:
-return text(_that.path,_that.content,_that.language,_that.isTruncated);case FilePreviewBinary() when binary != null:
+return text(_that.path,_that.content,_that.language,_that.isTruncated);case FilePreviewImage() when image != null:
+return image(_that.path);case FilePreviewPdf() when pdf != null:
+return pdf(_that.path);case FilePreviewBinary() when binary != null:
 return binary(_that.path);case FilePreviewTooLarge() when tooLarge != null:
 return tooLarge(_that.path,_that.sizeBytes);case FilePreviewFailed() when failed != null:
 return failed(_that.path,_that.message);case _:
@@ -180,10 +188,12 @@ return failed(_that.path,_that.message);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( String path,  String content,  String? language,  bool isTruncated)  text,required TResult Function( String path)  binary,required TResult Function( String path,  int sizeBytes)  tooLarge,required TResult Function( String path,  String message)  failed,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( String path,  String content,  String? language,  bool isTruncated)  text,required TResult Function( String path)  image,required TResult Function( String path)  pdf,required TResult Function( String path)  binary,required TResult Function( String path,  int sizeBytes)  tooLarge,required TResult Function( String path,  String message)  failed,}) {final _that = this;
 switch (_that) {
 case FilePreviewText():
-return text(_that.path,_that.content,_that.language,_that.isTruncated);case FilePreviewBinary():
+return text(_that.path,_that.content,_that.language,_that.isTruncated);case FilePreviewImage():
+return image(_that.path);case FilePreviewPdf():
+return pdf(_that.path);case FilePreviewBinary():
 return binary(_that.path);case FilePreviewTooLarge():
 return tooLarge(_that.path,_that.sizeBytes);case FilePreviewFailed():
 return failed(_that.path,_that.message);}
@@ -200,10 +210,12 @@ return failed(_that.path,_that.message);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( String path,  String content,  String? language,  bool isTruncated)?  text,TResult? Function( String path)?  binary,TResult? Function( String path,  int sizeBytes)?  tooLarge,TResult? Function( String path,  String message)?  failed,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( String path,  String content,  String? language,  bool isTruncated)?  text,TResult? Function( String path)?  image,TResult? Function( String path)?  pdf,TResult? Function( String path)?  binary,TResult? Function( String path,  int sizeBytes)?  tooLarge,TResult? Function( String path,  String message)?  failed,}) {final _that = this;
 switch (_that) {
 case FilePreviewText() when text != null:
-return text(_that.path,_that.content,_that.language,_that.isTruncated);case FilePreviewBinary() when binary != null:
+return text(_that.path,_that.content,_that.language,_that.isTruncated);case FilePreviewImage() when image != null:
+return image(_that.path);case FilePreviewPdf() when pdf != null:
+return pdf(_that.path);case FilePreviewBinary() when binary != null:
 return binary(_that.path);case FilePreviewTooLarge() when tooLarge != null:
 return tooLarge(_that.path,_that.sizeBytes);case FilePreviewFailed() when failed != null:
 return failed(_that.path,_that.message);case _:
@@ -217,8 +229,8 @@ return failed(_that.path,_that.message);case _:
 /// @nodoc
 
 
-class FilePreviewText implements FilePreviewContent {
-  const FilePreviewText({required this.path, required this.content, required this.language, required this.isTruncated});
+class FilePreviewText extends FilePreviewContent {
+  const FilePreviewText({required this.path, required this.content, required this.language, required this.isTruncated}): super._();
   
 
 @override final  String path;
@@ -289,8 +301,140 @@ as bool,
 /// @nodoc
 
 
-class FilePreviewBinary implements FilePreviewContent {
-  const FilePreviewBinary({required this.path});
+class FilePreviewImage extends FilePreviewContent {
+  const FilePreviewImage({required this.path}): super._();
+  
+
+@override final  String path;
+
+/// Create a copy of FilePreviewContent
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$FilePreviewImageCopyWith<FilePreviewImage> get copyWith => _$FilePreviewImageCopyWithImpl<FilePreviewImage>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is FilePreviewImage&&(identical(other.path, path) || other.path == path));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,path);
+
+@override
+String toString() {
+  return 'FilePreviewContent.image(path: $path)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $FilePreviewImageCopyWith<$Res> implements $FilePreviewContentCopyWith<$Res> {
+  factory $FilePreviewImageCopyWith(FilePreviewImage value, $Res Function(FilePreviewImage) _then) = _$FilePreviewImageCopyWithImpl;
+@override @useResult
+$Res call({
+ String path
+});
+
+
+
+
+}
+/// @nodoc
+class _$FilePreviewImageCopyWithImpl<$Res>
+    implements $FilePreviewImageCopyWith<$Res> {
+  _$FilePreviewImageCopyWithImpl(this._self, this._then);
+
+  final FilePreviewImage _self;
+  final $Res Function(FilePreviewImage) _then;
+
+/// Create a copy of FilePreviewContent
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? path = null,}) {
+  return _then(FilePreviewImage(
+path: null == path ? _self.path : path // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+
+}
+
+/// @nodoc
+
+
+class FilePreviewPdf extends FilePreviewContent {
+  const FilePreviewPdf({required this.path}): super._();
+  
+
+@override final  String path;
+
+/// Create a copy of FilePreviewContent
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$FilePreviewPdfCopyWith<FilePreviewPdf> get copyWith => _$FilePreviewPdfCopyWithImpl<FilePreviewPdf>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is FilePreviewPdf&&(identical(other.path, path) || other.path == path));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,path);
+
+@override
+String toString() {
+  return 'FilePreviewContent.pdf(path: $path)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $FilePreviewPdfCopyWith<$Res> implements $FilePreviewContentCopyWith<$Res> {
+  factory $FilePreviewPdfCopyWith(FilePreviewPdf value, $Res Function(FilePreviewPdf) _then) = _$FilePreviewPdfCopyWithImpl;
+@override @useResult
+$Res call({
+ String path
+});
+
+
+
+
+}
+/// @nodoc
+class _$FilePreviewPdfCopyWithImpl<$Res>
+    implements $FilePreviewPdfCopyWith<$Res> {
+  _$FilePreviewPdfCopyWithImpl(this._self, this._then);
+
+  final FilePreviewPdf _self;
+  final $Res Function(FilePreviewPdf) _then;
+
+/// Create a copy of FilePreviewContent
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? path = null,}) {
+  return _then(FilePreviewPdf(
+path: null == path ? _self.path : path // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+
+}
+
+/// @nodoc
+
+
+class FilePreviewBinary extends FilePreviewContent {
+  const FilePreviewBinary({required this.path}): super._();
   
 
 @override final  String path;
@@ -355,8 +499,8 @@ as String,
 /// @nodoc
 
 
-class FilePreviewTooLarge implements FilePreviewContent {
-  const FilePreviewTooLarge({required this.path, required this.sizeBytes});
+class FilePreviewTooLarge extends FilePreviewContent {
+  const FilePreviewTooLarge({required this.path, required this.sizeBytes}): super._();
   
 
 @override final  String path;
@@ -423,8 +567,8 @@ as int,
 /// @nodoc
 
 
-class FilePreviewFailed implements FilePreviewContent {
-  const FilePreviewFailed({required this.path, required this.message});
+class FilePreviewFailed extends FilePreviewContent {
+  const FilePreviewFailed({required this.path, required this.message}): super._();
   
 
 @override final  String path;

@@ -29,21 +29,42 @@ class FilePreviewRepository {
   /// 以下のファイルは先頭 1 MiB だけ読み `isTruncated:true` で返す。
   static const int _truncateThresholdBytes = 1 * 1024 * 1024;
 
+  /// 画像として扱う拡張子（小文字・ドット無し / ADR-0050）。Flutter の
+  /// `Image.file`（dart:ui のデコーダ）が対応する一般的なフォーマットに絞る。
+  static const Set<String> _imageExtensions = {
+    'png',
+    'jpg',
+    'jpeg',
+    'gif',
+    'webp',
+    'bmp',
+    'wbmp',
+  };
+
   /// [path] のファイルを読み [FilePreviewContent] として返す。
   ///
   /// 言語判定は呼び出し側の責務（UI 層 `language_detector.dart`）。本メソッド
   /// はテキスト判定とサイズ制限のみを担当し、`language` には null を入れて
   /// 返す（呼び出し側で詰める）。
   Future<FilePreviewContent> load(String path) async {
+    // 画像 / PDF は拡張子で判定し、内容は読まずにパスだけ返す（ADR-0050）。
+    // デコード / レンダリングは UI 層に委ね、テキスト用のサイズ制限・
+    // バイナリ判定は適用しない（ファイルが存在しない場合は UI 側の
+    // errorBuilder / pdfrx のエラー表示が受け止める）。
+    final ext = _extensionOf(path);
+    if (_imageExtensions.contains(ext)) {
+      return FilePreviewContent.image(path: path);
+    }
+    if (ext == 'pdf') {
+      return FilePreviewContent.pdf(path: path);
+    }
+
     final file = File(path);
     final int sizeBytes;
     try {
       sizeBytes = await file.length();
     } on FileSystemException catch (e) {
-      return FilePreviewContent.failed(
-        path: path,
-        message: e.message,
-      );
+      return FilePreviewContent.failed(path: path, message: e.message);
     }
 
     if (sizeBytes > _rejectThresholdBytes) {
@@ -62,10 +83,7 @@ class FilePreviewRepository {
         await raf.close();
       }
     } on FileSystemException catch (e) {
-      return FilePreviewContent.failed(
-        path: path,
-        message: e.message,
-      );
+      return FilePreviewContent.failed(path: path, message: e.message);
     }
 
     if (_containsNullByte(headBytes)) {
@@ -83,10 +101,7 @@ class FilePreviewRepository {
       try {
         bodyBytes = await file.readAsBytes();
       } on FileSystemException catch (e) {
-        return FilePreviewContent.failed(
-          path: path,
-          message: e.message,
-        );
+        return FilePreviewContent.failed(path: path, message: e.message);
       }
       isTruncated = false;
     } else {
@@ -99,10 +114,7 @@ class FilePreviewRepository {
           await raf.close();
         }
       } on FileSystemException catch (e) {
-        return FilePreviewContent.failed(
-          path: path,
-          message: e.message,
-        );
+        return FilePreviewContent.failed(path: path, message: e.message);
       }
       isTruncated = true;
     }
@@ -123,6 +135,16 @@ class FilePreviewRepository {
       language: null,
       isTruncated: isTruncated,
     );
+  }
+
+  /// パスの拡張子を小文字・ドット無しで返す（拡張子なしは空文字）。
+  static String _extensionOf(String path) {
+    final lastSlash = path.lastIndexOf('/');
+    final name = lastSlash >= 0 ? path.substring(lastSlash + 1) : path;
+    final dot = name.lastIndexOf('.');
+    // 先頭ドット（dotfile）や末尾ドットは拡張子と見なさない。
+    if (dot <= 0 || dot == name.length - 1) return '';
+    return name.substring(dot + 1).toLowerCase();
   }
 
   /// バイナリ判定: 先頭バイト列に NUL（`0x00`）を含むか。

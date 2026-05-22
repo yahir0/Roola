@@ -182,7 +182,8 @@
   },
   "filePreviewTruncated": "Showing the beginning of the file only",
   "filePreviewRefreshTooltip": "Reload",
-  "filePreviewToggleTooltip": "Toggle preview panel",
+  "filePreviewImageError": "Cannot display this image",
+  "filePreviewPdfError": "Cannot display this PDF",
 
   "explorerPropertyTitle": "Properties",
   "explorerPropertyPathNotFound": "Target does not exist: {path}",

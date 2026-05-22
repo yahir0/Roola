@@ -463,7 +463,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get filePreviewRefreshTooltip => 'Reload';
 
   @override
-  String get filePreviewToggleTooltip => 'Toggle preview panel';
+  String get filePreviewImageError => 'Cannot display this image';
+
+  @override
+  String get filePreviewPdfError => 'Cannot display this PDF';
 
   @override
   String get explorerPropertyTitle => 'Properties';

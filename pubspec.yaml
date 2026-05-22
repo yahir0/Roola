@@ -65,6 +65,11 @@ dependencies:
   # Polaris トークンから組み立てた Map<String, TextStyle> を渡す。
   flutter_highlight: ^0.7.0
 
+  # プレビューパネルの PDF 描画用（ADR-0050）。macOS は PDFium XCFramework を
+  # CocoaPods 経由でリンクする。読み取り専用ビューア（スクロール / ズーム /
+  # テキスト選択）として利用し、編集機能は使わない。
+  pdfrx: ^2.4.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
