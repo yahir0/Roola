@@ -52,9 +52,6 @@ class FilePreviewLayoutNotifier extends _$FilePreviewLayoutNotifier {
   @override
   FilePreviewLayout build(String tabId) => FilePreviewLayout.initial;
 
-  /// 可視状態をトグルする（pane header の表示切替ボタンが呼ぶ）。
-  void toggleVisible() => state = state.copyWith(visible: !state.visible);
-
   /// 可視状態を明示的に設定する。主選択の内容に応じた自動開閉が呼ぶ
   /// （ADR-0050）。同値なら no-op で無駄な再評価を避ける。
   void setVisible({required bool visible}) {

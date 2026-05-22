@@ -194,46 +194,16 @@ class _PaneHeader extends ConsumerWidget {
             onPressed: notifier.goUp,
           ),
           // パスバー前後の余白は space1（4px）まで詰める。3 ペイン × タブの
-          // 狭い構成では Explorer ペインが横半分しか無く、トグルボタンを
-          // 追加すると space2（8px）×2 ぶんが overflow を生むため
-          // （ADR-0046 で 5px overflow が観測されたため詰めた）。
+          // 狭い構成では Explorer ペインが横半分しか無く、余白を空けると
+          // overflow しやすいため（ADR-0046 で 5px overflow が観測された）。
           const SizedBox(width: PolarisTokens.space1),
           Expanded(
             child: ExplorerPathBar(tabId: tabId, currentPath: currentPath),
           ),
           const SizedBox(width: PolarisTokens.space1),
-          _PreviewToggleButton(tabId: tabId),
           _OpenGitButton(currentPath: currentPath),
         ],
       ),
-    );
-  }
-}
-
-/// プレビューパネルの可視状態をトグルするツールバーボタン（ADR-0046）。
-/// 現在の表示状態でアイコンを切替え、tooltip に統一文言を出す。
-class _PreviewToggleButton extends ConsumerWidget {
-  const _PreviewToggleButton({required this.tabId});
-
-  final String tabId;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final visible = ref.watch(
-      filePreviewLayoutProvider(tabId).select((s) => s.visible),
-    );
-    final l10n = AppLocalizations.of(context);
-    return IconButton(
-      icon: Icon(
-        visible ? Icons.vertical_split_rounded : Icons.crop_square_rounded,
-        size: PolarisIconSize.standard,
-      ),
-      tooltip: l10n.filePreviewToggleTooltip,
-      visualDensity: VisualDensity.compact,
-      padding: EdgeInsets.zero,
-      constraints: const BoxConstraints.tightFor(width: 28, height: 28),
-      onPressed: () =>
-          ref.read(filePreviewLayoutProvider(tabId).notifier).toggleVisible(),
     );
   }
 }

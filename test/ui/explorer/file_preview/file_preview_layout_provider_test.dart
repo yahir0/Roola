@@ -13,22 +13,6 @@ void main() {
     expect(layout.ratio, 0.6);
   });
 
-  test('toggleVisible で表示 ↔ 非表示が切り替わる', () {
-    final container = ProviderContainer();
-    addTearDown(container.dispose);
-
-    final notifier = container.read(
-      filePreviewLayoutProvider('tab-1').notifier,
-    );
-    notifier.toggleVisible();
-
-    expect(container.read(filePreviewLayoutProvider('tab-1')).visible, isTrue);
-
-    notifier.toggleVisible();
-
-    expect(container.read(filePreviewLayoutProvider('tab-1')).visible, isFalse);
-  });
-
   test('setVisible は明示的に可視状態を設定する（ADR-0050）', () {
     final container = ProviderContainer();
     addTearDown(container.dispose);

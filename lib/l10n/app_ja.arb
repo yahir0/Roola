@@ -182,7 +182,6 @@
   },
   "filePreviewTruncated": "先頭部分のみ表示しています",
   "filePreviewRefreshTooltip": "再読込",
-  "filePreviewToggleTooltip": "プレビューパネルの表示切替",
   "filePreviewImageError": "画像を表示できません",
   "filePreviewPdfError": "PDF を表示できません",
 
