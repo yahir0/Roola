@@ -299,7 +299,7 @@ if __name__ == "__main__":
         ["「ディレクトリ + 動作」をサイドバーに登録。", "シェル / 任意コマンド / Claude Code"],
         os.path.join(IMG, "launcher.png"), "03_launcher.png",
         # サイドバーの LAUNCHER + RUNNING をアップにする
-        crop=(88, 780, 545, 1545), shot_w=440, shot_top=418,
+        crop=(95, 850, 540, 1560), shot_w=440, shot_top=418,
     )
     feature_slide(
         3, "GIT", "Git も内蔵ビューで",
