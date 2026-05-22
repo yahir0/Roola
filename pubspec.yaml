@@ -123,6 +123,9 @@ flutter:
   # アセットから読み込んで `LicenseRegistry.addLicense()` する（ADR-0040）。
   assets:
     - assets/licenses/
+    # ブランドシンボル（About ダイアログ等のアプリ内表示用）。アプリアイコン
+    # は macOS の AppIcon.appiconset 側。両者の起点は branding/roola_icon_master.png。
+    - assets/branding/
 
   # To add assets to your application, add an assets section, like this:
   # assets:
