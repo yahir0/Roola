@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/painting.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:roola/data/file_preview/file_preview_content.dart';
 import 'package:roola/data/file_preview/file_preview_repository.dart';
@@ -58,7 +59,16 @@ class FilePreviewViewModel extends _$FilePreviewViewModel {
 
   /// 現在の主選択を強制的に再読込する。パネル右上のリフレッシュアイコンが
   /// 呼ぶ（ADR-0046 / Decision 8）。
+  ///
+  /// 画像は Flutter の [ImageCache] がパス（と scale）単位でデコード結果を
+  /// 保持するため、`invalidateSelf` だけでは同じパスのまま中身が差し替わった
+  /// 画像が古いキャッシュのまま返り続ける（ADR-0050）。再 build の前に該当
+  /// エントリをキャッシュから追い出し、最新の内容で再デコードさせる。
   Future<void> reload() async {
+    final current = state.asData?.value;
+    if (current is FilePreviewImage) {
+      await FileImage(File(current.path)).evict();
+    }
     ref.invalidateSelf();
   }
 }
