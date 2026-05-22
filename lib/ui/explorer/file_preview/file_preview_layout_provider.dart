@@ -4,15 +4,12 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'file_preview_layout_provider.g.dart';
 
 /// Explorer タブごとのプレビューパネルの可視状態 + split 比率
-/// （ADR-0046 / Decision 7）。
+/// （ADR-0046 / Decision 7、既定の可視状態は ADR-0050 で変更）。
 ///
-/// 永続化しない。アプリ再起動で既定（表示 ON / ratio 0.6）に戻る。
+/// 永続化しない。アプリ再起動で既定（非表示 / ratio 0.6）に戻る。
 @immutable
 class FilePreviewLayout {
-  const FilePreviewLayout({
-    required this.visible,
-    required this.ratio,
-  });
+  const FilePreviewLayout({required this.visible, required this.ratio});
 
   /// パネルを描画するか。false ならディレクトリ一覧がタブ body 全幅を占める。
   final bool visible;
@@ -21,9 +18,10 @@ class FilePreviewLayout {
   /// `ratio = 0.6` なら一覧 60% / プレビュー 40%。
   final double ratio;
 
-  /// 既定の状態（表示 ON / 6:4）。
+  /// 既定の状態（非表示 / 6:4）。起動直後はパネルを閉じておき、ユーザーが
+  /// pane header のトグルで開く（ADR-0050）。
   static const FilePreviewLayout initial = FilePreviewLayout(
-    visible: true,
+    visible: false,
     ratio: 0.6,
   );
 

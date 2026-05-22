@@ -25,6 +25,32 @@ void main() {
     return f;
   }
 
+  test('画像拡張子は内容を読まず FilePreviewImage を返す（ADR-0050）', () async {
+    // 中身はテキストでも拡張子で画像と判定する（デコードは UI 層責務）。
+    final f = makeFile('photo.PNG', 'not really a png'.codeUnits);
+
+    final content = await repo.load(f.path);
+
+    expect(content, isA<FilePreviewImage>());
+    expect((content as FilePreviewImage).path, f.path);
+  });
+
+  test('jpg / jpeg / gif / webp / bmp も FilePreviewImage', () async {
+    for (final name in ['a.jpg', 'b.jpeg', 'c.gif', 'd.webp', 'e.bmp']) {
+      final f = makeFile(name, [0x00, 0x01]);
+      expect(await repo.load(f.path), isA<FilePreviewImage>(), reason: name);
+    }
+  });
+
+  test('pdf 拡張子は FilePreviewPdf を返す（ADR-0050）', () async {
+    final f = makeFile('doc.pdf', 'not really a pdf'.codeUnits);
+
+    final content = await repo.load(f.path);
+
+    expect(content, isA<FilePreviewPdf>());
+    expect((content as FilePreviewPdf).path, f.path);
+  });
+
   test('テキストファイルは FilePreviewText を返し isTruncated:false', () async {
     final f = makeFile('hello.txt', 'hello world\nline 2\n'.codeUnits);
 
@@ -70,7 +96,8 @@ void main() {
   test('16 MiB 超は FilePreviewTooLarge', () async {
     // 真に 16 MiB 超のファイルを作る代わりに sparse 風に書く。
     // 単純に 17 MiB の 'a' を書く（テスト時間に問題ない程度）。
-    final tooBig = Uint8List(17 * 1024 * 1024)..fillRange(0, 17 * 1024 * 1024, 0x61);
+    final tooBig = Uint8List(17 * 1024 * 1024)
+      ..fillRange(0, 17 * 1024 * 1024, 0x61);
     final f = makeFile('huge.txt', tooBig);
 
     final content = await repo.load(f.path);

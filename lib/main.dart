@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:pdfrx/pdfrx.dart';
 import 'package:roola/app/app.dart';
 import 'package:roola/app/license_bootstrap.dart';
 import 'package:roola/core/storage/app_paths.dart';
@@ -12,6 +13,9 @@ import 'package:window_manager/window_manager.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // プレビューパネルの PDF 描画（pdfrx / ADR-0050）。engine API を使う前に
+  // 1 度だけ呼ぶ必要がある。
+  await pdfrxFlutterInitialize();
   await windowManager.ensureInitialized();
 
   // ネイティブ依存（Sparkle / SwiftTerm）のライセンスを LicenseRegistry に

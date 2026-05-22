@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_highlight/flutter_highlight.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:pdfrx/pdfrx.dart';
 import 'package:roola/app/theme.dart';
 import 'package:roola/data/file_preview/file_preview_content.dart';
 import 'package:roola/l10n/app_localizations.dart';
@@ -105,6 +108,8 @@ class _PreviewBody extends StatelessWidget {
     }
     return switch (c) {
       FilePreviewText() => _TextBody(content: c),
+      FilePreviewImage() => _ImageBody(path: c.path),
+      FilePreviewPdf() => _PdfBody(path: c.path),
       FilePreviewBinary() => _MessagePlaceholder(
         icon: Icons.data_object_rounded,
         message: l10n.filePreviewBinary,
@@ -170,6 +175,67 @@ class _TextBody extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// 画像本体（ADR-0050）。`Image.file` をピンチ / ドラッグでパン・ズーム
+/// できる [InteractiveViewer] に載せ、地（`well`）の中央に contain で置く。
+/// デコードに失敗したら（破損 / 未対応エンコード）エラー placeholder を出す。
+class _ImageBody extends StatelessWidget {
+  const _ImageBody({required this.path});
+
+  final String path;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return Padding(
+      padding: const EdgeInsets.all(PolarisTokens.space2),
+      child: InteractiveViewer(
+        maxScale: 8,
+        child: Center(
+          // filterQuality は Image 既定（medium）のまま。拡大時の補間で
+          // 輪郭が過度に滲まない品質。
+          child: Image.file(
+            File(path),
+            errorBuilder: (context, error, stackTrace) => _MessagePlaceholder(
+              icon: Icons.broken_image_outlined,
+              message: l10n.filePreviewImageError,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// PDF 本体（ADR-0050）。pdfrx の [PdfViewer] で読み取り専用表示する
+/// （スクロール / ズーム / テキスト選択は pdfrx 既定の挙動）。地色は
+/// Polaris の `well` に合わせる。読み込み失敗時はエラー placeholder を出す。
+class _PdfBody extends StatelessWidget {
+  const _PdfBody({required this.path});
+
+  final String path;
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = PolarisTokens.of(context);
+    final l10n = AppLocalizations.of(context);
+    return PdfViewer.file(
+      path,
+      // 同じパスの再選択でビューアを作り直さないよう、パスを key にする。
+      key: ValueKey(path),
+      params: PdfViewerParams(
+        backgroundColor: tokens.well,
+        loadingBannerBuilder: (context, bytesDownloaded, totalBytes) =>
+            const _LoadingPlaceholder(),
+        errorBannerBuilder: (context, error, stackTrace, documentRef) =>
+            _MessagePlaceholder(
+              icon: Icons.picture_as_pdf_outlined,
+              message: l10n.filePreviewPdfError,
+            ),
+      ),
     );
   }
 }

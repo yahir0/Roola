@@ -1,7 +1,13 @@
 # ADR-0046: Explorer に読み取り専用ファイルプレビューパネルを追加する
 
-- **Status**: Accepted
+- **Status**: Accepted（一部 [ADR-0050] で変更）
 - **Date**: 2026-05-21
+
+> **Note**: 「スコープはテキスト系のみ（画像 / PDF 非対象）」と「デフォルトは
+> 表示」の 2 点は [ADR-0050] で変更された。画像 / PDF もプレビュー対象に追加し、
+> 起動時の既定は非表示になっている。
+
+[ADR-0050]: 0050-preview-image-pdf-and-default-collapsed.md
 
 ## Context
 
