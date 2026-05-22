@@ -9,6 +9,7 @@ import 'package:roola/data/appearance/appearance_settings_repository_impl.dart';
 import 'package:roola/data/locale/locale_settings_repository_impl.dart';
 import 'package:roola/l10n/app_localizations.dart';
 import 'package:roola/ui/common/mouse_navigation_listener.dart';
+import 'package:roola/ui/explorer/dnd_ready_provider.dart';
 
 /// アプリ最上位の Widget。
 ///
@@ -45,8 +46,13 @@ class App extends ConsumerWidget {
         child: WindowCloseGuard(
           child: _AppearanceLayer(
             appearance: appearance,
-            child: MouseNavigationListener(
-              child: child ?? const SizedBox.shrink(),
+            // 初回フレーム後に OS 連携 DnD を有効化し、起動直後の
+            // engine/view レジストリ確定前に DropRegion 等が登録されて
+            // クラッシュするのを避ける（ADR-0049）。
+            child: DndReadyGate(
+              child: MouseNavigationListener(
+                child: child ?? const SizedBox.shrink(),
+              ),
             ),
           ),
         ),

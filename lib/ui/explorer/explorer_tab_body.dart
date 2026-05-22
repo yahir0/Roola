@@ -6,6 +6,7 @@ import 'package:roola/core/skill/skill_scanner.dart';
 import 'package:roola/data/repo_explorer/explorer_node.dart';
 import 'package:roola/l10n/app_localizations.dart';
 import 'package:roola/ui/common/polaris_display_panel.dart';
+import 'package:roola/ui/explorer/dnd_ready_provider.dart';
 import 'package:roola/ui/explorer/explorer_item_selection.dart';
 import 'package:roola/ui/explorer/explorer_node_tile.dart';
 import 'package:roola/ui/explorer/explorer_path_bar.dart';
@@ -78,10 +79,7 @@ class ExplorerTabBody extends ConsumerWidget {
                   return Row(
                     children: [
                       SizedBox(width: listingWidth, child: listing),
-                      _PreviewSplitter(
-                        tabId: tabId,
-                        usableWidth: usable,
-                      ),
+                      _PreviewSplitter(tabId: tabId, usableWidth: usable),
                       SizedBox(
                         width: previewWidth,
                         child: FilePreviewPane(tabId: tabId),
@@ -122,9 +120,7 @@ class _PreviewSplitter extends ConsumerWidget {
         behavior: HitTestBehavior.opaque,
         onHorizontalDragUpdate: (details) {
           if (usableWidth <= 0) return;
-          final currentRatio = ref
-              .read(filePreviewLayoutProvider(tabId))
-              .ratio;
+          final currentRatio = ref.read(filePreviewLayoutProvider(tabId)).ratio;
           final deltaRatio = details.delta.dx / usableWidth;
           ref
               .read(filePreviewLayoutProvider(tabId).notifier)
@@ -204,25 +200,20 @@ class _PreviewToggleButton extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final visible = ref.watch(
-      filePreviewLayoutProvider(
-        tabId,
-      ).select((s) => s.visible),
+      filePreviewLayoutProvider(tabId).select((s) => s.visible),
     );
     final l10n = AppLocalizations.of(context);
     return IconButton(
       icon: Icon(
-        visible
-            ? Icons.vertical_split_rounded
-            : Icons.crop_square_rounded,
+        visible ? Icons.vertical_split_rounded : Icons.crop_square_rounded,
         size: PolarisIconSize.standard,
       ),
       tooltip: l10n.filePreviewToggleTooltip,
       visualDensity: VisualDensity.compact,
       padding: EdgeInsets.zero,
       constraints: const BoxConstraints.tightFor(width: 28, height: 28),
-      onPressed: () => ref
-          .read(filePreviewLayoutProvider(tabId).notifier)
-          .toggleVisible(),
+      onPressed: () =>
+          ref.read(filePreviewLayoutProvider(tabId).notifier).toggleVisible(),
     );
   }
 }
@@ -376,6 +367,35 @@ class _CurrentDirBackdrop extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isHovering = useState(false);
     final tokens = PolarisTokens.of(context);
+    final content = GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onSecondaryTapDown: (details) {
+        final node = ExplorerDirectoryNode(
+          path: currentPath,
+          name: _basenameOf(currentPath),
+          skillNames: _scanner.scan(currentPath),
+        );
+        showExplorerContextMenu(
+          context,
+          ref,
+          node,
+          details.globalPosition,
+          showRename: false,
+          showCopy: false,
+          showDelete: false,
+        );
+      },
+      child: Container(
+        color: isHovering.value ? tokens.surface : null,
+        child: showEmptyHint
+            ? const _EmptyPlaceholder()
+            : const SizedBox.expand(),
+      ),
+    );
+    // 起動直後は DnD を登録しない（ADR-0049）。
+    if (!ref.watch(dndReadyProvider)) {
+      return content;
+    }
     return DropRegion(
       formats: const [Formats.fileUri],
       hitTestBehavior: HitTestBehavior.opaque,
@@ -386,31 +406,7 @@ class _CurrentDirBackdrop extends HookConsumerWidget {
         isHovering.value = false;
         await performFileDrop(context, ref, event, currentPath);
       },
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onSecondaryTapDown: (details) {
-          final node = ExplorerDirectoryNode(
-            path: currentPath,
-            name: _basenameOf(currentPath),
-            skillNames: _scanner.scan(currentPath),
-          );
-          showExplorerContextMenu(
-            context,
-            ref,
-            node,
-            details.globalPosition,
-            showRename: false,
-            showCopy: false,
-            showDelete: false,
-          );
-        },
-        child: Container(
-          color: isHovering.value ? tokens.surface : null,
-          child: showEmptyHint
-              ? const _EmptyPlaceholder()
-              : const SizedBox.expand(),
-        ),
-      ),
+      child: content,
     );
   }
 
