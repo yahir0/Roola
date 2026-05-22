@@ -109,6 +109,35 @@ final class SystemMetricsProvider {
 }
 
 class MainFlutterWindow: NSWindow {
+  /// メニューバーのショートカット（key equivalent）を、フォーカス中のビュー
+  /// より先に評価する（ADR-0033 / ADR-0052）。
+  ///
+  /// macOS の既定の処理順では、command / control を含むキーは
+  /// 「キーウィンドウの `performKeyEquivalent:`（＝ビュー階層）」が先に処理し、
+  /// ここで消費されるとメインメニューの key equivalent は発火しない
+  /// （Apple「Handling Key Events」/ WWDC 2010-145）。Roola では Flutter
+  /// ビューや SwiftTerm のターミナルビューが command 系キーを
+  /// `performKeyEquivalent:` で横取りするため、ADR-0033 が前提とした
+  /// 「メニューの key equivalent がファーストレスポンダに関係なく発火する」が
+  /// 成立せず、全ショートカットがキー操作では効かなかった（メニュー項目の
+  /// クリックでは発火）。
+  ///
+  /// ここでウィンドウの `performKeyEquivalent` をオーバーライドし、まず
+  /// メインメニューに評価させる。メニューが処理すれば `true` を返してビューへ
+  /// 渡さない。処理しなければ `super` に委ね、従来どおりビュー（ターミナルの
+  /// ⌘C / ⌘V 等）が処理する。メニューに載るのは ⌘⇧C のような修飾付き
+  /// コマンドだけで、テキスト編集用に予約した ⌘C / ⌘V / ⌘X / ⌘A / ⌘Z
+  /// （ADR-0035）はメニュー項目を持たないため、テキスト入力やターミナルの
+  /// コピー＆ペーストを奪うことはない。レコーダ表示中はメニュー側の key
+  /// equivalent が外れる（`AppMenuBar`）ので、ここでも素通りしてレコーダが
+  /// キーを受け取れる。
+  override func performKeyEquivalent(with event: NSEvent) -> Bool {
+    if NSApp.mainMenu?.performKeyEquivalent(with: event) == true {
+      return true
+    }
+    return super.performKeyEquivalent(with: event)
+  }
+
   override func awakeFromNib() {
     let flutterViewController = FlutterViewController()
     let windowFrame = self.frame
