@@ -23,6 +23,7 @@ import 'package:roola/ui/common/polaris_dialog.dart';
 import 'package:roola/ui/common/polaris_glyphs.dart';
 import 'package:roola/ui/common/prompt_name_dialog.dart';
 import 'package:roola/ui/common/session_state_icon.dart';
+import 'package:roola/ui/explorer/dnd_ready_provider.dart';
 import 'package:roola/ui/explorer/explorer_node_tile.dart'
     show decideDropOperation, performFileDrop;
 import 'package:roola/ui/explorer/launcher_actions.dart';
@@ -415,12 +416,7 @@ class _SidebarRow extends StatelessWidget {
           // 行は固定高さ。中身（アイコン 18px）は中央寄せになる。詰まり／
           // 広がりをパディングで微調整せず、グリッド値の行高で決める。
           height: PolarisTokens.space7,
-          padding: const EdgeInsets.fromLTRB(
-            16,
-            0,
-            PolarisTokens.space4,
-            0,
-          ),
+          padding: const EdgeInsets.fromLTRB(16, 0, PolarisTokens.space4, 0),
           child: Row(
             children: [
               icon,
@@ -465,9 +461,7 @@ class _OpenOtherFolderTile extends ConsumerWidget {
       },
       child: Container(
         height: PolarisTokens.space7,
-        padding: const EdgeInsets.symmetric(
-          horizontal: PolarisTokens.space4,
-        ),
+        padding: const EdgeInsets.symmetric(horizontal: PolarisTokens.space4),
         child: Row(
           children: [
             Icon(
@@ -673,6 +667,32 @@ class _FavoriteTile extends HookConsumerWidget {
     // フォルダへ移動するための内部 DnD（ADR-0029、ランチャーと同パターン）。
     // OS ファイルドロップ用の DropRegion を内側に保持したまま、外側を
     // LongPressDraggable で包む。
+    final tileBody = GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onSecondaryTapDown: (details) =>
+          _showMenu(context, ref, details.globalPosition),
+      child: InkWell(
+        onTap: () => navigateInFocusedExplorer(ref, favorite.path),
+        child: _row(context, highlighted: highlighted, isExpanded: isExpanded),
+      ),
+    );
+    // 起動直後は OS ファイルドロップ受けを登録しない（ADR-0049）。内部
+    // 並べ替え用の LongPressDraggable は Flutter 標準なのでそのまま包む。
+    final dropTarget = ref.watch(dndReadyProvider)
+        ? DropRegion(
+            formats: const [Formats.fileUri],
+            hitTestBehavior: HitTestBehavior.opaque,
+            onDropOver: (event) =>
+                decideDropOperation(event.session, favorite.path),
+            onDropEnter: (_) => isHovering.value = true,
+            onDropLeave: (_) => isHovering.value = false,
+            onPerformDrop: (event) async {
+              isHovering.value = false;
+              await performFileDrop(context, ref, event, favorite.path);
+            },
+            child: tileBody,
+          )
+        : tileBody;
     final tile = LongPressDraggable<ExplorerFavorite>(
       data: favorite,
       feedback: Material(
@@ -687,31 +707,7 @@ class _FavoriteTile extends HookConsumerWidget {
         opacity: 0.4,
         child: _row(context, highlighted: highlighted, isExpanded: isExpanded),
       ),
-      child: DropRegion(
-        formats: const [Formats.fileUri],
-        hitTestBehavior: HitTestBehavior.opaque,
-        onDropOver: (event) =>
-            decideDropOperation(event.session, favorite.path),
-        onDropEnter: (_) => isHovering.value = true,
-        onDropLeave: (_) => isHovering.value = false,
-        onPerformDrop: (event) async {
-          isHovering.value = false;
-          await performFileDrop(context, ref, event, favorite.path);
-        },
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onSecondaryTapDown: (details) =>
-              _showMenu(context, ref, details.globalPosition),
-          child: InkWell(
-            onTap: () => navigateInFocusedExplorer(ref, favorite.path),
-            child: _row(
-              context,
-              highlighted: highlighted,
-              isExpanded: isExpanded,
-            ),
-          ),
-        ),
-      ),
+      child: dropTarget,
     );
     // 展開中はサブディレクトリツリーを下に並べる（Win2000 風）。
     // ツリー描画は [_FavoriteTreeChild] が再帰的に行う。
@@ -852,12 +848,7 @@ class _FavoriteTreeRow extends StatelessWidget {
         Container(
           color: highlighted ? tokens.surfaceHi : null,
           height: PolarisTokens.space7,
-          padding: EdgeInsets.fromLTRB(
-            baseIndent,
-            0,
-            PolarisTokens.space4,
-            0,
-          ),
+          padding: EdgeInsets.fromLTRB(baseIndent, 0, PolarisTokens.space4, 0),
           child: Row(
             children: [
               GestureDetector(
@@ -868,9 +859,7 @@ class _FavoriteTreeRow extends StatelessWidget {
                   height: PolarisTokens.space7,
                   child: Center(
                     child: Icon(
-                      isExpanded
-                          ? Icons.expand_more
-                          : Icons.chevron_right,
+                      isExpanded ? Icons.expand_more : Icons.chevron_right,
                       size: PolarisIconSize.small,
                       color: tokens.textDim,
                     ),
@@ -1260,9 +1249,7 @@ class _LauncherManageTile extends StatelessWidget {
       onTap: () => const LauncherManagementRoute().push<void>(context),
       child: Container(
         height: PolarisTokens.space7,
-        padding: const EdgeInsets.symmetric(
-          horizontal: PolarisTokens.space4,
-        ),
+        padding: const EdgeInsets.symmetric(horizontal: PolarisTokens.space4),
         child: Row(
           children: [
             Icon(
@@ -1274,9 +1261,9 @@ class _LauncherManageTile extends StatelessWidget {
             Expanded(
               child: Text(
                 AppLocalizations.of(context).explorerManageLaunchers,
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyMedium?.copyWith(color: colors.onSurfaceVariant),
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: colors.onSurfaceVariant,
+                ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -1545,9 +1532,7 @@ class _RunningTile extends ConsumerWidget {
       },
       child: Container(
         height: PolarisTokens.space7,
-        padding: const EdgeInsets.symmetric(
-          horizontal: PolarisTokens.space4,
-        ),
+        padding: const EdgeInsets.symmetric(horizontal: PolarisTokens.space4),
         child: Row(
           children: [
             SizedBox(

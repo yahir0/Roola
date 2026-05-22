@@ -21,6 +21,7 @@ import 'package:roola/data/workspace/workspace_layout.dart';
 import 'package:roola/l10n/app_localizations.dart';
 import 'package:roola/ui/common/command_menu_item.dart';
 import 'package:roola/ui/common/polaris_glyphs.dart';
+import 'package:roola/ui/explorer/dnd_ready_provider.dart';
 import 'package:roola/ui/explorer/explorer_clipboard_provider.dart';
 import 'package:roola/ui/explorer/explorer_commands.dart';
 import 'package:roola/ui/explorer/explorer_item_selection.dart';
@@ -823,6 +824,54 @@ class ExplorerParentDropTile extends HookConsumerWidget {
         (ref.watch(explorerSettingsProvider).value?.listDensity ??
             ExplorerListDensity.comfortable) ==
         ExplorerListDensity.compact;
+    final content = MouseRegion(
+      onEnter: (_) => mouseHover.value = true,
+      onExit: (_) => mouseHover.value = false,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        // ADR-0021: 他ディレクトリと同様にダブルクリックで遷移する。
+        onDoubleTap: () => ref
+            .read(explorerViewModelProvider(tabId).notifier)
+            .navigateTo(parentPath),
+        child: Container(
+          height: explorerRowHeight(isCompact),
+          color: isHovering.value
+              ? tokens.surfaceHi
+              : mouseHover.value
+              ? tokens.surface
+              : null,
+          padding: const EdgeInsets.symmetric(horizontal: PolarisTokens.space4),
+          child: Row(
+            children: [
+              Icon(
+                Icons.arrow_upward,
+                size: PolarisIconSize.standard,
+                color: tokens.textDim,
+              ),
+              const SizedBox(width: PolarisTokens.space3),
+              Text(
+                AppLocalizations.of(context).explorerParentDirectoryLabel,
+                style: tokens.body.copyWith(color: tokens.textDim),
+              ),
+              const SizedBox(width: PolarisTokens.space3),
+              Expanded(
+                child: Text(
+                  parentPath,
+                  textAlign: TextAlign.right,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: tokens.mono.copyWith(color: tokens.textFaint),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    // 起動直後は DnD を登録しない（ADR-0049）。
+    if (!ref.watch(dndReadyProvider)) {
+      return content;
+    }
     return DropRegion(
       formats: const [Formats.fileUri],
       hitTestBehavior: HitTestBehavior.opaque,
@@ -841,52 +890,7 @@ class ExplorerParentDropTile extends HookConsumerWidget {
         isHovering.value = false;
         await performFileDrop(context, ref, event, parentPath);
       },
-      child: MouseRegion(
-        onEnter: (_) => mouseHover.value = true,
-        onExit: (_) => mouseHover.value = false,
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          // ADR-0021: 他ディレクトリと同様にダブルクリックで遷移する。
-          onDoubleTap: () => ref
-              .read(explorerViewModelProvider(tabId).notifier)
-              .navigateTo(parentPath),
-          child: Container(
-            height: explorerRowHeight(isCompact),
-            color: isHovering.value
-                ? tokens.surfaceHi
-                : mouseHover.value
-                ? tokens.surface
-                : null,
-            padding: const EdgeInsets.symmetric(
-              horizontal: PolarisTokens.space4,
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.arrow_upward,
-                  size: PolarisIconSize.standard,
-                  color: tokens.textDim,
-                ),
-                const SizedBox(width: PolarisTokens.space3),
-                Text(
-                  AppLocalizations.of(context).explorerParentDirectoryLabel,
-                  style: tokens.body.copyWith(color: tokens.textDim),
-                ),
-                const SizedBox(width: PolarisTokens.space3),
-                Expanded(
-                  child: Text(
-                    parentPath,
-                    textAlign: TextAlign.right,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: tokens.mono.copyWith(color: tokens.textFaint),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
+      child: content,
     );
   }
 }
@@ -1026,6 +1030,20 @@ class _DirectoryTile extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isHovering = useState(false);
     final mouseHover = useState(false);
+    final hovering = MouseRegion(
+      onEnter: (_) => mouseHover.value = true,
+      onExit: (_) => mouseHover.value = false,
+      child: _content(
+        context,
+        ref,
+        isDropHovering: isHovering.value,
+        isMouseHovering: mouseHover.value,
+      ),
+    );
+    // 起動直後は DnD（ドロップ受け / ドラッグ元）を登録しない（ADR-0049）。
+    if (!ref.watch(dndReadyProvider)) {
+      return hovering;
+    }
     return DropRegion(
       formats: const [Formats.fileUri],
       hitTestBehavior: HitTestBehavior.opaque,
@@ -1046,18 +1064,7 @@ class _DirectoryTile extends HookConsumerWidget {
           return DragItem(suggestedName: node.name, localData: node.path)
             ..add(Formats.fileUri(Uri.file(node.path)));
         },
-        child: DraggableWidget(
-          child: MouseRegion(
-            onEnter: (_) => mouseHover.value = true,
-            onExit: (_) => mouseHover.value = false,
-            child: _content(
-              context,
-              ref,
-              isDropHovering: isHovering.value,
-              isMouseHovering: mouseHover.value,
-            ),
-          ),
-        ),
+        child: DraggableWidget(child: hovering),
       ),
     );
   }
@@ -1149,9 +1156,7 @@ class _DirectoryTile extends HookConsumerWidget {
                       if (showSkillSubtitle)
                         Text(
                           'Skill: ${node.skillNames.join(', ')}',
-                          style: tokens.meta.copyWith(
-                            color: tokens.textFaint,
-                          ),
+                          style: tokens.meta.copyWith(color: tokens.textFaint),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -1271,6 +1276,10 @@ class _FileTile extends HookConsumerWidget {
         ),
       ),
     );
+    // 起動直後は DnD（ドラッグ元）を登録しない（ADR-0049）。
+    if (!ref.watch(dndReadyProvider)) {
+      return content;
+    }
     return DragItemWidget(
       allowedOperations: () => const [DropOperation.move, DropOperation.copy],
       dragItemProvider: (request) async {
