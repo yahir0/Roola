@@ -131,13 +131,31 @@ def draw_wordmark(draw, cx, y, size, fill):
 
 # 常設スローガン。ワードマーク直下にゴールドで置く。
 # サイト hero は textTransform: uppercase + letter-spacing: 0.18em なので、それに合わせる
-# （全大文字「FOR DEVELOPERS.」、字間 0.18em。旧: 混在表記 + 固定 2px ≒ 0.05em で詰まっていた）。
+# （全大文字「FOR DEVELOPERS」、字間 0.18em。旧: 混在表記 + 固定 2px ≒ 0.05em で詰まっていた）。
+#
+# 末尾は "." を置かず、ターミナルのプロンプト想起の「下線カーソル（_）」にする。
+# 全大文字の小さな末尾ピリオドが字間から取り残されて浮くため、意図したカーソル
+# アクセントに置き換える（ステッカー generate_stickers.py と統一）。
 SLOGAN_TRACK_RATIO = 0.18
+SLOGAN_WORD = "FOR DEVELOPERS"
 
 
 def draw_slogan(draw, cx, y, size=40):
-    centered_kern(
-        draw, cx, y, "FOR DEVELOPERS.", latin(size, weight=560), GOLD, size * SLOGAN_TRACK_RATIO
+    font = latin(size, weight=560)
+    track = size * SLOGAN_TRACK_RATIO
+    word_w = kern_width(draw, SLOGAN_WORD, font, track)
+    # cap box（大文字 top / baseline）を text 描画と同じ座標系で測る。
+    _, t, _, b = draw.textbbox((0, 0), "H", font=font)
+    cap_h = b - t
+    gap = cap_h * 0.30          # 文字とカーソルの間隔
+    cur_w = cap_h * 0.72        # 下線カーソルの幅
+    sw = max(2, round(cap_h * 0.16))  # 下線の太さ
+    total = word_w + gap + cur_w
+    x = cx - total / 2
+    kern_text(draw, (x, y), SLOGAN_WORD, font, GOLD, track)
+    cx0 = x + word_w + gap
+    draw.rectangle(
+        [int(cx0), int(y + b) - sw, int(cx0 + cur_w) - 1, int(y + b) - 1], fill=GOLD
     )
 
 
