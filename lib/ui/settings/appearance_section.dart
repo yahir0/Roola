@@ -5,6 +5,8 @@ import 'package:roola/data/appearance/appearance_settings.dart';
 import 'package:roola/data/appearance/appearance_settings_repository_impl.dart';
 import 'package:roola/data/appearance/polaris_accent.dart';
 import 'package:roola/l10n/app_localizations.dart';
+import 'package:roola/ui/common/polaris_settings_panel.dart';
+import 'package:roola/ui/common/polaris_toggle.dart';
 
 /// 設定画面に組み込む「外観」セクション。
 ///
@@ -32,22 +34,6 @@ class AppearanceSection extends ConsumerWidget {
   }
 }
 
-/// 設定項目のフィールド見出し（全大文字トラッキング / ADR-0038 D9）。
-class _FieldLabel extends StatelessWidget {
-  const _FieldLabel(this.text);
-
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    final tokens = PolarisTokens.of(context);
-    return Text(
-      text.toUpperCase(),
-      style: tokens.label.copyWith(color: tokens.textFaint),
-    );
-  }
-}
-
 class _Body extends ConsumerWidget {
   const _Body({required this.settings});
 
@@ -57,64 +43,46 @@ class _Body extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final notifier = ref.read(appearanceSettingsProvider.notifier);
     final l10n = AppLocalizations.of(context);
-    return Padding(
-      padding: const EdgeInsets.all(PolarisTokens.space4),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            l10n.appearanceTitle,
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-          const SizedBox(height: PolarisTokens.space4),
-          // アクセント色（ADR-0038 D4）。常に 1 色だが選択できる。
-          _FieldLabel(l10n.appearanceAccentLabel),
-          const SizedBox(height: PolarisTokens.space2),
-          SegmentedButton<PolarisAccent>(
-            showSelectedIcon: false,
-            segments: const [
-              ButtonSegment(value: PolarisAccent.gold, label: Text('GOLD')),
-              ButtonSegment(value: PolarisAccent.iceBlue, label: Text('ICE')),
-            ],
-            selected: {settings.accent},
-            onSelectionChanged: (accents) async {
-              if (accents.isNotEmpty) {
-                await notifier.setAccent(accents.first);
-              }
-            },
-          ),
-          const SizedBox(height: PolarisTokens.space4),
-          // 背景モード。不透明 = Polaris グラファイト筐体、透過 = 筐体を
-          // 半透明にして背後のデスクトップを透かす（ADR-0038）。
-          _FieldLabel(l10n.appearanceBackgroundLabel),
-          const SizedBox(height: PolarisTokens.space2),
-          SegmentedButton<AppearanceMode>(
-            showSelectedIcon: false,
-            segments: [
-              ButtonSegment(
-                value: AppearanceMode.opaque,
-                label: Text(l10n.appearanceModeOpaque),
-              ),
-              ButtonSegment(
-                value: AppearanceMode.transparent,
-                label: Text(l10n.appearanceModeTransparent),
-              ),
-            ],
-            selected: {settings.mode},
-            onSelectionChanged: (modes) async {
-              if (modes.isNotEmpty) {
-                await notifier.setMode(modes.first);
-              }
-            },
-          ),
-          const SizedBox(height: PolarisTokens.space4),
-          if (settings.mode == AppearanceMode.transparent)
-            _OpacitySlider(
-              value: settings.transparencyOpacity,
-              onChanged: notifier.setTransparencyOpacity,
+    return PolarisSettingsSection(
+      label: l10n.appearanceTitle,
+      children: [
+        // アクセント色（ADR-0038 D4）。常に 1 色だが選択できる。
+        PolarisFieldLabel(l10n.appearanceAccentLabel),
+        const SizedBox(height: PolarisTokens.space2),
+        PolarisToggle<PolarisAccent>(
+          segments: const [
+            PolarisToggleSegment(value: PolarisAccent.gold, label: 'GOLD'),
+            PolarisToggleSegment(value: PolarisAccent.iceBlue, label: 'ICE'),
+          ],
+          selected: settings.accent,
+          onChanged: notifier.setAccent,
+        ),
+        const SizedBox(height: PolarisTokens.space4),
+        // 背景モード。不透明 = Polaris グラファイト筐体、透過 = 筐体を
+        // 半透明にして背後のデスクトップを透かす（ADR-0038）。
+        PolarisFieldLabel(l10n.appearanceBackgroundLabel),
+        const SizedBox(height: PolarisTokens.space2),
+        PolarisToggle<AppearanceMode>(
+          segments: [
+            PolarisToggleSegment(
+              value: AppearanceMode.opaque,
+              label: l10n.appearanceModeOpaque,
             ),
-        ],
-      ),
+            PolarisToggleSegment(
+              value: AppearanceMode.transparent,
+              label: l10n.appearanceModeTransparent,
+            ),
+          ],
+          selected: settings.mode,
+          onChanged: notifier.setMode,
+        ),
+        const SizedBox(height: PolarisTokens.space4),
+        if (settings.mode == AppearanceMode.transparent)
+          _OpacitySlider(
+            value: settings.transparencyOpacity,
+            onChanged: notifier.setTransparencyOpacity,
+          ),
+      ],
     );
   }
 }
