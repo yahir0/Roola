@@ -476,13 +476,11 @@ def sticker_circle():
             card.alpha_composite(glyph, (int(px - 70), int(py - 70)))
             cursor += a
 
-    # 上弧: 目的地へ、一瞬で。 / 下弧: URL（dim グレーで控えめに）。
-    # 上下の弧でシール調の対称をつくり、丸の形を活かす。
-    # 上弧のみ（目的地へ、一瞬で。）。弧を上下 2 本にするとレンズ形になり口に見えるため、
-    # 下は弧にせず横一直線で URL を置く。
+    # 上弧のみ（目的地へ、一瞬で。）。弧を上下 2 本にするとレンズ形になり口に
+    # 見えるため、上弧 1 本だけにする。
     arc_text("目的地へ、一瞬で。", ja(38), TEXT, 250, center_deg=-90, tracking=10)
 
-    # 中央: HP と同じロックアップ（アイコン → FOR DEVELOPERS. → Roola）。上弧と下の URL に
+    # 中央: HP と同じロックアップ（アイコン → FOR DEVELOPERS_ → Roola）。上弧に
     # 釣り合うよう、わずかに上へ寄せる。
     isz = 264
     overlap = 22
@@ -500,8 +498,9 @@ def sticker_circle():
     wm_y = eb_y + eb_h + g_eb
     centered_kern(d, cx, wm_y, "Roola", latin(wm_h, weight=WM_WEIGHT), TEXT, wm_h * WM_TRACK_RATIO)
 
-    # 下部に URL（横一直線・dim グレーで控えめに）
-    centered_kern(d, cx, cy + 208, "yahiro.tech/roola", latin(24, weight=520), TEXT_DIM, 2)
+    # URL は Roola の直下に寄せる（旧: cy+208 でロックアップから離れて浮いていた）。
+    url_y = wm_y + wm_h + 14
+    centered_kern(d, cx, url_y, "yahiro.tech/roola", latin(22, weight=520), TEXT_DIM, 2)
 
     card.putalpha(mask)
     out = die_cut(card, border=44, shadow_blur=46, shadow_alpha=128, shadow_dy=24)
