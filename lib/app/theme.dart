@@ -253,14 +253,20 @@ class AppTheme {
         thumbColor: WidgetStatePropertyAll(t.surfaceHi),
         radius: Radius.circular(t.radius),
       ),
-      // スライダーは細いトラック＋小さなツマミ（計器のフェーダ）。
+      // スライダーは細いトラック＋矩形のフェーダキャップ（計器のフェーダ）。
+      // 丸ツマミは Material 然として温度が合わないため、機械加工の R=4px・
+      // 1px ボーダーを持つ縦長キャップに差し替える（ADR-0038 D6）。
       sliderTheme: SliderThemeData(
         trackHeight: 2,
         activeTrackColor: t.accent,
         inactiveTrackColor: t.line,
         thumbColor: t.accent,
         overlayColor: t.accent.withValues(alpha: 0.12),
-        thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
+        thumbShape: _FaderThumbShape(
+          fill: t.accent,
+          border: t.onAccent,
+          radius: t.radius,
+        ),
         overlayShape: const RoundSliderOverlayShape(overlayRadius: 12),
         showValueIndicator: ShowValueIndicator.never,
       ),
@@ -353,6 +359,72 @@ class PolarisScrollBehavior extends MaterialScrollBehavior {
   @override
   ScrollPhysics getScrollPhysics(BuildContext context) =>
       const ClampingScrollPhysics();
+}
+
+/// スライダーのツマミを「矩形のフェーダキャップ」として描く [SliderComponentShape]
+/// （Polaris / ADR-0038 D6）。Material 既定の丸ツマミを避け、機械加工 R の縦長
+/// キャップ（塗り + 1px ボーダー + 中央のグリップ線）にする。
+class _FaderThumbShape extends SliderComponentShape {
+  const _FaderThumbShape({
+    required this.fill,
+    required this.border,
+    required this.radius,
+  });
+
+  /// キャップの塗り色（アクセント）。
+  final Color fill;
+
+  /// ボーダーと中央グリップ線の色（アクセント上のテキスト色）。
+  final Color border;
+
+  /// 機械加工 R（px）。
+  final double radius;
+
+  static const Size _size = Size(8, 18);
+
+  @override
+  Size getPreferredSize(bool isEnabled, bool isDiscrete) => _size;
+
+  @override
+  void paint(
+    PaintingContext context,
+    Offset center, {
+    required Animation<double> activationAnimation,
+    required Animation<double> enableAnimation,
+    required bool isDiscrete,
+    required TextPainter labelPainter,
+    required RenderBox parentBox,
+    required SliderThemeData sliderTheme,
+    required TextDirection textDirection,
+    required double value,
+    required double textScaleFactor,
+    required Size sizeWithOverflow,
+  }) {
+    final canvas = context.canvas;
+    final rect = Rect.fromCenter(
+      center: center,
+      width: _size.width,
+      height: _size.height,
+    );
+    final rrect = RRect.fromRectAndRadius(rect, Radius.circular(radius));
+    canvas
+      ..drawRRect(rrect, Paint()..color = fill)
+      ..drawRRect(
+        rrect,
+        Paint()
+          ..color = border
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1,
+      )
+      // 中央のグリップ線（フェーダの刻み）。
+      ..drawLine(
+        Offset(center.dx - 2, center.dy),
+        Offset(center.dx + 2, center.dy),
+        Paint()
+          ..color = border
+          ..strokeWidth = 1,
+      );
+  }
 }
 
 /// Polaris のアイコンサイズスケール（ADR-0038 D10）。

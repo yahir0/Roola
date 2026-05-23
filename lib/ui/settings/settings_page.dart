@@ -10,7 +10,10 @@ import 'package:roola/data/locale/locale_settings_repository_impl.dart';
 import 'package:roola/data/repo_explorer/explorer_settings.dart';
 import 'package:roola/data/repo_explorer/explorer_settings_repository_impl.dart';
 import 'package:roola/l10n/app_localizations.dart';
-import 'package:roola/ui/common/macos_window_app_bar.dart';
+import 'package:roola/ui/common/polaris_glyphs.dart';
+import 'package:roola/ui/common/polaris_modal_shell.dart';
+import 'package:roola/ui/common/polaris_settings_panel.dart';
+import 'package:roola/ui/common/polaris_toggle.dart';
 import 'package:roola/ui/settings/appearance_section.dart';
 
 /// 設定画面。アプリ全体の preference のみを扱う（言語 / 外観 / `claude`
@@ -24,22 +27,24 @@ class SettingsPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Scaffold(
-      appBar: MacosWindowAppBar(
-        title: Text(AppLocalizations.of(context).settingsPageTitle),
-      ),
-      body: ListView(
+    // ワークスペースに重ねる計器ディスプレイ（[PolarisModalShell]）として出す。
+    // ベゼル(シェル) の内側は箱で囲わず、極薄ヘアライン
+    // （[PolarisSectionDivider]）と余白だけのフラット構成（ADR-0054）。
+    return PolarisModalShell(
+      title: AppLocalizations.of(context).settingsPageTitle,
+      child: ListView(
+        padding: const EdgeInsets.symmetric(vertical: PolarisTokens.space4),
         children: const [
           _LanguageSection(),
-          Divider(height: 32),
+          PolarisSectionDivider(),
           AppearanceSection(),
-          Divider(height: 32),
+          PolarisSectionDivider(),
           _ExplorerSection(),
-          Divider(height: 32),
+          PolarisSectionDivider(),
           _ClaudeIntegrationSection(),
-          Divider(height: 32),
+          PolarisSectionDivider(),
           _ShortcutsSection(),
-          Divider(height: 32),
+          PolarisSectionDivider(),
           _AboutSection(),
         ],
       ),
@@ -60,40 +65,19 @@ class _AboutSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final colors = Theme.of(context).colorScheme;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        PolarisTokens.space6,
-        PolarisTokens.space2,
-        PolarisTokens.space6,
-        PolarisTokens.space6,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            l10n.settingsAboutTitle,
-            style: Theme.of(
-              context,
-            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+    return PolarisSettingsSection(
+      label: l10n.settingsAboutTitle,
+      description: l10n.settingsAboutDescription,
+      children: [
+        Align(
+          alignment: Alignment.centerLeft,
+          child: OutlinedButton.icon(
+            icon: PolarisGlyph.info(color: colors.onSurfaceVariant),
+            label: Text(l10n.settingsAboutOpenButton),
+            onPressed: () => showRoolaAboutDialog(context),
           ),
-          const SizedBox(height: PolarisTokens.space1),
-          Text(
-            l10n.settingsAboutDescription,
-            style: Theme.of(
-              context,
-            ).textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant),
-          ),
-          const SizedBox(height: PolarisTokens.space3),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: OutlinedButton.icon(
-              icon: const Icon(Icons.info_outline),
-              label: Text(l10n.settingsAboutOpenButton),
-              onPressed: () => showRoolaAboutDialog(context),
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
@@ -105,52 +89,27 @@ class _LanguageSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
-    final colors = Theme.of(context).colorScheme;
     final locale = ref.watch(appLocaleProvider);
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        PolarisTokens.space6,
-        PolarisTokens.space2,
-        PolarisTokens.space6,
-        PolarisTokens.space2,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            l10n.settingsLanguageTitle,
-            style: Theme.of(
-              context,
-            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
-          ),
-          const SizedBox(height: PolarisTokens.space1),
-          Text(
-            l10n.settingsLanguageDescription,
-            style: Theme.of(
-              context,
-            ).textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant),
-          ),
-          const SizedBox(height: PolarisTokens.space3),
-          SegmentedButton<AppLocale>(
-            segments: [
-              ButtonSegment(
-                value: AppLocale.ja,
-                label: Text(l10n.languageJapanese),
-              ),
-              ButtonSegment(
-                value: AppLocale.en,
-                label: Text(l10n.languageEnglish),
-              ),
-            ],
-            selected: {locale},
-            onSelectionChanged: (set) {
-              if (set.isNotEmpty) {
-                ref.read(appLocaleProvider.notifier).setLocale(set.first);
-              }
-            },
-          ),
-        ],
-      ),
+    return PolarisSettingsSection(
+      label: l10n.settingsLanguageTitle,
+      description: l10n.settingsLanguageDescription,
+      children: [
+        PolarisToggle<AppLocale>(
+          segments: [
+            PolarisToggleSegment(
+              value: AppLocale.ja,
+              label: l10n.languageJapanese,
+            ),
+            PolarisToggleSegment(
+              value: AppLocale.en,
+              label: l10n.languageEnglish,
+            ),
+          ],
+          selected: locale,
+          onChanged: (value) =>
+              ref.read(appLocaleProvider.notifier).setLocale(value),
+        ),
+      ],
     );
   }
 }
@@ -167,65 +126,48 @@ class _ExplorerSection extends ConsumerWidget {
     final state = ref.watch(explorerSettingsProvider);
     final colors = Theme.of(context).colorScheme;
     final density = state.value?.listDensity ?? ExplorerListDensity.comfortable;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        PolarisTokens.space6,
-        PolarisTokens.space2,
-        PolarisTokens.space6,
-        PolarisTokens.space2,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            l10n.settingsExplorerTitle,
-            style: Theme.of(
-              context,
-            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
-          ),
-          const SizedBox(height: PolarisTokens.space1),
-          Text(
-            l10n.settingsExplorerDescription,
-            style: Theme.of(
-              context,
-            ).textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant),
-          ),
-          const SizedBox(height: PolarisTokens.space3),
-          SegmentedButton<ExplorerListDensity>(
-            segments: [
-              ButtonSegment(
-                value: ExplorerListDensity.compact,
-                label: Text(l10n.explorerDensityCompact),
-                icon: const Icon(Icons.density_small),
+    return PolarisSettingsSection(
+      label: l10n.settingsExplorerTitle,
+      description: l10n.settingsExplorerDescription,
+      children: [
+        PolarisToggle<ExplorerListDensity>(
+          segments: [
+            PolarisToggleSegment(
+              value: ExplorerListDensity.compact,
+              label: l10n.explorerDensityCompact,
+              iconBuilder: (color) => PolarisGlyph.rows(
+                color: color,
+                rows: 3,
+                size: PolarisIconSize.small,
               ),
-              ButtonSegment(
-                value: ExplorerListDensity.comfortable,
-                label: Text(l10n.explorerDensityComfortable),
-                icon: const Icon(Icons.density_medium),
+            ),
+            PolarisToggleSegment(
+              value: ExplorerListDensity.comfortable,
+              label: l10n.explorerDensityComfortable,
+              iconBuilder: (color) => PolarisGlyph.rows(
+                color: color,
+                rows: 2,
+                size: PolarisIconSize.small,
               ),
-            ],
-            selected: {density},
-            onSelectionChanged: state.isLoading
-                ? null
-                : (set) {
-                    if (set.isNotEmpty) {
-                      ref
-                          .read(explorerSettingsProvider.notifier)
-                          .setListDensity(set.first);
-                    }
-                  },
-          ),
-          const SizedBox(height: PolarisTokens.space2),
-          Text(
-            density == ExplorerListDensity.compact
-                ? l10n.explorerDensityCompactDescription
-                : l10n.explorerDensityComfortableDescription,
-            style: Theme.of(
-              context,
-            ).textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant),
-          ),
-        ],
-      ),
+            ),
+          ],
+          selected: density,
+          onChanged: state.isLoading
+              ? null
+              : (value) => ref
+                    .read(explorerSettingsProvider.notifier)
+                    .setListDensity(value),
+        ),
+        const SizedBox(height: PolarisTokens.space2),
+        Text(
+          density == ExplorerListDensity.compact
+              ? l10n.explorerDensityCompactDescription
+              : l10n.explorerDensityComfortableDescription,
+          style: Theme.of(
+            context,
+          ).textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant),
+        ),
+      ],
     );
   }
 }
@@ -240,81 +182,50 @@ class _ClaudeIntegrationSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final health = ref.watch(claudeHealthProvider);
-    final colors = Theme.of(context).colorScheme;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        PolarisTokens.space6,
-        PolarisTokens.space2,
-        PolarisTokens.space6,
-        PolarisTokens.space2,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            l10n.settingsClaudeIntegrationTitle,
-            style: Theme.of(
-              context,
-            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+    return PolarisSettingsSection(
+      label: l10n.settingsClaudeIntegrationTitle,
+      description: l10n.settingsClaudeIntegrationDescription,
+      children: [
+        health.when(
+          loading: () => _StatusCard(
+            tone: _StatusTone.neutral,
+            title: l10n.claudeHealthChecking,
+            detail: l10n.claudeHealthCheckingDetail,
           ),
-          const SizedBox(height: PolarisTokens.space1),
-          Text(
-            l10n.settingsClaudeIntegrationDescription,
-            style: Theme.of(
-              context,
-            ).textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant),
+          error: (e, _) => _StatusCard(
+            tone: _StatusTone.error,
+            title: l10n.claudeHealthCheckError,
+            detail: '$e',
           ),
+          data: (h) => h.available
+              ? _StatusCard(
+                  tone: _StatusTone.ok,
+                  title: l10n.claudeHealthCheckSuccess,
+                  detail: h.versionOutput.isEmpty
+                      ? l10n.claudeHealthCheckSuccessDetail
+                      : l10n.claudeHealthVersion(h.versionOutput),
+                )
+              : _StatusCard(
+                  tone: _StatusTone.error,
+                  title: l10n.claudeHealthCheckNotFound,
+                  detail: h.versionOutput.isEmpty
+                      ? l10n.claudeHealthCheckNotFoundDetail
+                      : l10n.claudeHealthCheckNotFoundDetailWith(
+                          h.versionOutput,
+                        ),
+                ),
+        ),
+        const SizedBox(height: PolarisTokens.space4),
+        PolarisFieldLabel(l10n.settingsClaudeFeatures),
+        const SizedBox(height: PolarisTokens.space2),
+        _FeatureRow(description: l10n.settingsClaudeFeature1),
+        _FeatureRow(description: l10n.settingsClaudeFeature2),
+        _FeatureRow(description: l10n.settingsClaudeFeature3),
+        if (health.value?.available != true) ...[
           const SizedBox(height: PolarisTokens.space4),
-          health.when(
-            loading: () => _StatusCard(
-              icon: Icons.hourglass_top,
-              tone: _StatusTone.neutral,
-              title: l10n.claudeHealthChecking,
-              detail: l10n.claudeHealthCheckingDetail,
-            ),
-            error: (e, _) => _StatusCard(
-              icon: Icons.error_outline,
-              tone: _StatusTone.error,
-              title: l10n.claudeHealthCheckError,
-              detail: '$e',
-            ),
-            data: (h) => h.available
-                ? _StatusCard(
-                    icon: Icons.check_circle_outline,
-                    tone: _StatusTone.ok,
-                    title: l10n.claudeHealthCheckSuccess,
-                    detail: h.versionOutput.isEmpty
-                        ? l10n.claudeHealthCheckSuccessDetail
-                        : l10n.claudeHealthVersion(h.versionOutput),
-                  )
-                : _StatusCard(
-                    icon: Icons.error_outline,
-                    tone: _StatusTone.error,
-                    title: l10n.claudeHealthCheckNotFound,
-                    detail: h.versionOutput.isEmpty
-                        ? l10n.claudeHealthCheckNotFoundDetail
-                        : l10n.claudeHealthCheckNotFoundDetailWith(
-                            h.versionOutput,
-                          ),
-                  ),
-          ),
-          const SizedBox(height: PolarisTokens.space4),
-          Text(
-            l10n.settingsClaudeFeatures,
-            style: Theme.of(
-              context,
-            ).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w600),
-          ),
-          const SizedBox(height: PolarisTokens.space2),
-          _FeatureRow(description: l10n.settingsClaudeFeature1),
-          _FeatureRow(description: l10n.settingsClaudeFeature2),
-          _FeatureRow(description: l10n.settingsClaudeFeature3),
-          if (health.value?.available != true) ...[
-            const SizedBox(height: PolarisTokens.space4),
-            const _InstallGuide(),
-          ],
+          const _InstallGuide(),
         ],
-      ),
+      ],
     );
   }
 }
@@ -323,13 +234,11 @@ enum _StatusTone { ok, neutral, error }
 
 class _StatusCard extends StatelessWidget {
   const _StatusCard({
-    required this.icon,
     required this.tone,
     required this.title,
     required this.detail,
   });
 
-  final IconData icon;
   final _StatusTone tone;
   final String title;
   final String detail;
@@ -342,6 +251,11 @@ class _StatusCard extends StatelessWidget {
       _StatusTone.ok => colors.primary,
       _StatusTone.neutral => colors.onSurfaceVariant,
       _StatusTone.error => colors.error,
+    };
+    final glyph = switch (tone) {
+      _StatusTone.ok => PolarisGlyph.check(color: toneColor),
+      _StatusTone.neutral => PolarisGlyph.info(color: toneColor),
+      _StatusTone.error => PolarisGlyph.warn(color: toneColor),
     };
     return Container(
       padding: const EdgeInsets.fromLTRB(
@@ -358,7 +272,7 @@ class _StatusCard extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: PolarisIconSize.standard, color: toneColor),
+          glyph,
           const SizedBox(width: PolarisTokens.space3),
           Expanded(
             child: Column(
@@ -400,10 +314,9 @@ class _FeatureRow extends StatelessWidget {
               top: PolarisTokens.space1,
               right: PolarisTokens.space2,
             ),
-            child: Icon(
-              Icons.check,
-              size: PolarisIconSize.small,
+            child: PolarisGlyph.check(
               color: colors.onSurfaceVariant,
+              size: PolarisIconSize.small,
             ),
           ),
           Expanded(child: Text(description)),
@@ -428,12 +341,7 @@ class _InstallGuide extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          l10n.settingsClaudeInstallTitle,
-          style: Theme.of(
-            context,
-          ).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w600),
-        ),
+        PolarisFieldLabel(l10n.settingsClaudeInstallTitle),
         const SizedBox(height: PolarisTokens.space2),
         Text(
           l10n.settingsClaudeInstallInstructions,
@@ -462,10 +370,7 @@ class _InstallGuide extends StatelessWidget {
                 ),
               ),
               IconButton(
-                icon: const Icon(
-                  Icons.content_copy,
-                  size: PolarisIconSize.standard,
-                ),
+                icon: PolarisGlyph.copy(color: colors.onSurfaceVariant),
                 tooltip: l10n.settingsClaudeInstallCopyTooltip,
                 visualDensity: VisualDensity.compact,
                 onPressed: () => _copy(context),
@@ -515,64 +420,38 @@ class _ShortcutsSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final colors = Theme.of(context).colorScheme;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        PolarisTokens.space6,
-        PolarisTokens.space2,
-        PolarisTokens.space6,
-        PolarisTokens.space6,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            l10n.settingsKeyboardShortcutsTitle,
-            style: Theme.of(
-              context,
-            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+    return PolarisSettingsSection(
+      label: l10n.settingsKeyboardShortcutsTitle,
+      description: l10n.settingsKeyboardShortcutsDescription,
+      children: [
+        Align(
+          alignment: Alignment.centerLeft,
+          child: OutlinedButton.icon(
+            icon: PolarisGlyph.keyboard(color: colors.onSurfaceVariant),
+            label: Text(l10n.settingsKeyboardShortcutsButton),
+            onPressed: () => const KeybindingsRoute().push<void>(context),
           ),
-          const SizedBox(height: PolarisTokens.space1),
-          Text(
-            l10n.settingsKeyboardShortcutsDescription,
-            style: Theme.of(
-              context,
-            ).textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant),
-          ),
-          const SizedBox(height: PolarisTokens.space3),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: OutlinedButton.icon(
-              icon: const Icon(Icons.keyboard),
-              label: Text(l10n.settingsKeyboardShortcutsButton),
-              onPressed: () => const KeybindingsRoute().push<void>(context),
-            ),
-          ),
-          const SizedBox(height: PolarisTokens.space5),
-          Text(
-            l10n.settingsMouseOperationsTitle,
-            style: Theme.of(
-              context,
-            ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
-          ),
-          const SizedBox(height: PolarisTokens.space2),
-          _ShortcutRow(
-            keys: const ['Click'],
-            description: l10n.settingsMouseClick,
-          ),
-          _ShortcutRow(
-            keys: const ['Double Click'],
-            description: l10n.settingsMouseDoubleClick,
-          ),
-          _ShortcutRow(
-            keys: const ['Right Click'],
-            description: l10n.settingsMouseRightClick,
-          ),
-          _ShortcutRow(
-            keys: const ['Mouse Back / Forward'],
-            description: l10n.settingsMouseNavigation,
-          ),
-        ],
-      ),
+        ),
+        const SizedBox(height: PolarisTokens.space4),
+        PolarisFieldLabel(l10n.settingsMouseOperationsTitle),
+        const SizedBox(height: PolarisTokens.space2),
+        _ShortcutRow(
+          keys: const ['Click'],
+          description: l10n.settingsMouseClick,
+        ),
+        _ShortcutRow(
+          keys: const ['Double Click'],
+          description: l10n.settingsMouseDoubleClick,
+        ),
+        _ShortcutRow(
+          keys: const ['Right Click'],
+          description: l10n.settingsMouseRightClick,
+        ),
+        _ShortcutRow(
+          keys: const ['Mouse Back / Forward'],
+          description: l10n.settingsMouseNavigation,
+        ),
+      ],
     );
   }
 }

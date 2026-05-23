@@ -9,8 +9,8 @@ import 'package:roola/data/keybindings/effective_keybindings.dart';
 import 'package:roola/data/keybindings/keybindings_repository_impl.dart';
 import 'package:roola/l10n/app_localizations.dart';
 import 'package:roola/ui/common/command_l10n.dart';
-import 'package:roola/ui/common/macos_window_app_bar.dart';
 import 'package:roola/ui/common/polaris_dialog.dart';
+import 'package:roola/ui/common/polaris_modal_shell.dart';
 import 'package:roola/ui/settings/key_chord_recorder_dialog.dart';
 
 /// キーボードショートカットの一覧・編集画面（ADR-0033）。
@@ -22,11 +22,9 @@ class KeybindingsPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Scaffold(
-      appBar: MacosWindowAppBar(
-        title: Text(AppLocalizations.of(context).keybindingsPageTitle),
-      ),
-      body: ListView(
+    return PolarisModalShell(
+      title: AppLocalizations.of(context).keybindingsPageTitle,
+      child: ListView(
         children: [
           const _Intro(),
           for (final category in CommandCategory.values) ...[

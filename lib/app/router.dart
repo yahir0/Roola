@@ -9,6 +9,18 @@ import 'package:roola/ui/workspace/workspace_page.dart';
 
 part 'router.g.dart';
 
+/// 設定 / ランチャー管理など「ワークスペースに重ねるモーダル文脈」を push する
+/// ためのページ。`opaque: false` で背後のワークスペースを描かせ、遷移アニメは
+/// 抑制する（エクスプローラ内ナビと体感を揃える / ADR-0038 D7・ADR-0054）。
+/// 中身は [PolarisModalShell] でスクリム + ベゼルパネルとして出す前提。
+Page<void> _modalPage(Widget child) => CustomTransitionPage<void>(
+  opaque: false,
+  transitionDuration: Duration.zero,
+  reverseTransitionDuration: Duration.zero,
+  transitionsBuilder: (context, animation, secondaryAnimation, child) => child,
+  child: child,
+);
+
 /// 全画面共通の root Navigator キー。
 ///
 /// `MaterialApp.router` の `builder` で配置している `WindowCloseGuard` の
@@ -56,7 +68,7 @@ class SettingsRoute extends GoRouteData with $SettingsRoute {
 
   @override
   Page<void> buildPage(BuildContext context, GoRouterState state) =>
-      const NoTransitionPage(child: SettingsPage());
+      _modalPage(const SettingsPage());
 }
 
 /// キーボードショートカット設定ルート (`/keybindings`)。全コマンドの一覧と
@@ -68,7 +80,7 @@ class KeybindingsRoute extends GoRouteData with $KeybindingsRoute {
 
   @override
   Page<void> buildPage(BuildContext context, GoRouterState state) =>
-      const NoTransitionPage(child: KeybindingsPage());
+      _modalPage(const KeybindingsPage());
 }
 
 /// ランチャー管理画面ルート (`/launchers`)。登録済みエントリの一覧 + 追加 /
@@ -87,7 +99,7 @@ class LauncherManagementRoute extends GoRouteData
 
   @override
   Page<void> buildPage(BuildContext context, GoRouterState state) =>
-      const NoTransitionPage(child: LauncherManagementPage());
+      _modalPage(const LauncherManagementPage());
 }
 
 /// エントリ新規作成ルート (`/launchers/new`)。
@@ -101,14 +113,13 @@ class EntryNewRoute extends GoRouteData with $EntryNewRoute {
   final String? initialSkillName;
 
   @override
-  Page<void> buildPage(BuildContext context, GoRouterState state) =>
-      NoTransitionPage(
-        child: EntryEditPage(
-          entryId: null,
-          initialRepositoryPath: initialRepositoryPath,
-          initialSkillName: initialSkillName,
-        ),
-      );
+  Page<void> buildPage(BuildContext context, GoRouterState state) => _modalPage(
+    EntryEditPage(
+      entryId: null,
+      initialRepositoryPath: initialRepositoryPath,
+      initialSkillName: initialSkillName,
+    ),
+  );
 }
 
 /// エントリ編集ルート (`/launchers/:entryId`)。
@@ -119,5 +130,5 @@ class EntryEditRoute extends GoRouteData with $EntryEditRoute {
 
   @override
   Page<void> buildPage(BuildContext context, GoRouterState state) =>
-      NoTransitionPage(child: EntryEditPage(entryId: entryId));
+      _modalPage(EntryEditPage(entryId: entryId));
 }
