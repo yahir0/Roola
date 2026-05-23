@@ -7,7 +7,10 @@ import 'package:roola/core/health/claude_health_check.dart';
 import 'package:roola/data/launcher_entry/launcher_action.dart';
 import 'package:roola/data/launcher_entry/launcher_folders_provider.dart';
 import 'package:roola/l10n/app_localizations.dart';
+import 'package:roola/ui/common/polaris_glyphs.dart';
 import 'package:roola/ui/common/polaris_modal_shell.dart';
+import 'package:roola/ui/common/polaris_settings_panel.dart';
+import 'package:roola/ui/common/polaris_toggle.dart';
 import 'package:roola/ui/launchers/entry_edit_view_model.dart';
 
 /// エントリ追加・編集画面。
@@ -101,7 +104,10 @@ class EntryEditPage extends HookConsumerWidget {
                 hintText: l10n.entryEditWorkingDirectoryHint,
                 errorText: state.errors['workingDirectory'],
                 suffixIcon: IconButton(
-                  icon: const Icon(Icons.folder_open),
+                  icon: PolarisTypeIcon(
+                    isDir: true,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                   tooltip: l10n.entryEditDirectorySelectTooltip,
                   onPressed: () => _pickDirectory(viewModel),
                 ),
@@ -124,7 +130,7 @@ class EntryEditPage extends HookConsumerWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                TextButton(
+                OutlinedButton(
                   onPressed: state.isSubmitting
                       ? null
                       : () => Navigator.of(context).pop(),
@@ -132,13 +138,10 @@ class EntryEditPage extends HookConsumerWidget {
                 ),
                 const SizedBox(width: PolarisTokens.space2),
                 FilledButton.icon(
-                  icon: state.isSubmitting
-                      ? const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Icon(Icons.save),
+                  icon: PolarisGlyph.check(
+                    color: Theme.of(context).colorScheme.onPrimary,
+                    size: PolarisIconSize.small,
+                  ),
                   label: Text(
                     state.isSubmitting ? l10n.buttonSaving : l10n.buttonSave,
                   ),
@@ -183,10 +186,15 @@ class _FolderSelector extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
+    final tokens = PolarisTokens.of(context);
     final folders = ref.watch(launcherFoldersProvider).value ?? const [];
     return DropdownButtonFormField<String?>(
       initialValue: selectedFolderId,
       decoration: InputDecoration(labelText: l10n.entryEditFolderLabel),
+      // Polaris は外観透過のため canvasColor が透明（ADR-0038 D14）。素通しを
+      // 防ぐため、ドロップダウンの地を不透明な surface トークンで明示する。
+      dropdownColor: tokens.surface,
+      borderRadius: BorderRadius.circular(tokens.radius),
       items: [
         DropdownMenuItem<String?>(child: Text(l10n.entryEditFolderNone)),
         for (final f in folders)
@@ -217,39 +225,40 @@ class _ActionTypeSelector extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          l10n.entryEditActionTypeLabel,
-          style: Theme.of(context).textTheme.labelLarge,
-        ),
+        PolarisFieldLabel(l10n.entryEditActionTypeLabel),
         const SizedBox(height: PolarisTokens.space2),
         if (!claudeAvailable) ...[
           _ClaudeUnavailableNotice(currentIsClaudeSkill: showClaudeSkill),
           const SizedBox(height: PolarisTokens.space2),
         ],
-        SizedBox(
-          width: double.infinity,
-          child: SegmentedButton<LauncherActionType>(
-            segments: [
-              ButtonSegment(
-                value: LauncherActionType.openHere,
-                icon: const Icon(Icons.folder_open),
-                label: Text(l10n.entryEditActionOpenHere),
+        PolarisToggle<LauncherActionType>(
+          segments: [
+            PolarisToggleSegment(
+              value: LauncherActionType.openHere,
+              label: l10n.entryEditActionOpenHere,
+              iconBuilder: (color) => PolarisGlyph.prompt(
+                color: color,
+                size: PolarisIconSize.small,
               ),
-              ButtonSegment(
-                value: LauncherActionType.runCommand,
-                icon: const Icon(Icons.bolt),
-                label: Text(l10n.entryEditActionRunCommand),
-              ),
-              if (showClaudeSkill)
-                ButtonSegment(
-                  value: LauncherActionType.claudeSkill,
-                  icon: const Icon(Icons.auto_awesome),
-                  label: Text(l10n.entryEditActionClaudeSkill),
+            ),
+            PolarisToggleSegment(
+              value: LauncherActionType.runCommand,
+              label: l10n.entryEditActionRunCommand,
+              iconBuilder: (color) =>
+                  PolarisGlyph.bolt(color: color, size: PolarisIconSize.small),
+            ),
+            if (showClaudeSkill)
+              PolarisToggleSegment(
+                value: LauncherActionType.claudeSkill,
+                label: l10n.entryEditActionClaudeSkill,
+                iconBuilder: (color) => PolarisGlyph.sparkle(
+                  color: color,
+                  size: PolarisIconSize.small,
                 ),
-            ],
-            selected: {selected},
-            onSelectionChanged: (set) => onChanged(set.first),
-          ),
+              ),
+          ],
+          selected: selected,
+          onChanged: onChanged,
         ),
       ],
     );
@@ -285,11 +294,7 @@ class _ClaudeUnavailableNotice extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            Icons.info_outline,
-            size: PolarisIconSize.standard,
-            color: colors.onSurfaceVariant,
-          ),
+          PolarisGlyph.info(color: colors.onSurfaceVariant),
           const SizedBox(width: PolarisTokens.space2),
           Expanded(
             child: Text(
@@ -340,17 +345,25 @@ class _OpenHereSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    return Card(
-      color: Theme.of(context).colorScheme.surfaceContainerHighest,
-      child: Padding(
-        padding: const EdgeInsets.all(PolarisTokens.space4),
-        child: Row(
-          children: [
-            const Icon(Icons.info_outline),
-            const SizedBox(width: PolarisTokens.space3),
-            Expanded(child: Text(l10n.entryEditOpenHereDescription)),
-          ],
-        ),
+    final tokens = PolarisTokens.of(context);
+    return Container(
+      padding: const EdgeInsets.all(PolarisTokens.space4),
+      decoration: BoxDecoration(
+        color: tokens.surfaceHi,
+        border: Border.all(color: tokens.line),
+        borderRadius: BorderRadius.circular(tokens.radius),
+      ),
+      child: Row(
+        children: [
+          PolarisGlyph.info(color: tokens.textDim),
+          const SizedBox(width: PolarisTokens.space3),
+          Expanded(
+            child: Text(
+              l10n.entryEditOpenHereDescription,
+              style: tokens.meta.copyWith(color: tokens.textDim),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -504,7 +517,13 @@ class _ClaudeSkillSectionState extends State<_ClaudeSkillSection> {
                 // 子の itemBuilder 差し替えだけでは更新が反映されない
                 // macOS 実機の挙動を回避するための保険。
                 key: ValueKey('skill-suggest-${widget.workingDirectory}'),
-                icon: const Icon(Icons.arrow_drop_down),
+                // 右向きシェブロンを 90° 回して下向き（候補を開く）にする。
+                icon: RotatedBox(
+                  quarterTurns: 1,
+                  child: PolarisChevron(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
                 tooltip: l10n.entryEditSkillNameSelectTooltip,
                 itemBuilder: (context) => widget.availableSkills
                     .map((s) => PopupMenuItem<String>(value: s, child: Text(s)))

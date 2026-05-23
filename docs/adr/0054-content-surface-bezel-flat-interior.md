@@ -100,6 +100,26 @@ UI で浮くため、`PolarisToggle`（`lib/ui/common/polaris_toggle.dart`）に
 これによりメイン画面のトップバーが常に見えたまま、secondary 画面が「閉じられる
 パネル」として重なり、戻るボタン + ヘッダタイトルの不統一が解消される。
 
+### D6. ランチャー管理 / エントリ編集の Material 部品を一掃する
+
+これらの画面は Polaris の語彙から外れた Material 部品が残っていた。フォーム /
+リスト系まで Polaris で揃える:
+
+- **`ListTile`（3 行・40px leading）→ Polaris カスタム行**: 動作アイコン
+  （`space7`=28px ベゼル）＋ 名前 ＋ 作業ディレクトリ（`mono`）の 2 行。動作種別は
+  アイコンが運ぶため冗長なラベル行は出さない。フォルダ / 未分類見出しは固定高
+  `space7`・縦中央寄せでサイドバー行と密度を揃える。
+- **`SegmentedButton` → `PolarisToggle`（D3）**: エントリ編集の動作タイプ選択も
+  他画面と同じトグルにする。
+- **Material アイコン → モノライングリフ**: 動作種別は `prompt`（OpenHere）/
+  `bolt`（RunCommand）/ `sparkle`（ClaudeSkill）。ほか `plus` / `dots` / `trash` /
+  `folderPlus` / `grid`（空状態）/ `check`（保存）を `PolarisGlyph` に追加。
+- **`Card` → Polaris パネル**、見出し → `PolarisFieldLabel`、`Divider` →
+  ヘアライン、`CircularProgressIndicator` → 細い `LinearProgressIndicator`。
+- **ドロップダウンの透過バグ修正**: `DropdownButtonFormField` のメニュー地は
+  `canvasColor` を使うが、透過外観（ADR-0038 D14）で `canvasColor` が透明なため
+  素通しになっていた。`dropdownColor` に不透明な `surface` トークンを明示する。
+
 ## Why
 
 Polaris は思想（機能主義 / 引き算）が不変でビジュアルは導出物（ADR-0038 D1）。

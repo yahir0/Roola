@@ -9,7 +9,9 @@ import 'package:roola/data/launcher_entry/launcher_folder.dart';
 import 'package:roola/data/launcher_entry/launcher_folders_provider.dart';
 import 'package:roola/l10n/app_localizations.dart';
 import 'package:roola/ui/common/polaris_dialog.dart';
+import 'package:roola/ui/common/polaris_glyphs.dart';
 import 'package:roola/ui/common/polaris_modal_shell.dart';
+import 'package:roola/ui/common/polaris_settings_panel.dart';
 import 'package:roola/ui/common/prompt_name_dialog.dart';
 import 'package:uuid/uuid.dart';
 
@@ -30,19 +32,20 @@ class LauncherManagementPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
+    final tokens = PolarisTokens.of(context);
     final entriesState = ref.watch(launcherEntriesProvider);
     final foldersState = ref.watch(launcherFoldersProvider);
     return PolarisModalShell(
       title: l10n.launcherManagementTitle,
       actions: [
         IconButton(
-          icon: const Icon(Icons.create_new_folder_outlined),
+          icon: PolarisGlyph.folderPlus(color: tokens.textDim),
           tooltip: l10n.launcherAddFolderTooltip,
           visualDensity: VisualDensity.compact,
           onPressed: () => _addFolder(context, ref),
         ),
         IconButton(
-          icon: const Icon(Icons.add),
+          icon: PolarisGlyph.plus(color: tokens.textDim),
           tooltip: l10n.launcherAddEntryTooltip,
           visualDensity: VisualDensity.compact,
           onPressed: () => const EntryNewRoute().push<void>(context),
@@ -58,7 +61,9 @@ class LauncherManagementPage extends ConsumerWidget {
     AsyncValue<List<LauncherFolder>> foldersState,
   ) {
     if (entriesState.isLoading || foldersState.isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(
+        child: SizedBox(width: 160, child: LinearProgressIndicator()),
+      );
     }
     final entriesError = entriesState.error ?? foldersState.error;
     if (entriesError != null) {
@@ -105,16 +110,23 @@ class _EmptyPlaceholder extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final tokens = PolarisTokens.of(context);
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.dashboard_customize, size: PolarisIconSize.hero),
+          PolarisGlyph.grid(color: tokens.textFaint),
           const SizedBox(height: PolarisTokens.space4),
-          Text(l10n.launcherEmptyPlaceholder),
+          Text(
+            l10n.launcherEmptyPlaceholder,
+            style: tokens.body.copyWith(color: tokens.textDim),
+          ),
           const SizedBox(height: PolarisTokens.space4),
           FilledButton.icon(
-            icon: const Icon(Icons.add),
+            icon: PolarisGlyph.plus(
+              color: tokens.onAccent,
+              size: PolarisIconSize.small,
+            ),
             label: Text(l10n.launcherAddEntryButton),
             onPressed: () => const EntryNewRoute().push<void>(context),
           ),
@@ -155,7 +167,7 @@ class _Catalog extends ConsumerWidget {
             _EntryTile(entry: entry),
           if (entries.where((e) => e.folderId == folder.id).isEmpty)
             const _EmptyFolderHint(),
-          const Divider(height: 1),
+          const _Hairline(),
         ],
         if (showRootSection) ...[
           if (folders.isNotEmpty) const _RootSectionHeader(),
@@ -186,38 +198,41 @@ class _FolderHeader extends ConsumerWidget {
             .updateEntry(details.data.copyWith(folderId: folder.id));
       },
       builder: (context, candidate, rejected) {
+        final tokens = PolarisTokens.of(context);
         final hover = candidate.isNotEmpty;
         return Container(
           color: hover
               ? colors.primary.withValues(alpha: 0.12)
               : colors.surfaceContainerHighest.withValues(alpha: 0.4),
-          padding: const EdgeInsets.fromLTRB(
-            PolarisTokens.space4,
-            PolarisTokens.space2,
-            PolarisTokens.space2,
-            PolarisTokens.space2,
+          height: PolarisTokens.space7,
+          padding: const EdgeInsets.only(
+            left: PolarisTokens.space4,
+            right: PolarisTokens.space1,
           ),
           child: Row(
             children: [
-              Icon(
-                Icons.folder_outlined,
-                size: PolarisIconSize.standard,
-                color: colors.secondary,
-              ),
+              PolarisTypeIcon(isDir: true, color: tokens.accent),
               const SizedBox(width: PolarisTokens.space3),
               Expanded(
                 child: Text(
                   folder.name,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+                  style: tokens.body.copyWith(color: tokens.text),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
               PopupMenuButton<_FolderAction>(
                 tooltip: AppLocalizations.of(
                   context,
                 ).launcherFolderOperationsTooltip,
-                icon: const Icon(Icons.more_horiz),
+                icon: PolarisGlyph.dots(color: tokens.textDim),
+                // 既定の 48px ヒット領域を詰め、行を背高にしない。
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(
+                  minWidth: PolarisTokens.space7,
+                  minHeight: PolarisTokens.space7,
+                ),
+                iconSize: PolarisIconSize.standard,
                 onSelected: (action) => _onAction(context, ref, action),
                 itemBuilder: (context) => [
                   PopupMenuItem(
@@ -300,19 +315,10 @@ class _RootSectionHeader extends ConsumerWidget {
           color: hover
               ? colors.primary.withValues(alpha: 0.12)
               : colors.surfaceContainerHighest.withValues(alpha: 0.4),
-          padding: const EdgeInsets.fromLTRB(
-            PolarisTokens.space4,
-            PolarisTokens.space2,
-            PolarisTokens.space4,
-            PolarisTokens.space2,
-          ),
-          child: Text(
-            l10n.unclassified,
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-              color: colors.onSurfaceVariant,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
+          height: PolarisTokens.space7,
+          alignment: Alignment.centerLeft,
+          padding: const EdgeInsets.symmetric(horizontal: PolarisTokens.space4),
+          child: PolarisFieldLabel(l10n.unclassified),
         );
       },
     );
@@ -375,21 +381,41 @@ class _EntryTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
     final tokens = PolarisTokens.of(context);
     return LongPressDraggable<LauncherEntry>(
       data: entry,
-      // ドラッグ中はカーソル位置に半透明のサムネイルを表示する。Material
-      // 包装が必要なのは elevation / overlay 由来。
+      // ドラッグ中はカーソル位置に半透明のサムネイルを表示する。影は使わず
+      // （ADR-0038 D3）、surfaceHi + 1px ボーダーの計器パネル調にする。
       feedback: Material(
-        elevation: 4,
-        borderRadius: BorderRadius.circular(tokens.radius),
+        color: Colors.transparent,
         child: SizedBox(
           width: 320,
-          child: ListTile(
-            leading: _ActionIcon(action: entry.action),
-            title: Text(entry.displayName),
-            subtitle: Text(_actionLabel(l10n, entry.action), maxLines: 1),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: tokens.surfaceHi,
+              border: Border.all(color: tokens.line),
+              borderRadius: BorderRadius.circular(tokens.radius),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: PolarisTokens.space4,
+                vertical: PolarisTokens.space2,
+              ),
+              child: Row(
+                children: [
+                  _ActionIcon(action: entry.action),
+                  const SizedBox(width: PolarisTokens.space3),
+                  Expanded(
+                    child: Text(
+                      entry.displayName,
+                      style: tokens.body.copyWith(color: tokens.text),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
       ),
@@ -401,21 +427,52 @@ class _EntryTile extends ConsumerWidget {
 
   Widget _content(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
-    return ListTile(
-      leading: _ActionIcon(action: entry.action),
-      title: Text(entry.displayName),
-      subtitle: Text(
-        '${entry.workingDirectory}\n${_actionLabel(l10n, entry.action)}',
-        maxLines: 2,
-        overflow: TextOverflow.ellipsis,
-      ),
-      isThreeLine: true,
-      trailing: IconButton(
-        icon: const Icon(Icons.delete_outline),
-        tooltip: l10n.launcherDeleteEntryTooltip,
-        onPressed: () => _confirmDelete(context, ref, entry),
-      ),
+    final tokens = PolarisTokens.of(context);
+    // 動作の種別はアイコンが運ぶため、テキストは名前＋作業ディレクトリの
+    // 2 行に詰める（ADR-0038 の密度・引き算）。
+    return InkWell(
       onTap: () => EntryEditRoute(entryId: entry.id).push<void>(context),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(
+          PolarisTokens.space4,
+          PolarisTokens.space1,
+          PolarisTokens.space1,
+          PolarisTokens.space1,
+        ),
+        child: Row(
+          children: [
+            _ActionIcon(action: entry.action),
+            const SizedBox(width: PolarisTokens.space3),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    entry.displayName,
+                    style: tokens.body.copyWith(color: tokens.text),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  Text(
+                    entry.workingDirectory,
+                    style: tokens.mono.copyWith(color: tokens.textDim),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: PolarisTokens.space2),
+            IconButton(
+              icon: PolarisGlyph.trash(color: tokens.textDim),
+              tooltip: l10n.launcherDeleteEntryTooltip,
+              visualDensity: VisualDensity.compact,
+              onPressed: () => _confirmDelete(context, ref, entry),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -439,17 +496,6 @@ class _EntryTile extends ConsumerWidget {
   }
 }
 
-/// subtitle に表示する 1 行分の動作説明。
-String _actionLabel(AppLocalizations l10n, LauncherAction action) =>
-    switch (action) {
-      OpenHereAction() => l10n.launcherActionLabelOpenHere,
-      RunCommandAction(:final command) => l10n.launcherActionLabelRunCommand(
-        command,
-      ),
-      ClaudeSkillAction(:final skillName) =>
-        l10n.launcherActionLabelClaudeSkill(skillName),
-    };
-
 /// 動作タイプ別の小さな leading アイコン（ADR-0023 で _EntryIcon を廃止）。
 class _ActionIcon extends StatelessWidget {
   const _ActionIcon({required this.action});
@@ -458,26 +504,42 @@ class _ActionIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
     final tokens = PolarisTokens.of(context);
-    final icon = switch (action) {
-      OpenHereAction() => Icons.folder_open,
-      RunCommandAction() => Icons.bolt,
-      ClaudeSkillAction() => Icons.auto_awesome,
+    final glyph = switch (action) {
+      OpenHereAction() => PolarisGlyph.prompt(
+        color: tokens.textDim,
+        size: PolarisIconSize.small,
+      ),
+      RunCommandAction() => PolarisGlyph.bolt(
+        color: tokens.textDim,
+        size: PolarisIconSize.small,
+      ),
+      ClaudeSkillAction() => PolarisGlyph.sparkle(
+        color: tokens.textDim,
+        size: PolarisIconSize.small,
+      ),
     };
     return Container(
-      width: 40,
-      height: 40,
+      width: PolarisTokens.space7,
+      height: PolarisTokens.space7,
+      alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: colors.surfaceContainerHigh,
-        border: Border.all(color: colors.outlineVariant),
+        color: tokens.surfaceHi,
+        border: Border.all(color: tokens.line),
         borderRadius: BorderRadius.circular(tokens.radius),
       ),
-      child: Icon(
-        icon,
-        size: PolarisIconSize.standard,
-        color: colors.onSurfaceVariant,
-      ),
+      child: glyph,
     );
+  }
+}
+
+/// セクション間の 1px ヘアライン区切り（Polaris / ADR-0038 D3）。
+class _Hairline extends StatelessWidget {
+  const _Hairline();
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = PolarisTokens.of(context);
+    return SizedBox(height: 1, child: ColoredBox(color: tokens.line));
   }
 }

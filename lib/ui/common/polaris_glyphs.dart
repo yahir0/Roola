@@ -216,6 +216,78 @@ class PolarisGlyph extends StatelessWidget {
     size: size,
   );
 
+  /// 追加（＋）。新規作成操作を表す。
+  factory PolarisGlyph.plus({
+    required Color color,
+    double size = PolarisIconSize.standard,
+  }) => PolarisGlyph._(
+    painter: _PlusGlyphPainter(color: color),
+    size: size,
+  );
+
+  /// その他操作（⋯）。コンテキストメニューの導線を表す。
+  factory PolarisGlyph.dots({
+    required Color color,
+    double size = PolarisIconSize.standard,
+  }) => PolarisGlyph._(
+    painter: _DotsGlyphPainter(color: color),
+    size: size,
+  );
+
+  /// 削除（ゴミ箱）。
+  factory PolarisGlyph.trash({
+    required Color color,
+    double size = PolarisIconSize.standard,
+  }) => PolarisGlyph._(
+    painter: _TrashGlyphPainter(color: color),
+    size: size,
+  );
+
+  /// コマンド実行（稲妻）。`RunCommandAction` を表す。
+  factory PolarisGlyph.bolt({
+    required Color color,
+    double size = PolarisIconSize.standard,
+  }) => PolarisGlyph._(
+    painter: _BoltGlyphPainter(color: color),
+    size: size,
+  );
+
+  /// Claude Skill（きらめき）。`ClaudeSkillAction` を表す。
+  factory PolarisGlyph.sparkle({
+    required Color color,
+    double size = PolarisIconSize.standard,
+  }) => PolarisGlyph._(
+    painter: _SparkleGlyphPainter(color: color),
+    size: size,
+  );
+
+  /// シェルを開く（プロンプト `>_`）。`OpenHereAction` を表す。
+  factory PolarisGlyph.prompt({
+    required Color color,
+    double size = PolarisIconSize.standard,
+  }) => PolarisGlyph._(
+    painter: _PromptGlyphPainter(color: color),
+    size: size,
+  );
+
+  /// フォルダ追加（フォルダ＋）。
+  factory PolarisGlyph.folderPlus({
+    required Color color,
+    double size = PolarisIconSize.standard,
+  }) => PolarisGlyph._(
+    painter: _FolderPlusGlyphPainter(color: color),
+    size: size,
+  );
+
+  /// 空状態のヒーロー（タイルのグリッド）。ランチャー未登録時に使う。
+  factory PolarisGlyph.grid({
+    required Color color,
+    double size = PolarisIconSize.hero,
+  }) => PolarisGlyph._(
+    painter: _GridGlyphPainter(color: color),
+    size: size,
+  );
+
   final CustomPainter painter;
   final double size;
 
@@ -378,6 +450,228 @@ class _CloseGlyphPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_CloseGlyphPainter old) => old.color != color;
+}
+
+class _PlusGlyphPainter extends CustomPainter {
+  const _PlusGlyphPainter({required this.color});
+
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final s = size.width;
+    final stroke = _glyphStroke(color)..strokeCap = StrokeCap.round;
+    canvas
+      ..drawLine(Offset(s * 0.5, s * 0.22), Offset(s * 0.5, s * 0.78), stroke)
+      ..drawLine(Offset(s * 0.22, s * 0.5), Offset(s * 0.78, s * 0.5), stroke);
+  }
+
+  @override
+  bool shouldRepaint(_PlusGlyphPainter old) => old.color != color;
+}
+
+class _DotsGlyphPainter extends CustomPainter {
+  const _DotsGlyphPainter({required this.color});
+
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final s = size.width;
+    final dot = Paint()..color = color;
+    for (final dx in [0.26, 0.5, 0.74]) {
+      canvas.drawCircle(Offset(s * dx, s * 0.5), 1.1, dot);
+    }
+  }
+
+  @override
+  bool shouldRepaint(_DotsGlyphPainter old) => old.color != color;
+}
+
+class _TrashGlyphPainter extends CustomPainter {
+  const _TrashGlyphPainter({required this.color});
+
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final s = size.width;
+    final stroke = _glyphStroke(color);
+    // 蓋のライン。
+    canvas.drawLine(
+      Offset(s * 0.20, s * 0.30),
+      Offset(s * 0.80, s * 0.30),
+      stroke,
+    );
+    // 取っ手の出っ張り。
+    final handle = Path()
+      ..moveTo(s * 0.40, s * 0.30)
+      ..lineTo(s * 0.40, s * 0.22)
+      ..lineTo(s * 0.60, s * 0.22)
+      ..lineTo(s * 0.60, s * 0.30);
+    // 缶の本体（下すぼまり）。
+    final body = Path()
+      ..moveTo(s * 0.27, s * 0.30)
+      ..lineTo(s * 0.31, s * 0.80)
+      ..lineTo(s * 0.69, s * 0.80)
+      ..lineTo(s * 0.73, s * 0.30);
+    canvas
+      ..drawPath(handle, stroke)
+      ..drawPath(body, stroke);
+  }
+
+  @override
+  bool shouldRepaint(_TrashGlyphPainter old) => old.color != color;
+}
+
+class _BoltGlyphPainter extends CustomPainter {
+  const _BoltGlyphPainter({required this.color});
+
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final s = size.width;
+    final path = Path()
+      ..moveTo(s * 0.56, s * 0.10)
+      ..lineTo(s * 0.28, s * 0.54)
+      ..lineTo(s * 0.46, s * 0.54)
+      ..lineTo(s * 0.42, s * 0.90)
+      ..lineTo(s * 0.72, s * 0.44)
+      ..lineTo(s * 0.52, s * 0.44)
+      ..close();
+    canvas.drawPath(path, _glyphStroke(color));
+  }
+
+  @override
+  bool shouldRepaint(_BoltGlyphPainter old) => old.color != color;
+}
+
+class _SparkleGlyphPainter extends CustomPainter {
+  const _SparkleGlyphPainter({required this.color});
+
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final s = size.width;
+    // 中心からくびれた 4 点星。
+    final path = Path()
+      ..moveTo(s * 0.5, s * 0.10)
+      ..lineTo(s * 0.58, s * 0.42)
+      ..lineTo(s * 0.90, s * 0.5)
+      ..lineTo(s * 0.58, s * 0.58)
+      ..lineTo(s * 0.5, s * 0.90)
+      ..lineTo(s * 0.42, s * 0.58)
+      ..lineTo(s * 0.10, s * 0.5)
+      ..lineTo(s * 0.42, s * 0.42)
+      ..close();
+    canvas.drawPath(path, _glyphStroke(color));
+  }
+
+  @override
+  bool shouldRepaint(_SparkleGlyphPainter old) => old.color != color;
+}
+
+class _PromptGlyphPainter extends CustomPainter {
+  const _PromptGlyphPainter({required this.color});
+
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final s = size.width;
+    final stroke = _glyphStroke(color);
+    // シェルプロンプトの山括弧 ">" とカーソル下線 "_"。
+    final chevron = Path()
+      ..moveTo(s * 0.20, s * 0.32)
+      ..lineTo(s * 0.42, s * 0.52)
+      ..lineTo(s * 0.20, s * 0.72);
+    canvas
+      ..drawPath(chevron, stroke)
+      ..drawLine(
+        Offset(s * 0.52, s * 0.72),
+        Offset(s * 0.80, s * 0.72),
+        stroke,
+      );
+  }
+
+  @override
+  bool shouldRepaint(_PromptGlyphPainter old) => old.color != color;
+}
+
+class _FolderPlusGlyphPainter extends CustomPainter {
+  const _FolderPlusGlyphPainter({required this.color});
+
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final s = size.width;
+    final stroke = _glyphStroke(color);
+    // タブ付きフォルダの外形（[PolarisTypeIcon] のディレクトリ形を踏襲）。
+    final top = s * 0.34;
+    final bottom = s * 0.82;
+    final left = s * 0.10;
+    final right = s * 0.90;
+    final tabTop = s * 0.20;
+    final tabEnd = s * 0.42;
+    final folder = Path()
+      ..moveTo(left, tabTop)
+      ..lineTo(tabEnd, tabTop)
+      ..lineTo(tabEnd + (top - tabTop), top)
+      ..lineTo(right, top)
+      ..lineTo(right, bottom)
+      ..lineTo(left, bottom)
+      ..close();
+    canvas.drawPath(folder, stroke);
+    // 中央の小さな ＋。
+    final plus = _glyphStroke(color)..strokeCap = StrokeCap.round;
+    final cy = s * 0.58;
+    canvas
+      ..drawLine(
+        Offset(s * 0.5, cy - s * 0.12),
+        Offset(s * 0.5, cy + s * 0.12),
+        plus,
+      )
+      ..drawLine(Offset(s * 0.38, cy), Offset(s * 0.62, cy), plus);
+  }
+
+  @override
+  bool shouldRepaint(_FolderPlusGlyphPainter old) => old.color != color;
+}
+
+class _GridGlyphPainter extends CustomPainter {
+  const _GridGlyphPainter({required this.color});
+
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final s = size.width;
+    final stroke = _glyphStroke(color);
+    final r = Radius.circular(s * 0.06);
+    const gap = 0.10;
+    const lo1 = 0.16;
+    const hi1 = 0.46;
+    const lo2 = 0.46 + gap;
+    const hi2 = 0.84;
+    final cells = [
+      [lo1, lo1, hi1, hi1],
+      [lo2, lo1, hi2, hi1],
+      [lo1, lo2, hi1, hi2],
+      [lo2, lo2, hi2, hi2],
+    ];
+    for (final c in cells) {
+      canvas.drawRRect(
+        RRect.fromLTRBR(s * c[0], s * c[1], s * c[2], s * c[3], r),
+        stroke,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(_GridGlyphPainter old) => old.color != color;
 }
 
 class _RowsGlyphPainter extends CustomPainter {
