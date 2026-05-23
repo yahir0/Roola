@@ -3,6 +3,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:roola/data/workspace/pane_slot.dart';
 import 'package:roola/data/workspace/workspace_layout.dart';
 import 'package:roola/data/workspace/workspace_tab.dart';
+import 'package:roola/ui/workspace/focused_tab_provider.dart';
 import 'package:roola/ui/workspace/workspace_provider.dart';
 import 'package:roola/ui/workspace/workspace_seed.dart';
 
@@ -165,6 +166,51 @@ void main() {
       final layout = container.read(workspaceProvider);
       expect(layout.topLeft.isEmpty, isTrue);
       expect(layout.topRight.tabs.single.id, 'a');
+    });
+  });
+
+  group('Workspace フォーカス追跡（サイドバーの遷移先）', () {
+    test('新規エクスプローラタブを開くと lastExplorerTabId が新タブを指す', () {
+      final container = _container(
+        WorkspaceLayout(
+          topLeft: _explorerSlot(['a']),
+          topRight: PaneSlot.empty,
+          bottom: PaneSlot.empty,
+        ),
+      );
+      final workspace = container.read(workspaceProvider.notifier);
+      final newId = workspace.addExplorerTab(PaneSlotId.topLeft);
+
+      // body をクリックしていなくても、新規タブがサイドバーの遷移先になる。
+      expect(container.read(focusedTabProvider).lastExplorerTabId, newId);
+    });
+
+    test('エクスプローラタブを activateTab すると lastExplorerTabId が追従する', () {
+      final container = _container(
+        WorkspaceLayout(
+          topLeft: _explorerSlot(['a', 'b']),
+          topRight: PaneSlot.empty,
+          bottom: PaneSlot.empty,
+        ),
+      );
+      container.read(workspaceProvider.notifier).activateTab('b');
+      expect(container.read(focusedTabProvider).lastExplorerTabId, 'b');
+    });
+
+    test('ターミナルタブを追加しても lastExplorerTabId は据え置かれる', () {
+      final container = _container(
+        WorkspaceLayout(
+          topLeft: _explorerSlot(['a']),
+          topRight: PaneSlot.empty,
+          bottom: PaneSlot.empty,
+        ),
+      );
+      final workspace = container.read(workspaceProvider.notifier);
+      // まずエクスプローラ a を遷移先にしておく。
+      workspace.activateTab('a');
+      workspace.addTerminalTab(PaneSlotId.bottom);
+
+      expect(container.read(focusedTabProvider).lastExplorerTabId, 'a');
     });
   });
 
