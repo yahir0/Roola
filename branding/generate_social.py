@@ -117,9 +117,28 @@ def draw_wordmark(draw, cx, y, size, fill):
     centered_kern(draw, cx, y, "Roola", latin(size, weight=WM_WEIGHT), fill, size * WM_TRACK_RATIO)
 
 
-# 常設スローガン。ワードマーク直下にゴールドで置く。
+# 常設スローガン。ワードマーク直下にゴールドで置く。LP ヒーローに合わせ全大文字
+# ＋字間 0.18em。末尾は "." を置かず、ターミナルのプロンプト想起の下線カーソル（_）
+# にする（generate_social_carousel.py / generate_stickers.py と統一）。
+SLOGAN_TRACK_RATIO = 0.18
+SLOGAN_WORD = "FOR DEVELOPERS"
+
+
 def draw_slogan(draw, cx, y, size=38):
-    centered_kern(draw, cx, y, "For Developers.", latin(size, weight=560), GOLD, 2)
+    font = latin(size, weight=560)
+    track = size * SLOGAN_TRACK_RATIO
+    word_w = kern_width(draw, SLOGAN_WORD, font, track)
+    _, t, _, b = draw.textbbox((0, 0), "H", font=font)
+    cap_h = b - t
+    gap = cap_h * 0.30          # 文字とカーソルの間隔
+    cur_w = cap_h * 0.72        # 下線カーソルの幅
+    sw = max(2, round(cap_h * 0.16))  # 下線の太さ
+    x = cx - (word_w + gap + cur_w) / 2
+    kern_text(draw, (x, y), SLOGAN_WORD, font, GOLD, track)
+    cx0 = x + word_w + gap
+    draw.rectangle(
+        [int(cx0), int(y + b) - sw, int(cx0 + cur_w) - 1, int(y + b) - 1], fill=GOLD
+    )
 
 
 def load_icon(box):
