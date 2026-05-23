@@ -3,12 +3,12 @@
     <channel>
         <title>Roola</title>
         <item>
-            <title>0.0.24</title>
-            <pubDate>Sat, 23 May 2026 07:52:06 +0000</pubDate>
-            <sparkle:version>24</sparkle:version>
-            <sparkle:shortVersionString>0.0.24</sparkle:shortVersionString>
+            <title>0.0.25</title>
+            <pubDate>Sat, 23 May 2026 17:51:28 +0000</pubDate>
+            <sparkle:version>25</sparkle:version>
+            <sparkle:shortVersionString>0.0.25</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
-            <enclosure url="https://github.com/yahir0/Roola/releases/download/v0.0.24/Roola.dmg" length="68649989" type="application/octet-stream" sparkle:edSignature="wwc7HxtQSDhFnKd/nrQGwnUpbJ43MihbVZPmPqi+Ifzdt2eREFEyE2SAXUpfZHpASDuYD1XqxExkFG6Z8OX1BQ=="/>
+            <enclosure url="https://github.com/yahir0/Roola/releases/download/v0.0.25/Roola.dmg" length="68735028" type="application/octet-stream" sparkle:edSignature="reKCKGifLHPftx2NPILdpDjNFWoT8hl8feHhQ2SNQjO06mBgDUQ1MxOLK2EIDnCoxZDzovJybAN1B+jeDsj9Bw=="/>
         </item>
     </channel>
 </rss>
