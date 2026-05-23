@@ -162,12 +162,12 @@ return failed(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( String path,  String content,  String? language,  bool isTruncated)?  text,TResult Function( String path)?  image,TResult Function( String path)?  pdf,TResult Function( String path)?  binary,TResult Function( String path,  int sizeBytes)?  tooLarge,TResult Function( String path,  String message)?  failed,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( String path,  String content,  String? language,  bool isTruncated)?  text,TResult Function( String path,  DateTime? modified)?  image,TResult Function( String path,  DateTime? modified)?  pdf,TResult Function( String path)?  binary,TResult Function( String path,  int sizeBytes)?  tooLarge,TResult Function( String path,  String message)?  failed,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case FilePreviewText() when text != null:
 return text(_that.path,_that.content,_that.language,_that.isTruncated);case FilePreviewImage() when image != null:
-return image(_that.path);case FilePreviewPdf() when pdf != null:
-return pdf(_that.path);case FilePreviewBinary() when binary != null:
+return image(_that.path,_that.modified);case FilePreviewPdf() when pdf != null:
+return pdf(_that.path,_that.modified);case FilePreviewBinary() when binary != null:
 return binary(_that.path);case FilePreviewTooLarge() when tooLarge != null:
 return tooLarge(_that.path,_that.sizeBytes);case FilePreviewFailed() when failed != null:
 return failed(_that.path,_that.message);case _:
@@ -188,12 +188,12 @@ return failed(_that.path,_that.message);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( String path,  String content,  String? language,  bool isTruncated)  text,required TResult Function( String path)  image,required TResult Function( String path)  pdf,required TResult Function( String path)  binary,required TResult Function( String path,  int sizeBytes)  tooLarge,required TResult Function( String path,  String message)  failed,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( String path,  String content,  String? language,  bool isTruncated)  text,required TResult Function( String path,  DateTime? modified)  image,required TResult Function( String path,  DateTime? modified)  pdf,required TResult Function( String path)  binary,required TResult Function( String path,  int sizeBytes)  tooLarge,required TResult Function( String path,  String message)  failed,}) {final _that = this;
 switch (_that) {
 case FilePreviewText():
 return text(_that.path,_that.content,_that.language,_that.isTruncated);case FilePreviewImage():
-return image(_that.path);case FilePreviewPdf():
-return pdf(_that.path);case FilePreviewBinary():
+return image(_that.path,_that.modified);case FilePreviewPdf():
+return pdf(_that.path,_that.modified);case FilePreviewBinary():
 return binary(_that.path);case FilePreviewTooLarge():
 return tooLarge(_that.path,_that.sizeBytes);case FilePreviewFailed():
 return failed(_that.path,_that.message);}
@@ -210,12 +210,12 @@ return failed(_that.path,_that.message);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( String path,  String content,  String? language,  bool isTruncated)?  text,TResult? Function( String path)?  image,TResult? Function( String path)?  pdf,TResult? Function( String path)?  binary,TResult? Function( String path,  int sizeBytes)?  tooLarge,TResult? Function( String path,  String message)?  failed,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( String path,  String content,  String? language,  bool isTruncated)?  text,TResult? Function( String path,  DateTime? modified)?  image,TResult? Function( String path,  DateTime? modified)?  pdf,TResult? Function( String path)?  binary,TResult? Function( String path,  int sizeBytes)?  tooLarge,TResult? Function( String path,  String message)?  failed,}) {final _that = this;
 switch (_that) {
 case FilePreviewText() when text != null:
 return text(_that.path,_that.content,_that.language,_that.isTruncated);case FilePreviewImage() when image != null:
-return image(_that.path);case FilePreviewPdf() when pdf != null:
-return pdf(_that.path);case FilePreviewBinary() when binary != null:
+return image(_that.path,_that.modified);case FilePreviewPdf() when pdf != null:
+return pdf(_that.path,_that.modified);case FilePreviewBinary() when binary != null:
 return binary(_that.path);case FilePreviewTooLarge() when tooLarge != null:
 return tooLarge(_that.path,_that.sizeBytes);case FilePreviewFailed() when failed != null:
 return failed(_that.path,_that.message);case _:
@@ -302,10 +302,11 @@ as bool,
 
 
 class FilePreviewImage extends FilePreviewContent {
-  const FilePreviewImage({required this.path}): super._();
+  const FilePreviewImage({required this.path, this.modified}): super._();
   
 
 @override final  String path;
+ final  DateTime? modified;
 
 /// Create a copy of FilePreviewContent
 /// with the given fields replaced by the non-null parameter values.
@@ -317,16 +318,16 @@ $FilePreviewImageCopyWith<FilePreviewImage> get copyWith => _$FilePreviewImageCo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is FilePreviewImage&&(identical(other.path, path) || other.path == path));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is FilePreviewImage&&(identical(other.path, path) || other.path == path)&&(identical(other.modified, modified) || other.modified == modified));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,path);
+int get hashCode => Object.hash(runtimeType,path,modified);
 
 @override
 String toString() {
-  return 'FilePreviewContent.image(path: $path)';
+  return 'FilePreviewContent.image(path: $path, modified: $modified)';
 }
 
 
@@ -337,7 +338,7 @@ abstract mixin class $FilePreviewImageCopyWith<$Res> implements $FilePreviewCont
   factory $FilePreviewImageCopyWith(FilePreviewImage value, $Res Function(FilePreviewImage) _then) = _$FilePreviewImageCopyWithImpl;
 @override @useResult
 $Res call({
- String path
+ String path, DateTime? modified
 });
 
 
@@ -354,10 +355,11 @@ class _$FilePreviewImageCopyWithImpl<$Res>
 
 /// Create a copy of FilePreviewContent
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? path = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? path = null,Object? modified = freezed,}) {
   return _then(FilePreviewImage(
 path: null == path ? _self.path : path // ignore: cast_nullable_to_non_nullable
-as String,
+as String,modified: freezed == modified ? _self.modified : modified // ignore: cast_nullable_to_non_nullable
+as DateTime?,
   ));
 }
 
@@ -368,10 +370,11 @@ as String,
 
 
 class FilePreviewPdf extends FilePreviewContent {
-  const FilePreviewPdf({required this.path}): super._();
+  const FilePreviewPdf({required this.path, this.modified}): super._();
   
 
 @override final  String path;
+ final  DateTime? modified;
 
 /// Create a copy of FilePreviewContent
 /// with the given fields replaced by the non-null parameter values.
@@ -383,16 +386,16 @@ $FilePreviewPdfCopyWith<FilePreviewPdf> get copyWith => _$FilePreviewPdfCopyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is FilePreviewPdf&&(identical(other.path, path) || other.path == path));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is FilePreviewPdf&&(identical(other.path, path) || other.path == path)&&(identical(other.modified, modified) || other.modified == modified));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,path);
+int get hashCode => Object.hash(runtimeType,path,modified);
 
 @override
 String toString() {
-  return 'FilePreviewContent.pdf(path: $path)';
+  return 'FilePreviewContent.pdf(path: $path, modified: $modified)';
 }
 
 
@@ -403,7 +406,7 @@ abstract mixin class $FilePreviewPdfCopyWith<$Res> implements $FilePreviewConten
   factory $FilePreviewPdfCopyWith(FilePreviewPdf value, $Res Function(FilePreviewPdf) _then) = _$FilePreviewPdfCopyWithImpl;
 @override @useResult
 $Res call({
- String path
+ String path, DateTime? modified
 });
 
 
@@ -420,10 +423,11 @@ class _$FilePreviewPdfCopyWithImpl<$Res>
 
 /// Create a copy of FilePreviewContent
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? path = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? path = null,Object? modified = freezed,}) {
   return _then(FilePreviewPdf(
 path: null == path ? _self.path : path // ignore: cast_nullable_to_non_nullable
-as String,
+as String,modified: freezed == modified ? _self.modified : modified // ignore: cast_nullable_to_non_nullable
+as DateTime?,
   ));
 }
 

@@ -24,11 +24,24 @@ sealed class FilePreviewContent with _$FilePreviewContent {
   }) = FilePreviewText;
 
   /// 画像ファイル（拡張子で判定）。デコードは UI 層の `Image.file` が行う。
-  const factory FilePreviewContent.image({required String path}) =
-      FilePreviewImage;
+  ///
+  /// [modified] はファイルの最終更新時刻。UI 層が `Image` ウィジェットの key に
+  /// 織り込み、同じパスのまま中身が差し替わった画像でも key を変えて再デコード
+  /// させるために使う（ADR-0050 / リフレッシュ反映）。Repository は null で
+  /// 返し、ViewModel が `FileStat` の値で詰める。
+  const factory FilePreviewContent.image({
+    required String path,
+    DateTime? modified,
+  }) = FilePreviewImage;
 
   /// PDF ファイル（拡張子で判定）。レンダリングは UI 層の pdfrx が行う。
-  const factory FilePreviewContent.pdf({required String path}) = FilePreviewPdf;
+  ///
+  /// [modified] の用途は [FilePreviewContent.image] と同じ（pdfrx ビューアの
+  /// key に織り込み、内容差し替えを再描画させる）。
+  const factory FilePreviewContent.pdf({
+    required String path,
+    DateTime? modified,
+  }) = FilePreviewPdf;
 
   /// バイナリと判定したファイル（先頭 4 KiB に NUL バイトを含む、または
   /// UTF-8 decode に失敗）。

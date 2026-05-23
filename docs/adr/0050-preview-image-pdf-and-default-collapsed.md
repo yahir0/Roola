@@ -151,10 +151,16 @@ ADR-0046 が「フル機能エディタを内包しない」「`flutter_code_edi
   リフレッシュ）で provider を `invalidateSelf` しても古いキャッシュが返り
   続けて反映されない。対策として `reload()` は再 build の前に主選択が画像で
   あれば `FileImage(File(path)).evict()` で該当エントリをキャッシュから追い
-  出す。なお FSEvents（[ADR-0041]）はディレクトリ一覧の再読込のみで、
-  プレビューは選択追従のため、外部での画像差し替えはリフレッシュ操作で
-  反映させる（自動追従が必要になれば mtime をキャッシュキーへ織り込む拡張を
-  検討する）
+  出す。ただし `evict` だけでは不十分で、`AsyncValue.when` の
+  `skipLoadingOnRefresh` 既定（true）により `invalidateSelf` の再計算中も
+  `Image` ウィジェットはマウントされ続け、同じパスの `FileImage` を等価と
+  みなして再解決しない。そのため ViewModel が `FileStat` の更新時刻
+  （`modified`）を画像 / PDF の状態に詰め、UI 層が `Image` / pdfrx ビューアの
+  key（`'$path|${modified}'`）へ織り込む。リフレッシュで内容が差し替われば
+  更新時刻が変わって key が変わり、ウィジェットごと作り直されて（evict 済みの
+  ため）ディスクから再デコード / 再描画される。なお FSEvents（[ADR-0041]）は
+  ディレクトリ一覧の再読込のみで、プレビューは選択追従のため、外部での画像
+  差し替えはリフレッシュ操作で反映させる
 
 [ADR-0041]: 0041-realtime-fs-watch.md
 - **既定変更の周知**: これまで起動時に開いていたパネルが閉じた状態になる。
