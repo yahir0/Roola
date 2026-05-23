@@ -108,8 +108,8 @@ class _PreviewBody extends StatelessWidget {
     }
     return switch (c) {
       FilePreviewText() => _TextBody(content: c),
-      FilePreviewImage() => _ImageBody(path: c.path),
-      FilePreviewPdf() => _PdfBody(path: c.path),
+      FilePreviewImage() => _ImageBody(path: c.path, modified: c.modified),
+      FilePreviewPdf() => _PdfBody(path: c.path, modified: c.modified),
       FilePreviewBinary() => _MessagePlaceholder(
         icon: Icons.data_object_rounded,
         message: l10n.filePreviewBinary,
@@ -183,9 +183,13 @@ class _TextBody extends StatelessWidget {
 /// できる [InteractiveViewer] に載せ、地（`well`）の中央に contain で置く。
 /// デコードに失敗したら（破損 / 未対応エンコード）エラー placeholder を出す。
 class _ImageBody extends StatelessWidget {
-  const _ImageBody({required this.path});
+  const _ImageBody({required this.path, this.modified});
 
   final String path;
+
+  /// ファイルの最終更新時刻（ADR-0050）。`Image` の key に織り込み、同じパス
+  /// のまま中身が差し替わった画像をリフレッシュ後に再デコードさせる。
+  final DateTime? modified;
 
   @override
   Widget build(BuildContext context) {
@@ -199,6 +203,9 @@ class _ImageBody extends StatelessWidget {
           // 輪郭が過度に滲まない品質。
           child: Image.file(
             File(path),
+            // パス + 更新時刻を key にし、内容差し替え時にウィジェットごと
+            // 作り直して（evict 済みキャッシュを介さず）再デコードさせる。
+            key: ValueKey('$path|${modified?.microsecondsSinceEpoch ?? 0}'),
             errorBuilder: (context, error, stackTrace) => _MessagePlaceholder(
               icon: Icons.broken_image_outlined,
               message: l10n.filePreviewImageError,
@@ -214,9 +221,13 @@ class _ImageBody extends StatelessWidget {
 /// （スクロール / ズーム / テキスト選択は pdfrx 既定の挙動）。地色は
 /// Polaris の `well` に合わせる。読み込み失敗時はエラー placeholder を出す。
 class _PdfBody extends StatelessWidget {
-  const _PdfBody({required this.path});
+  const _PdfBody({required this.path, this.modified});
 
   final String path;
+
+  /// ファイルの最終更新時刻（ADR-0050）。key に織り込み、同じパスのまま
+  /// 中身が差し替わった PDF をリフレッシュ後に再描画させる。
+  final DateTime? modified;
 
   @override
   Widget build(BuildContext context) {
@@ -224,8 +235,9 @@ class _PdfBody extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     return PdfViewer.file(
       path,
-      // 同じパスの再選択でビューアを作り直さないよう、パスを key にする。
-      key: ValueKey(path),
+      // パス + 更新時刻を key にする。同じパスの再選択ではビューアを作り直さず、
+      // 内容が差し替わった（更新時刻が変わった）ときだけ作り直す。
+      key: ValueKey('$path|${modified?.microsecondsSinceEpoch ?? 0}'),
       params: PdfViewerParams(
         backgroundColor: tokens.well,
         loadingBannerBuilder: (context, bytesDownloaded, totalBytes) =>

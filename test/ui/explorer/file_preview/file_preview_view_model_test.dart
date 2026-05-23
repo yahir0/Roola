@@ -108,6 +108,32 @@ void main() {
     expect(value.language, 'dart');
   });
 
+  test('主選択が画像のとき modified（更新時刻）が詰められる', () async {
+    final imageFile = File('${tempDir.path}/pic.png')
+      ..writeAsBytesSync([0x89, 0x50, 0x4e, 0x47]);
+    final container = makeContainer(
+      responses: {
+        // Repository は modified=null で返す。ViewModel が FileStat の値を詰める。
+        imageFile.path: FilePreviewContent.image(path: imageFile.path),
+      },
+    );
+    container
+        .read(explorerItemSelectionProvider('tab-1').notifier)
+        .select(imageFile.path);
+
+    final value = await container.read(
+      filePreviewViewModelProvider('tab-1').future,
+    );
+
+    expect(value, isA<FilePreviewImage>());
+    expect(
+      (value as FilePreviewImage).modified,
+      isNotNull,
+      reason: 'UI の key cache-busting に使うため更新時刻が詰められている',
+    );
+    expect(value.modified, imageFile.statSync().modified);
+  });
+
   test('reload() で再取得される', () async {
     final container = makeContainer();
     container

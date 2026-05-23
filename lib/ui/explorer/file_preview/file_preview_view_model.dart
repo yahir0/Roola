@@ -54,6 +54,14 @@ class FilePreviewViewModel extends _$FilePreviewViewModel {
       final language = detectLanguage(primary, head);
       return content.copyWith(language: language);
     }
+    // 画像 / PDF は更新時刻を詰める。UI 層が key に織り込み、同じパスのまま
+    // 中身が差し替わったファイルを再デコード / 再描画させる（ADR-0050）。
+    if (content is FilePreviewImage) {
+      return content.copyWith(modified: stat.modified);
+    }
+    if (content is FilePreviewPdf) {
+      return content.copyWith(modified: stat.modified);
+    }
     return content;
   }
 
@@ -63,7 +71,13 @@ class FilePreviewViewModel extends _$FilePreviewViewModel {
   /// 画像は Flutter の [ImageCache] がパス（と scale）単位でデコード結果を
   /// 保持するため、`invalidateSelf` だけでは同じパスのまま中身が差し替わった
   /// 画像が古いキャッシュのまま返り続ける（ADR-0050）。再 build の前に該当
-  /// エントリをキャッシュから追い出し、最新の内容で再デコードさせる。
+  /// エントリをキャッシュから追い出す。
+  ///
+  /// さらに、`AsyncValue.when` の `skipLoadingOnRefresh` 既定値により再計算中も
+  /// `Image` ウィジェットはマウントされ続け、同じパスの `FileImage` を等価と
+  /// みなして再解決しない。そのため build() で詰めた更新時刻（`modified`）を
+  /// UI 層が `Image` の key に織り込み、リフレッシュ後に key を変えてウィジェット
+  /// ごと作り直させる（evict 済みなのでディスクから再デコードされる）。
   Future<void> reload() async {
     final current = state.asData?.value;
     if (current is FilePreviewImage) {
