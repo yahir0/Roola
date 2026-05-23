@@ -7,6 +7,7 @@ import 'package:roola/ui/explorer/explorer_item_selection.dart';
 import 'package:roola/ui/explorer/explorer_view_model.dart';
 import 'package:roola/ui/git/git_view_model.dart';
 import 'package:roola/ui/run/adhoc_run_view_model.dart';
+import 'package:roola/ui/workspace/focused_tab_provider.dart';
 import 'package:roola/ui/workspace/workspace_seed.dart';
 
 part 'workspace_provider.g.dart';
@@ -92,6 +93,7 @@ class Workspace extends _$Workspace {
         slot.copyWith(tabs: tabs, activeIndex: tabs.length - 1),
       ),
     );
+    _trackFocus(tab);
   }
 
   /// id 一致のタブをアクティブにする。
@@ -104,6 +106,27 @@ class Workspace extends _$Workspace {
     _apply(
       state.withSlot(slotId, state.slot(slotId).copyWith(activeIndex: index)),
     );
+    _trackFocus(state.slot(slotId).tabs[index]);
+  }
+
+  /// タブがアクティブ化 / 新規追加でユーザーの操作対象になったとき、
+  /// フォーカス追跡（[FocusedTab]）を種別に応じて更新する。タブ body の
+  /// ポインタ押下と同じ規則（ADR-0026 design Decision 4）。
+  ///
+  /// これにより「いま見えているエクスプローラタブ」にサイドバーの遷移先
+  /// （`lastExplorerTabId`）が追従する。「+」での新規タブやチップ切替の直後に
+  /// body をクリックしていなくても、サイドバー操作がアクティブなタブへ届く。
+  /// ターミナル / Git のアクティブ化では `lastExplorerTabId` は据え置く。
+  void _trackFocus(WorkspaceTab tab) {
+    final focus = ref.read(focusedTabProvider.notifier);
+    switch (tab) {
+      case ExplorerTab():
+        focus.focusExplorer(tab.id);
+      case TerminalTab():
+        focus.focusTerminal(tab.id);
+      case GitTab():
+        focus.focusGit(tab.id);
+    }
   }
 
   /// id 一致のタブを閉じる。対応する per-tab 状態（エクスプローラ履歴 /

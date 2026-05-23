@@ -56,7 +56,7 @@ final class WorkspaceProvider
   }
 }
 
-String _$workspaceHash() => r'74f6282691abe982d4996d6336bdb7e35079e67a';
+String _$workspaceHash() => r'9f5816b946a79aa46bb9b1cc0da17918d127af7f';
 
 /// ワークスペースのレイアウト（3 ペインスロット × タブ群）の単一の真実。
 ///
