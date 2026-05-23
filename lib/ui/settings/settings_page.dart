@@ -10,9 +10,8 @@ import 'package:roola/data/locale/locale_settings_repository_impl.dart';
 import 'package:roola/data/repo_explorer/explorer_settings.dart';
 import 'package:roola/data/repo_explorer/explorer_settings_repository_impl.dart';
 import 'package:roola/l10n/app_localizations.dart';
-import 'package:roola/ui/common/macos_window_app_bar.dart';
-import 'package:roola/ui/common/polaris_display_panel.dart';
 import 'package:roola/ui/common/polaris_glyphs.dart';
+import 'package:roola/ui/common/polaris_modal_shell.dart';
 import 'package:roola/ui/common/polaris_settings_panel.dart';
 import 'package:roola/ui/common/polaris_toggle.dart';
 import 'package:roola/ui/settings/appearance_section.dart';
@@ -28,31 +27,26 @@ class SettingsPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Scaffold(
-      appBar: MacosWindowAppBar(
-        title: Text(AppLocalizations.of(context).settingsPageTitle),
-      ),
-      // コンテンツ面は 1 枚の「計器ディスプレイパネル」(well + ベゼル) に嵌め、
-      // Explorer / Git と語彙を揃える（ADR-0038 D3/D6）。ベゼルの内側は箱で
-      // 囲わず、極薄ヘアライン（[PolarisSectionDivider]）と余白だけのフラット
-      // 構成にする（D1 機能主義＝引き算）。
-      body: PolarisDisplayPanel(
-        child: ListView(
-          padding: const EdgeInsets.symmetric(vertical: PolarisTokens.space4),
-          children: const [
-            _LanguageSection(),
-            PolarisSectionDivider(),
-            AppearanceSection(),
-            PolarisSectionDivider(),
-            _ExplorerSection(),
-            PolarisSectionDivider(),
-            _ClaudeIntegrationSection(),
-            PolarisSectionDivider(),
-            _ShortcutsSection(),
-            PolarisSectionDivider(),
-            _AboutSection(),
-          ],
-        ),
+    // ワークスペースに重ねる計器ディスプレイ（[PolarisModalShell]）として出す。
+    // ベゼル(シェル) の内側は箱で囲わず、極薄ヘアライン
+    // （[PolarisSectionDivider]）と余白だけのフラット構成（ADR-0054）。
+    return PolarisModalShell(
+      title: AppLocalizations.of(context).settingsPageTitle,
+      child: ListView(
+        padding: const EdgeInsets.symmetric(vertical: PolarisTokens.space4),
+        children: const [
+          _LanguageSection(),
+          PolarisSectionDivider(),
+          AppearanceSection(),
+          PolarisSectionDivider(),
+          _ExplorerSection(),
+          PolarisSectionDivider(),
+          _ClaudeIntegrationSection(),
+          PolarisSectionDivider(),
+          _ShortcutsSection(),
+          PolarisSectionDivider(),
+          _AboutSection(),
+        ],
       ),
     );
   }

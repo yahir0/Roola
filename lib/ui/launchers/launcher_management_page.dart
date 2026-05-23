@@ -8,8 +8,8 @@ import 'package:roola/data/launcher_entry/launcher_entry.dart';
 import 'package:roola/data/launcher_entry/launcher_folder.dart';
 import 'package:roola/data/launcher_entry/launcher_folders_provider.dart';
 import 'package:roola/l10n/app_localizations.dart';
-import 'package:roola/ui/common/macos_window_app_bar.dart';
 import 'package:roola/ui/common/polaris_dialog.dart';
+import 'package:roola/ui/common/polaris_modal_shell.dart';
 import 'package:roola/ui/common/prompt_name_dialog.dart';
 import 'package:uuid/uuid.dart';
 
@@ -32,23 +32,23 @@ class LauncherManagementPage extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final entriesState = ref.watch(launcherEntriesProvider);
     final foldersState = ref.watch(launcherFoldersProvider);
-    return Scaffold(
-      appBar: MacosWindowAppBar(
-        title: Text(l10n.launcherManagementTitle),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.create_new_folder_outlined),
-            tooltip: l10n.launcherAddFolderTooltip,
-            onPressed: () => _addFolder(context, ref),
-          ),
-          IconButton(
-            icon: const Icon(Icons.add),
-            tooltip: l10n.launcherAddEntryTooltip,
-            onPressed: () => const EntryNewRoute().push<void>(context),
-          ),
-        ],
-      ),
-      body: _buildBody(l10n, entriesState, foldersState),
+    return PolarisModalShell(
+      title: l10n.launcherManagementTitle,
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.create_new_folder_outlined),
+          tooltip: l10n.launcherAddFolderTooltip,
+          visualDensity: VisualDensity.compact,
+          onPressed: () => _addFolder(context, ref),
+        ),
+        IconButton(
+          icon: const Icon(Icons.add),
+          tooltip: l10n.launcherAddEntryTooltip,
+          visualDensity: VisualDensity.compact,
+          onPressed: () => const EntryNewRoute().push<void>(context),
+        ),
+      ],
+      child: _buildBody(l10n, entriesState, foldersState),
     );
   }
 

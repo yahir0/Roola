@@ -77,6 +77,29 @@ UI で浮くため、`PolarisToggle`（`lib/ui/common/polaris_toggle.dart`）に
 から、機械加工 R の矩形フェーダキャップ（`theme.dart` の `_FaderThumbShape`）へ
 差し替える。
 
+### D5. secondary 画面はモーダルシェルとして重ね、戻る + タイトルのヘッダを廃止する
+
+設定 / ランチャー管理 / キーバインド / エントリ編集は、これまで root navigator に
+`.push()` され、`MacosWindowAppBar` が `canPop()` を見て **左に戻る山括弧 ＋
+タイトル文字**を出していた。メイン画面のトップバー（信号灯 ＋ ROOLA ワードマーク
+＋ 右アクション）と構造が別物で、戻るボタンもここでしか使われず浮いていた。
+
+これらを `PolarisModalShell`（`lib/ui/common/polaris_modal_shell.dart`）へ統一する。
+これらの画面は「ナビで深く潜った先」でなく「**ワークスペースに重ねる一時的な
+モーダル文脈**」なので、`←戻る`でなく `✕閉じる`が実態に合う:
+
+- ルートは `opaque: false`（`router.dart` の `_modalPage`）で push し、背後に
+  ワークスペースを描かせる。
+- シェルはスクリム（背後を薄暗く沈める・タップで閉じる）＋中央のベゼル付き
+  ディスプレイ（D1 のベゼルそのもの）として出す。ヘッダは全大文字タイトル
+  ＋ ✕、本文はハーラインで分ける。
+- 閉じる手段は **✕ / スクリムタップ / Esc** の 3 つ（いずれも `maybePop`）。
+- `MacosWindowAppBar` の戻る山括弧 + タイトルはこれらの画面から撤去する
+  （メイン `WorkspacePage` と license 系は引き続き使用）。
+
+これによりメイン画面のトップバーが常に見えたまま、secondary 画面が「閉じられる
+パネル」として重なり、戻るボタン + ヘッダタイトルの不統一が解消される。
+
 ## Why
 
 Polaris は思想（機能主義 / 引き算）が不変でビジュアルは導出物（ADR-0038 D1）。
@@ -96,11 +119,18 @@ Polaris は思想（機能主義 / 引き算）が不変でビジュアルは導
   単純な単一選択トグル用途に限定し、複雑化したら再検討する。
 - **モノライングリフの自作コスト**: アイコンを増やすたび `CustomPaint` を書く。
   ADR-0038 D10 で受容済みのコスト。
+- **モーダルの `opaque: false` で背後のワークスペースが描画され続ける**: 背後の
+  ターミナル等は live のまま（見た目の利点はあるが描画コストは残る）。スクリムで
+  操作はブロックする。
+- **license 系画面（About ダイアログ経由）は従来の `MacosWindowAppBar` のまま**:
+  システムの About フローから開く長文の法務テキストで、優先度が低く別フロー。
+  必要なら後続でモーダルシェルへ寄せる。
 
 ## References
 
 - ADR-0038: Polaris デザインシステムを採用する（本 ADR は D1/D3/D6 を一般化・具体化）
 - ADR-0020: UI を Win10/11 風フラット実用テーマに転換する（ADR-0038 が Supersede）
+- ADR-0010: Home / Explorer をタブ式 `StatefulShellRoute` で束ねる（secondary は root navigator に push）
 - `lib/ui/common/polaris_display_panel.dart` / `polaris_settings_panel.dart` /
-  `polaris_toggle.dart` / `polaris_glyphs.dart`
+  `polaris_toggle.dart` / `polaris_glyphs.dart` / `polaris_modal_shell.dart`
 - [Dieter Rams: 10 principles of good design](https://www.vitsoe.com/gb/about/good-design)

@@ -7,7 +7,7 @@ import 'package:roola/core/health/claude_health_check.dart';
 import 'package:roola/data/launcher_entry/launcher_action.dart';
 import 'package:roola/data/launcher_entry/launcher_folders_provider.dart';
 import 'package:roola/l10n/app_localizations.dart';
-import 'package:roola/ui/common/macos_window_app_bar.dart';
+import 'package:roola/ui/common/polaris_modal_shell.dart';
 import 'package:roola/ui/launchers/entry_edit_view_model.dart';
 
 /// エントリ追加・編集画面。
@@ -78,11 +78,9 @@ class EntryEditPage extends HookConsumerWidget {
 
     final l10n = AppLocalizations.of(context);
 
-    return Scaffold(
-      appBar: MacosWindowAppBar(
-        title: Text(isNew ? l10n.entryEditTitleNew : l10n.entryEditTitleEdit),
-      ),
-      body: AbsorbPointer(
+    return PolarisModalShell(
+      title: isNew ? l10n.entryEditTitleNew : l10n.entryEditTitleEdit,
+      child: AbsorbPointer(
         absorbing: state.isSubmitting,
         child: ListView(
           padding: const EdgeInsets.all(PolarisTokens.space6),

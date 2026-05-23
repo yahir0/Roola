@@ -207,6 +207,15 @@ class PolarisGlyph extends StatelessWidget {
     size: size,
   );
 
+  /// 閉じる（✕）。モーダル / パネルを閉じる操作を表す。
+  factory PolarisGlyph.close({
+    required Color color,
+    double size = PolarisIconSize.standard,
+  }) => PolarisGlyph._(
+    painter: _CloseGlyphPainter(color: color),
+    size: size,
+  );
+
   final CustomPainter painter;
   final double size;
 
@@ -347,6 +356,28 @@ class _KeyboardGlyphPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_KeyboardGlyphPainter old) => old.color != color;
+}
+
+class _CloseGlyphPainter extends CustomPainter {
+  const _CloseGlyphPainter({required this.color});
+
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final s = size.width;
+    final stroke = _glyphStroke(color);
+    canvas
+      ..drawLine(Offset(s * 0.26, s * 0.26), Offset(s * 0.74, s * 0.74), stroke)
+      ..drawLine(
+        Offset(s * 0.74, s * 0.26),
+        Offset(s * 0.26, s * 0.74),
+        stroke,
+      );
+  }
+
+  @override
+  bool shouldRepaint(_CloseGlyphPainter old) => old.color != color;
 }
 
 class _RowsGlyphPainter extends CustomPainter {
