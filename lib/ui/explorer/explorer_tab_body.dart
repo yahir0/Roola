@@ -23,6 +23,8 @@ import 'package:roola/ui/explorer/file_preview/file_preview_pane.dart';
 import 'package:roola/ui/explorer/file_preview/file_preview_view_model.dart';
 import 'package:roola/ui/git/git_view_model.dart';
 import 'package:roola/ui/workspace/current_tab_id_provider.dart';
+import 'package:roola/ui/workspace/focused_tab_provider.dart';
+import 'package:roola/ui/workspace/window_activation_provider.dart';
 import 'package:roola/ui/workspace/workspace_provider.dart';
 import 'package:super_drag_and_drop/super_drag_and_drop.dart';
 
@@ -297,6 +299,16 @@ class _DirectoryListing extends HookConsumerWidget {
     // ポインタ押下でこのフォーカスを獲得し、以降は矢印キーで選択を動かせる。
     final focusNode = useFocusNode();
     final scrollController = useScrollController();
+
+    // ウィンドウ再アクティブ化時、このエクスプローラが直前にフォーカスされて
+    // いたタブなら一覧フォーカスを戻す（ADR-0055）。既定では top-left ペインへ
+    // 誤って移るのを上書きし、十字キー操作（ADR-0051）の対象を直前の一覧に
+    // 戻す。
+    ref.listen(windowActivationProvider, (_, _) {
+      if (ref.read(focusedTabProvider).focusedTabId == tabId) {
+        focusNode.requestFocus();
+      }
+    });
     // 行高は密度設定と Skill サブタイトル有無で変わる（ADR-0024 / D6）。
     // 選択行のスクロール位置を正確に求めるため、ここでも同じ条件で算出する。
     final density =

@@ -109,6 +109,19 @@ final class SystemMetricsProvider {
 }
 
 class MainFlutterWindow: NSWindow {
+  /// ウィンドウ再アクティブ化（key 化）を Dart へ通知するチャネル（ADR-0055）。
+  /// `awakeFromNib` でエンジンの binaryMessenger に紐付けて生成する。
+  private var windowChannel: FlutterMethodChannel?
+
+  /// ウィンドウが key ウィンドウになったとき（別ウィンドウ / 別アプリから
+  /// 戻ってきたとき）に Dart へ通知する（ADR-0055）。Dart 側は直前に
+  /// フォーカスしていたペインへフォーカスを戻す。`becomeKey` は初回表示でも
+  /// 発火するが、その時点では復帰対象（focusedTabId）が未設定のため no-op。
+  override func becomeKey() {
+    super.becomeKey()
+    windowChannel?.invokeMethod("didBecomeKey", arguments: nil)
+  }
+
   /// メニューバーのショートカット（key equivalent）を、フォーカス中のビュー
   /// より先に評価する（ADR-0033 / ADR-0052）。
   ///
@@ -261,6 +274,13 @@ class MainFlutterWindow: NSWindow {
         result(FlutterMethodNotImplemented)
       }
     }
+
+    // ウィンドウ再アクティブ化通知（ADR-0055）。native→Dart の一方向通知のみ
+    // 行うため、ハンドラは設定しない（Dart 側が setMethodCallHandler する）。
+    windowChannel = FlutterMethodChannel(
+      name: "roola/window",
+      binaryMessenger: flutterViewController.engine.binaryMessenger
+    )
 
     super.awakeFromNib()
   }

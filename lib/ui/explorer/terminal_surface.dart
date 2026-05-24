@@ -2,8 +2,12 @@ import 'dart:async';
 
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:roola/data/terminal_runner/terminal_channel.dart';
 import 'package:roola/data/terminal_runner/terminal_runner.dart';
+import 'package:roola/ui/workspace/current_tab_id_provider.dart';
+import 'package:roola/ui/workspace/focused_tab_provider.dart';
+import 'package:roola/ui/workspace/window_activation_provider.dart';
 
 /// SwiftTerm（ネイティブ macOS NSView）を `AppKitView` プラットフォームビュー
 /// としてホストするターミナル面（ADR-0031）。
@@ -17,7 +21,7 @@ import 'package:roola/data/terminal_runner/terminal_runner.dart';
 ///
 /// [runner] は `adhocRunViewModelProvider` 側で keep-alive 保持されるため、
 /// 本 widget の dispose では runner は破棄せず、チャネル配線のみ解放する。
-class TerminalSurface extends StatefulWidget {
+class TerminalSurface extends ConsumerStatefulWidget {
   const TerminalSurface({
     required this.channelId,
     required this.runner,
@@ -32,10 +36,10 @@ class TerminalSurface extends StatefulWidget {
   final TerminalRunner runner;
 
   @override
-  State<TerminalSurface> createState() => _TerminalSurfaceState();
+  ConsumerState<TerminalSurface> createState() => _TerminalSurfaceState();
 }
 
-class _TerminalSurfaceState extends State<TerminalSurface> {
+class _TerminalSurfaceState extends ConsumerState<TerminalSurface> {
   /// SwiftTerm ホスト NSView の `AppKitView` viewType（native 側の
   /// `NSViewFactory` 登録 id と一致させる）。
   static const _viewType = 'roola/terminal-view';
@@ -98,8 +102,26 @@ class _TerminalSurfaceState extends State<TerminalSurface> {
     super.dispose();
   }
 
+  /// ウィンドウ再アクティブ化時、このターミナルが直前にフォーカスされていた
+  /// タブなら、Flutter フォーカスとネイティブ first responder を戻す
+  /// （ADR-0055）。`requestNativeFocus` を直接呼ぶのは、Flutter フォーカスを
+  /// 失っていない場合に `requestFocus` だけでは `_handleFocusChange` が
+  /// 再発火せず、ネイティブ first responder が戻らないため。
+  void _restoreFocusIfFocusedTab() {
+    final tabId = ref.read(currentTabIdProvider);
+    if (ref.read(focusedTabProvider).focusedTabId != tabId) {
+      return;
+    }
+    _focusNode.requestFocus();
+    _channel.requestNativeFocus();
+  }
+
   @override
   Widget build(BuildContext context) {
+    // ウィンドウ再アクティブ化（ADR-0055）を購読し、直前にフォーカスされて
+    // いたタブのターミナルへフォーカス（とネイティブ first responder）を戻す。
+    ref.listen(windowActivationProvider, (_, _) => _restoreFocusIfFocusedTab());
+
     // AppKitView（SwiftTerm）は Flutter のフォーカスツリー外にあるため、
     // Flutter のフォーカスと噛み合わせる薄い橋を被せる（ADR-0037）:
     // - Listener: ターミナルがクリックされたら Flutter フォーカスを掴む。
