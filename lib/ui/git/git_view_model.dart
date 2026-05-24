@@ -353,11 +353,15 @@ class GitViewModel extends _$GitViewModel {
   // ---- diff（状態を変えない読み取り）------------------------------------
 
   /// 作業ツリー上のファイルの diff を取得する。
-  Future<GitDiff> workingFileDiff(String path, {required bool staged}) {
+  Future<GitDiff> workingFileDiff(
+    String path, {
+    required bool staged,
+    bool untracked = false,
+  }) {
     final repoRoot = _current?.repoRoot ?? '';
     return ref
         .read(gitRepositoryProvider)
-        .diffWorkingFile(repoRoot, path, staged: staged);
+        .diffWorkingFile(repoRoot, path, staged: staged, untracked: untracked);
   }
 
   /// コミット内のファイルの diff を取得する。

@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:roola/data/git/git_diff.dart';
 import 'package:roola/data/git/git_status.dart';
 import 'package:roola/data/git/process_git_repository.dart';
 
@@ -128,6 +129,22 @@ void main() {
     final diff = await git.diffWorkingFile(repo.path, 'a.txt', staged: false);
     expect(diff.isBinary, isFalse);
     expect(diff.lines, isNotEmpty);
+  });
+
+  test('未追跡ファイルの diff は全行を追加として返す', () async {
+    writeFile('new.md', '# title\nbody\n');
+    final diff = await git.diffWorkingFile(
+      repo.path,
+      'new.md',
+      staged: false,
+      untracked: true,
+    );
+    expect(diff.isBinary, isFalse);
+    expect(diff.hasNoChanges, isFalse);
+    final additions = diff.lines.where(
+      (l) => l.kind == GitDiffLineKind.addition,
+    );
+    expect(additions.map((l) => l.text), containsAll(['# title', 'body']));
   });
 
   test('commitFiles は変更ファイルを返す', () async {

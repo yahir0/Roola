@@ -313,14 +313,15 @@ class _ChangeRow extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
 
     return InkWell(
-      onDoubleTap: change.type == GitChangeType.untracked
-          ? null
-          : () => showGitDiffDialog(
-              context,
-              title: change.displayPath,
-              load: () =>
-                  notifier.workingFileDiff(change.path, staged: change.staged),
-            ),
+      onTap: () => showGitDiffDialog(
+        context,
+        title: change.displayPath,
+        load: () => notifier.workingFileDiff(
+          change.path,
+          staged: change.staged,
+          untracked: change.type == GitChangeType.untracked,
+        ),
+      ),
       child: Padding(
         padding: const EdgeInsets.only(
           left: PolarisTokens.space3,
