@@ -67,11 +67,13 @@ abstract interface class GitRepository {
   Future<List<GitFileChange>> commitFiles(String repoRoot, String sha);
 
   /// 作業ツリー上のファイル [path] の diff を取得する。[staged] が `true`
-  /// なら index と HEAD の diff。
+  /// なら index と HEAD の diff。[untracked] が `true`（未追跡の新規ファイル）
+  /// なら `/dev/null` との比較で全行を追加として diff 化する。
   Future<GitDiff> diffWorkingFile(
     String repoRoot,
     String path, {
     required bool staged,
+    bool untracked = false,
   });
 
   /// コミット [sha] におけるファイル [path] の diff を取得する。
