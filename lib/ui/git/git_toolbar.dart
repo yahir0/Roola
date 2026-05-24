@@ -3,6 +3,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:roola/app/theme.dart';
 import 'package:roola/data/git/git_stash_entry.dart';
 import 'package:roola/l10n/app_localizations.dart';
+import 'package:roola/ui/common/polaris_glyphs.dart';
 import 'package:roola/ui/git/git_branch_menu.dart';
 import 'package:roola/ui/git/git_dialogs.dart';
 import 'package:roola/ui/git/git_view_model.dart';
@@ -185,6 +186,7 @@ class _BranchButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = PolarisTokens.of(context);
     return OutlinedButton(
       // minimumSize は指定せず、テーマの buttonMinSize（高さ 32px・幅 0）に
       // 委ねる。幅 0 なので狭い幅まで絞れる挙動は維持しつつ、高さは他の
@@ -196,13 +198,14 @@ class _BranchButton extends StatelessWidget {
       child: Text.rich(
         TextSpan(
           children: [
-            const WidgetSpan(
+            WidgetSpan(
               alignment: PlaceholderAlignment.middle,
               child: Padding(
-                padding: EdgeInsets.only(right: PolarisTokens.space2),
-                child: Icon(
-                  Icons.account_tree_outlined,
+                padding: const EdgeInsets.only(right: PolarisTokens.space2),
+                child: PolarisGlyph.gitBranch(
                   size: PolarisIconSize.small,
+                  // ボタンの前景（accent）に揃える。無効時は faint。
+                  color: onPressed == null ? tokens.textFaint : tokens.accent,
                 ),
               ),
             ),

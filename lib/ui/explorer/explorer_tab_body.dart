@@ -13,6 +13,7 @@ import 'package:roola/data/repo_explorer/explorer_settings.dart';
 import 'package:roola/data/repo_explorer/explorer_settings_repository_impl.dart';
 import 'package:roola/l10n/app_localizations.dart';
 import 'package:roola/ui/common/polaris_display_panel.dart';
+import 'package:roola/ui/common/polaris_glyphs.dart';
 import 'package:roola/ui/explorer/dnd_ready_provider.dart';
 import 'package:roola/ui/explorer/explorer_item_selection.dart';
 import 'package:roola/ui/explorer/explorer_node_tile.dart';
@@ -256,10 +257,11 @@ class _OpenGitButton extends ConsumerWidget {
     // 結果は gitRepositoryRootProvider が family(パス)単位でキャッシュする。
     final repoRoot = ref.watch(gitRepositoryRootProvider(currentPath)).value;
     final l10n = AppLocalizations.of(context);
+    final tokens = PolarisTokens.of(context);
     return IconButton(
-      icon: const Icon(
-        Icons.account_tree_outlined,
-        size: PolarisIconSize.standard,
+      icon: PolarisGlyph.gitBranch(
+        // 非 Git ディレクトリでは押下不可。faint で無効を示す。
+        color: repoRoot == null ? tokens.textFaint : tokens.textDim,
       ),
       tooltip: repoRoot != null
           ? l10n.explorerOpenGitViewTooltip

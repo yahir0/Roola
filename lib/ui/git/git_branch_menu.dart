@@ -4,6 +4,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:roola/app/theme.dart';
 import 'package:roola/data/git/git_branch.dart';
 import 'package:roola/l10n/app_localizations.dart';
+import 'package:roola/ui/common/polaris_glyphs.dart';
 import 'package:roola/ui/git/git_dialogs.dart';
 import 'package:roola/ui/git/git_view_model.dart';
 
@@ -56,11 +57,7 @@ class _GitBranchDialog extends HookConsumerWidget {
               ),
               child: Row(
                 children: [
-                  Icon(
-                    Icons.account_tree_outlined,
-                    size: PolarisIconSize.standard,
-                    color: tokens.textDim,
-                  ),
+                  PolarisGlyph.gitBranch(color: tokens.textDim),
                   const SizedBox(width: PolarisTokens.space2),
                   Text(
                     l10n.gitBranchDialogTitle,
@@ -216,11 +213,9 @@ class _BranchRow extends ConsumerWidget {
     return ListTile(
       dense: true,
       enabled: !busy,
-      leading: Icon(
-        branch.isCurrent ? Icons.check : Icons.account_tree_outlined,
-        size: PolarisIconSize.standard,
-        color: branch.isCurrent ? colors.primary : colors.onSurfaceVariant,
-      ),
+      leading: branch.isCurrent
+          ? Icon(Icons.check, color: colors.primary)
+          : PolarisGlyph.gitBranch(color: colors.onSurfaceVariant),
       title: Text(
         branch.name,
         style: TextStyle(

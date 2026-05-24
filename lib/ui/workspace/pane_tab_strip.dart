@@ -10,6 +10,7 @@ import 'package:roola/data/workspace/workspace_layout.dart';
 import 'package:roola/data/workspace/workspace_tab.dart';
 import 'package:roola/l10n/app_localizations.dart';
 import 'package:roola/ui/common/command_l10n.dart';
+import 'package:roola/ui/common/polaris_glyphs.dart';
 import 'package:roola/ui/workspace/workspace_provider.dart';
 
 /// ペイン上端のタブストリップ。
@@ -163,15 +164,22 @@ class _TabChip extends ConsumerWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(
-                switch (tab) {
-                  ExplorerTab() => Icons.folder_outlined,
-                  TerminalTab() => Icons.terminal,
-                  GitTab() => Icons.account_tree_outlined,
-                },
-                size: PolarisIconSize.small,
-                color: isActive ? tokens.accent : tokens.textFaint,
-              ),
+              switch (tab) {
+                ExplorerTab() => Icon(
+                  Icons.folder_outlined,
+                  size: PolarisIconSize.small,
+                  color: isActive ? tokens.accent : tokens.textFaint,
+                ),
+                TerminalTab() => Icon(
+                  Icons.terminal,
+                  size: PolarisIconSize.small,
+                  color: isActive ? tokens.accent : tokens.textFaint,
+                ),
+                GitTab() => PolarisGlyph.gitBranch(
+                  size: PolarisIconSize.small,
+                  color: isActive ? tokens.accent : tokens.textFaint,
+                ),
+              },
               const SizedBox(width: PolarisTokens.space2),
               Flexible(
                 child: Text(
