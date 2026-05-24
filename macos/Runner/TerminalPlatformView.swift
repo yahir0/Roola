@@ -101,6 +101,16 @@ class RoolaTerminalView: NSView, TerminalViewDelegate {
     terminal.terminalDelegate = self
     TerminalTheme.apply(to: terminal, registrar: registrar)
 
+    // native→Dart: SwiftTerm がクリックでフォーカスされたとき、Flutter 側へ
+    // 通知してフォーカス追跡（focusedTabProvider）を更新させる（ADR-0055）。
+    // ターミナルへのクリックは AppKitView の外（ネイティブ NSView）で処理され
+    // Flutter のポインタ系を通らないため、Flutter 側の Listener / FocusNode
+    // だけでは「ターミナルがフォーカスされた」を検知できない。クリックを
+    // この通知で橋渡しする。
+    terminal.onMouseDown = { [weak self] in
+      self?.ctrlChannel.invokeMethod("terminalDidFocus", arguments: nil)
+    }
+
     // Dart→native: PTY 出力バイト列を SwiftTerm に feed する。
     dataChannel.setMessageHandler { [weak self] message, reply in
       if let data = message as? Data {
@@ -275,8 +285,19 @@ final class RoolaTerminalRenderingView: TerminalView {
   private var autoScrollTimer: Timer?
   private var lastDragEvent: NSEvent?
 
+  /// クリックでフォーカス（first responder）を獲得したときに呼ぶコールバック。
+  /// Flutter 側のフォーカス追跡更新に使う（ADR-0055）。
+  ///
+  /// SwiftTerm が `becomeFirstResponder()` を `public`（非 `open`）で
+  /// オーバーライドしているためモジュール外から再オーバーライドできず
+  /// （`keyDown` と同じ制約。ADR-0032）、`open` のままの `mouseDown` で
+  /// クリックを捕まえる。キーボードのみでのフォーカス移動は Dart 側が
+  /// 駆動する（`requestNativeFocus`）ため、クリック検知で十分。
+  var onMouseDown: (() -> Void)?
+
   override func mouseDown(with event: NSEvent) {
     super.mouseDown(with: event)
+    onMouseDown?()
     startAutoScrollTimerIfNeeded()
   }
 
