@@ -313,7 +313,7 @@ class _ChangeRow extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
 
     return InkWell(
-      onDoubleTap: () => showGitDiffDialog(
+      onTap: () => showGitDiffDialog(
         context,
         title: change.displayPath,
         load: () => notifier.workingFileDiff(
