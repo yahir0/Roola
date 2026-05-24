@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:roola/app/theme.dart';
-import 'package:roola/l10n/app_localizations.dart';
 import 'package:window_manager/window_manager.dart';
 
 /// macOS の信号灯ボタン（close / minimize / maximize）と AppBar の
@@ -10,10 +9,11 @@ import 'package:window_manager/window_manager.dart';
 /// いるため、信号灯は OS が AppBar の左上に重ねて描画する。標準の
 /// `AppBar` をそのまま使うと、自動 back ボタンや leading アイコンが
 /// 信号灯と重なって押し分けられない。`leadingWidth` に信号灯ぶんの幅を
-/// 加算し、leading widget を右側に押し出すことで衝突を避ける。
+/// 確保し、leading をその幅の空 spacer にすることで衝突を避ける。
 ///
-/// back ボタンは `Navigator.canPop()` が true のとき（push されて重なった
-/// 画面）だけ自動表示し、押すと pop する。
+/// 戻る導線は持たない。重ねるモーダル（設定 / ランチャー管理 / ライセンス）は
+/// すべて [PolarisModalShell] が自前で閉じる / 戻るを提供するため、ウィンドウ
+/// ヘッダ側に back ボタンは不要（ADR-0054 / ADR-0056）。
 ///
 /// [title] は省略可能で、Home / Explorer のようにタブで現在地が示せる
 /// 画面ではタイトル文字列を出さずに [AppTabSegments] のような widget を
@@ -40,9 +40,6 @@ class MacosWindowAppBar extends StatelessWidget implements PreferredSizeWidget {
   /// グリッドに乗る 40px とする（ADR-0038 D6）。
   static const double _toolbarHeight = 40;
 
-  /// back ボタンの描画幅。
-  static const double _navButtonWidth = 48;
-
   final Widget? title;
 
   /// [title] の左余白。null だと AppBar 標準（16px）。トップバー左端の信号灯
@@ -61,12 +58,7 @@ class MacosWindowAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
     final tokens = PolarisTokens.of(context);
-    final navigator = Navigator.of(context);
-    // back ボタンは pop 可能なとき（push で重なった画面）だけ出す。
-    final showBack = navigator.canPop();
-    final navButtonsWidth = showBack ? _navButtonWidth : 0;
     return AppBar(
       title: title,
       titleSpacing: titleSpacing,
@@ -94,19 +86,9 @@ class MacosWindowAppBar extends StatelessWidget implements PreferredSizeWidget {
         ),
         child: const DragToMoveArea(child: SizedBox.expand()),
       ),
-      leadingWidth: _trafficLightsWidth + navButtonsWidth,
-      leading: showBack
-          ? Padding(
-              padding: const EdgeInsets.only(left: _trafficLightsWidth),
-              // back は macOS 風の細いシェブロン。標準 BackButton 相当の
-              // 動作（pop）を IconButton で書き下す。
-              child: IconButton(
-                icon: const Icon(Icons.arrow_back_ios_new_rounded),
-                tooltip: l10n.navBack,
-                onPressed: navigator.maybePop,
-              ),
-            )
-          : const SizedBox(width: _trafficLightsWidth),
+      // 信号灯ぶんの幅を空 spacer で確保し、title / actions を右へ押し出す。
+      leadingWidth: _trafficLightsWidth,
+      leading: const SizedBox(width: _trafficLightsWidth),
     );
   }
 }

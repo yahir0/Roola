@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:roola/app/router.dart';
 import 'package:roola/app/theme.dart';
 import 'package:roola/l10n/app_localizations.dart';
-import 'package:roola/ui/about/license_browser_page.dart';
-import 'package:roola/ui/common/instant_material_route.dart';
 
 /// About ダイアログを開く（ADR-0040）。
 ///
@@ -11,11 +10,12 @@ import 'package:roola/ui/common/instant_material_route.dart';
 /// [showAboutDialog] / [AboutDialog] を使わない理由は、内蔵されている
 /// 「ライセンスを表示」ボタンが [showLicensePage] を経由し、Material 標準
 /// の [LicensePage] を開いてしまうため。`LicensePage` の back ボタンは
-/// macOS の信号灯と重なる位置に描かれ、Roola の `TitleBarStyle.hidden` +
-/// `MacosWindowAppBar` の前提と合わない。
+/// macOS の信号灯と重なる位置に描かれ、Roola の `TitleBarStyle.hidden` の
+/// 前提と合わない。
 ///
-/// 代わりに、ダイアログの「ライセンスを表示」ボタンから自前の
-/// [LicenseBrowserPage] へ push する。これにより信号灯衝突を避けつつ、
+/// 代わりに、ダイアログの「ライセンスを表示」ボタンから自前のライセンス
+/// 一覧（[LicensesRoute] → `LicenseBrowserPage`）を、設定 / ランチャー管理と
+/// 同じモーダルとして開く（ADR-0056）。これにより信号灯衝突を避けつつ、
 /// Polaris の見た目とも揃う。
 Future<void> showRoolaAboutDialog(BuildContext context) async {
   final info = await PackageInfo.fromPlatform();
@@ -62,12 +62,14 @@ class _AboutDialog extends StatelessWidget {
       actions: [
         TextButton(
           onPressed: () {
+            // ダイアログを閉じてから、root Navigator 上にライセンスモーダルを
+            // 重ねる。pop 直後の defunct な context を避けるため、go_router の
+            // push には root Navigator の context を使う（`app_menu_bar` と同様）。
             Navigator.of(context).pop();
-            Navigator.of(context).push(
-              InstantMaterialRoute<void>(
-                builder: (_) => const LicenseBrowserPage(),
-              ),
-            );
+            final rootContext = rootNavigatorKey.currentContext;
+            if (rootContext != null) {
+              const LicensesRoute().push<void>(rootContext);
+            }
           },
           child: Text(l10n.aboutViewLicensesButton),
         ),

@@ -14,12 +14,18 @@ import 'package:roola/ui/common/polaris_settings_panel.dart';
 /// 背後にワークスペースを描かせる前提（`router.dart`）。
 ///
 /// 閉じる手段は ✕ ボタン / スクリムのタップ / Esc の 3 つ。いずれも `maybePop`。
+///
+/// [onBack] を渡すと、タイトル左に戻る山括弧が出て、Esc が「閉じる」ではなく
+/// この戻る操作に割り当たる。一覧 → 詳細のような階層をモーダル 1 枚の中で
+/// 行き来する画面（OSS ライセンス一覧 → 詳細など / ADR-0040）で使う。✕ と
+/// スクリムは常にモーダル全体を閉じる。
 class PolarisModalShell extends StatelessWidget {
   const PolarisModalShell({
     super.key,
     required this.title,
     required this.child,
     this.actions,
+    this.onBack,
     this.maxWidth = 760,
   });
 
@@ -32,6 +38,10 @@ class PolarisModalShell extends StatelessWidget {
   /// ヘッダ右側、✕ の左に並べる追加アクション（「追加」等）。
   final List<Widget>? actions;
 
+  /// 非 null のとき、タイトル左に戻る山括弧を出し、Esc をこの操作に割り当てる。
+  /// モーダル内で一覧 → 詳細のような階層を 1 枚で行き来する場合に使う。
+  final VoidCallback? onBack;
+
   /// パネルの最大幅（px）。
   final double maxWidth;
 
@@ -40,9 +50,11 @@ class PolarisModalShell extends StatelessWidget {
     final tokens = PolarisTokens.of(context);
     final l10n = AppLocalizations.of(context);
     void close() => Navigator.of(context).maybePop();
+    // 階層がある場合、Esc は一段戻る（詳細 → 一覧）。最上段では閉じる。
+    final onEscape = onBack ?? close;
 
     return CallbackShortcuts(
-      bindings: {const SingleActivator(LogicalKeyboardKey.escape): close},
+      bindings: {const SingleActivator(LogicalKeyboardKey.escape): onEscape},
       child: Focus(
         autofocus: true,
         child: Scaffold(
@@ -67,6 +79,8 @@ class PolarisModalShell extends StatelessWidget {
                       child: _Panel(
                         title: title,
                         actions: actions,
+                        onBack: onBack,
+                        backTooltip: l10n.navBack,
                         onClose: close,
                         closeTooltip: l10n.buttonClose,
                         child: child,
@@ -90,6 +104,8 @@ class _Panel extends StatelessWidget {
   const _Panel({
     required this.title,
     required this.actions,
+    required this.onBack,
+    required this.backTooltip,
     required this.onClose,
     required this.closeTooltip,
     required this.child,
@@ -97,6 +113,8 @@ class _Panel extends StatelessWidget {
 
   final String title;
   final List<Widget>? actions;
+  final VoidCallback? onBack;
+  final String backTooltip;
   final VoidCallback onClose;
   final String closeTooltip;
   final Widget child;
@@ -121,14 +139,29 @@ class _Panel extends StatelessWidget {
             // 筐体上端が光を受ける 1px ハイライト（ADR-0038 D3）。
             SizedBox(height: 1, child: ColoredBox(color: tokens.topEdge)),
             Padding(
-              padding: const EdgeInsets.fromLTRB(
-                PolarisTokens.space6,
+              // 戻る山括弧があるときは、ボタンの押下域ぶん左余白を詰めて
+              // 山括弧の視覚的な左端を本文の見出しと揃える。
+              padding: EdgeInsets.fromLTRB(
+                onBack != null ? PolarisTokens.space3 : PolarisTokens.space6,
                 PolarisTokens.space3,
                 PolarisTokens.space3,
                 PolarisTokens.space3,
               ),
               child: Row(
                 children: [
+                  if (onBack != null) ...[
+                    IconButton(
+                      // 一覧の trailing と同じ山括弧を反転して「戻る」に使う。
+                      icon: Transform.flip(
+                        flipX: true,
+                        child: PolarisChevron(color: tokens.textDim),
+                      ),
+                      tooltip: backTooltip,
+                      visualDensity: VisualDensity.compact,
+                      onPressed: onBack,
+                    ),
+                    const SizedBox(width: PolarisTokens.space1),
+                  ],
                   Expanded(child: PolarisFieldLabel(title)),
                   if (actions != null) ...[
                     ...actions!,
