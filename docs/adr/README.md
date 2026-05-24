@@ -54,6 +54,8 @@
 | [0046](./0046-explorer-file-preview-pane.md) | Explorer に読み取り専用ファイルプレビューパネルを追加する | Accepted |
 | [0047](./0047-terminal-autoscroll-on-drag-subclass.md) | ターミナル選択ドラッグ中の自動スクロールを `TerminalView` のサブクラスで補う | Accepted |
 | [0054](./0054-content-surface-bezel-flat-interior.md) | コンテンツ面はベゼル付きディスプレイに統一し、内側はフラットにする | Accepted |
+| [0055](./0055-restore-focus-on-window-reactivation.md) | ウィンドウ再アクティブ化時に最後のフォーカスペインへフォーカスを戻す | Accepted |
+| [0056](./0056-license-view-as-modal-shell.md) | ライセンス表示をモーダルシェル化し、ウィンドウヘッダの戻るボタンを廃止する | Accepted |
 
 ## フォーマット
 

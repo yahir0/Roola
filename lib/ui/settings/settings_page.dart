@@ -55,9 +55,9 @@ class SettingsPage extends ConsumerWidget {
 /// アプリ情報セクション（ADR-0040）。
 ///
 /// アプリ名・バージョン・著作権と、OSS ライセンス一覧への導線を表示する。
-/// 「Roola について…」ボタンを押すと [showRoolaAboutDialog] が開き、
-/// Flutter 標準 [AboutDialog] の「ライセンスを表示」ボタンから
-/// [showLicensePage] に遷移できる。
+/// 「Roola について…」ボタンを押すと [showRoolaAboutDialog] が開き、その
+/// 「ライセンスを表示」ボタンから OSS ライセンス一覧モーダルへ遷移できる
+/// （ADR-0056）。
 class _AboutSection extends StatelessWidget {
   const _AboutSection();
 

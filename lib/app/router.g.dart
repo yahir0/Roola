@@ -10,6 +10,7 @@ List<RouteBase> get $appRoutes => [
   $explorerRoute,
   $settingsRoute,
   $keybindingsRoute,
+  $licensesRoute,
   $launcherManagementRoute,
 ];
 
@@ -70,6 +71,29 @@ mixin $KeybindingsRoute on GoRouteData {
 
   @override
   String get location => GoRouteData.$location('/keybindings');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+RouteBase get $licensesRoute =>
+    GoRouteData.$route(path: '/licenses', factory: $LicensesRoute._fromState);
+
+mixin $LicensesRoute on GoRouteData {
+  static LicensesRoute _fromState(GoRouterState state) => const LicensesRoute();
+
+  @override
+  String get location => GoRouteData.$location('/licenses');
 
   @override
   void go(BuildContext context) => context.go(location);

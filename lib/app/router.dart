@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:roola/ui/about/license_browser_page.dart';
 import 'package:roola/ui/launchers/entry_edit_page.dart';
 import 'package:roola/ui/launchers/launcher_management_page.dart';
 import 'package:roola/ui/settings/keybindings_page.dart';
@@ -81,6 +82,19 @@ class KeybindingsRoute extends GoRouteData with $KeybindingsRoute {
   @override
   Page<void> buildPage(BuildContext context, GoRouterState state) =>
       _modalPage(const KeybindingsPage());
+}
+
+/// OSS ライセンス一覧ルート (`/licenses`)。About ダイアログの「ライセンスを
+/// 表示」から push（ADR-0040）。設定 / ランチャー管理と同じ [PolarisModalShell]
+/// のモーダルとして出し、一覧 → 詳細はモーダル内の内部 state で行き来する
+/// （ADR-0056）。遷移アニメを抑制する理由は `SettingsRoute` 参照。
+@TypedGoRoute<LicensesRoute>(path: '/licenses')
+class LicensesRoute extends GoRouteData with $LicensesRoute {
+  const LicensesRoute();
+
+  @override
+  Page<void> buildPage(BuildContext context, GoRouterState state) =>
+      _modalPage(const LicenseBrowserPage());
 }
 
 /// ランチャー管理画面ルート (`/launchers`)。登録済みエントリの一覧 + 追加 /
