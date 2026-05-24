@@ -307,6 +307,12 @@ class _DirectoryListing extends HookConsumerWidget {
     ref.listen(windowActivationProvider, (_, _) {
       if (ref.read(focusedTabProvider).focusedTabId == tabId) {
         focusNode.requestFocus();
+        // FlutterView が first responder を取り戻した直後の Flutter 側
+        // フォーカス処理が即時の requestFocus を上書きしうるため、フレーム
+        // 確定後にもう一度要求して確実に勝たせる。
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          focusNode.requestFocus();
+        });
       }
     });
     // 行高は密度設定と Skill サブタイトル有無で変わる（ADR-0024 / D6）。

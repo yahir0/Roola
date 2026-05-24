@@ -72,6 +72,7 @@ class _TerminalSurfaceState extends ConsumerState<TerminalSurface> {
     _channel = TerminalChannel(_channelName)
       ..onInput = widget.runner.write
       ..onResize = (cols, rows) => widget.runner.resize(cols: cols, rows: rows);
+    _channel.onFocused = _handleNativeFocused;
     _focusNode = FocusNode(debugLabel: 'TerminalSurface($_channelName)')
       ..addListener(_handleFocusChange);
     // プラットフォームビュー生成前の出力は TerminalChannel がバッファする
@@ -87,9 +88,19 @@ class _TerminalSurfaceState extends ConsumerState<TerminalSurface> {
 
   /// ターミナル面が Flutter フォーカスを得たら、ネイティブのキー入力先
   /// （SwiftTerm の first responder）も合わせるよう要求する（ADR-0037）。
+  ///
+  /// 併せて [FocusedTab] に「このターミナルがフォーカスされた」ことを記録する
+  /// （ADR-0055）。ターミナルは AppKitView（ネイティブビュー）がポインタを
+  /// 消費するため、`_TabContent` 祖先の `Listener.onPointerDown` による
+  /// フォーカス追跡が届かず `focusedTabId` が未設定のままになる。Flutter
+  /// フォーカス獲得時にここで記録することで、ウィンドウ再アクティブ化時の
+  /// 復帰対象を正しく決められる。
   void _handleFocusChange() {
     if (_focusNode.hasFocus) {
       _channel.requestNativeFocus();
+      ref
+          .read(focusedTabProvider.notifier)
+          .focusTerminal(ref.read(currentTabIdProvider));
     }
   }
 
@@ -100,6 +111,15 @@ class _TerminalSurfaceState extends ConsumerState<TerminalSurface> {
     _focusNode.removeListener(_handleFocusChange);
     _focusNode.dispose();
     super.dispose();
+  }
+
+  /// SwiftTerm がクリック等で first responder になったとき、native から
+  /// 通知される（ADR-0055）。ターミナルがフォーカスされたことを
+  /// [FocusedTab] に記録し、ウィンドウ再アクティブ化時の復帰対象にする。
+  void _handleNativeFocused() {
+    ref
+        .read(focusedTabProvider.notifier)
+        .focusTerminal(ref.read(currentTabIdProvider));
   }
 
   /// ウィンドウ再アクティブ化時、このターミナルが直前にフォーカスされていた
@@ -114,6 +134,13 @@ class _TerminalSurfaceState extends ConsumerState<TerminalSurface> {
     }
     _focusNode.requestFocus();
     _channel.requestNativeFocus();
+    // FlutterView が first responder を取り戻した直後の Flutter 側フォーカス
+    // 処理が、即時の requestFocus を上書きしうるため、フレーム確定後にも
+    // う一度復帰させて確実に勝たせる。
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _focusNode.requestFocus();
+      _channel.requestNativeFocus();
+    });
   }
 
   @override

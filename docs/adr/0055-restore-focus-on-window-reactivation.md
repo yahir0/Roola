@@ -35,6 +35,15 @@ Roola は「直前に触っていたタブ」を [FocusedTab] provider
 （`focusedTabId`）で既に追跡している（ADR-0026 design Decision 4。サイドバー
 操作の遷移先決定に使う）。この情報を再アクティブ化時のフォーカス復帰にも使う。
 
+3. **ただしターミナルのフォーカスはそもそも追跡できていなかった**（実装中に
+   判明）。`focusedTabId` の追跡は `_TabContent` 祖先の `Listener.onPointerDown`
+   で行うが、ターミナル面（`AppKitView` ＝ ネイティブ NSView）へのクリックは
+   Flutter のポインタ系を通らず**ネイティブ側で消費される**ため、この
+   `Listener` も `TerminalSurface` の `FocusNode` も発火しない。結果、ターミナル
+   を触っても `focusedTabId` はエクスプローラのまま（または null）で、復帰の
+   引き金にならなかった。これが本不具合の中核で、ターミナルのフォーカス取得を
+   ネイティブから Flutter へ橋渡しする経路が別途必要だった（D4）。
+
 ## Decision
 
 ### D1. 再アクティブ化はネイティブの `becomeKey()` で拾う
@@ -84,9 +93,36 @@ provider は keepAlive で、ワークスペースの各ペイン body が `ref.
 - **Git**: キーボードフォーカスを持つ `FocusNode` が無い（ADR-0030）ため
   対象外。
 
+復帰は**即時 ＋ フレーム確定後（`addPostFrameCallback`）の 2 回**要求する。
+ウィンドウが key に戻った直後、FlutterView が first responder を取り戻す際の
+Flutter 側フォーカス処理が即時の `requestFocus` を上書きしうるため、フレーム
+確定後にもう一度要求して確実に勝たせる（実機ログで即時のみでは負ける場合が
+あることを確認した）。
+
 レジストリを作らない理由は、`FocusNode` の所有を各 body に残したまま
 （登録 / 解除のライフサイクル管理や dangling ノードのリスクを増やさず）、
 Riverpod の `watch` / `listen` の語彙だけで配線できるため。
+
+### D4. ターミナルのフォーカス取得をネイティブ click から Flutter へ橋渡しする
+
+D3 の復帰は `focusedTabId` が正しいことを前提にするが、Context 3 のとおり
+ターミナルのクリックは `focusedTabId` に反映されていなかった。これを埋める:
+
+- ネイティブ（`RoolaTerminalRenderingView`）の `mouseDown` で、Dart へ
+  `roola/terminal/<id>/ctrl` チャネルの `terminalDidFocus` を通知する。
+- Dart（[TerminalSurface]）はこれを受けて
+  `FocusedTab.focusTerminal(tabId)` を呼び、ターミナルを `focusedTabId` に
+  記録する。
+
+`mouseDown` を使うのは、本来の意図に近い `becomeFirstResponder()` が SwiftTerm
+側で `public`（非 `open`）オーバーライドされておりモジュール外から再
+オーバーライドできない（`keyDown` と同じ制約。ADR-0032）ため。`open` のまま
+残る `mouseDown` でクリックを捕まえる。キーボードのみのフォーカス移動は Dart
+側（メニュー / `requestNativeFocus`）が駆動するため、クリック検知で十分。
+
+併せて、ターミナルが Flutter フォーカスを得た場合にも
+（`TerminalSurface._handleFocusChange`）`focusTerminal` を記録する。Flutter
+側の経路（タブトラバーサル等）でフォーカスが入る場合の保険。
 
 ## Consequences
 
@@ -107,6 +143,8 @@ Riverpod の `watch` / `listen` の語彙だけで配線できるため。
 - ADR-0026: `/explorer` を 3 画面タブ式ワークスペースに刷新する
 - ADR-0027: per-tab 状態を family(tabId) + scoped Provider で実現する
 - ADR-0031: ターミナル描画を SwiftTerm ネイティブビューへ移行する
+- ADR-0032: ターミナルで Shift+Enter を改行（LF）入力に割り当てる（SwiftTerm の
+  `keyDown` をモジュール外から override できない制約の初出）
 - ADR-0037: ターミナルのプラットフォームビューと Flutter フォーカスを橋渡しする
 - ADR-0051: エクスプローラ一覧を十字キー / Enter で操作できるようにする
 - ADR-0052: メニューの key equivalent をフォーカス中ビューより優先する

@@ -9,7 +9,8 @@ import 'package:flutter/services.dart';
 ///   のバイト列を双方向に直送する。Dart→native は PTY 出力、native→Dart は
 ///   ユーザー入力。バイト列をそのまま運ぶため base64 等の追加エンコードは不要
 /// - `roola/terminal/<id>/ctrl`（[MethodChannel]）— 構造化された制御メッセージ。
-///   native→Dart の `resize` と、Dart→native の `focusTerminal`（ADR-0037）
+///   native→Dart の `resize` / `terminalDidFocus`（ADR-0055）と、
+///   Dart→native の `focusTerminal`（ADR-0037）
 ///
 /// プラットフォームビュー（`AppKitView`）の生成完了前に届いた PTY 出力は
 /// [markReady] が呼ばれるまでバッファし、生成後にまとめて flush する。
@@ -35,6 +36,12 @@ class TerminalChannel {
 
   /// SwiftTerm からの端末サイズ変更を受け取るコールバック（cols, rows）。
   void Function(int cols, int rows)? onResize;
+
+  /// SwiftTerm がクリック等で first responder になったことを受け取る
+  /// コールバック（ADR-0055）。ターミナルへのクリックは Flutter の Listener /
+  /// FocusNode を通らないため、ネイティブからのこの通知でフォーカス追跡
+  /// （focusedTabProvider）を更新する。
+  void Function()? onFocused;
 
   bool _ready = false;
   final List<ByteData> _pending = [];
@@ -83,9 +90,12 @@ class TerminalChannel {
   }
 
   Future<dynamic> _handleNativeCtrl(MethodCall call) async {
-    if (call.method == 'resize') {
-      final args = (call.arguments as Map).cast<String, dynamic>();
-      onResize?.call(args['cols'] as int, args['rows'] as int);
+    switch (call.method) {
+      case 'resize':
+        final args = (call.arguments as Map).cast<String, dynamic>();
+        onResize?.call(args['cols'] as int, args['rows'] as int);
+      case 'terminalDidFocus':
+        onFocused?.call();
     }
     return null;
   }
@@ -97,5 +107,6 @@ class TerminalChannel {
     _pending.clear();
     onInput = null;
     onResize = null;
+    onFocused = null;
   }
 }
