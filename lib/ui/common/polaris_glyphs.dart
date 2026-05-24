@@ -270,6 +270,17 @@ class PolarisGlyph extends StatelessWidget {
     size: size,
   );
 
+  /// Git ブランチ（枝分かれ＋コミットノード）。Git ビュー / ブランチを表す。
+  /// Octicons の git-branch と同じ「主線から枝が分岐する」記号を Polaris の
+  /// モノラインで自前描画する（汎用ツリーより Git と直感しやすい）。
+  factory PolarisGlyph.gitBranch({
+    required Color color,
+    double size = PolarisIconSize.standard,
+  }) => PolarisGlyph._(
+    painter: _GitBranchGlyphPainter(color: color),
+    size: size,
+  );
+
   /// フォルダ追加（フォルダ＋）。
   factory PolarisGlyph.folderPlus({
     required Color color,
@@ -598,6 +609,42 @@ class _PromptGlyphPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_PromptGlyphPainter old) => old.color != color;
+}
+
+class _GitBranchGlyphPainter extends CustomPainter {
+  const _GitBranchGlyphPainter({required this.color});
+
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final s = size.width;
+    final stroke = _glyphStroke(color)..strokeCap = StrokeCap.round;
+    final fill = Paint()..color = color;
+    final leftX = s * 0.34;
+    final rightX = s * 0.66;
+    final topY = s * 0.24;
+    final botY = s * 0.76;
+    final midY = s * 0.50;
+    final nodeR = s * 0.11;
+    // 主線（縦）。上ノードから下ノードへ。
+    canvas.drawLine(Offset(leftX, topY), Offset(leftX, botY), stroke);
+    // 枝: 右上ノードから下りて主線の中央へ合流する（丸い肘）。
+    final branch = Path()
+      ..moveTo(rightX, topY)
+      ..lineTo(rightX, midY - s * 0.10)
+      ..quadraticBezierTo(rightX, midY, rightX - s * 0.10, midY)
+      ..lineTo(leftX, midY);
+    canvas.drawPath(branch, stroke);
+    // コミットノード 3 点（上下の主線＋枝の起点）。
+    canvas
+      ..drawCircle(Offset(leftX, topY), nodeR, fill)
+      ..drawCircle(Offset(leftX, botY), nodeR, fill)
+      ..drawCircle(Offset(rightX, topY), nodeR, fill);
+  }
+
+  @override
+  bool shouldRepaint(_GitBranchGlyphPainter old) => old.color != color;
 }
 
 class _FolderPlusGlyphPainter extends CustomPainter {
