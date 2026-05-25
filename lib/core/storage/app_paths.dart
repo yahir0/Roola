@@ -45,6 +45,10 @@ class AppPaths {
   /// 背景画像の保存先。
   File get backgroundImageFile => File('${root.path}/background.png');
 
+  /// Claude Code タスク完了通知の設定（ON/OFF）の永続化先（ADR-0057）。
+  File get taskNotificationSettingsFile =>
+      File('${root.path}/task_notification_settings.json');
+
   /// ディレクトリが存在しない場合に作る（再帰的）。
   Future<void> ensureDirectories() async {
     if (!root.existsSync()) {

@@ -105,6 +105,26 @@
   "settingsClaudeInstallCopied": "Copied the install command",
   "settingsClaudeInstallAfter": "After installing, restart Roola for it to be detected.",
 
+  "settingsTaskNotificationTitle": "Task completion notifications",
+  "settingsTaskNotificationDescription": "Get a macOS notification when Claude Code launched from Roola finishes a task and returns to the input prompt.",
+  "settingsTaskNotificationEnableLabel": "Notifications",
+  "settingsTaskNotificationOn": "On",
+  "settingsTaskNotificationOff": "Off",
+  "settingsTaskNotificationAuthAuthorized": "Notifications are allowed.",
+  "settingsTaskNotificationAuthDenied": "Notifications are denied. Allow Roola notifications in System Settings.",
+  "settingsTaskNotificationAuthNotDetermined": "Notification permission hasn't been requested yet. Tap \"Allow notifications\".",
+  "settingsTaskNotificationGrantButton": "Allow notifications",
+  "settingsTaskNotificationOpenSettingsButton": "Open System Settings",
+  "settingsTaskNotificationSetupTitle": "Hook setup",
+  "settingsTaskNotificationSetupInstructions": "Add the snippet below to the `hooks` section of `~/.claude/settings.json` (merge it into the `Stop` array if one already exists). The port is the one this Roola instance is listening on. Requires `jq` and `curl`.",
+  "settingsTaskNotificationPortLabel": "Listening port: {port}",
+  "@settingsTaskNotificationPortLabel": {
+    "placeholders": { "port": { "type": "int" } }
+  },
+  "settingsTaskNotificationCopyTooltip": "Copy snippet",
+  "settingsTaskNotificationCopied": "Copied hook configuration",
+  "settingsTaskNotificationJqNote": "The token references the `$ROOLA_NOTIFY_TOKEN` environment variable, so you don't need to re-paste after restarting Roola (only update it if the port number changes).",
+
   "settingsKeyboardShortcutsTitle": "Keyboard shortcuts",
   "settingsKeyboardShortcutsDescription": "All command shortcuts can be reviewed and changed on a dedicated screen.",
   "settingsKeyboardShortcutsButton": "Edit keyboard shortcuts…",

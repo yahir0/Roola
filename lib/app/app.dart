@@ -7,6 +7,7 @@ import 'package:roola/app/window_close_guard.dart';
 import 'package:roola/data/appearance/appearance_settings.dart';
 import 'package:roola/data/appearance/appearance_settings_repository_impl.dart';
 import 'package:roola/data/locale/locale_settings_repository_impl.dart';
+import 'package:roola/data/task_notification/task_notification_server.dart';
 import 'package:roola/l10n/app_localizations.dart';
 import 'package:roola/ui/common/mouse_navigation_listener.dart';
 import 'package:roola/ui/explorer/dnd_ready_provider.dart';
@@ -26,6 +27,9 @@ class App extends ConsumerWidget {
         ref.watch(appearanceSettingsProvider).value ??
         AppearanceSettings.defaults();
     final locale = ref.watch(appLocaleProvider);
+    // Claude Code 完了通知の受信口を起動時から常駐させる（ADR-0057）。
+    // 値（確定ポート）は設定画面で参照するためここでは結果を使わない。
+    ref.watch(taskNotificationServerProvider);
     return MaterialApp.router(
       title: 'Roola',
       // Polaris はダーク専用（ADR-0038 D2）。ライト/ダークの切替は持たない。
