@@ -614,6 +614,102 @@ abstract class AppLocalizations {
   /// **'インストール後、Roola を再起動すると検出されます。'**
   String get settingsClaudeInstallAfter;
 
+  /// No description provided for @settingsTaskNotificationTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'タスク完了通知'**
+  String get settingsTaskNotificationTitle;
+
+  /// No description provided for @settingsTaskNotificationDescription.
+  ///
+  /// In ja, this message translates to:
+  /// **'Roola で起動した Claude Code がタスクを終えて入力待ちに戻ったとき、macOS の通知でお知らせします。'**
+  String get settingsTaskNotificationDescription;
+
+  /// No description provided for @settingsTaskNotificationEnableLabel.
+  ///
+  /// In ja, this message translates to:
+  /// **'通知'**
+  String get settingsTaskNotificationEnableLabel;
+
+  /// No description provided for @settingsTaskNotificationOn.
+  ///
+  /// In ja, this message translates to:
+  /// **'オン'**
+  String get settingsTaskNotificationOn;
+
+  /// No description provided for @settingsTaskNotificationOff.
+  ///
+  /// In ja, this message translates to:
+  /// **'オフ'**
+  String get settingsTaskNotificationOff;
+
+  /// No description provided for @settingsTaskNotificationAuthAuthorized.
+  ///
+  /// In ja, this message translates to:
+  /// **'通知は許可されています。'**
+  String get settingsTaskNotificationAuthAuthorized;
+
+  /// No description provided for @settingsTaskNotificationAuthDenied.
+  ///
+  /// In ja, this message translates to:
+  /// **'通知が拒否されています。システム設定で Roola の通知を許可してください。'**
+  String get settingsTaskNotificationAuthDenied;
+
+  /// No description provided for @settingsTaskNotificationAuthNotDetermined.
+  ///
+  /// In ja, this message translates to:
+  /// **'通知許可がまだ確認されていません。「通知を許可」を押してください。'**
+  String get settingsTaskNotificationAuthNotDetermined;
+
+  /// No description provided for @settingsTaskNotificationGrantButton.
+  ///
+  /// In ja, this message translates to:
+  /// **'通知を許可'**
+  String get settingsTaskNotificationGrantButton;
+
+  /// No description provided for @settingsTaskNotificationOpenSettingsButton.
+  ///
+  /// In ja, this message translates to:
+  /// **'システム設定を開く'**
+  String get settingsTaskNotificationOpenSettingsButton;
+
+  /// No description provided for @settingsTaskNotificationSetupTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'フックの設定'**
+  String get settingsTaskNotificationSetupTitle;
+
+  /// No description provided for @settingsTaskNotificationSetupInstructions.
+  ///
+  /// In ja, this message translates to:
+  /// **'次のスニペットを `~/.claude/settings.json` の `hooks` に追記してください（既に `hooks` がある場合は `Stop` 配列に統合します）。ポートはこの Roola が待ち受けている番号です。`jq` と `curl` が必要です。'**
+  String get settingsTaskNotificationSetupInstructions;
+
+  /// No description provided for @settingsTaskNotificationPortLabel.
+  ///
+  /// In ja, this message translates to:
+  /// **'待受ポート: {port}'**
+  String settingsTaskNotificationPortLabel(int port);
+
+  /// No description provided for @settingsTaskNotificationCopyTooltip.
+  ///
+  /// In ja, this message translates to:
+  /// **'スニペットをコピー'**
+  String get settingsTaskNotificationCopyTooltip;
+
+  /// No description provided for @settingsTaskNotificationCopied.
+  ///
+  /// In ja, this message translates to:
+  /// **'フック設定をコピーしました'**
+  String get settingsTaskNotificationCopied;
+
+  /// No description provided for @settingsTaskNotificationJqNote.
+  ///
+  /// In ja, this message translates to:
+  /// **'トークンは環境変数 `\$ROOLA_NOTIFY_TOKEN` を参照するため、Roola を再起動しても貼り直す必要はありません（ポート番号が変わったときのみ更新してください）。'**
+  String get settingsTaskNotificationJqNote;
+
   /// No description provided for @settingsKeyboardShortcutsTitle.
   ///
   /// In ja, this message translates to:

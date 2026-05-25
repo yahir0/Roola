@@ -286,6 +286,63 @@ class AppLocalizationsEn extends AppLocalizations {
       'After installing, restart Roola for it to be detected.';
 
   @override
+  String get settingsTaskNotificationTitle => 'Task completion notifications';
+
+  @override
+  String get settingsTaskNotificationDescription =>
+      'Get a macOS notification when Claude Code launched from Roola finishes a task and returns to the input prompt.';
+
+  @override
+  String get settingsTaskNotificationEnableLabel => 'Notifications';
+
+  @override
+  String get settingsTaskNotificationOn => 'On';
+
+  @override
+  String get settingsTaskNotificationOff => 'Off';
+
+  @override
+  String get settingsTaskNotificationAuthAuthorized =>
+      'Notifications are allowed.';
+
+  @override
+  String get settingsTaskNotificationAuthDenied =>
+      'Notifications are denied. Allow Roola notifications in System Settings.';
+
+  @override
+  String get settingsTaskNotificationAuthNotDetermined =>
+      'Notification permission hasn\'t been requested yet. Tap \"Allow notifications\".';
+
+  @override
+  String get settingsTaskNotificationGrantButton => 'Allow notifications';
+
+  @override
+  String get settingsTaskNotificationOpenSettingsButton =>
+      'Open System Settings';
+
+  @override
+  String get settingsTaskNotificationSetupTitle => 'Hook setup';
+
+  @override
+  String get settingsTaskNotificationSetupInstructions =>
+      'Add the snippet below to the `hooks` section of `~/.claude/settings.json` (merge it into the `Stop` array if one already exists). The port is the one this Roola instance is listening on. Requires `jq` and `curl`.';
+
+  @override
+  String settingsTaskNotificationPortLabel(int port) {
+    return 'Listening port: $port';
+  }
+
+  @override
+  String get settingsTaskNotificationCopyTooltip => 'Copy snippet';
+
+  @override
+  String get settingsTaskNotificationCopied => 'Copied hook configuration';
+
+  @override
+  String get settingsTaskNotificationJqNote =>
+      'The token references the `\$ROOLA_NOTIFY_TOKEN` environment variable, so you don\'t need to re-paste after restarting Roola (only update it if the port number changes).';
+
+  @override
   String get settingsKeyboardShortcutsTitle => 'Keyboard shortcuts';
 
   @override

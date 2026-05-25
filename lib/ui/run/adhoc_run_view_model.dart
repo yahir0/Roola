@@ -4,6 +4,8 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:roola/data/launcher_entry/launcher_entry.dart';
 import 'package:roola/data/skill_session/active_sessions.dart';
 import 'package:roola/data/skill_session/adhoc_run_args.dart';
+import 'package:roola/data/task_notification/notification_environment.dart';
+import 'package:roola/data/task_notification/notify_token.dart';
 import 'package:roola/data/terminal_runner/pty_terminal_runner.dart';
 import 'package:roola/data/terminal_runner/terminal_run_state.dart';
 import 'package:roola/data/terminal_runner/terminal_runner.dart';
@@ -46,6 +48,11 @@ class AdhocRunViewModel extends _$AdhocRunViewModel {
     final runner = PtyTerminalRunner.fromAction(
       workingDirectory: args.workingDirectory,
       action: args.action,
+      environment: notificationEnvironment(
+        action: args.action,
+        tabId: args.adhocId,
+        token: ref.read(notifyTokenProvider),
+      ),
     );
     final entry = LauncherEntry(
       id: args.adhocId,

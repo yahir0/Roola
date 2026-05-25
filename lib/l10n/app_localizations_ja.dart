@@ -281,6 +281,61 @@ class AppLocalizationsJa extends AppLocalizations {
   String get settingsClaudeInstallAfter => 'インストール後、Roola を再起動すると検出されます。';
 
   @override
+  String get settingsTaskNotificationTitle => 'タスク完了通知';
+
+  @override
+  String get settingsTaskNotificationDescription =>
+      'Roola で起動した Claude Code がタスクを終えて入力待ちに戻ったとき、macOS の通知でお知らせします。';
+
+  @override
+  String get settingsTaskNotificationEnableLabel => '通知';
+
+  @override
+  String get settingsTaskNotificationOn => 'オン';
+
+  @override
+  String get settingsTaskNotificationOff => 'オフ';
+
+  @override
+  String get settingsTaskNotificationAuthAuthorized => '通知は許可されています。';
+
+  @override
+  String get settingsTaskNotificationAuthDenied =>
+      '通知が拒否されています。システム設定で Roola の通知を許可してください。';
+
+  @override
+  String get settingsTaskNotificationAuthNotDetermined =>
+      '通知許可がまだ確認されていません。「通知を許可」を押してください。';
+
+  @override
+  String get settingsTaskNotificationGrantButton => '通知を許可';
+
+  @override
+  String get settingsTaskNotificationOpenSettingsButton => 'システム設定を開く';
+
+  @override
+  String get settingsTaskNotificationSetupTitle => 'フックの設定';
+
+  @override
+  String get settingsTaskNotificationSetupInstructions =>
+      '次のスニペットを `~/.claude/settings.json` の `hooks` に追記してください（既に `hooks` がある場合は `Stop` 配列に統合します）。ポートはこの Roola が待ち受けている番号です。`jq` と `curl` が必要です。';
+
+  @override
+  String settingsTaskNotificationPortLabel(int port) {
+    return '待受ポート: $port';
+  }
+
+  @override
+  String get settingsTaskNotificationCopyTooltip => 'スニペットをコピー';
+
+  @override
+  String get settingsTaskNotificationCopied => 'フック設定をコピーしました';
+
+  @override
+  String get settingsTaskNotificationJqNote =>
+      'トークンは環境変数 `\$ROOLA_NOTIFY_TOKEN` を参照するため、Roola を再起動しても貼り直す必要はありません（ポート番号が変わったときのみ更新してください）。';
+
+  @override
   String get settingsKeyboardShortcutsTitle => 'キーボードショートカット';
 
   @override

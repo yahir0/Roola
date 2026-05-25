@@ -1,6 +1,80 @@
 import Cocoa
 import Darwin
 import FlutterMacOS
+import UserNotifications
+
+/// Claude Code タスク完了通知（ADR-0057）の macOS ローカル通知を扱う。
+///
+/// `roola/notification` の `MethodChannel` から呼ばれ、`UNUserNotificationCenter`
+/// 経由で通知を発射する。`flutter_local_notifications` は使わず、既存の
+/// `roola/trash` 等と同じネイティブ連携パターンに揃える（ADR-0005 / ADR-0057）。
+/// フォアグラウンドでもバナーを表示するため delegate を自身に設定する。
+final class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
+  override init() {
+    super.init()
+    UNUserNotificationCenter.current().delegate = self
+  }
+
+  /// 初回の通知許可を要求する。結果（許可されたか）を completion で返す。
+  func requestAuthorization(completion: @escaping (Bool) -> Void) {
+    UNUserNotificationCenter.current().requestAuthorization(
+      options: [.alert, .sound]
+    ) { granted, _ in
+      DispatchQueue.main.async { completion(granted) }
+    }
+  }
+
+  /// 現在の許可状態を Dart の `NotificationAuthorizationStatus` 名で返す。
+  func authorizationStatus(completion: @escaping (String) -> Void) {
+    UNUserNotificationCenter.current().getNotificationSettings { settings in
+      let name: String
+      switch settings.authorizationStatus {
+      case .authorized, .provisional, .ephemeral:
+        name = "authorized"
+      case .denied:
+        name = "denied"
+      case .notDetermined:
+        name = "notDetermined"
+      @unknown default:
+        name = "notDetermined"
+      }
+      DispatchQueue.main.async { completion(name) }
+    }
+  }
+
+  /// ローカル通知を 1 件発射する。`trigger: nil` で即時配信。
+  func notify(title: String, body: String) {
+    let content = UNMutableNotificationContent()
+    content.title = title
+    content.body = body
+    content.sound = .default
+    let request = UNNotificationRequest(
+      identifier: UUID().uuidString,
+      content: content,
+      trigger: nil
+    )
+    UNUserNotificationCenter.current().add(request, withCompletionHandler: nil)
+  }
+
+  /// macOS のシステム通知設定を開く（拒否後の再許可導線）。
+  func openSystemSettings() {
+    if let url = URL(
+      string: "x-apple.systempreferences:com.apple.preference.notifications"
+    ) {
+      NSWorkspace.shared.open(url)
+    }
+  }
+
+  /// アプリがフォアグラウンドのときもバナー / サウンドで通知を出す。
+  func userNotificationCenter(
+    _ center: UNUserNotificationCenter,
+    willPresent notification: UNNotification,
+    withCompletionHandler completionHandler:
+      @escaping (UNNotificationPresentationOptions) -> Void
+  ) {
+    completionHandler([.banner, .sound, .list])
+  }
+}
 
 /// システムメトリクス（CPU / メモリ / プロセス一覧）を macOS の標準 API から
 /// 取得する（ADR-0039）。
@@ -112,6 +186,10 @@ class MainFlutterWindow: NSWindow {
   /// ウィンドウ再アクティブ化（key 化）を Dart へ通知するチャネル（ADR-0055）。
   /// `awakeFromNib` でエンジンの binaryMessenger に紐付けて生成する。
   private var windowChannel: FlutterMethodChannel?
+
+  /// タスク完了通知のマネージャ（ADR-0057）。`UNUserNotificationCenter` の
+  /// delegate を保持し続ける必要があるため、ウィンドウに強参照で常駐させる。
+  private var notificationManager: NotificationManager?
 
   /// ウィンドウが key ウィンドウになったとき（別ウィンドウ / 別アプリから
   /// 戻ってきたとき）に Dart へ通知する（ADR-0055）。Dart 側は直前に
@@ -281,6 +359,50 @@ class MainFlutterWindow: NSWindow {
       name: "roola/window",
       binaryMessenger: flutterViewController.engine.binaryMessenger
     )
+
+    // Claude Code タスク完了通知（ADR-0057）。Dart 側からは
+    // `roola/notification` の `notify` / `requestAuthorization` /
+    // `authorizationStatus` / `openSystemSettings` を呼ぶ。delegate を持つ
+    // マネージャを常駐させるため、ハンドラに捕捉させる。
+    let notificationManager = NotificationManager()
+    self.notificationManager = notificationManager
+    let notificationChannel = FlutterMethodChannel(
+      name: "roola/notification",
+      binaryMessenger: flutterViewController.engine.binaryMessenger
+    )
+    notificationChannel.setMethodCallHandler { call, result in
+      switch call.method {
+      case "notify":
+        guard let args = call.arguments as? [String: Any],
+          let title = args["title"] as? String,
+          let body = args["body"] as? String
+        else {
+          result(
+            FlutterError(
+              code: "INVALID_ARGS",
+              message: "title and body are required",
+              details: nil
+            )
+          )
+          return
+        }
+        notificationManager.notify(title: title, body: body)
+        result(nil)
+      case "requestAuthorization":
+        notificationManager.requestAuthorization { granted in
+          result(granted)
+        }
+      case "authorizationStatus":
+        notificationManager.authorizationStatus { status in
+          result(status)
+        }
+      case "openSystemSettings":
+        notificationManager.openSystemSettings()
+        result(nil)
+      default:
+        result(FlutterMethodNotImplemented)
+      }
+    }
 
     super.awakeFromNib()
   }

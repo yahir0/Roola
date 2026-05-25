@@ -15,6 +15,7 @@ import 'package:roola/ui/common/polaris_modal_shell.dart';
 import 'package:roola/ui/common/polaris_settings_panel.dart';
 import 'package:roola/ui/common/polaris_toggle.dart';
 import 'package:roola/ui/settings/appearance_section.dart';
+import 'package:roola/ui/settings/task_notification_section.dart';
 
 /// 設定画面。アプリ全体の preference のみを扱う（言語 / 外観 / `claude`
 /// 連携 / キーボードショートカット解説）。
@@ -42,6 +43,8 @@ class SettingsPage extends ConsumerWidget {
           _ExplorerSection(),
           PolarisSectionDivider(),
           _ClaudeIntegrationSection(),
+          PolarisSectionDivider(),
+          TaskNotificationSection(),
           PolarisSectionDivider(),
           _ShortcutsSection(),
           PolarisSectionDivider(),

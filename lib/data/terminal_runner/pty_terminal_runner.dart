@@ -21,6 +21,7 @@ class PtyTerminalRunner implements TerminalRunner {
     required this.workingDirectory,
     required this.executable,
     this.arguments = const [],
+    this.environment,
     this.idleThreshold = const Duration(seconds: 2),
   });
 
@@ -35,6 +36,7 @@ class PtyTerminalRunner implements TerminalRunner {
   factory PtyTerminalRunner.fromAction({
     required String workingDirectory,
     required LauncherAction action,
+    Map<String, String>? environment,
     Duration idleThreshold = const Duration(seconds: 2),
   }) {
     final (executable, arguments) = _resolveExecutable(action);
@@ -42,6 +44,7 @@ class PtyTerminalRunner implements TerminalRunner {
       workingDirectory: workingDirectory,
       executable: executable,
       arguments: arguments,
+      environment: environment,
       idleThreshold: idleThreshold,
     );
   }
@@ -54,6 +57,12 @@ class PtyTerminalRunner implements TerminalRunner {
 
   /// `executable` に渡す引数列。
   final List<String> arguments;
+
+  /// PTY プロセスに追加注入する環境変数。`flutter_pty` の `Pty.start` は
+  /// `PATH` / `HOME` 等の最小セットに本マップを上書きマージする。Claude Code
+  /// セッションの完了通知（ADR-0057）で `ROOLA_TAB_ID` / `ROOLA_NOTIFY_TOKEN`
+  /// を渡すために使う。`null` のときは追加注入なし。
+  final Map<String, String>? environment;
 
   /// PTY 出力が止まってから `waitingInput` 状態へ遷移するまでの時間。
   /// 短すぎると claude の通常思考中も「入力待ち」と表示されてしまうため、
@@ -100,6 +109,7 @@ class PtyTerminalRunner implements TerminalRunner {
         executable,
         arguments: arguments,
         workingDirectory: workingDirectory,
+        environment: environment,
       );
     } on Object catch (e) {
       _emit(SkillRunState.failed(_formatStartError(e)));
