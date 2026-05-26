@@ -1,5 +1,5 @@
 ---
-title: "Roola 完全ガイド ― ファイル・ターミナル・Claude Code を束ねる macOS ファイルエクスプローラ"
+title: "Roola の使い方 ― ファイル・ターミナル・Claude Code を束ねる macOS ファイルエクスプローラ"
 emoji: "🧭"
 type: "tech"
 topics: ["macos", "flutter", "claudecode", "terminal", "git"]
