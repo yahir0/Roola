@@ -15,6 +15,10 @@
   <img src="https://img.shields.io/badge/built%20with-Flutter-02569B?logo=flutter&logoColor=white" alt="Built with Flutter" />
 </p>
 
+<p align="center">
+  <strong>📖 使い方ガイド（全機能の解説）: <a href="https://yahiro.tech/roola/usage">yahiro.tech/roola/usage</a></strong>
+</p>
+
 > Compatible with [Claude Code](https://docs.claude.com/claude-code) — インストール済みなら Skill 実行・対話セッション起動などの統合 UI が自動で有効化されます。インストールされていなくても汎用ランチャーとして動きます（ADR-0016 / ADR-0022）。
 
 ![Roola workspace](./docs/images/hero.png)
@@ -127,6 +131,8 @@ flutter run -d macos --dart-define-from-file=dart_defines/prod.json
 FVM 利用時は `make run FLUTTER="fvm flutter" DART="fvm dart"` のように上書き。`make help` で全ターゲット一覧。
 
 ## 使い方
+
+> 📖 スクリーンショット付きの詳しい使い方ガイドは **[yahiro.tech/roola/usage](https://yahiro.tech/roola/usage)** にまとまっています。以下は要点の抜粋です。
 
 ### 初回起動
 
