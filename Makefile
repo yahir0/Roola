@@ -8,7 +8,15 @@
 FLUTTER ?= flutter
 DART    ?= dart
 DEFINES ?= --dart-define-from-file=dart_defines/prod.json
-DEVICE  ?= macos
+
+# OS を自動判定して実行デバイスを決める。明示的に上書き可能。
+#   make run              → OS に合わせて macos / windows を自動選択
+#   make run DEVICE=linux → 強制指定
+ifeq ($(OS),Windows_NT)
+  DEVICE ?= windows
+else
+  DEVICE ?= macos
+endif
 
 # Release ビルド成果物と DMG の出力先。
 # DMG_VOLUME はマウント時のボリューム名。app 名と同じ "Roola" にすると、
