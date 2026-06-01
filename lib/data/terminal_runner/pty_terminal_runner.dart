@@ -40,7 +40,7 @@ class PtyTerminalRunner implements TerminalRunner {
       return PtyTerminalRunner(
         workingDirectory: workingDirectory,
         executable: 'cmd.exe',
-        environment: environment,
+        environment: _windowsEnvironment(environment),
         idleThreshold: idleThreshold,
         unsupportedError: 'Claude Code のスキル起動は Windows では未サポートです。',
       );
@@ -53,9 +53,38 @@ class PtyTerminalRunner implements TerminalRunner {
       workingDirectory: workingDirectory,
       executable: executable,
       arguments: arguments,
-      environment: environment,
+      environment: Platform.isWindows ? _windowsEnvironment(environment) : environment,
       idleThreshold: idleThreshold,
     );
+  }
+
+  /// Windows では flutter_pty が HOME / PATH 等しか PTY に引き継がないため、
+  /// SYSTEMROOT / USERPROFILE 等のシステム変数を明示的に補完する。
+  /// （flutter_pty は environment パラメータを effectiveEnv に追記するため
+  /// ここで渡した変数はホワイトリスト外でも PTY プロセスに届く。）
+  static Map<String, String> _windowsEnvironment(
+    Map<String, String>? extra,
+  ) {
+    const keys = [
+      'SYSTEMROOT', 'SystemRoot',
+      'WINDIR', 'windir',
+      'ComSpec', 'COMSPEC',
+      'USERPROFILE',
+      'USERNAME', 'USERDOMAIN',
+      'APPDATA', 'LOCALAPPDATA',
+      'TEMP', 'TMP',
+      'SystemDrive',
+      'PATHEXT',
+      'OS',
+      'PROCESSOR_ARCHITECTURE',
+    ];
+    final env = <String, String>{};
+    for (final key in keys) {
+      final value = Platform.environment[key];
+      if (value != null) env[key] = value;
+    }
+    if (extra != null) env.addAll(extra);
+    return env;
   }
 
   /// null 以外の場合、[start] は PTY を起動せずこのメッセージで即 failed 遷移する。
