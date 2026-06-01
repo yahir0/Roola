@@ -57,9 +57,10 @@ void main() {
           recursive: true,
           exclude: (rel) {
             relativePaths.add(rel);
+            final sep = Platform.pathSeparator;
             return rel.isEmpty ||
                 rel == 'ignored' ||
-                rel.startsWith('ignored/');
+                rel.startsWith('ignored$sep');
           },
         )
         .listen(events.add);
@@ -70,8 +71,11 @@ void main() {
     await Future<void>.delayed(const Duration(milliseconds: 300));
 
     // exclude callback は ignored 配下の相対パスを受け取っている。
+    final sep = Platform.pathSeparator;
     expect(
-      relativePaths.any((p) => p.startsWith('ignored/') || p == 'ignored'),
+      relativePaths.any(
+        (rel) => rel.startsWith('ignored$sep') || rel == 'ignored',
+      ),
       isTrue,
     );
     // FSEvents の挙動が CI / マシンによって揺れるため、ノイズを debug 出力。

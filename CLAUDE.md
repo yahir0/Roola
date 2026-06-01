@@ -1,6 +1,6 @@
 # Roola — Project Guide
 
-Mac 向けの汎用ターミナルランチャーアプリ（Flutter Desktop / macOS）。エクスプローラ機能をメインに、設定済みのディレクトリ + 動作（素のシェル / 任意コマンド / Claude Code Skill）をアイコンとして登録し、ワンクリックで起動できる。Claude Skill 起動はサポート動作の 1 つ（ADR-0014 / ADR-0016）。
+汎用ターミナルランチャーアプリ（Flutter Desktop / macOS + Windows）。エクスプローラ機能をメインに、設定済みのディレクトリ + 動作（素のシェル / 任意コマンド / Claude Code Skill）をアイコンとして登録し、ワンクリックで起動できる。Claude Skill 起動はサポート動作の 1 つ（ADR-0014 / ADR-0016）。
 
 ## このドキュメントの位置付け
 
@@ -129,6 +129,7 @@ Mac 向けの汎用ターミナルランチャーアプリ（Flutter Desktop / m
 - ADR-0055: ウィンドウ再アクティブ化時に最後のフォーカスペインへフォーカスを戻す
 - ADR-0056: ライセンス表示をモーダルシェル化し、ウィンドウヘッダの戻るボタンを廃止する
 - ADR-0057: Claude Code のタスク完了を Stop フック + ローカル受信口で macOS 通知する
+- ADR-0058: Windows 対応（ADR-0001 Supersede）—対応プラットフォームを macOS + Windows に拡張する
 
 ## ディレクトリ構成
 

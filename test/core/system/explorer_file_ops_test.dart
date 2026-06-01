@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:roola/core/system/explorer_file_ops.dart';
 
 void main() {
@@ -211,6 +212,42 @@ void main() {
       expect(
         () => ops.copyInto('${tempDir.path}/ghost', '${tempDir.path}/dest'),
         throwsA(isA<FileSystemException>()),
+      );
+    });
+  });
+
+  group('path utilities (cross-platform via package:path)', () {
+    test('p.join produces correct path on current platform', () {
+      final joined = p.join(tempDir.path, 'child', 'file.txt');
+      expect(joined, contains(p.separator));
+      expect(joined, endsWith('file.txt'));
+    });
+
+    test('p.basename extracts filename regardless of depth', () {
+      final joined = p.join(tempDir.path, 'sub', 'note.txt');
+      expect(p.basename(joined), 'note.txt');
+    });
+
+    test('p.dirname extracts parent path', () {
+      final joined = p.join(tempDir.path, 'sub', 'note.txt');
+      expect(p.dirname(joined), p.join(tempDir.path, 'sub'));
+    });
+
+    test('copyInto works with deeply nested source directory', () async {
+      await Directory(p.join(tempDir.path, 'src', 'a', 'b')).create(
+        recursive: true,
+      );
+      await File(p.join(tempDir.path, 'src', 'a', 'b', 'deep.txt')).writeAsString('d');
+      await Directory(p.join(tempDir.path, 'dst')).create();
+
+      await ops.copyInto(
+        p.join(tempDir.path, 'src'),
+        p.join(tempDir.path, 'dst'),
+      );
+
+      expect(
+        File(p.join(tempDir.path, 'dst', 'src', 'a', 'b', 'deep.txt')).existsSync(),
+        isTrue,
       );
     });
   });

@@ -16,9 +16,10 @@ DEVICE  ?= macos
 # とき macOS の App Management 保護が /Volumes/Roola/Roola.app への書き込み
 # を「起動中アプリの改変」と見なしてブロックし hdiutil create が失敗する。
 # ボリューム名を app 名と別にして回避する。
-APP_BUNDLE := build/macos/Build/Products/Release/Roola.app
-DMG_PATH   := build/Roola.dmg
-DMG_VOLUME := Roola Installer
+APP_BUNDLE     := build/macos/Build/Products/Release/Roola.app
+DMG_PATH       := build/Roola.dmg
+DMG_VOLUME     := Roola Installer
+WIN_EXE_DIR    := build/windows/x64/runner/Release
 
 # 配布用署名・公証の設定。
 # - SIGN_IDENTITY: codesign に渡す Developer ID Application 証明書の識別子。
@@ -36,7 +37,7 @@ ENTITLEMENTS   := macos/Runner/Release.entitlements
 
 .DEFAULT_GOAL := help
 
-.PHONY: help setup get gen watch run format analyze test check build sign dmg notarize staple dist clean reset
+.PHONY: help setup get gen watch run format analyze test check build build-windows sign dmg notarize staple dist clean reset reset-windows
 
 help: ## このヘルプを表示
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  %-10s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -66,8 +67,11 @@ test: ## ユニット / ウィジェットテスト
 
 check: format analyze test ## format → analyze → test を順次実行
 
-build: ## Release ビルド（$(APP_BUNDLE) に出力）
+build: ## macOS Release ビルド（$(APP_BUNDLE) に出力）
 	$(FLUTTER) build macos --release $(DEFINES)
+
+build-windows: ## Windows Release ビルド（$(WIN_EXE_DIR)/roola.exe に出力）※ Developer Mode 必須
+	$(FLUTTER) build windows --release $(DEFINES)
 
 sign: build ## Developer ID で .app を Hardened Runtime 付きで再帰署名
 	@if [ -z "$(SIGN_IDENTITY)" ]; then \
@@ -139,6 +143,9 @@ clean: ## ビルド成果物と pub キャッシュ参照をクリア
 	$(FLUTTER) clean
 	$(FLUTTER) pub get
 
-reset: ## 永続化エントリ・設定を削除（prod / dev 両方）
+reset: ## macOS: 永続化エントリ・設定を削除（prod / dev 両方）
 	rm -rf "$$HOME/Library/Application Support/tech.yahiro.Roola"
 	rm -rf "$$HOME/Library/Application Support/dev.tech.yahiro.Roola"
+
+reset-windows: ## Windows: 永続化エントリ・設定を削除
+	rm -rf "$$APPDATA/tech.yahiro.Roola"

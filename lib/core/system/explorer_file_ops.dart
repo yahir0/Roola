@@ -1,19 +1,19 @@
 import 'dart:io';
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:path/path.dart' as p;
 
-/// エクスプローラのファイル操作（新規作成・リネーム・移動）。
+/// エクスプローラのファイル操作（新規作成・リネーム・移動・コピー）。
 ///
-/// macOS のローカル FS 前提。`File.rename` / `Directory.rename`
-/// を直接呼ぶ薄いラッパー。失敗時は `FileSystemException` を素通しする
+/// macOS / Windows 両対応。`File.rename` / `Directory.rename` / `dart:io` 再帰
+/// コピーを使う薄いラッパー。失敗時は `FileSystemException` を素通しする
 /// （UI 側で catch して SnackBar 表示）。
 class ExplorerFileOps {
   const ExplorerFileOps();
 
   /// [parentPath] 直下に [name] のディレクトリを作る。
-  /// 既存パスにヒットする場合は `FileSystemException` を投げる。
   Future<void> createDirectory(String parentPath, String name) async {
-    final target = Directory(_join(parentPath, name));
+    final target = Directory(p.join(parentPath, name));
     if (target.existsSync()) {
       throw FileSystemException('既に存在します', target.path);
     }
@@ -21,20 +21,19 @@ class ExplorerFileOps {
   }
 
   /// [parentPath] 直下に [name] の空ファイルを作る。
-  /// 既存パスにヒットする場合は `FileSystemException` を投げる。
   Future<void> createFile(String parentPath, String name) async {
-    final target = File(_join(parentPath, name));
+    final target = File(p.join(parentPath, name));
     if (target.existsSync() || Directory(target.path).existsSync()) {
       throw FileSystemException('既に存在します', target.path);
     }
     await target.create();
   }
 
-  /// [oldPath] のエントリ（ファイル or ディレクトリ）を、同じ親の中で
-  /// [newName] にリネームする。
+  /// [oldPath] のエントリを同じ親の中で [newName] にリネームする。
   Future<void> rename(String oldPath, String newName) async {
-    final newPath = _join(_parentOf(oldPath), newName);
-    if (newPath == oldPath) {
+    final normalizedOld = p.normalize(oldPath);
+    final newPath = p.join(p.dirname(normalizedOld), newName);
+    if (newPath == normalizedOld) {
       return;
     }
     if (FileSystemEntity.typeSync(newPath) != FileSystemEntityType.notFound) {
@@ -51,43 +50,41 @@ class ExplorerFileOps {
   }
 
   /// [sourcePath] を [targetDir] 直下にコピーする。ディレクトリは再帰。
-  /// macOS の `cp -R` を `Process.run` 経由で呼び出す（dart:io 単体だと
-  /// ディレクトリの再帰コピーが提供されないため）。自身・自身の子孫への
-  /// コピーや、コピー先に同名がある場合は弾く。
+  /// `dart:io` 再帰コピーで実装するため macOS / Windows 両対応。
   Future<void> copyInto(String sourcePath, String targetDir) async {
-    if (targetDir == sourcePath || targetDir.startsWith('$sourcePath/')) {
+    final sep = p.separator;
+    if (targetDir == sourcePath ||
+        targetDir.startsWith('$sourcePath$sep')) {
       throw FileSystemException('自身またはその配下にはコピーできません', sourcePath);
     }
-    final name = _basename(sourcePath);
-    final newPath = _join(targetDir, name);
+    final name = p.basename(sourcePath);
+    final newPath = p.join(targetDir, name);
     if (FileSystemEntity.typeSync(newPath) != FileSystemEntityType.notFound) {
       throw FileSystemException('コピー先に同名の項目があります', newPath);
     }
-    if (FileSystemEntity.typeSync(sourcePath) ==
-        FileSystemEntityType.notFound) {
+    final type = FileSystemEntity.typeSync(sourcePath);
+    if (type == FileSystemEntityType.notFound) {
       throw FileSystemException('対象が存在しません', sourcePath);
     }
-    final result = await Process.run('cp', ['-R', sourcePath, newPath]);
-    if (result.exitCode != 0) {
-      throw FileSystemException('cp が異常終了しました: ${result.stderr}', sourcePath);
+    if (type == FileSystemEntityType.file) {
+      await File(sourcePath).copy(newPath);
+    } else {
+      await _copyDirectoryRecursive(Directory(sourcePath), Directory(newPath));
     }
   }
 
-  /// [sourcePath] を [targetDir] 直下へ移動する。同一ボリュームなら
-  /// `rename` で原子的に処理される。クロスボリュームは `rename` が失敗
-  /// するため呼び出し側でエラー表示する。
-  ///
-  /// 自身・自身の子孫への移動、同一親内ノーオペ移動は弾く。
+  /// [sourcePath] を [targetDir] 直下へ移動する。
   Future<void> moveInto(String sourcePath, String targetDir) async {
-    if (targetDir == sourcePath || targetDir.startsWith('$sourcePath/')) {
+    final sep = p.separator;
+    if (targetDir == sourcePath ||
+        targetDir.startsWith('$sourcePath$sep')) {
       throw FileSystemException('自身またはその配下には移動できません', sourcePath);
     }
-    if (_parentOf(sourcePath) == targetDir) {
-      // 同一親に対する移動は no-op。
+    if (p.dirname(p.normalize(sourcePath)) == p.normalize(targetDir)) {
       return;
     }
-    final name = _basename(sourcePath);
-    final newPath = _join(targetDir, name);
+    final name = p.basename(sourcePath);
+    final newPath = p.join(targetDir, name);
     if (FileSystemEntity.typeSync(newPath) != FileSystemEntityType.notFound) {
       throw FileSystemException('移動先に同名の項目があります', newPath);
     }
@@ -101,30 +98,20 @@ class ExplorerFileOps {
     }
   }
 
-  static String _join(String parent, String name) {
-    final cleanedParent = parent.endsWith('/') && parent.length > 1
-        ? parent.substring(0, parent.length - 1)
-        : parent;
-    return '$cleanedParent/$name';
-  }
-
-  static String _parentOf(String path) {
-    final normalized = path.endsWith('/') && path.length > 1
-        ? path.substring(0, path.length - 1)
-        : path;
-    final lastSlash = normalized.lastIndexOf('/');
-    if (lastSlash <= 0) {
-      return '/';
+  static Future<void> _copyDirectoryRecursive(
+    Directory src,
+    Directory dst,
+  ) async {
+    await dst.create(recursive: true);
+    await for (final entity in src.list()) {
+      final name = p.basename(entity.path);
+      final dstPath = p.join(dst.path, name);
+      if (entity is File) {
+        await entity.copy(dstPath);
+      } else if (entity is Directory) {
+        await _copyDirectoryRecursive(entity, Directory(dstPath));
+      }
     }
-    return normalized.substring(0, lastSlash);
-  }
-
-  static String _basename(String path) {
-    final normalized = path.endsWith('/') && path.length > 1
-        ? path.substring(0, path.length - 1)
-        : path;
-    final segments = normalized.split('/').where((s) => s.isNotEmpty).toList();
-    return segments.isEmpty ? normalized : segments.last;
   }
 }
 

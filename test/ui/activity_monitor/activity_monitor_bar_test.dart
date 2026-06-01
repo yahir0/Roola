@@ -9,7 +9,7 @@ import 'package:roola/ui/activity_monitor/activity_monitor_bar.dart';
 import 'package:roola/ui/activity_monitor/activity_monitor_popover_layer.dart';
 
 /// ネイティブ呼び出しを伴わない fake。固定のメトリクスとプロセス一覧を返す。
-class _FakeRepository extends SystemMetricsRepository {
+class _FakeRepository implements SystemMetricsRepository {
   const _FakeRepository();
 
   @override

@@ -93,7 +93,8 @@ class DirectoryWatcher {
     if (target == base) {
       return '';
     }
-    final normalizedBase = base.endsWith('/') ? base : '$base/';
+    final sep = Platform.pathSeparator;
+    final normalizedBase = base.endsWith(sep) ? base : '$base$sep';
     if (target.startsWith(normalizedBase)) {
       return target.substring(normalizedBase.length);
     }

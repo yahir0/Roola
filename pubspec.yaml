@@ -48,6 +48,7 @@ dependencies:
   json_annotation: ^4.11.0
   go_router: ^17.2.3
   dio: ^5.9.2
+  path: ^1.9.1
   path_provider: ^2.1.5
   file_picker: ^11.0.2
   flutter_pty: ^0.4.2
@@ -58,6 +59,10 @@ dependencies:
   # About ダイアログでアプリのバージョン（CFBundleShortVersionString +
   # CFBundleVersion）を実行時に取得するために使う（ADR-0040）。
   package_info_plus: ^9.0.0
+  # Windows Toast 通知（ADR-0057 Windows 実装）。
+  local_notifier: ^0.1.6
+  # Windows ターミナルレンダラ用 WebView2 ホスト（ADR-0058 D1）。
+  webview_windows: ^0.4.0
 
   # Explorer タブの読み取り専用ファイルプレビューパネル用（ADR-0046）。
   # シンタックスハイライトのみを担当する最小コンポーネント（編集 UI を
@@ -126,6 +131,8 @@ flutter:
     # ブランドシンボル（About ダイアログ等のアプリ内表示用）。アプリアイコン
     # は macOS の AppIcon.appiconset 側。両者の起点は branding/roola_icon_master.png。
     - assets/branding/
+    # xterm.js ターミナルレンダラ（Windows 専用 ADR-0058 D1）。
+    - assets/js/xterm/
 
   # To add assets to your application, add an assets section, like this:
   # assets:
