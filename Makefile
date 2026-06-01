@@ -14,6 +14,11 @@ DEFINES ?= --dart-define-from-file=dart_defines/prod.json
 #   make run DEVICE=linux → 強制指定
 ifeq ($(OS),Windows_NT)
   DEVICE ?= windows
+  # GnuWin32 make はデフォルトで sh.exe を探すが、Windows 環境では
+  # cmd.exe を明示指定しないと .bat ファイル（flutter.bat 等）を
+  # 実行できない。
+  SHELL := C:\Windows\System32\cmd.exe
+  .SHELLFLAGS := /c
 else
   DEVICE ?= macos
 endif
