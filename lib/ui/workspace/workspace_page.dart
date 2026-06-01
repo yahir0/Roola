@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -10,6 +12,7 @@ import 'package:roola/ui/activity_monitor/activity_monitor_bar.dart';
 import 'package:roola/ui/activity_monitor/activity_monitor_popover_layer.dart';
 import 'package:roola/ui/common/app_bar_divider.dart';
 import 'package:roola/ui/common/macos_window_app_bar.dart';
+import 'package:roola/ui/common/windows_window_controls.dart';
 import 'package:roola/ui/explorer/explorer_sidebar.dart';
 import 'package:roola/ui/notepad/notepad_panel.dart';
 import 'package:roola/ui/workspace/pane_widget.dart';
@@ -63,6 +66,11 @@ class WorkspacePage extends HookWidget {
               onPressed: () => const SettingsRoute().push<void>(context),
             ),
           ),
+          // Windows 専用: 最小化 / 最大化 / 閉じるボタン（ADR-0058）。
+          if (Platform.isWindows) ...[
+            const SizedBox(width: PolarisTokens.space1),
+            const WindowsWindowControls(),
+          ],
         ],
       ),
       body: Row(
