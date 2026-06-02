@@ -12,6 +12,7 @@ import 'package:roola/ui/activity_monitor/activity_monitor_bar.dart';
 import 'package:roola/ui/activity_monitor/activity_monitor_popover_layer.dart';
 import 'package:roola/ui/common/app_bar_divider.dart';
 import 'package:roola/ui/common/macos_window_app_bar.dart';
+import 'package:roola/ui/common/windows_top_menu_bar.dart';
 import 'package:roola/ui/common/windows_window_controls.dart';
 import 'package:roola/ui/explorer/explorer_sidebar.dart';
 import 'package:roola/ui/notepad/notepad_panel.dart';
@@ -38,10 +39,12 @@ class WorkspacePage extends HookWidget {
     return Scaffold(
       appBar: MacosWindowAppBar(
         bottom: const AppBarDivider(),
-        // 信号灯領域の直後にワードマークを詰め、トップバー中央の空白を埋めて
-        // 右端のアクションと釣り合わせる（ADR-0038 D8/D9）。
+        // macOS: 信号灯の直後にワードマーク（ADR-0038 D8/D9）。
+        // Windows: ロゴ + インラインメニューバー（ADR-0058）。
         titleSpacing: 4,
-        title: const _AppWordmark(),
+        title: Platform.isWindows
+            ? const WindowsTopMenuBar()
+            : const _AppWordmark(),
         actions: [
           // アクティビティモニタはメモパッド・設定アイコンの左に置く
           // （ADR-0039）。

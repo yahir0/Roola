@@ -7,7 +7,8 @@ import 'package:roola/core/system/update_checker_windows.dart';
 /// アップデート確認を起動するサービス（ADR-0043）。
 ///
 /// macOS は Sparkle（`SPUStandardUpdater`）経由、
-/// Windows は GitHub Releases API を参照するシンプルなチェッカー。
+/// Windows は WinSparkle（`win_sparkle_check_update_with_ui()`）経由で
+/// いずれも MethodChannel `roola/updater` を通じてネイティブに委譲する。
 abstract interface class UpdateChecker {
   /// アップデート確認を開始する。
   Future<void> checkForUpdates();

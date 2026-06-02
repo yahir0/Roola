@@ -113,3 +113,11 @@ install(DIRECTORY "${PROJECT_BUILD_DIR}/${FLUTTER_ASSET_DIR_NAME}"
 install(FILES "${AOT_LIBRARY}" DESTINATION "${INSTALL_BUNDLE_DATA_DIR}"
   CONFIGURATIONS Profile;Release
   COMPONENT Runtime)
+
+# WinSparkle DLL — winsparkle.h が存在するときのみバンドル（ADR-0059）。
+set(WINSPARKLE_DLL
+    "${CMAKE_SOURCE_DIR}/third_party/winsparkle/x64/Release/WinSparkle.dll")
+if(EXISTS "${WINSPARKLE_DLL}")
+  install(FILES "${WINSPARKLE_DLL}" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
+    COMPONENT Runtime)
+endif()

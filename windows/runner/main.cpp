@@ -5,6 +5,14 @@
 #include "flutter_window.h"
 #include "utils.h"
 
+// WinSparkle 自動アップデート（Phase B: ROOLA_WINSPARKLE 定義後に有効化）。
+// WinSparkle.h と WinSparkle.lib を windows/third_party/winsparkle/ に配置し、
+// runner/CMakeLists.txt で ROOLA_WINSPARKLE を定義することで有効になる。
+// appcast URL: https://raw.githubusercontent.com/yahiro0/Roola/main/appcast-windows.xml
+#ifdef ROOLA_WINSPARKLE
+#include <winsparkle.h>
+#endif
+
 int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
                       _In_ wchar_t *command_line, _In_ int show_command) {
   // Attach to console when present (e.g., 'flutter run') or create a
@@ -16,6 +24,12 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
   // Initialize COM, so that it is available for use in the library and/or
   // plugins.
   ::CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
+
+#ifdef ROOLA_WINSPARKLE
+  win_sparkle_set_appcast_url(
+      "https://raw.githubusercontent.com/yahiro0/Roola/main/appcast-windows.xml");
+  win_sparkle_init();
+#endif
 
   flutter::DartProject project(L"data");
 
@@ -38,6 +52,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
     ::DispatchMessage(&msg);
   }
 
+#ifdef ROOLA_WINSPARKLE
+  win_sparkle_cleanup();
+#endif
   ::CoUninitialize();
   return EXIT_SUCCESS;
 }

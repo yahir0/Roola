@@ -205,10 +205,44 @@ static void SetupSystemMetricsChannel(flutter::FlutterEngine* engine) {
 }
 
 // ---------------------------------------------------------------------------
+// roola/updater — WinSparkle 手動チェックトリガ（ADR-0043 Windows 版）
+//
+// WinSparkle 統合（Phase B）が完了するまでは no-op で Success を返す。
+// Phase B では ROOLA_WINSPARKLE を定義し、WinSparkle.h をインクルードして
+// win_sparkle_check_update_with_ui() を呼ぶ。
+// ---------------------------------------------------------------------------
+
+#ifdef ROOLA_WINSPARKLE
+#include <winsparkle.h>
+#endif
+
+static void SetupUpdaterChannel(flutter::FlutterEngine* engine) {
+  auto channel = std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
+      engine->messenger(), "roola/updater",
+      &flutter::StandardMethodCodec::GetInstance());
+
+  channel->SetMethodCallHandler(
+      [](const flutter::MethodCall<flutter::EncodableValue>& call,
+         std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
+        if (call.method_name() != "checkForUpdates") {
+          result->NotImplemented();
+          return;
+        }
+#ifdef ROOLA_WINSPARKLE
+        win_sparkle_check_update_with_ui();
+#endif
+        result->Success();
+      });
+
+  static auto s_updater_channel = std::move(channel);
+}
+
+// ---------------------------------------------------------------------------
 // Public entry point
 // ---------------------------------------------------------------------------
 
 void SetupRoolaChannels(flutter::FlutterEngine* engine) {
   SetupTrashChannel(engine);
   SetupSystemMetricsChannel(engine);
+  SetupUpdaterChannel(engine);
 }

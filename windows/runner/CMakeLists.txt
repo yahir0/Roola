@@ -39,5 +39,19 @@ target_link_libraries(${BINARY_NAME} PRIVATE "dwmapi.lib")
 target_link_libraries(${BINARY_NAME} PRIVATE "shell32.lib" "psapi.lib")
 target_include_directories(${BINARY_NAME} PRIVATE "${CMAKE_SOURCE_DIR}")
 
+# WinSparkle 自動アップデート（ADR-0059）。
+# windows/third_party/winsparkle/ に DLL/ヘッダを配置した場合のみ有効化。
+# CI は release-windows.yml でダウンロードする。ローカルは docs/release.md 参照。
+set(WINSPARKLE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../third_party/winsparkle")
+if(EXISTS "${WINSPARKLE_DIR}/include/winsparkle.h")
+  target_include_directories(${BINARY_NAME} PRIVATE "${WINSPARKLE_DIR}/include")
+  target_link_libraries(${BINARY_NAME} PRIVATE
+      "${WINSPARKLE_DIR}/x64/Release/WinSparkle.lib")
+  target_compile_definitions(${BINARY_NAME} PRIVATE "ROOLA_WINSPARKLE")
+  message(STATUS "WinSparkle found — auto-update enabled")
+else()
+  message(STATUS "WinSparkle not found — auto-update disabled (Phase A)")
+endif()
+
 # Run the Flutter tool portions of the build. This must not be removed.
 add_dependencies(${BINARY_NAME} flutter_assemble)

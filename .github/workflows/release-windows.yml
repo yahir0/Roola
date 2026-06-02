@@ -46,6 +46,27 @@ jobs:
           if (-not (Test-Path $regPath)) { New-Item -Path $regPath -Force | Out-Null }
           Set-ItemProperty -Path $regPath -Name AllowDevelopmentWithoutDevLicense -Value 1
 
+      - name: Download WinSparkle
+        shell: powershell
+        run: |
+          $version = "0.8.0"
+          $url = "https://github.com/vslavik/winsparkle/releases/download/v$version/WinSparkle-$version.zip"
+          $zip = "winsparkle.zip"
+          $dest = "windows\third_party\winsparkle"
+          Invoke-WebRequest -Uri $url -OutFile $zip -UseBasicParsing
+          # 一時ディレクトリに展開し、サブディレクトリの有無を確認してから移動
+          $tmp = "winsparkle_tmp"
+          Expand-Archive -Path $zip -DestinationPath $tmp -Force
+          $inner = Get-ChildItem $tmp | Where-Object { $_.PSIsContainer }
+          $src = if ($inner.Count -eq 1 -and (Test-Path "$($inner[0].FullName)\include")) {
+            $inner[0].FullName
+          } else { $tmp }
+          New-Item -ItemType Directory -Force $dest | Out-Null
+          Copy-Item "$src\*" $dest -Recurse -Force
+          Remove-Item $tmp -Recurse -Force
+          Remove-Item $zip
+          Write-Host "WinSparkle $version downloaded"
+
       - name: Get dependencies
         run: flutter pub get
 
@@ -103,3 +124,51 @@ jobs:
           generate_release_notes: false
           draft: false
           fail_on_unmatched_files: true
+
+      - name: Generate appcast-windows.xml
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: powershell
+        run: |
+          $version = "${{ steps.version.outputs.version }}"
+          $tag = "v$version"
+          $installerName = "RoolaSetup-$version.exe"
+          $downloadUrl = "https://github.com/yahiro0/Roola/releases/download/$tag/$installerName"
+          $length = (Get-Item "build\$installerName").Length
+          $pubDate = (Get-Date).ToUniversalTime().ToString("ddd, dd MMM yyyy HH:mm:ss +0000")
+          $lines = @(
+            '<?xml version="1.0" encoding="utf-8"?>',
+            '<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">',
+            '  <channel>',
+            '    <title>Roola Changelog</title>',
+            '    <language>ja</language>',
+            '    <item>',
+            "      <title>Version $version</title>",
+            "      <sparkle:releaseNotesLink>https://github.com/yahiro0/Roola/releases/tag/$tag</sparkle:releaseNotesLink>",
+            "      <pubDate>$pubDate</pubDate>",
+            "      <enclosure url=""$downloadUrl""",
+            "                 sparkle:version=""$version""",
+            "                 length=""$length""",
+            '                 type="application/octet-stream" />',
+            '    </item>',
+            '  </channel>',
+            '</rss>'
+          )
+          $lines -join "`n" | Out-File -FilePath appcast-windows.xml -Encoding utf8 -NoNewline
+          Write-Host "Generated appcast-windows.xml for $version"
+
+      - name: Commit and push appcast-windows.xml to main
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: powershell
+        env:
+          PAT: ${{ secrets.RELEASE_TRIGGER_PAT }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git remote set-url origin "https://x-access-token:$env:PAT@github.com/yahiro0/Roola.git"
+          git fetch origin main
+          git checkout main
+          git add appcast-windows.xml
+          git diff --cached --quiet && exit 0
+          git commit -m "chore: update appcast-windows.xml [skip ci]"
+          git push origin main
+          Write-Host "appcast-windows.xml pushed to main"
