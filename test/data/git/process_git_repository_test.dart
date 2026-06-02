@@ -38,6 +38,7 @@ void main() {
     await run(['init', '-b', 'main']);
     await run(['config', 'user.name', 'tester']);
     await run(['config', 'user.email', 'tester@example.com']);
+    await run(['config', 'core.autocrlf', 'false']);
     writeFile('a.txt', 'hello\n');
     await run(['add', '.']);
     await run(['commit', '-m', 'first commit']);
