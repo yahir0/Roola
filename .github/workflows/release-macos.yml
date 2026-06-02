@@ -17,6 +17,10 @@ on:
 permissions:
   contents: write # GitHub Release の作成・アセットアップロードに必要
 
+concurrency:
+  group: release-macos-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build-and-release:
     runs-on: macos-14

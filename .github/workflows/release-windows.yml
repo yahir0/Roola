@@ -16,6 +16,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: release-windows-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build-and-release-windows:
     runs-on: windows-latest
