@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:roola/app/theme.dart';
+import 'package:roola/data/task_notification/hook_installer.dart';
 import 'package:roola/data/task_notification/task_notification_repository.dart';
 import 'package:roola/data/task_notification/task_notification_server.dart';
 import 'package:roola/data/task_notification/task_notification_settings_repository_impl.dart';
@@ -156,6 +157,10 @@ class _HookSetup extends ConsumerWidget {
           l10n.settingsTaskNotificationSetupInstructions,
           style: Theme.of(context).textTheme.bodySmall,
         ),
+        const SizedBox(height: PolarisTokens.space4),
+        _HookAutoInstall(port: port),
+        const SizedBox(height: PolarisTokens.space4),
+        PolarisFieldLabel(l10n.settingsTaskNotificationManualSetupTitle),
         const SizedBox(height: PolarisTokens.space2),
         if (port == null)
           const Center(
@@ -251,22 +256,25 @@ class _HookSetup extends ConsumerWidget {
   }
 }
 
-/// `~/.claude/settings.json` に貼る Stop フック設定スニペットを組み立てる。
+/// フックコマンド文字列（settings.json の `command` フィールドに入る値）。
+/// [buildHookSnippet] の内部でも使い、自動インストール時は [HookInstaller.install] へ渡す。
+String buildHookCommand(int port) => Platform.isWindows
+    ? _buildWindowsCommand(port)
+    : _buildMacosCommand(port);
+
+/// `~/.claude/settings.json` に貼る Stop フック設定スニペット（JSON 全体）。
 ///
 /// macOS: `jq` + `curl` で stdin の JSON を整形して POST する。
 /// Windows: `jq` が標準搭載されないため Node.js（Claude Code の実行要件）で代替。
 /// 末尾 `|| true` でフック失敗が claude 側の処理に影響しない。
 /// JSON エスケープは [JsonEncoder] に任せる。
 String buildHookSnippet(int port) {
-  final command = Platform.isWindows
-      ? _buildWindowsCommand(port)
-      : _buildMacosCommand(port);
   return const JsonEncoder.withIndent('  ').convert({
     'hooks': {
       'Stop': [
         {
           'hooks': [
-            {'type': 'command', 'command': command},
+            {'type': 'command', 'command': buildHookCommand(port)},
           ],
         },
       ],
@@ -301,4 +309,201 @@ String _buildWindowsCommand(int port) {
       "'Content-Length':Buffer.byteLength(b)}});"
       'r.on(\'error\',()=>{});r.end(b)})';
   return 'node -e "$script" 2>/dev/null || true';
+}
+
+// ---------------------------------------------------------------------------
+// 自動セットアップ UI（ADR-0057）
+// ---------------------------------------------------------------------------
+
+enum _BackupAction { withBackup, withoutBackup }
+
+/// インストール状態の表示とワンクリックインストール / 削除を提供するウィジェット。
+class _HookAutoInstall extends ConsumerWidget {
+  const _HookAutoInstall({required this.port});
+
+  /// 現在の待受ポート。null の場合はサーバー起動中でインストールボタンを無効化する。
+  final int? port;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final statusAsync = ref.watch(hookInstallStatusProvider);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        PolarisFieldLabel(l10n.settingsTaskNotificationAutoSetupTitle),
+        const SizedBox(height: PolarisTokens.space2),
+        statusAsync.when(
+          loading: () => const SizedBox(
+            width: 16,
+            height: 16,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+          error: (_, _) => const SizedBox.shrink(),
+          data: (status) => _body(context, ref, l10n, status),
+        ),
+      ],
+    );
+  }
+
+  Widget _body(
+    BuildContext context,
+    WidgetRef ref,
+    AppLocalizations l10n,
+    HookInstallStatus status,
+  ) {
+    final colors = Theme.of(context).colorScheme;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _StatusRow(status: status),
+        const SizedBox(height: PolarisTokens.space3),
+        if (status == HookInstallStatus.installed) ...[
+          OutlinedButton(
+            onPressed: () => _uninstall(context, ref, l10n),
+            child: Text(l10n.settingsTaskNotificationUninstallButton),
+          ),
+          const SizedBox(height: PolarisTokens.space2),
+          Text(
+            l10n.settingsTaskNotificationStalePortNote,
+            style: Theme.of(context).textTheme.bodySmall
+                ?.copyWith(color: colors.onSurfaceVariant),
+          ),
+        ] else if (status == HookInstallStatus.notInstalled)
+          FilledButton(
+            // ポートが確定するまで無効化
+            onPressed: port == null ? null : () => _install(context, ref, l10n),
+            child: Text(l10n.settingsTaskNotificationInstallButton),
+          ),
+      ],
+    );
+  }
+
+  Future<void> _install(
+    BuildContext context,
+    WidgetRef ref,
+    AppLocalizations l10n,
+  ) async {
+    final currentPort = port;
+    if (currentPort == null) return;
+
+    final action = await _showBackupDialog(context, l10n);
+    if (action == null || !context.mounted) return;
+
+    try {
+      if (action == _BackupAction.withBackup) {
+        final path = await HookInstaller.backup();
+        if (path != null && context.mounted) {
+          _snack(context, '${l10n.settingsTaskNotificationBackupCreated}: $path');
+        }
+      }
+      await HookInstaller.install(buildHookCommand(currentPort));
+      if (!context.mounted) return;
+      ref.invalidate(hookInstallStatusProvider);
+      _snack(context, l10n.settingsTaskNotificationInstallSuccess);
+    } catch (_) {
+      if (context.mounted) _snack(context, l10n.settingsTaskNotificationInstallError);
+    }
+  }
+
+  Future<void> _uninstall(
+    BuildContext context,
+    WidgetRef ref,
+    AppLocalizations l10n,
+  ) async {
+    final action = await _showBackupDialog(context, l10n);
+    if (action == null || !context.mounted) return;
+
+    try {
+      if (action == _BackupAction.withBackup) {
+        final path = await HookInstaller.backup();
+        if (path != null && context.mounted) {
+          _snack(context, '${l10n.settingsTaskNotificationBackupCreated}: $path');
+        }
+      }
+      await HookInstaller.uninstall();
+      if (!context.mounted) return;
+      ref.invalidate(hookInstallStatusProvider);
+      _snack(context, l10n.settingsTaskNotificationUninstallSuccess);
+    } catch (_) {
+      if (context.mounted) _snack(context, l10n.settingsTaskNotificationInstallError);
+    }
+  }
+
+  Future<_BackupAction?> _showBackupDialog(
+    BuildContext context,
+    AppLocalizations l10n,
+  ) => showDialog<_BackupAction>(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      title: Text(l10n.settingsTaskNotificationBackupDialogTitle),
+      content: Text(l10n.settingsTaskNotificationBackupDialogContent),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(ctx).pop(),
+          child: Text(MaterialLocalizations.of(ctx).cancelButtonLabel),
+        ),
+        TextButton(
+          onPressed: () =>
+              Navigator.of(ctx).pop(_BackupAction.withoutBackup),
+          child: Text(l10n.settingsTaskNotificationProceedWithoutBackup),
+        ),
+        FilledButton(
+          onPressed: () =>
+              Navigator.of(ctx).pop(_BackupAction.withBackup),
+          child: Text(l10n.settingsTaskNotificationBackupAndProceed),
+        ),
+      ],
+    ),
+  );
+
+  void _snack(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        duration: const Duration(seconds: 3),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+}
+
+/// インストール状態をアイコン付きで一行表示するウィジェット。
+class _StatusRow extends StatelessWidget {
+  const _StatusRow({required this.status});
+
+  final HookInstallStatus status;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final colors = Theme.of(context).colorScheme;
+
+    final (label, icon) = switch (status) {
+      HookInstallStatus.installed => (
+        l10n.settingsTaskNotificationHookInstalled,
+        PolarisGlyph.check(color: colors.primary),
+      ),
+      HookInstallStatus.notInstalled => (
+        l10n.settingsTaskNotificationHookNotInstalled,
+        PolarisGlyph.info(color: colors.onSurfaceVariant),
+      ),
+      HookInstallStatus.fileError => (
+        l10n.settingsTaskNotificationInstallError,
+        PolarisGlyph.warn(color: colors.error),
+      ),
+    };
+
+    return Row(
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(top: PolarisTokens.space1),
+          child: icon,
+        ),
+        const SizedBox(width: PolarisTokens.space2),
+        Text(label),
+      ],
+    );
+  }
 }

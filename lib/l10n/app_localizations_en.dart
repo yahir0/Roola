@@ -349,6 +349,58 @@ class AppLocalizationsEn extends AppLocalizations {
       'The token references the `\$ROOLA_NOTIFY_TOKEN` environment variable, so you don\'t need to re-paste after restarting Roola (only update it if the port number changes).';
 
   @override
+  String get settingsTaskNotificationAutoSetupTitle => 'Auto setup';
+
+  @override
+  String get settingsTaskNotificationHookInstalled => 'Installed';
+
+  @override
+  String get settingsTaskNotificationHookNotInstalled => 'Not installed';
+
+  @override
+  String get settingsTaskNotificationInstallButton => 'Install automatically';
+
+  @override
+  String get settingsTaskNotificationUninstallButton => 'Remove';
+
+  @override
+  String get settingsTaskNotificationManualSetupTitle =>
+      'Manual setup (reference)';
+
+  @override
+  String get settingsTaskNotificationBackupDialogTitle =>
+      'Modifying settings.json';
+
+  @override
+  String get settingsTaskNotificationBackupDialogContent =>
+      'This will modify your Claude Code settings file (settings.json).\n\nWe recommend creating a backup before proceeding.';
+
+  @override
+  String get settingsTaskNotificationBackupAndProceed => 'Back up and continue';
+
+  @override
+  String get settingsTaskNotificationProceedWithoutBackup =>
+      'Continue without backup';
+
+  @override
+  String get settingsTaskNotificationBackupCreated => 'Backup created';
+
+  @override
+  String get settingsTaskNotificationInstallSuccess =>
+      'Hook configuration installed';
+
+  @override
+  String get settingsTaskNotificationUninstallSuccess =>
+      'Hook configuration removed';
+
+  @override
+  String get settingsTaskNotificationInstallError => 'An error occurred';
+
+  @override
+  String get settingsTaskNotificationStalePortNote =>
+      'If the port number has changed, remove and reinstall.';
+
+  @override
   String get settingsKeyboardShortcutsTitle => 'Keyboard shortcuts';
 
   @override

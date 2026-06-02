@@ -722,6 +722,96 @@ abstract class AppLocalizations {
   /// **'トークンは環境変数 `\$ROOLA_NOTIFY_TOKEN` を参照するため、Roola を再起動しても貼り直す必要はありません（ポート番号が変わったときのみ更新してください）。'**
   String get settingsTaskNotificationJqNote;
 
+  /// No description provided for @settingsTaskNotificationAutoSetupTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'自動セットアップ'**
+  String get settingsTaskNotificationAutoSetupTitle;
+
+  /// No description provided for @settingsTaskNotificationHookInstalled.
+  ///
+  /// In ja, this message translates to:
+  /// **'インストール済み'**
+  String get settingsTaskNotificationHookInstalled;
+
+  /// No description provided for @settingsTaskNotificationHookNotInstalled.
+  ///
+  /// In ja, this message translates to:
+  /// **'未インストール'**
+  String get settingsTaskNotificationHookNotInstalled;
+
+  /// No description provided for @settingsTaskNotificationInstallButton.
+  ///
+  /// In ja, this message translates to:
+  /// **'自動でインストール'**
+  String get settingsTaskNotificationInstallButton;
+
+  /// No description provided for @settingsTaskNotificationUninstallButton.
+  ///
+  /// In ja, this message translates to:
+  /// **'削除'**
+  String get settingsTaskNotificationUninstallButton;
+
+  /// No description provided for @settingsTaskNotificationManualSetupTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'手動セットアップ（参考）'**
+  String get settingsTaskNotificationManualSetupTitle;
+
+  /// No description provided for @settingsTaskNotificationBackupDialogTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'settings.json を変更します'**
+  String get settingsTaskNotificationBackupDialogTitle;
+
+  /// No description provided for @settingsTaskNotificationBackupDialogContent.
+  ///
+  /// In ja, this message translates to:
+  /// **'Claude Code の設定ファイル（settings.json）を書き換えます。\n\n万が一に備えて、実行前にバックアップを作成することをお勧めします。'**
+  String get settingsTaskNotificationBackupDialogContent;
+
+  /// No description provided for @settingsTaskNotificationBackupAndProceed.
+  ///
+  /// In ja, this message translates to:
+  /// **'バックアップして続行'**
+  String get settingsTaskNotificationBackupAndProceed;
+
+  /// No description provided for @settingsTaskNotificationProceedWithoutBackup.
+  ///
+  /// In ja, this message translates to:
+  /// **'このまま続行'**
+  String get settingsTaskNotificationProceedWithoutBackup;
+
+  /// No description provided for @settingsTaskNotificationBackupCreated.
+  ///
+  /// In ja, this message translates to:
+  /// **'バックアップを作成しました'**
+  String get settingsTaskNotificationBackupCreated;
+
+  /// No description provided for @settingsTaskNotificationInstallSuccess.
+  ///
+  /// In ja, this message translates to:
+  /// **'フック設定をインストールしました'**
+  String get settingsTaskNotificationInstallSuccess;
+
+  /// No description provided for @settingsTaskNotificationUninstallSuccess.
+  ///
+  /// In ja, this message translates to:
+  /// **'フック設定を削除しました'**
+  String get settingsTaskNotificationUninstallSuccess;
+
+  /// No description provided for @settingsTaskNotificationInstallError.
+  ///
+  /// In ja, this message translates to:
+  /// **'エラーが発生しました'**
+  String get settingsTaskNotificationInstallError;
+
+  /// No description provided for @settingsTaskNotificationStalePortNote.
+  ///
+  /// In ja, this message translates to:
+  /// **'ポート番号が変わった場合は、削除してから再インストールしてください。'**
+  String get settingsTaskNotificationStalePortNote;
+
   /// No description provided for @settingsKeyboardShortcutsTitle.
   ///
   /// In ja, this message translates to:

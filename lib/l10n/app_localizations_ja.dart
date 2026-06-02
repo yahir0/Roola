@@ -342,6 +342,54 @@ class AppLocalizationsJa extends AppLocalizations {
       'トークンは環境変数 `\$ROOLA_NOTIFY_TOKEN` を参照するため、Roola を再起動しても貼り直す必要はありません（ポート番号が変わったときのみ更新してください）。';
 
   @override
+  String get settingsTaskNotificationAutoSetupTitle => '自動セットアップ';
+
+  @override
+  String get settingsTaskNotificationHookInstalled => 'インストール済み';
+
+  @override
+  String get settingsTaskNotificationHookNotInstalled => '未インストール';
+
+  @override
+  String get settingsTaskNotificationInstallButton => '自動でインストール';
+
+  @override
+  String get settingsTaskNotificationUninstallButton => '削除';
+
+  @override
+  String get settingsTaskNotificationManualSetupTitle => '手動セットアップ（参考）';
+
+  @override
+  String get settingsTaskNotificationBackupDialogTitle =>
+      'settings.json を変更します';
+
+  @override
+  String get settingsTaskNotificationBackupDialogContent =>
+      'Claude Code の設定ファイル（settings.json）を書き換えます。\n\n万が一に備えて、実行前にバックアップを作成することをお勧めします。';
+
+  @override
+  String get settingsTaskNotificationBackupAndProceed => 'バックアップして続行';
+
+  @override
+  String get settingsTaskNotificationProceedWithoutBackup => 'このまま続行';
+
+  @override
+  String get settingsTaskNotificationBackupCreated => 'バックアップを作成しました';
+
+  @override
+  String get settingsTaskNotificationInstallSuccess => 'フック設定をインストールしました';
+
+  @override
+  String get settingsTaskNotificationUninstallSuccess => 'フック設定を削除しました';
+
+  @override
+  String get settingsTaskNotificationInstallError => 'エラーが発生しました';
+
+  @override
+  String get settingsTaskNotificationStalePortNote =>
+      'ポート番号が変わった場合は、削除してから再インストールしてください。';
+
+  @override
   String get settingsKeyboardShortcutsTitle => 'キーボードショートカット';
 
   @override
