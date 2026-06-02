@@ -1,15 +1,15 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">
   <channel>
     <title>Roola Changelog</title>
     <language>ja</language>
     <item>
-      <title>Version 0.0.29</title>
-      <sparkle:releaseNotesLink>https://github.com/yahiro0/Roola/releases/tag/v0.0.29</sparkle:releaseNotesLink>
-      <pubDate>Mon, 02 Jun 2026 00:00:00 +0000</pubDate>
-      <enclosure url="https://github.com/yahiro0/Roola/releases/download/v0.0.29/RoolaSetup-0.0.29.exe"
-                 sparkle:version="0.0.29"
-                 length="0"
+      <title>Version 0.0.33</title>
+      <sparkle:releaseNotesLink>https://github.com/yahiro0/Roola/releases/tag/v0.0.33</sparkle:releaseNotesLink>
+      <pubDate>Tue, 02 Jun 2026 14:37:10 +0000</pubDate>
+      <enclosure url="https://github.com/yahiro0/Roola/releases/download/v0.0.33/RoolaSetup-0.0.33.exe"
+                 sparkle:version="0.0.33"
+                 length="39100947"
                  type="application/octet-stream" />
     </item>
   </channel>
