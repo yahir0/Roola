@@ -272,6 +272,18 @@ abstract class AppLocalizations {
   /// **'ここでターミナルを開く'**
   String get commandOpenTerminalHere;
 
+  /// No description provided for @explorerOpenTerminalCmdPrompt.
+  ///
+  /// In ja, this message translates to:
+  /// **'コマンドプロンプトを開く'**
+  String get explorerOpenTerminalCmdPrompt;
+
+  /// No description provided for @explorerOpenTerminalPowerShell.
+  ///
+  /// In ja, this message translates to:
+  /// **'PowerShell を開く'**
+  String get explorerOpenTerminalPowerShell;
+
   /// No description provided for @commandOpenClaudeHere.
   ///
   /// In ja, this message translates to:

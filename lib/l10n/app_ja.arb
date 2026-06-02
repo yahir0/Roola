@@ -33,6 +33,8 @@
   "commandOpenItem": "開く",
   "commandShowProperties": "プロパティ",
   "commandOpenTerminalHere": "ここでターミナルを開く",
+  "explorerOpenTerminalCmdPrompt": "コマンドプロンプトを開く",
+  "explorerOpenTerminalPowerShell": "PowerShell を開く",
   "commandOpenClaudeHere": "ここで Claude Code を開く",
   "commandNewExplorerTab": "新規エクスプローラタブ",
   "commandNewTerminalTab": "新規ターミナルタブ",

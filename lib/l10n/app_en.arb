@@ -33,6 +33,8 @@
   "commandOpenItem": "Open",
   "commandShowProperties": "Properties",
   "commandOpenTerminalHere": "Open terminal here",
+  "explorerOpenTerminalCmdPrompt": "Open Command Prompt",
+  "explorerOpenTerminalPowerShell": "Open PowerShell",
   "commandOpenClaudeHere": "Open Claude Code here",
   "commandNewExplorerTab": "New explorer tab",
   "commandNewTerminalTab": "New terminal tab",

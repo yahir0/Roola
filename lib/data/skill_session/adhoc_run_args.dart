@@ -1,5 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:roola/data/launcher_entry/launcher_action.dart';
+import 'package:roola/data/terminal_runner/windows_shell.dart';
 
 part 'adhoc_run_args.freezed.dart';
 
@@ -25,5 +26,8 @@ abstract class AdhocRunArgs with _$AdhocRunArgs {
 
     /// 起動時にやること（[LauncherAction] の sealed union を再利用）。
     required LauncherAction action,
+
+    /// Windows でシェルを明示指定する場合に使用。null の場合は設定値を使う。
+    WindowsShell? windowsShell,
   }) = _AdhocRunArgs;
 }

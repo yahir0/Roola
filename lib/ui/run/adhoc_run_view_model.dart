@@ -47,7 +47,8 @@ class RunPageState {
 class AdhocRunViewModel extends _$AdhocRunViewModel {
   @override
   RunPageState build(AdhocRunArgs args) {
-    final windowsShell = ref.read(terminalSettingsProvider).value?.windowsShell
+    final windowsShell = args.windowsShell
+        ?? ref.read(terminalSettingsProvider).value?.windowsShell
         ?? WindowsShell.powershell;
     final runner = PtyTerminalRunner.fromAction(
       workingDirectory: args.workingDirectory,

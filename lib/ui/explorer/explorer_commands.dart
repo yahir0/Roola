@@ -9,6 +9,7 @@ import 'package:roola/core/system/trash_service.dart';
 import 'package:roola/data/launcher_entry/launcher_action.dart';
 import 'package:roola/data/repo_explorer/explorer_settings.dart';
 import 'package:roola/data/repo_explorer/explorer_settings_repository_impl.dart';
+import 'package:roola/data/terminal_runner/windows_shell.dart';
 import 'package:roola/data/workspace/workspace_layout.dart';
 import 'package:roola/l10n/app_localizations.dart';
 import 'package:roola/ui/common/polaris_dialog.dart';
@@ -258,16 +259,19 @@ Future<void> runAddToFavorite(
 }
 
 /// [dirPath] でターミナルを開く（bottom ペインに新規ターミナルタブ）。
+/// [windowsShell] を指定すると設定値より優先して使用する。
 void runOpenTerminalHere(
   WidgetRef ref, {
   required String dirPath,
   required String displayName,
+  WindowsShell? windowsShell,
 }) {
   final args = AdhocRunArgs(
     adhocId: 'adhoc-${_uuid.v4()}',
     workingDirectory: dirPath,
     displayName: '$displayName (Terminal)',
     action: const LauncherAction.openHere(),
+    windowsShell: windowsShell,
   );
   ref
       .read(workspaceProvider.notifier)

@@ -17,6 +17,7 @@ import 'package:roola/data/launcher_entry/launcher_action.dart';
 import 'package:roola/data/repo_explorer/explorer_node.dart';
 import 'package:roola/data/repo_explorer/explorer_settings.dart';
 import 'package:roola/data/repo_explorer/explorer_settings_repository_impl.dart';
+import 'package:roola/data/terminal_runner/windows_shell.dart';
 import 'package:roola/data/workspace/workspace_layout.dart';
 import 'package:roola/l10n/app_localizations.dart';
 import 'package:roola/ui/common/command_menu_item.dart';
@@ -91,12 +92,26 @@ Future<void> showExplorerContextMenu(
         command: CommandId.openClaudeHere,
         value: const _ActionOpenClaude(),
       ),
-    commandPopupMenuItem<ExplorerNodeAction>(
-      context,
-      ref,
-      command: CommandId.openTerminalHere,
-      value: const _ActionOpenTerminal(),
-    ),
+    if (Platform.isWindows) ...[
+      polarisPopupMenuItem<ExplorerNodeAction>(
+        context,
+        value: const _ActionOpenTerminalCmd(),
+        icon: Icons.developer_mode,
+        label: l10n.explorerOpenTerminalCmdPrompt,
+      ),
+      polarisPopupMenuItem<ExplorerNodeAction>(
+        context,
+        value: const _ActionOpenTerminalPs(),
+        icon: Icons.developer_mode,
+        label: l10n.explorerOpenTerminalPowerShell,
+      ),
+    ] else
+      commandPopupMenuItem<ExplorerNodeAction>(
+        context,
+        ref,
+        command: CommandId.openTerminalHere,
+        value: const _ActionOpenTerminal(),
+      ),
     commandPopupMenuItem<ExplorerNodeAction>(
       context,
       ref,
@@ -442,6 +457,30 @@ Future<void> _handleDirectoryAction(
         workingDirectory: node.path,
         displayName: '${node.name} (Terminal)',
         action: const LauncherAction.openHere(),
+      );
+      ref
+          .read(workspaceProvider.notifier)
+          .addTerminalTab(PaneSlotId.bottom, args: args);
+    case _ActionOpenTerminalCmd():
+      final adhocId = 'adhoc-${_uuid.v4()}';
+      final args = AdhocRunArgs(
+        adhocId: adhocId,
+        workingDirectory: node.path,
+        displayName: '${node.name} (cmd)',
+        action: const LauncherAction.openHere(),
+        windowsShell: WindowsShell.cmd,
+      );
+      ref
+          .read(workspaceProvider.notifier)
+          .addTerminalTab(PaneSlotId.bottom, args: args);
+    case _ActionOpenTerminalPs():
+      final adhocId = 'adhoc-${_uuid.v4()}';
+      final args = AdhocRunArgs(
+        adhocId: adhocId,
+        workingDirectory: node.path,
+        displayName: '${node.name} (PowerShell)',
+        action: const LauncherAction.openHere(),
+        windowsShell: WindowsShell.powershell,
       );
       ref
           .read(workspaceProvider.notifier)
@@ -907,6 +946,14 @@ class _ActionOpenClaude extends ExplorerNodeAction {
 
 class _ActionOpenTerminal extends ExplorerNodeAction {
   const _ActionOpenTerminal();
+}
+
+class _ActionOpenTerminalCmd extends ExplorerNodeAction {
+  const _ActionOpenTerminalCmd();
+}
+
+class _ActionOpenTerminalPs extends ExplorerNodeAction {
+  const _ActionOpenTerminalPs();
 }
 
 class _ActionRevealInFinder extends ExplorerNodeAction {

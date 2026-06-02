@@ -17,7 +17,8 @@ mixin _$AdhocRunArgs {
  String get adhocId; String get workingDirectory;/// chip 列でのラベル。「ディレクトリ名 / Skill 名」または
 /// 「ディレクトリ名 (Claude)」など、呼び出し側が組み立てて渡す。
  String get displayName;/// 起動時にやること（[LauncherAction] の sealed union を再利用）。
- LauncherAction get action;
+ LauncherAction get action;/// Windows でシェルを明示指定する場合に使用。null の場合は設定値を使う。
+ WindowsShell? get windowsShell;
 /// Create a copy of AdhocRunArgs
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +29,16 @@ $AdhocRunArgsCopyWith<AdhocRunArgs> get copyWith => _$AdhocRunArgsCopyWithImpl<A
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdhocRunArgs&&(identical(other.adhocId, adhocId) || other.adhocId == adhocId)&&(identical(other.workingDirectory, workingDirectory) || other.workingDirectory == workingDirectory)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.action, action) || other.action == action));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdhocRunArgs&&(identical(other.adhocId, adhocId) || other.adhocId == adhocId)&&(identical(other.workingDirectory, workingDirectory) || other.workingDirectory == workingDirectory)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.action, action) || other.action == action)&&(identical(other.windowsShell, windowsShell) || other.windowsShell == windowsShell));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,adhocId,workingDirectory,displayName,action);
+int get hashCode => Object.hash(runtimeType,adhocId,workingDirectory,displayName,action,windowsShell);
 
 @override
 String toString() {
-  return 'AdhocRunArgs(adhocId: $adhocId, workingDirectory: $workingDirectory, displayName: $displayName, action: $action)';
+  return 'AdhocRunArgs(adhocId: $adhocId, workingDirectory: $workingDirectory, displayName: $displayName, action: $action, windowsShell: $windowsShell)';
 }
 
 
@@ -48,7 +49,7 @@ abstract mixin class $AdhocRunArgsCopyWith<$Res>  {
   factory $AdhocRunArgsCopyWith(AdhocRunArgs value, $Res Function(AdhocRunArgs) _then) = _$AdhocRunArgsCopyWithImpl;
 @useResult
 $Res call({
- String adhocId, String workingDirectory, String displayName, LauncherAction action
+ String adhocId, String workingDirectory, String displayName, LauncherAction action, WindowsShell? windowsShell
 });
 
 
@@ -65,13 +66,14 @@ class _$AdhocRunArgsCopyWithImpl<$Res>
 
 /// Create a copy of AdhocRunArgs
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? adhocId = null,Object? workingDirectory = null,Object? displayName = null,Object? action = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? adhocId = null,Object? workingDirectory = null,Object? displayName = null,Object? action = null,Object? windowsShell = freezed,}) {
   return _then(_self.copyWith(
 adhocId: null == adhocId ? _self.adhocId : adhocId // ignore: cast_nullable_to_non_nullable
 as String,workingDirectory: null == workingDirectory ? _self.workingDirectory : workingDirectory // ignore: cast_nullable_to_non_nullable
 as String,displayName: null == displayName ? _self.displayName : displayName // ignore: cast_nullable_to_non_nullable
 as String,action: null == action ? _self.action : action // ignore: cast_nullable_to_non_nullable
-as LauncherAction,
+as LauncherAction,windowsShell: freezed == windowsShell ? _self.windowsShell : windowsShell // ignore: cast_nullable_to_non_nullable
+as WindowsShell?,
   ));
 }
 /// Create a copy of AdhocRunArgs
@@ -165,10 +167,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String adhocId,  String workingDirectory,  String displayName,  LauncherAction action)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String adhocId,  String workingDirectory,  String displayName,  LauncherAction action,  WindowsShell? windowsShell)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _AdhocRunArgs() when $default != null:
-return $default(_that.adhocId,_that.workingDirectory,_that.displayName,_that.action);case _:
+return $default(_that.adhocId,_that.workingDirectory,_that.displayName,_that.action,_that.windowsShell);case _:
   return orElse();
 
 }
@@ -186,10 +188,10 @@ return $default(_that.adhocId,_that.workingDirectory,_that.displayName,_that.act
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String adhocId,  String workingDirectory,  String displayName,  LauncherAction action)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String adhocId,  String workingDirectory,  String displayName,  LauncherAction action,  WindowsShell? windowsShell)  $default,) {final _that = this;
 switch (_that) {
 case _AdhocRunArgs():
-return $default(_that.adhocId,_that.workingDirectory,_that.displayName,_that.action);case _:
+return $default(_that.adhocId,_that.workingDirectory,_that.displayName,_that.action,_that.windowsShell);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -206,10 +208,10 @@ return $default(_that.adhocId,_that.workingDirectory,_that.displayName,_that.act
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String adhocId,  String workingDirectory,  String displayName,  LauncherAction action)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String adhocId,  String workingDirectory,  String displayName,  LauncherAction action,  WindowsShell? windowsShell)?  $default,) {final _that = this;
 switch (_that) {
 case _AdhocRunArgs() when $default != null:
-return $default(_that.adhocId,_that.workingDirectory,_that.displayName,_that.action);case _:
+return $default(_that.adhocId,_that.workingDirectory,_that.displayName,_that.action,_that.windowsShell);case _:
   return null;
 
 }
@@ -221,8 +223,8 @@ return $default(_that.adhocId,_that.workingDirectory,_that.displayName,_that.act
 
 
 class _AdhocRunArgs implements AdhocRunArgs {
-  const _AdhocRunArgs({required this.adhocId, required this.workingDirectory, required this.displayName, required this.action});
-  
+  const _AdhocRunArgs({required this.adhocId, required this.workingDirectory, required this.displayName, required this.action, this.windowsShell});
+
 
 @override final  String adhocId;
 @override final  String workingDirectory;
@@ -231,6 +233,8 @@ class _AdhocRunArgs implements AdhocRunArgs {
 @override final  String displayName;
 /// 起動時にやること（[LauncherAction] の sealed union を再利用）。
 @override final  LauncherAction action;
+/// Windows でシェルを明示指定する場合に使用。null の場合は設定値を使う。
+@override final  WindowsShell? windowsShell;
 
 /// Create a copy of AdhocRunArgs
 /// with the given fields replaced by the non-null parameter values.
@@ -242,16 +246,16 @@ _$AdhocRunArgsCopyWith<_AdhocRunArgs> get copyWith => __$AdhocRunArgsCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdhocRunArgs&&(identical(other.adhocId, adhocId) || other.adhocId == adhocId)&&(identical(other.workingDirectory, workingDirectory) || other.workingDirectory == workingDirectory)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.action, action) || other.action == action));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdhocRunArgs&&(identical(other.adhocId, adhocId) || other.adhocId == adhocId)&&(identical(other.workingDirectory, workingDirectory) || other.workingDirectory == workingDirectory)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.action, action) || other.action == action)&&(identical(other.windowsShell, windowsShell) || other.windowsShell == windowsShell));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,adhocId,workingDirectory,displayName,action);
+int get hashCode => Object.hash(runtimeType,adhocId,workingDirectory,displayName,action,windowsShell);
 
 @override
 String toString() {
-  return 'AdhocRunArgs(adhocId: $adhocId, workingDirectory: $workingDirectory, displayName: $displayName, action: $action)';
+  return 'AdhocRunArgs(adhocId: $adhocId, workingDirectory: $workingDirectory, displayName: $displayName, action: $action, windowsShell: $windowsShell)';
 }
 
 
@@ -262,7 +266,7 @@ abstract mixin class _$AdhocRunArgsCopyWith<$Res> implements $AdhocRunArgsCopyWi
   factory _$AdhocRunArgsCopyWith(_AdhocRunArgs value, $Res Function(_AdhocRunArgs) _then) = __$AdhocRunArgsCopyWithImpl;
 @override @useResult
 $Res call({
- String adhocId, String workingDirectory, String displayName, LauncherAction action
+ String adhocId, String workingDirectory, String displayName, LauncherAction action, WindowsShell? windowsShell
 });
 
 
@@ -279,13 +283,14 @@ class __$AdhocRunArgsCopyWithImpl<$Res>
 
 /// Create a copy of AdhocRunArgs
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? adhocId = null,Object? workingDirectory = null,Object? displayName = null,Object? action = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? adhocId = null,Object? workingDirectory = null,Object? displayName = null,Object? action = null,Object? windowsShell = freezed,}) {
   return _then(_AdhocRunArgs(
 adhocId: null == adhocId ? _self.adhocId : adhocId // ignore: cast_nullable_to_non_nullable
 as String,workingDirectory: null == workingDirectory ? _self.workingDirectory : workingDirectory // ignore: cast_nullable_to_non_nullable
 as String,displayName: null == displayName ? _self.displayName : displayName // ignore: cast_nullable_to_non_nullable
 as String,action: null == action ? _self.action : action // ignore: cast_nullable_to_non_nullable
-as LauncherAction,
+as LauncherAction,windowsShell: freezed == windowsShell ? _self.windowsShell : windowsShell // ignore: cast_nullable_to_non_nullable
+as WindowsShell?,
   ));
 }
 
