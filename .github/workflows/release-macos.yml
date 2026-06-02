@@ -6,7 +6,7 @@
 # トリガー: `git tag v0.0.7 && git push --tags` 等で `v*` タグが push されたとき。
 # 手動実行も可能（workflow_dispatch）。
 
-name: Release
+name: Release macOS
 
 on:
   push:
