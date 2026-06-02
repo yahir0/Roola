@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:roola/data/git/git_diff.dart';
 import 'package:roola/data/git/git_status.dart';
 import 'package:roola/data/git/process_git_repository.dart';
@@ -58,7 +59,8 @@ void main() {
     final root = await git.repositoryRoot(repo.path);
     expect(root, isNotNull);
     // macOS の一時ディレクトリは /private シンボリックリンク経由になり得る。
-    expect(root, endsWith(repo.path.split('/').last));
+    // p.basename で区切り文字をプラットフォーム非依存に処理する。
+    expect(root, endsWith(p.basename(repo.path)));
   });
 
   test('repositoryRoot は Git 管理外で null を返す', () async {

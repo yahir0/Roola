@@ -130,32 +130,36 @@ class _KeybindingRow extends ConsumerWidget {
             .containsKey(commandId) ??
         false;
 
-    return ListTile(
-      dense: true,
-      contentPadding: const EdgeInsets.symmetric(
-        horizontal: PolarisTokens.space6,
-      ),
-      leading: Icon(metadata.icon),
-      title: Text(AppLocalizations.of(context).commandLabel(commandId)),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (overridden)
-            IconButton(
-              tooltip: AppLocalizations.of(context).keybindingsResetOneTooltip,
-              visualDensity: VisualDensity.compact,
-              icon: const Icon(
-                Icons.settings_backup_restore,
-                size: PolarisIconSize.standard,
+    return Material(
+      type: MaterialType.transparency,
+      child: ListTile(
+        dense: true,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: PolarisTokens.space6,
+        ),
+        leading: Icon(metadata.icon),
+        title: Text(AppLocalizations.of(context).commandLabel(commandId)),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (overridden)
+              IconButton(
+                tooltip:
+                    AppLocalizations.of(context).keybindingsResetOneTooltip,
+                visualDensity: VisualDensity.compact,
+                icon: const Icon(
+                  Icons.settings_backup_restore,
+                  size: PolarisIconSize.standard,
+                ),
+                onPressed: () => ref
+                    .read(keybindingsProvider.notifier)
+                    .resetToDefault(commandId),
               ),
-              onPressed: () => ref
-                  .read(keybindingsProvider.notifier)
-                  .resetToDefault(commandId),
-            ),
-          _ChordChip(text: formatChord(chord)),
-        ],
+            _ChordChip(text: formatChord(chord)),
+          ],
+        ),
+        onTap: () => _edit(context, ref),
       ),
-      onTap: () => _edit(context, ref),
     );
   }
 
