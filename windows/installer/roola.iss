@@ -26,6 +26,7 @@ DefaultDirName={localappdata}\{#MyAppName}
 DefaultGroupName={#MyAppName}
 PrivilegesRequired=lowest
 DisableProgramGroupPage=yes
+UninstallDisplayIcon={app}\{#MyAppExeName}
 OutputDir=..\..\build
 OutputBaseFilename=RoolaSetup-{#MyAppVersion}
 Compression=lzma
