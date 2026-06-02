@@ -6,6 +6,8 @@ name: Build Windows
 on:
   push:
     branches: [main, 'feat/**', 'fix/**']
+    paths-ignore:
+      - 'pubspec.yaml'
   pull_request:
     branches: [main]
 
