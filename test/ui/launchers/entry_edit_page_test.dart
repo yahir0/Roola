@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:roola/core/health/claude_health_check.dart';
 import 'package:roola/core/storage/app_paths.dart';
 import 'package:roola/data/launcher_entry/launcher_action.dart';
 import 'package:roola/data/launcher_entry/launcher_entry.dart';
@@ -63,6 +64,7 @@ void main() {
           overrides: [
             appPathsProvider.overrideWithValue(AppPaths(root: tempDir)),
             launcherEntryRepositoryProvider.overrideWith((ref) => repo),
+            claudeAvailableProvider.overrideWithValue(true),
           ],
           child: const MaterialApp(
             localizationsDelegates: AppLocalizations.localizationsDelegates,
