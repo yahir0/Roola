@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:roola/data/appearance/polaris_accent.dart';
 
@@ -127,7 +129,9 @@ class AppTheme {
       highlightColor: Colors.transparent,
       hoverColor: t.surface,
       pageTransitionsTheme: transitions,
-      fontFamilyFallback: const ['Hiragino Sans'],
+      fontFamilyFallback: Platform.isWindows
+          ? const ['Yu Gothic UI', 'Meiryo']
+          : const ['Hiragino Sans'],
       textTheme: _textTheme(t),
       iconTheme: IconThemeData(
         color: t.textDim,
@@ -558,60 +562,84 @@ class PolarisTokens extends ThemeExtension<PolarisTokens> {
   /// タイプスケール最小段＝クローム用ラベル（全大文字・トラッキング）。11px。
   /// プロポーショナル。ウェイトは w500 — w600 は字面が太く丸く見えたため
   /// 引き下げた（ADR-0038 D9）。
-  TextStyle get label => const TextStyle(
+  TextStyle get label => TextStyle(
     fontSize: 11,
-    fontWeight: FontWeight.w500,
+    fontWeight: Platform.isWindows
+        ? FontWeight.w400
+        : FontWeight.w500,
     letterSpacing: 1.4,
     height: 1,
   );
 
   /// タイプスケール第 2 段＝副次・メタ情報（件数・パス末尾・補助ラベル等）。
   /// 13px・プロポーショナル・w500。`body` と色（`textDim`）で主従を分ける。
-  TextStyle get meta => const TextStyle(
+  TextStyle get meta => TextStyle(
     fontSize: 13,
-    fontWeight: FontWeight.w500,
+    fontWeight: Platform.isWindows
+        ? FontWeight.w400
+        : FontWeight.w500,
     letterSpacing: 0, // textTheme 合成での Material 既定混入を防ぐ（body 参照）
-    fontFamilyFallback: ['Hiragino Sans'],
+    fontFamilyFallback: Platform.isWindows
+        ? const ['Yu Gothic UI', 'Meiryo']
+        : const ['Hiragino Sans'],
   );
 
   /// タイプスケール第 3 段＝主要 UI テキスト（本文・ファイル名・行ラベル・
   /// タブ名・入力欄）。14px・プロポーショナル・w500 基準。計器 UI でも視認性を
   /// 犠牲にしないため、暗い地で痩せて見えない下限として 14px を採る（ADR-0038 D9）。
-  TextStyle get body => const TextStyle(
+  TextStyle get body => TextStyle(
     fontSize: 14,
-    fontWeight: FontWeight.w500,
+    fontWeight: Platform.isWindows
+        ? FontWeight.w400
+        : FontWeight.w500,
     // 明示必須。省略すると ThemeData の textTheme 合成で Material 既定の
     // letterSpacing(0.25) が紛れ込み、`textTheme.bodyMedium` 経由の文字だけ
     // 字間が広がって素の `body` トークン直参照とズレる（meta / title も同様）。
     letterSpacing: 0,
-    fontFamilyFallback: ['Hiragino Sans'],
+    fontFamilyFallback: Platform.isWindows
+        ? const ['Yu Gothic UI', 'Meiryo']
+        : const ['Hiragino Sans'],
   );
 
   /// タイプスケール最上段＝見出し（セクション見出し・ダイアログ/画面タイトル）。
   /// 16px。`body` より 2px 大きくし、ウェイト w600 と併せて階層を持たせる
   /// （ADR-0038 D9）。
-  TextStyle get title => const TextStyle(
+  TextStyle get title => TextStyle(
     fontSize: 16,
-    fontWeight: FontWeight.w600,
+    fontWeight: Platform.isWindows
+        ? FontWeight.w500
+        : FontWeight.w600,
     letterSpacing: 0, // textTheme 合成での Material 既定混入を防ぐ（body 参照）
-    fontFamilyFallback: ['Hiragino Sans'],
+    fontFamilyFallback: Platform.isWindows
+        ? const ['Yu Gothic UI', 'Meiryo']
+        : const ['Hiragino Sans'],
   );
 
   /// データ列（perm / size / 日時 / パス）。等幅・13px。
-  TextStyle get mono => const TextStyle(
-    fontFamily: 'SF Mono',
-    fontFamilyFallback: ['Menlo'],
+  TextStyle get mono => TextStyle(
+    fontFamily: Platform.isWindows
+        ? 'Cascadia Code'
+        : 'SF Mono',
+    fontFamilyFallback: Platform.isWindows
+        ? const ['Consolas', 'Courier New']
+        : const ['Menlo'],
     fontSize: 13,
-    fontWeight: FontWeight.w500,
+    fontWeight: Platform.isWindows
+        ? FontWeight.w400
+        : FontWeight.w500,
     height: 1,
   );
 
   /// ロゴワードマーク（ROOLA）。本文より一段重い w600。
-  TextStyle get wordmark => const TextStyle(
+  TextStyle get wordmark => TextStyle(
     fontSize: 12,
-    fontWeight: FontWeight.w600,
+    fontWeight: Platform.isWindows
+        ? FontWeight.w500
+        : FontWeight.w600,
     letterSpacing: 2.4,
-    fontFamilyFallback: ['Hiragino Sans'],
+    fontFamilyFallback: Platform.isWindows
+        ? const ['Yu Gothic UI', 'Meiryo']
+        : const ['Hiragino Sans'],
   );
 
   /// 現在の [BuildContext] から [PolarisTokens] を取得する。
