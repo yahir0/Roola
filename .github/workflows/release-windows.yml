@@ -89,9 +89,12 @@ jobs:
         shell: powershell
         run: |
           $line = (Get-Content pubspec.yaml | Select-String '^version:').Line
-          $version = $line.Split(':')[1].Trim().Split('+')[0]
+          $full = $line.Split(':')[1].Trim()
+          $version = $full.Split('+')[0]
+          $build = $full.Split('+')[1]
           echo "version=$version" >> $env:GITHUB_OUTPUT
-          echo "App version: $version"
+          echo "build=$build" >> $env:GITHUB_OUTPUT
+          echo "App version: $version+$build"
 
       - name: Build installer
         shell: powershell
@@ -134,6 +137,8 @@ jobs:
         shell: powershell
         run: |
           $version = "${{ steps.version.outputs.version }}"
+          $build = "${{ steps.version.outputs.build }}"
+          $fileVersion = "$version.$build"
           $tag = "v$version"
           $installerName = "RoolaSetup-$version.exe"
           $downloadUrl = "https://github.com/$env:GITHUB_REPOSITORY/releases/download/$tag/$installerName"
@@ -150,7 +155,7 @@ jobs:
             "      <sparkle:releaseNotesLink>https://github.com/$env:GITHUB_REPOSITORY/releases/tag/$tag</sparkle:releaseNotesLink>",
             "      <pubDate>$pubDate</pubDate>",
             "      <enclosure url=""$downloadUrl""",
-            "                 sparkle:version=""$version""",
+            "                 sparkle:version=""$fileVersion""",
             "                 length=""$length""",
             '                 type="application/octet-stream" />',
             '    </item>',
