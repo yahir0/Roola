@@ -136,7 +136,7 @@ jobs:
           $version = "${{ steps.version.outputs.version }}"
           $tag = "v$version"
           $installerName = "RoolaSetup-$version.exe"
-          $downloadUrl = "https://github.com/yahiro0/Roola/releases/download/$tag/$installerName"
+          $downloadUrl = "https://github.com/$env:GITHUB_REPOSITORY/releases/download/$tag/$installerName"
           $length = (Get-Item "build\$installerName").Length
           $pubDate = (Get-Date).ToUniversalTime().ToString("ddd, dd MMM yyyy HH:mm:ss +0000")
           $lines = @(
@@ -147,7 +147,7 @@ jobs:
             '    <language>ja</language>',
             '    <item>',
             "      <title>Version $version</title>",
-            "      <sparkle:releaseNotesLink>https://github.com/yahiro0/Roola/releases/tag/$tag</sparkle:releaseNotesLink>",
+            "      <sparkle:releaseNotesLink>https://github.com/$env:GITHUB_REPOSITORY/releases/tag/$tag</sparkle:releaseNotesLink>",
             "      <pubDate>$pubDate</pubDate>",
             "      <enclosure url=""$downloadUrl""",
             "                 sparkle:version=""$version""",
@@ -160,20 +160,36 @@ jobs:
           $lines -join "`n" | Out-File -FilePath appcast-windows.xml -Encoding utf8 -NoNewline
           Write-Host "Generated appcast-windows.xml for $version"
 
-      - name: Commit and push appcast-windows.xml to main
+      - name: Publish appcast-windows.xml to gh-pages
         if: startsWith(github.ref, 'refs/tags/')
-        shell: powershell
+        shell: bash
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git remote set-url origin "https://x-access-token:$env:GITHUB_TOKEN@github.com/$env:GITHUB_REPOSITORY.git"
-          git fetch origin main
-          git checkout main
+          set -euo pipefail
+          TAG="${GITHUB_REF#refs/tags/}"
+          PAGES_DIR="/tmp/gh-pages"
+          REPO_URL="https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+
+          if git ls-remote --exit-code --heads "$REPO_URL" gh-pages > /dev/null 2>&1; then
+            git clone --branch gh-pages --depth 1 "$REPO_URL" "$PAGES_DIR"
+          else
+            echo "gh-pages branch does not exist; creating orphan branch..."
+            git clone --depth 1 "$REPO_URL" "$PAGES_DIR"
+            cd "$PAGES_DIR"
+            git checkout --orphan gh-pages
+            git rm -rf . > /dev/null 2>&1 || true
+            cd -
+          fi
+
+          cp appcast-windows.xml "$PAGES_DIR/appcast-windows.xml"
+          cd "$PAGES_DIR"
           git add appcast-windows.xml
-          git diff --cached --quiet
-          if ($LASTEXITCODE -eq 0) { exit 0 }
-          git commit -m "chore: update appcast-windows.xml [skip ci]"
-          git push origin main
-          Write-Host "appcast-windows.xml pushed to main"
+          if git diff --cached --quiet; then
+            echo "No changes to appcast-windows.xml; skipping push."
+          else
+            git -c user.email=actions@github.com -c user.name="GitHub Actions" \
+              commit -m "chore: update appcast-windows.xml for $TAG"
+            git push origin gh-pages
+            echo "Published appcast-windows.xml for $TAG to gh-pages"
+          fi

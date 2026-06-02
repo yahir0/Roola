@@ -8,7 +8,7 @@
 // WinSparkle 自動アップデート（Phase B: ROOLA_WINSPARKLE 定義後に有効化）。
 // WinSparkle.h と WinSparkle.lib を windows/third_party/winsparkle/ に配置し、
 // runner/CMakeLists.txt で ROOLA_WINSPARKLE を定義することで有効になる。
-// appcast URL: https://raw.githubusercontent.com/yahiro0/Roola/main/appcast-windows.xml
+// appcast URL: https://yahiro0.github.io/Roola/appcast-windows.xml
 #ifdef ROOLA_WINSPARKLE
 #include <winsparkle.h>
 #endif
@@ -27,7 +27,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
 
 #ifdef ROOLA_WINSPARKLE
   win_sparkle_set_appcast_url(
-      "https://raw.githubusercontent.com/yahiro0/Roola/main/appcast-windows.xml");
+      "https://yahiro0.github.io/Roola/appcast-windows.xml");
   win_sparkle_init();
 #endif
 
