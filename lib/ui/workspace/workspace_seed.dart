@@ -13,10 +13,13 @@ const _uuid = Uuid();
 /// 新しいタブ id を払い出す。
 String newTabId() => 'tab-${_uuid.v4()}';
 
-/// ワークスペースの既定ホームディレクトリ。`HOME` 未設定なら `/`。
+/// ワークスペースの既定ホームディレクトリ。
+/// macOS / Linux は `$HOME`、Windows は `%USERPROFILE%` を使う。
 String defaultWorkspaceHome() {
-  final home = Platform.environment['HOME'];
-  return (home != null && home.isNotEmpty) ? home : '/';
+  final home = Platform.environment['HOME']
+      ?? Platform.environment['USERPROFILE'];
+  if (home != null && home.isNotEmpty) return home;
+  return Platform.isWindows ? 'C:\\' : '/';
 }
 
 /// 既定の素のシェル ad-hoc 起動引数（$HOME / `OpenHereAction`）。

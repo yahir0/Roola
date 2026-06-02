@@ -137,3 +137,84 @@ make dist \
 
 ローカル keychain に `notarytool store-credentials` で `roola-notary` を
 事前登録しておくこと。
+
+---
+
+## Windows リリース
+
+### 概要
+
+Windows は `release-windows.yml` ワークフローが `v*` タグ push をトリガーに
+自動実行され、Inno Setup で `.exe` インストーラを生成して GitHub Releases に
+アップロードする。macOS の `release.yml` と並列実行される。
+
+### WinSparkle のローカルセットアップ（自動アップデート有効化）
+
+自動アップデート機能（ADR-0059）は WinSparkle DLL の配置後に有効化される。
+配置しなくてもビルドは通るが、アップデート確認は no-op になる。
+
+1. [WinSparkle GitHub Releases](https://github.com/vslavik/winsparkle/releases) から
+   最新の `WinSparkle-x.y.z.zip` をダウンロードして展開する
+2. 以下のファイルを所定の場所に配置する:
+
+   ```
+   windows/third_party/winsparkle/
+   ├── include/
+   │   └── winsparkle.h          ← zip の include/ から
+   └── x64/
+       └── Release/
+           ├── WinSparkle.lib    ← zip の x64/Release/ から
+           └── WinSparkle.dll    ← zip の x64/Release/ から
+   ```
+
+3. CMake が自動検出して `ROOLA_WINSPARKLE` を定義し、リンクする
+
+> **Note**: `windows/third_party/winsparkle/include/` 等は `.gitignore` で除外されている。
+> CI（`release-windows.yml`）はビルド前に自動ダウンロードする。
+
+### ローカルでインストーラを手動ビルドする
+
+事前条件:
+- [Inno Setup 6](https://jrsoftware.org/isdl.php) がインストールされており、`iscc` が PATH に通っていること
+- Flutter の Developer Mode が有効であること（`make build-windows` を一度実行すると確認できる）
+
+```cmd
+make installer-windows
+```
+
+`build\RoolaSetup-<version>.exe` に出力される。
+
+### GitHub Actions による自動リリース手順
+
+macOS と同様、以下のいずれかでリリースを行う:
+
+**A. Actions タブから "Bump version" → 自動連鎖（推奨）**
+
+1. Actions タブ → "Bump version" → Run workflow でバージョンを上げる
+2. タグ push をトリガーに `release.yml`（macOS）と `release-windows.yml`（Windows）が並列起動
+3. 完了後、GitHub Releases に DMG と `RoolaSetup-<version>.exe` の両方が追加される
+
+**B. 手動タグ push**
+
+```bash
+git tag v0.1.0 && git push origin v0.1.0
+```
+
+### workflow_dispatch による動作確認
+
+タグを切らずにパイプラインを検証したい場合:
+
+1. Actions タブ → "Release Windows" → Run workflow
+2. ビルド完了後、実行詳細の Artifacts から `RoolaSetup-windows` をダウンロード
+3. GitHub Releases へのアップロードはスキップされる
+
+### SmartScreen 警告への対処
+
+現在インストーラはコード署名なしのため、初回実行時に Windows SmartScreen が
+「発行元不明の警告」を表示することがある。ユーザーは以下の手順で実行できる:
+
+1. 警告ダイアログで **「詳細情報」** をクリック
+2. **「実行」** をクリック
+
+コード署名証明書を取得した場合は `release-windows.yml` に `signtool.exe` による
+署名ステップを追加することで警告を解消できる（別 change で対応予定）。

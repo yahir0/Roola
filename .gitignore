@@ -36,6 +36,11 @@ coverage/
 # *.freezed.dart
 # *.g.dart
 
+# Windows / WinSparkle — ライブラリバイナリは CI でダウンロード、リポジトリに含めない
+windows/third_party/winsparkle/include/
+windows/third_party/winsparkle/Release/
+windows/third_party/winsparkle/x64/
+
 # macOS / iOS native
 **/.symlinks/
 **/Flutter/ephemeral/

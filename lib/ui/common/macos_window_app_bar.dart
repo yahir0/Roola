@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:roola/app/theme.dart';
 import 'package:window_manager/window_manager.dart';
@@ -86,9 +88,12 @@ class MacosWindowAppBar extends StatelessWidget implements PreferredSizeWidget {
         ),
         child: const DragToMoveArea(child: SizedBox.expand()),
       ),
-      // 信号灯ぶんの幅を空 spacer で確保し、title / actions を右へ押し出す。
-      leadingWidth: _trafficLightsWidth,
-      leading: const SizedBox(width: _trafficLightsWidth),
+      // macOS は信号灯ぶんの幅を空 spacer で確保する。
+      // Windows には信号灯がないため余白は不要。
+      leadingWidth: Platform.isMacOS ? _trafficLightsWidth : 0,
+      leading: Platform.isMacOS
+          ? const SizedBox(width: _trafficLightsWidth)
+          : const SizedBox.shrink(),
     );
   }
 }

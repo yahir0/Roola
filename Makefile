@@ -8,7 +8,20 @@
 FLUTTER ?= flutter
 DART    ?= dart
 DEFINES ?= --dart-define-from-file=dart_defines/prod.json
-DEVICE  ?= macos
+
+# OS を自動判定して実行デバイスを決める。明示的に上書き可能。
+#   make run              → OS に合わせて macos / windows を自動選択
+#   make run DEVICE=linux → 強制指定
+ifeq ($(OS),Windows_NT)
+  DEVICE ?= windows
+  # GnuWin32 make はデフォルトで sh.exe を探すが、Windows 環境では
+  # cmd.exe を明示指定しないと .bat ファイル（flutter.bat 等）を
+  # 実行できない。
+  SHELL := C:\Windows\System32\cmd.exe
+  .SHELLFLAGS := /c
+else
+  DEVICE ?= macos
+endif
 
 # Release ビルド成果物と DMG の出力先。
 # DMG_VOLUME はマウント時のボリューム名。app 名と同じ "Roola" にすると、
@@ -16,9 +29,15 @@ DEVICE  ?= macos
 # とき macOS の App Management 保護が /Volumes/Roola/Roola.app への書き込み
 # を「起動中アプリの改変」と見なしてブロックし hdiutil create が失敗する。
 # ボリューム名を app 名と別にして回避する。
-APP_BUNDLE := build/macos/Build/Products/Release/Roola.app
-DMG_PATH   := build/Roola.dmg
-DMG_VOLUME := Roola Installer
+APP_BUNDLE     := build/macos/Build/Products/Release/Roola.app
+DMG_PATH       := build/Roola.dmg
+DMG_VOLUME     := Roola Installer
+WIN_EXE_DIR    := build/windows/x64/runner/Release
+WIN_INSTALLER_DIR := windows/installer
+WIN_ISS        := $(WIN_INSTALLER_DIR)/roola.iss
+# Inno Setup の iscc.exe パス。PATH に通っていない場合はデフォルト場所を使う。
+# 別の場所にインストールした場合: make installer-windows ISCC="C:\path\to\iscc.exe"
+ISCC           ?= C:\Program Files (x86)\Inno Setup 6\iscc.exe
 
 # 配布用署名・公証の設定。
 # - SIGN_IDENTITY: codesign に渡す Developer ID Application 証明書の識別子。
@@ -36,7 +55,7 @@ ENTITLEMENTS   := macos/Runner/Release.entitlements
 
 .DEFAULT_GOAL := help
 
-.PHONY: help setup get gen watch run format analyze test check build sign dmg notarize staple dist clean reset
+.PHONY: help setup get gen watch run format analyze test check build build-windows installer-windows sign dmg notarize staple dist clean reset reset-windows
 
 help: ## このヘルプを表示
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  %-10s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -66,8 +85,16 @@ test: ## ユニット / ウィジェットテスト
 
 check: format analyze test ## format → analyze → test を順次実行
 
-build: ## Release ビルド（$(APP_BUNDLE) に出力）
+build: ## macOS Release ビルド（$(APP_BUNDLE) に出力）
 	$(FLUTTER) build macos --release $(DEFINES)
+
+build-windows: ## Windows Release ビルド（$(WIN_EXE_DIR)/roola.exe に出力）※ Developer Mode 必須
+	$(FLUTTER) build windows --release $(DEFINES)
+
+installer-windows: build-windows ## Windows インストーラ生成（build/RoolaSetup-<version>.exe に出力）※ Inno Setup 必須
+	$(eval VERSION := $(shell powershell -NoProfile -Command "(Get-Content pubspec.yaml | Select-String 'version:').Line.Split(':')[1].Trim().Split('+')[0]"))
+	"$(ISCC)" "$(WIN_ISS)" /DMyAppVersion=$(VERSION)
+	@echo Installer: build/RoolaSetup-$(VERSION).exe
 
 sign: build ## Developer ID で .app を Hardened Runtime 付きで再帰署名
 	@if [ -z "$(SIGN_IDENTITY)" ]; then \
@@ -139,6 +166,9 @@ clean: ## ビルド成果物と pub キャッシュ参照をクリア
 	$(FLUTTER) clean
 	$(FLUTTER) pub get
 
-reset: ## 永続化エントリ・設定を削除（prod / dev 両方）
+reset: ## macOS: 永続化エントリ・設定を削除（prod / dev 両方）
 	rm -rf "$$HOME/Library/Application Support/tech.yahiro.Roola"
 	rm -rf "$$HOME/Library/Application Support/dev.tech.yahiro.Roola"
+
+reset-windows: ## Windows: 永続化エントリ・設定を削除
+	rm -rf "$$APPDATA/tech.yahiro.Roola"

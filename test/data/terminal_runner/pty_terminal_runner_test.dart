@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:roola/data/launcher_entry/launcher_action.dart';
 import 'package:roola/data/terminal_runner/pty_terminal_runner.dart';
 import 'package:roola/data/terminal_runner/terminal_run_state.dart';
+import 'package:roola/data/terminal_runner/windows_shell.dart';
 
 /// `PtyTerminalRunner` の状態遷移と `fromAction` factory を検証する。
 ///
@@ -93,7 +94,7 @@ void main() {
     },
   );
 
-  group('PtyTerminalRunner.fromAction', () {
+  group('PtyTerminalRunner.fromAction (macOS)', () {
     late Directory dir;
     setUp(() async {
       dir = await Directory.systemTemp.createTemp('roola_pty_factory_');
@@ -105,6 +106,7 @@ void main() {
     test(
       r'OpenHereAction → executable は $SHELL（無ければ /bin/zsh）, arguments は空',
       () {
+        if (Platform.isWindows) return;
         final runner = PtyTerminalRunner.fromAction(
           workingDirectory: dir.path,
           action: const LauncherAction.openHere(),
@@ -119,6 +121,7 @@ void main() {
     test(
       'RunCommandAction(keepShellAfterExit: true) → \$SHELL -ilc "<cmd>; exec \$SHELL -i"',
       () {
+        if (Platform.isWindows) return;
         final runner = PtyTerminalRunner.fromAction(
           workingDirectory: dir.path,
           action: const LauncherAction.runCommand(command: 'echo hi'),
@@ -135,6 +138,7 @@ void main() {
     test(
       'RunCommandAction(keepShellAfterExit: false) → \$SHELL -lc "<cmd>" のみ',
       () {
+        if (Platform.isWindows) return;
         final runner = PtyTerminalRunner.fromAction(
           workingDirectory: dir.path,
           action: const LauncherAction.runCommand(
@@ -148,13 +152,12 @@ void main() {
     );
 
     test('ClaudeSkillAction → login shell 経由で claude /<skillName> を起動', () {
+      if (Platform.isWindows) return;
       final runner = PtyTerminalRunner.fromAction(
         workingDirectory: dir.path,
         action: const LauncherAction.claudeSkill(skillName: 'my-skill'),
       );
       addTearDown(runner.dispose);
-      // GUI 起動経路の PATH 継承のため login + interactive shell 経由
-      // （`$SHELL -i -l -c 'exec "$@"' _ claude /<skill>`）。
       final expectedShell = Platform.environment['SHELL'] ?? '/bin/zsh';
       expect(runner.executable, expectedShell);
       expect(runner.arguments, [
@@ -169,12 +172,58 @@ void main() {
     });
 
     test('ClaudeSkillAction で既に `/` 始まりの skillName はそのまま使う', () {
+      if (Platform.isWindows) return;
       final runner = PtyTerminalRunner.fromAction(
         workingDirectory: dir.path,
         action: const LauncherAction.claudeSkill(skillName: '/already-slashed'),
       );
       addTearDown(runner.dispose);
       expect(runner.arguments.last, '/already-slashed');
+    });
+  });
+
+  group('PtyTerminalRunner.fromAction (Windows)', () {
+    late Directory dir;
+    setUp(() async {
+      dir = await Directory.systemTemp.createTemp('roola_pty_factory_win_');
+    });
+    tearDown(() async {
+      await dir.delete(recursive: true);
+    });
+
+    test('Windows: OpenHereAction + powershell → powershell.exe -NoExit', () {
+      if (!Platform.isWindows) return;
+      final runner = PtyTerminalRunner.fromAction(
+        workingDirectory: dir.path,
+        action: const LauncherAction.openHere(),
+      );
+      addTearDown(runner.dispose);
+      expect(runner.executable, 'powershell.exe');
+      expect(runner.arguments, contains('-NoExit'));
+    });
+
+    test('Windows: ClaudeSkillAction → unsupportedError が設定される', () {
+      if (!Platform.isWindows) return;
+      final runner = PtyTerminalRunner.fromAction(
+        workingDirectory: dir.path,
+        action: const LauncherAction.claudeSkill(skillName: 'my-skill'),
+      );
+      addTearDown(runner.dispose);
+      expect(runner.unsupportedError, isNotNull);
+      expect(runner.unsupportedError, contains('未サポート'));
+    });
+
+    test('Windows: RunCommandAction(cmd) → cmd.exe /K <command>', () {
+      if (!Platform.isWindows) return;
+      final runner = PtyTerminalRunner.fromAction(
+        workingDirectory: dir.path,
+        action: const LauncherAction.runCommand(command: 'dir'),
+        windowsShell: WindowsShell.cmd,
+      );
+      addTearDown(runner.dispose);
+      expect(runner.executable, 'cmd.exe');
+      expect(runner.arguments, contains('/K'));
+      expect(runner.arguments, contains('dir'));
     });
   });
 }

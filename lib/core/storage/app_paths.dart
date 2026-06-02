@@ -49,6 +49,10 @@ class AppPaths {
   File get taskNotificationSettingsFile =>
       File('${root.path}/task_notification_settings.json');
 
+  /// ターミナル設定（Windows シェル選択 等）の永続化先（ADR-0058）。
+  File get terminalSettingsFile =>
+      File('${root.path}/terminal_settings.json');
+
   /// ディレクトリが存在しない場合に作る（再帰的）。
   Future<void> ensureDirectories() async {
     if (!root.existsSync()) {

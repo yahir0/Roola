@@ -1,10 +1,12 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:roola/data/terminal_runner/terminal_channel.dart';
 import 'package:roola/data/terminal_runner/terminal_runner.dart';
+import 'package:roola/ui/explorer/terminal_surface_windows.dart';
 import 'package:roola/ui/workspace/current_tab_id_provider.dart';
 import 'package:roola/ui/workspace/focused_tab_provider.dart';
 import 'package:roola/ui/workspace/window_activation_provider.dart';
@@ -145,16 +147,15 @@ class _TerminalSurfaceState extends ConsumerState<TerminalSurface> {
 
   @override
   Widget build(BuildContext context) {
+    // Windows は xterm.js + WebView2 レンダラを使う（ADR-0058 D1）。
+    if (Platform.isWindows) {
+      return TerminalSurfaceWindows(runner: widget.runner);
+    }
+
     // ウィンドウ再アクティブ化（ADR-0055）を購読し、直前にフォーカスされて
     // いたタブのターミナルへフォーカス（とネイティブ first responder）を戻す。
     ref.listen(windowActivationProvider, (_, _) => _restoreFocusIfFocusedTab());
 
-    // AppKitView（SwiftTerm）は Flutter のフォーカスツリー外にあるため、
-    // Flutter のフォーカスと噛み合わせる薄い橋を被せる（ADR-0037）:
-    // - Listener: ターミナルがクリックされたら Flutter フォーカスを掴む。
-    //   結果として _handleFocusChange が SwiftTerm を first responder にする
-    // - Focus.onKeyEvent: フォーカス保持中に万一 Flutter へ漏れたキーをここで
-    //   止め、AppBar ボタン等の誤発火（Tab 遷移 / Enter での activate）を防ぐ
     return Focus(
       focusNode: _focusNode,
       onKeyEvent: (_, _) => KeyEventResult.handled,

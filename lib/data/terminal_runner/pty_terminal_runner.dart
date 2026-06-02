@@ -6,6 +6,7 @@ import 'package:flutter_pty/flutter_pty.dart';
 import 'package:roola/data/launcher_entry/launcher_action.dart';
 import 'package:roola/data/terminal_runner/terminal_run_state.dart';
 import 'package:roola/data/terminal_runner/terminal_runner.dart';
+import 'package:roola/data/terminal_runner/windows_shell.dart';
 
 /// `flutter_pty` の `Pty.start` で任意プロセスを擬似端末上に起動する実装。
 ///
@@ -13,9 +14,9 @@ import 'package:roola/data/terminal_runner/terminal_runner.dart';
 /// 行う。本クラス自体は `executable` / `arguments` を引数として受け取る
 /// 汎用 PTY runner。
 ///
-/// 描画は SwiftTerm（ネイティブ NSView）が担い、本クラスは PTY 出力を
-/// バイト列のまま [output] Stream で配信する（ADR-0031）。UTF-8 デコードは
-/// 行わない。
+/// 描画は SwiftTerm（ネイティブ NSView / macOS）または xterm.js WebView2
+/// （Windows）が担い、本クラスは PTY 出力をバイト列のまま [output] Stream で
+/// 配信する（ADR-0031 / ADR-0058）。UTF-8 デコードは行わない。
 class PtyTerminalRunner implements TerminalRunner {
   PtyTerminalRunner({
     required this.workingDirectory,
@@ -23,59 +24,90 @@ class PtyTerminalRunner implements TerminalRunner {
     this.arguments = const [],
     this.environment,
     this.idleThreshold = const Duration(seconds: 2),
+    this.unsupportedError,
   });
 
   /// `LauncherAction` を解釈して runner を組み立てる factory。
-  ///
-  /// - [OpenHereAction] → `$SHELL`（無ければ `/bin/zsh`）を引数なしで起動
-  /// - [RunCommandAction] → `$SHELL -lc "<built-command>"`。`keepShellAfterExit`
-  ///   が true のときは末尾に `; exec $SHELL -i` を後置し、コマンド完了後に
-  ///   ログインシェルが立ち上がる
-  /// - [ClaudeSkillAction] → `claude /<skillName>`（旧 `PtySkillRunner` の
-  ///   `_buildArguments` と同等の挙動。先頭の `/` 自動付与もここで行う）
   factory PtyTerminalRunner.fromAction({
     required String workingDirectory,
     required LauncherAction action,
     Map<String, String>? environment,
     Duration idleThreshold = const Duration(seconds: 2),
+    WindowsShell windowsShell = WindowsShell.powershell,
   }) {
-    final (executable, arguments) = _resolveExecutable(action);
+    // Windows で ClaudeSkillAction は V1 未サポート。
+    if (Platform.isWindows && action is ClaudeSkillAction) {
+      return PtyTerminalRunner(
+        workingDirectory: workingDirectory,
+        executable: 'cmd.exe',
+        environment: _windowsEnvironment(environment),
+        idleThreshold: idleThreshold,
+        unsupportedError: 'Claude Code のスキル起動は Windows では未サポートです。',
+      );
+    }
+    final (executable, arguments) = _resolveExecutable(
+      action,
+      windowsShell: windowsShell,
+    );
     return PtyTerminalRunner(
       workingDirectory: workingDirectory,
       executable: executable,
       arguments: arguments,
-      environment: environment,
+      environment: Platform.isWindows ? _windowsEnvironment(environment) : environment,
       idleThreshold: idleThreshold,
     );
   }
 
+  /// Windows では flutter_pty が HOME / PATH 等しか PTY に引き継がないため、
+  /// SYSTEMROOT / USERPROFILE 等のシステム変数を明示的に補完する。
+  /// （flutter_pty は environment パラメータを effectiveEnv に追記するため
+  /// ここで渡した変数はホワイトリスト外でも PTY プロセスに届く。）
+  static Map<String, String> _windowsEnvironment(
+    Map<String, String>? extra,
+  ) {
+    const keys = [
+      'SYSTEMROOT', 'SystemRoot',
+      'WINDIR', 'windir',
+      'ComSpec', 'COMSPEC',
+      'USERPROFILE',
+      'USERNAME', 'USERDOMAIN',
+      'APPDATA', 'LOCALAPPDATA',
+      'TEMP', 'TMP',
+      'SystemDrive',
+      'PATHEXT',
+      'OS',
+      'PROCESSOR_ARCHITECTURE',
+    ];
+    final env = <String, String>{};
+    for (final key in keys) {
+      final value = Platform.environment[key];
+      if (value != null) env[key] = value;
+    }
+    if (extra != null) env.addAll(extra);
+    return env;
+  }
+
+  /// null 以外の場合、[start] は PTY を起動せずこのメッセージで即 failed 遷移する。
+  final String? unsupportedError;
+
   /// 子プロセスの作業ディレクトリ。
   final String workingDirectory;
 
-  /// 起動するコマンド名。テストでは `bash` など差し替え可。
+  /// 起動するコマンド名。
   final String executable;
 
   /// `executable` に渡す引数列。
   final List<String> arguments;
 
-  /// PTY プロセスに追加注入する環境変数。`flutter_pty` の `Pty.start` は
-  /// `PATH` / `HOME` 等の最小セットに本マップを上書きマージする。Claude Code
-  /// セッションの完了通知（ADR-0057）で `ROOLA_TAB_ID` / `ROOLA_NOTIFY_TOKEN`
-  /// を渡すために使う。`null` のときは追加注入なし。
+  /// PTY プロセスに追加注入する環境変数。
   final Map<String, String>? environment;
 
-  /// PTY 出力が止まってから `waitingInput` 状態へ遷移するまでの時間。
-  /// 短すぎると claude の通常思考中も「入力待ち」と表示されてしまうため、
-  /// 既定 2 秒。出力が再開すれば即 `running` に戻る。
+  /// PTY 出力が止まってから `waitingInput` 状態へ遷移するまでの時間（既定 2 秒）。
   final Duration idleThreshold;
 
   Pty? _pty;
   Timer? _idleTimer;
   final _stateController = StreamController<SkillRunState>.broadcast();
-  // output は構築直後に View 側から subscribe されるため、`_pty` 生成より
-  // 早いタイミングで安定した Stream を返す必要がある。`_pty.output` を直接
-  // 公開すると start 前の subscribe が空 Stream に紐づき、PTY 出力が
-  // ターミナルに流れない（ログが何も出ない症状になる）。
   final _outputController = StreamController<Uint8List>.broadcast();
   StreamSubscription<Uint8List>? _ptyOutputSub;
   SkillRunState _currentState = const SkillRunState.idle();
@@ -93,11 +125,15 @@ class PtyTerminalRunner implements TerminalRunner {
 
   @override
   Future<void> start() async {
-    if (_started) {
-      return;
-    }
+    if (_started) return;
     _started = true;
     _emit(const SkillRunState.starting());
+
+    // Windows で未サポートアクション（ClaudeSkillAction 等）の場合は即 failed。
+    if (unsupportedError != null) {
+      _emit(SkillRunState.failed(unsupportedError!));
+      return;
+    }
 
     if (!Directory(workingDirectory).existsSync()) {
       _emit(SkillRunState.failed('作業ディレクトリが見つかりません: $workingDirectory'));
@@ -120,7 +156,6 @@ class PtyTerminalRunner implements TerminalRunner {
       if (!_outputController.isClosed) {
         _outputController.add(bytes);
       }
-      // 新しい出力が来た = 「処理中」と判定。waitingInput からも復帰
       if (_currentState is SkillRunWaitingInput) {
         _emit(const SkillRunState.running());
       }
@@ -132,18 +167,13 @@ class PtyTerminalRunner implements TerminalRunner {
 
     unawaited(
       _pty!.exitCode.then((code) {
-        if (_currentState is SkillRunCancelled) {
-          return;
-        }
+        if (_currentState is SkillRunCancelled) return;
         _idleTimer?.cancel();
         _emit(SkillRunState.completed(code));
       }),
     );
   }
 
-  /// PTY 出力が止まったら `waitingInput` に遷移するためのタイマーを
-  /// 仕掛け直す。出力受信のたびに呼び、`idleThreshold` 経過時点でまだ
-  /// `running` のままなら入力待ち推定に切り替える。
   void _scheduleIdleCheck() {
     _idleTimer?.cancel();
     _idleTimer = Timer(idleThreshold, () {
@@ -166,9 +196,7 @@ class PtyTerminalRunner implements TerminalRunner {
   @override
   Future<void> cancel() async {
     final pty = _pty;
-    if (pty == null) {
-      return;
-    }
+    if (pty == null) return;
     if (_currentState is SkillRunCancelled ||
         _currentState is SkillRunCompleted) {
       return;
@@ -180,9 +208,7 @@ class PtyTerminalRunner implements TerminalRunner {
 
   @override
   Future<void> dispose() async {
-    if (_disposed) {
-      return;
-    }
+    if (_disposed) return;
     _disposed = true;
     _idleTimer?.cancel();
     _idleTimer = null;
@@ -215,52 +241,85 @@ class PtyTerminalRunner implements TerminalRunner {
     }
   }
 
-  static (String, List<String>) _resolveExecutable(LauncherAction action) {
+  static (String, List<String>) _resolveExecutable(
+    LauncherAction action, {
+    WindowsShell windowsShell = WindowsShell.powershell,
+  }) {
+    if (Platform.isWindows) {
+      return _resolveExecutableWindows(action, windowsShell);
+    }
+    return _resolveExecutableMacos(action);
+  }
+
+  static (String, List<String>) _resolveExecutableMacos(LauncherAction action) {
     return switch (action) {
       OpenHereAction() => (_userShell(), const <String>[]),
-      // `$SHELL -ilc '<command>'` で起動。`-i -l` の両方が必要なのは
-      // ClaudeSkillAction と同じ理由（`.zshrc` に PATH を書いているユーザー
-      // 環境で `-l` だけだと PATH が伸びず claude / node 等が `command not
-      // found` になる）。エクスプローラ右クリックの「Claude Code を開く」も
-      // この経路で `claude` を起動するため、`-lc` だと GUI 起動経路で落ちる。
       RunCommandAction(:final command, :final keepShellAfterExit) => (
-        _userShell(),
-        ['-ilc', _buildShellCommand(command, keepShellAfterExit)],
-      ),
-      // Claude Code Skills はスラッシュコマンド `/skill-name` として resolve
-      // される（`claude --help` の `--bare` 説明: "Skills still resolve via
-      // /skill-name"）。引数として `/<name>` を渡すと claude CLI が起動直後の
-      // 最初のメッセージとして処理し、スラッシュコマンド経由で skill を発火
-      // する。`/` を付けずに渡すと自然言語入力扱いになり、Claude が文脈推測で
-      // 別の動作をする（例: cwd 内の似た名前のスクリプトを探して実行する等）。
-      //
-      // 直接 `claude` を `Pty.start` するとプロセスの PATH が launchd 由来の
-      // 最小 PATH (`/usr/bin:/bin:...`) になり、pnpm / nvm / Homebrew 配下の
-      // `claude` も、claude の shebang が呼ぶ `node` も解決できず
-      // `execvp: No such file or directory` で即落ちする（DMG / Dock 起動）。
-      // ターミナル直起動だと再現しないため気付きにくい。
-      //
-      // login + interactive shell (`$SHELL -i -l`) 経由で起動して
-      // `.zprofile` / `.zshrc` の両方を読み込ませて PATH を継承させ、
-      // `exec "$@"` でシェル自身を claude に置き換えることでプロセスツリー
-      // を増やさずに済ます。`-c` の `"$@"` quote により skill 名に空白等が
-      // 含まれても safe。
-      //
-      // `-l` だけだと `.zshrc` が読まれず、`.zshrc` に PATH 拡張を書いて
-      // いるユーザー（pnpm / Homebrew 等の一般的構成）で `command not
-      // found` になる。`-i` を追加して `.zshrc` も読ませる。
+          _userShell(),
+          ['-ilc', _buildShellCommand(command, keepShellAfterExit)],
+        ),
       ClaudeSkillAction(:final skillName) => (
-        _userShell(),
-        <String>[
-          '-i',
-          '-l',
-          '-c',
-          r'exec "$@"',
-          '_',
-          'claude',
-          skillName.startsWith('/') ? skillName : '/$skillName',
-        ],
-      ),
+          _userShell(),
+          <String>[
+            '-i',
+            '-l',
+            '-c',
+            r'exec "$@"',
+            '_',
+            'claude',
+            skillName.startsWith('/') ? skillName : '/$skillName',
+          ],
+        ),
+    };
+  }
+
+  static (String, List<String>) _resolveExecutableWindows(
+    LauncherAction action,
+    WindowsShell shell,
+  ) {
+    final exe = _windowsShellExe(shell);
+    return switch (action) {
+      OpenHereAction() => _windowsOpenHere(exe, shell),
+      RunCommandAction(:final command, :final keepShellAfterExit) =>
+        _windowsRunCommand(exe, shell, command, keepShellAfterExit),
+      ClaudeSkillAction() => (exe, const <String>[]),
+    };
+  }
+
+  static String _windowsShellExe(WindowsShell shell) => switch (shell) {
+        WindowsShell.cmd => 'cmd.exe',
+        WindowsShell.powershell => 'powershell.exe',
+        WindowsShell.pwsh => 'pwsh.exe',
+      };
+
+  static (String, List<String>) _windowsOpenHere(
+      String exe, WindowsShell shell) {
+    return switch (shell) {
+      WindowsShell.cmd => (exe, const <String>[]),
+      WindowsShell.powershell => (exe, const ['-NoExit']),
+      WindowsShell.pwsh => (exe, const ['-NoExit']),
+    };
+  }
+
+  static (String, List<String>) _windowsRunCommand(
+    String exe,
+    WindowsShell shell,
+    String command,
+    bool keepShellAfterExit,
+  ) {
+    return switch (shell) {
+      WindowsShell.cmd => (
+          exe,
+          [keepShellAfterExit ? '/K' : '/C', command],
+        ),
+      WindowsShell.powershell => (
+          exe,
+          [if (keepShellAfterExit) '-NoExit', '-Command', command],
+        ),
+      WindowsShell.pwsh => (
+          exe,
+          [if (keepShellAfterExit) '-NoExit', '-Command', command],
+        ),
     };
   }
 
@@ -269,15 +328,8 @@ class PtyTerminalRunner implements TerminalRunner {
     return (shell != null && shell.isNotEmpty) ? shell : '/bin/zsh';
   }
 
-  /// `keepShellAfterExit=true` のときは末尾に `; exec $SHELL -i` を後置する。
-  ///
-  /// `;` で繋ぐのはコマンド失敗時にもシェルが残る挙動のため（`&&` だと失敗時
-  /// に PTY が即終了して結果が見えない）。`exec` でプロセスを置換するので、
-  /// ユーザーから見るとコマンド完了後にプロンプトが現れる体験になる。
   static String _buildShellCommand(String command, bool keepShellAfterExit) {
-    if (!keepShellAfterExit) {
-      return command;
-    }
+    if (!keepShellAfterExit) return command;
     return '$command; exec \$SHELL -i';
   }
 }

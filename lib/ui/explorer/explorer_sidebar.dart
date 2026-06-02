@@ -133,7 +133,7 @@ class ExplorerSidebar extends HookConsumerWidget {
         children: [
           // 場所
           const _SectionHeader('Places'),
-          for (final place in _defaultPlaces)
+          for (final place in _effectivePlaces())
             _PlaceTile(
               place: place,
               currentPath: currentPath,
@@ -341,7 +341,9 @@ class _Place {
   final String relPath;
 
   String? resolve() {
-    final base = Platform.environment[envVar];
+    // macOS / Linux: $HOME、Windows: %USERPROFILE%
+    final base = Platform.environment[envVar]
+        ?? (Platform.isWindows ? Platform.environment['USERPROFILE'] : null);
     if (base == null || base.isEmpty) {
       return null;
     }
@@ -352,15 +354,24 @@ class _Place {
   }
 }
 
-/// 場所セクションの初期項目。見出しと同じく、ラベルはロケールに依存しない
-/// 固定の英語表記にする（日英混在より英語で揃える方がバランスが良いため）。
-const _defaultPlaces = <_Place>[
+/// 場所セクションの初期項目。`_effectivePlaces()` でプラットフォームごとに絞る。
+const _allPlaces = <_Place>[
   _Place('Home', Icons.home_outlined, 'HOME', ''),
   _Place('Downloads', Icons.download_outlined, 'HOME', 'Downloads'),
   _Place('Desktop', Icons.desktop_mac_outlined, 'HOME', 'Desktop'),
   _Place('Documents', Icons.description_outlined, 'HOME', 'Documents'),
+  // macOS 専用: /Applications はほかの OS には存在しない。
   _Place('Applications', Icons.apps, '__abs__', '/Applications'),
 ];
+
+/// 現在の OS に合わせた場所リストを返す。
+List<_Place> _effectivePlaces() {
+  if (Platform.isMacOS) return _allPlaces;
+  // Windows / Linux では Applications を除外する。
+  return _allPlaces
+      .where((p) => p.envVar != '__abs__')
+      .toList();
+}
 
 class _PlaceTile extends ConsumerWidget {
   const _PlaceTile({

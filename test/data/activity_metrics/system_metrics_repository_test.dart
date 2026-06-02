@@ -1,7 +1,7 @@
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:roola/data/activity_metrics/system_metrics.dart';
-import 'package:roola/data/activity_metrics/system_metrics_repository.dart';
+import 'package:roola/data/activity_metrics/system_metrics_repository_macos.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -9,7 +9,7 @@ void main() {
   const channel = MethodChannel('roola/system/metrics');
   final messenger =
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
-  const repo = SystemMetricsRepository();
+  const repo = SystemMetricsRepositoryMacos();
 
   tearDown(() => messenger.setMockMethodCallHandler(channel, null));
 

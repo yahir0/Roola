@@ -9,6 +9,8 @@ import 'package:roola/data/task_notification/notify_token.dart';
 import 'package:roola/data/terminal_runner/pty_terminal_runner.dart';
 import 'package:roola/data/terminal_runner/terminal_run_state.dart';
 import 'package:roola/data/terminal_runner/terminal_runner.dart';
+import 'package:roola/data/terminal_runner/windows_shell.dart';
+import 'package:roola/data/terminal_settings/terminal_settings_repository_impl.dart';
 
 export 'package:roola/data/skill_session/adhoc_run_args.dart';
 
@@ -45,6 +47,9 @@ class RunPageState {
 class AdhocRunViewModel extends _$AdhocRunViewModel {
   @override
   RunPageState build(AdhocRunArgs args) {
+    final windowsShell = args.windowsShell
+        ?? ref.read(terminalSettingsProvider).value?.windowsShell
+        ?? WindowsShell.powershell;
     final runner = PtyTerminalRunner.fromAction(
       workingDirectory: args.workingDirectory,
       action: args.action,
@@ -53,6 +58,7 @@ class AdhocRunViewModel extends _$AdhocRunViewModel {
         tabId: args.adhocId,
         token: ref.read(notifyTokenProvider),
       ),
+      windowsShell: windowsShell,
     );
     final entry = LauncherEntry(
       id: args.adhocId,

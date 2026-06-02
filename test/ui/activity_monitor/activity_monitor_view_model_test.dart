@@ -7,7 +7,7 @@ import 'package:roola/ui/activity_monitor/activity_monitor_view_model.dart';
 
 /// ネイティブ呼び出しを伴わない fake。`fetchSystemMetrics` の挙動は
 /// テストごとに [onFetch] で差し替える。
-class _FakeRepository extends SystemMetricsRepository {
+class _FakeRepository implements SystemMetricsRepository {
   _FakeRepository({this.onFetch, this.processes = const []});
 
   final Future<SystemMetrics> Function()? onFetch;

@@ -6,6 +6,7 @@ import 'package:roola/data/skill_session/adhoc_run_args.dart';
 import 'package:roola/data/workspace/pane_slot.dart';
 import 'package:roola/data/workspace/workspace_layout.dart';
 import 'package:roola/data/workspace/workspace_tab.dart';
+import 'package:roola/ui/workspace/workspace_seed.dart';
 import 'package:uuid/uuid.dart';
 
 part 'workspace_layout_dto.g.dart';
@@ -145,7 +146,7 @@ class WorkspaceTabDto {
         // adhocId は永続化しない。再 spawn のたびに新規払い出し（ADR-0028）。
         args: AdhocRunArgs(
           adhocId: 'adhoc-${_uuid.v4()}',
-          workingDirectory: workingDirectory ?? '/',
+          workingDirectory: workingDirectory ?? defaultWorkspaceHome(),
           displayName: displayName ?? 'ターミナル',
           action: action ?? const LauncherAction.openHere(),
         ),

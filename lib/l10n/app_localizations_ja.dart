@@ -96,6 +96,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get commandOpenTerminalHere => 'ここでターミナルを開く';
 
   @override
+  String get explorerOpenTerminalCmdPrompt => 'コマンドプロンプトを開く';
+
+  @override
+  String get explorerOpenTerminalPowerShell => 'PowerShell を開く';
+
+  @override
   String get commandOpenClaudeHere => 'ここで Claude Code を開く';
 
   @override
