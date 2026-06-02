@@ -118,7 +118,7 @@
   "settingsTaskNotificationGrantButton": "通知を許可",
   "settingsTaskNotificationOpenSettingsButton": "システム設定を開く",
   "settingsTaskNotificationSetupTitle": "フックの設定",
-  "settingsTaskNotificationSetupInstructions": "次のスニペットを `~/.claude/settings.json` の `hooks` に追記してください（既に `hooks` がある場合は `Stop` 配列に統合します）。ポートはこの Roola が待ち受けている番号です。`jq` と `curl` が必要です。",
+  "settingsTaskNotificationSetupInstructions": "次のスニペットを `~/.claude/settings.json` の `hooks` に追記してください（既に `hooks` がある場合は `Stop` 配列に統合します）。ポートはこの Roola が待ち受けている番号です。",
   "settingsTaskNotificationPortLabel": "待受ポート: {port}",
   "@settingsTaskNotificationPortLabel": {
     "placeholders": { "port": { "type": "int" } }

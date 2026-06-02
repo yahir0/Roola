@@ -331,7 +331,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsTaskNotificationSetupInstructions =>
-      'Add the snippet below to the `hooks` section of `~/.claude/settings.json` (merge it into the `Stop` array if one already exists). The port is the one this Roola instance is listening on. Requires `jq` and `curl`.';
+      'Add the snippet below to the `hooks` section of `~/.claude/settings.json` (merge it into the `Stop` array if one already exists). The port is the one this Roola instance is listening on.';
 
   @override
   String settingsTaskNotificationPortLabel(int port) {

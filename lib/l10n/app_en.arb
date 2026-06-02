@@ -118,7 +118,7 @@
   "settingsTaskNotificationGrantButton": "Allow notifications",
   "settingsTaskNotificationOpenSettingsButton": "Open System Settings",
   "settingsTaskNotificationSetupTitle": "Hook setup",
-  "settingsTaskNotificationSetupInstructions": "Add the snippet below to the `hooks` section of `~/.claude/settings.json` (merge it into the `Stop` array if one already exists). The port is the one this Roola instance is listening on. Requires `jq` and `curl`.",
+  "settingsTaskNotificationSetupInstructions": "Add the snippet below to the `hooks` section of `~/.claude/settings.json` (merge it into the `Stop` array if one already exists). The port is the one this Roola instance is listening on.",
   "settingsTaskNotificationPortLabel": "Listening port: {port}",
   "@settingsTaskNotificationPortLabel": {
     "placeholders": { "port": { "type": "int" } }

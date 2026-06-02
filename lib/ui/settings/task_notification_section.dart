@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -217,6 +218,15 @@ class _HookSetup extends ConsumerWidget {
               context,
             ).textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant),
           ),
+          const SizedBox(height: PolarisTokens.space2),
+          Text(
+            Platform.isWindows
+                ? 'Node.js（Claude Code に同梱）で動作します。追加のインストールは不要です。'
+                : '`jq` と `curl` が必要です（macOS: `brew install jq`）。',
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant),
+          ),
         ],
       ],
     );
@@ -243,17 +253,14 @@ class _HookSetup extends ConsumerWidget {
 
 /// `~/.claude/settings.json` に貼る Stop フック設定スニペットを組み立てる。
 ///
-/// フックは stdin の JSON（`session_id` / `cwd`）と、Roola が PTY に注入した
-/// 環境変数 `$ROOLA_TAB_ID` / `$ROOLA_NOTIFY_TOKEN` を `jq` で 1 つの JSON に
-/// まとめ、127.0.0.1 の受信口へ POST する。末尾 `|| true` で claude 側の
-/// 処理に影響を与えない。JSON のエスケープは [JsonEncoder] に任せる。
+/// macOS: `jq` + `curl` で stdin の JSON を整形して POST する。
+/// Windows: `jq` が標準搭載されないため Node.js（Claude Code の実行要件）で代替。
+/// 末尾 `|| true` でフック失敗が claude 側の処理に影響しない。
+/// JSON エスケープは [JsonEncoder] に任せる。
 String buildHookSnippet(int port) {
-  final command =
-      'jq -nc --arg id "\$ROOLA_TAB_ID" --arg token "\$ROOLA_NOTIFY_TOKEN" '
-      '--argjson in "\$(cat)" '
-      "'{tab_id:\$id, token:\$token, session_id:\$in.session_id, cwd:\$in.cwd}' "
-      '| curl -s -X POST http://127.0.0.1:$port/hook/stop '
-      "-H 'Content-Type: application/json' -d @- || true";
+  final command = Platform.isWindows
+      ? _buildWindowsCommand(port)
+      : _buildMacosCommand(port);
   return const JsonEncoder.withIndent('  ').convert({
     'hooks': {
       'Stop': [
@@ -265,4 +272,33 @@ String buildHookSnippet(int port) {
       ],
     },
   });
+}
+
+String _buildMacosCommand(int port) =>
+    'jq -nc --arg id "\$ROOLA_TAB_ID" --arg token "\$ROOLA_NOTIFY_TOKEN" '
+    '--argjson in "\$(cat)" '
+    "'{tab_id:\$id, token:\$token, session_id:\$in.session_id, cwd:\$in.cwd}' "
+    '| curl -s -X POST http://127.0.0.1:$port/hook/stop '
+    "-H 'Content-Type: application/json' -d @- || true";
+
+// Windows は Git Bash (sh -c) でフックが実行される。jq が標準搭載されない
+// ため、Claude Code の実行要件である Node.js の http モジュールで代替する。
+// process.env.* を使うことで $ 記号を避けられ、bash の変数展開に干渉しない。
+String _buildWindowsCommand(int port) {
+  final script =
+      "let d='';"
+      "process.stdin.setEncoding('utf8');"
+      "process.stdin.on('data',c=>d+=c);"
+      "process.stdin.on('end',()=>{"
+      'const p=JSON.parse(d),'
+      'b=JSON.stringify({tab_id:process.env.ROOLA_TAB_ID,'
+      'token:process.env.ROOLA_NOTIFY_TOKEN,'
+      'session_id:p.session_id,cwd:p.cwd}),'
+      "r=require('http').request({"
+      "hostname:'127.0.0.1',port:$port,"
+      "path:'/hook/stop',method:'POST',"
+      "headers:{'Content-Type':'application/json',"
+      "'Content-Length':Buffer.byteLength(b)}});"
+      'r.on(\'error\',()=>{});r.end(b)})';
+  return 'node -e "$script" 2>/dev/null || true';
 }

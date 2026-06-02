@@ -635,7 +635,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsTaskNotificationDescription.
   ///
   /// In ja, this message translates to:
-  /// **'Roola で起動した Claude Code がタスクを終えて入力待ちに戻ったとき、macOS の通知でお知らせします。'**
+  /// **'Roola で起動した Claude Code がタスクを終えて入力待ちに戻ったとき、システム通知でお知らせします。'**
   String get settingsTaskNotificationDescription;
 
   /// No description provided for @settingsTaskNotificationEnableLabel.
@@ -695,7 +695,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsTaskNotificationSetupInstructions.
   ///
   /// In ja, this message translates to:
-  /// **'次のスニペットを `~/.claude/settings.json` の `hooks` に追記してください（既に `hooks` がある場合は `Stop` 配列に統合します）。ポートはこの Roola が待ち受けている番号です。`jq` と `curl` が必要です。'**
+  /// **'次のスニペットを `~/.claude/settings.json` の `hooks` に追記してください（既に `hooks` がある場合は `Stop` 配列に統合します）。ポートはこの Roola が待ち受けている番号です。'**
   String get settingsTaskNotificationSetupInstructions;
 
   /// No description provided for @settingsTaskNotificationPortLabel.
