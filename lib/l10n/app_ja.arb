@@ -108,7 +108,7 @@
   "settingsClaudeInstallAfter": "インストール後、Roola を再起動すると検出されます。",
 
   "settingsTaskNotificationTitle": "タスク完了通知",
-  "settingsTaskNotificationDescription": "Roola で起動した Claude Code がタスクを終えて入力待ちに戻ったとき、macOS の通知でお知らせします。",
+  "settingsTaskNotificationDescription": "Roola で起動した Claude Code がタスクを終えて入力待ちに戻ったとき、システム通知でお知らせします。",
   "settingsTaskNotificationEnableLabel": "通知",
   "settingsTaskNotificationOn": "オン",
   "settingsTaskNotificationOff": "オフ",

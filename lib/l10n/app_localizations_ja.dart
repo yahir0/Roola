@@ -291,7 +291,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get settingsTaskNotificationDescription =>
-      'Roola で起動した Claude Code がタスクを終えて入力待ちに戻ったとき、macOS の通知でお知らせします。';
+      'Roola で起動した Claude Code がタスクを終えて入力待ちに戻ったとき、システム通知でお知らせします。';
 
   @override
   String get settingsTaskNotificationEnableLabel => '通知';

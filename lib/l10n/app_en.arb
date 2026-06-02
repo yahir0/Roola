@@ -108,7 +108,7 @@
   "settingsClaudeInstallAfter": "After installing, restart Roola for it to be detected.",
 
   "settingsTaskNotificationTitle": "Task completion notifications",
-  "settingsTaskNotificationDescription": "Get a macOS notification when Claude Code launched from Roola finishes a task and returns to the input prompt.",
+  "settingsTaskNotificationDescription": "Get a system notification when Claude Code launched from Roola finishes a task and returns to the input prompt.",
   "settingsTaskNotificationEnableLabel": "Notifications",
   "settingsTaskNotificationOn": "On",
   "settingsTaskNotificationOff": "Off",

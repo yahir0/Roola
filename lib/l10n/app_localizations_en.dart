@@ -296,7 +296,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsTaskNotificationDescription =>
-      'Get a macOS notification when Claude Code launched from Roola finishes a task and returns to the input prompt.';
+      'Get a system notification when Claude Code launched from Roola finishes a task and returns to the input prompt.';
 
   @override
   String get settingsTaskNotificationEnableLabel => 'Notifications';

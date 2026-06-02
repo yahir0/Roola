@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:local_notifier/local_notifier.dart';
 import 'package:roola/data/task_notification/task_notification_repository.dart';
 
@@ -34,7 +36,10 @@ class NotificationServiceWindows implements TaskNotificationRepository {
 
   @override
   Future<void> openSystemSettings() async {
-    // Windows の通知設定は「設定 > システム > 通知」。
-    // shell execute で開くことも可能だが V1 は no-op。
+    // ms-settings:notifications で「設定 > システム > 通知」を直接開く。
+    await Process.run(
+      'cmd',
+      ['/c', 'start', 'ms-settings:notifications'],
+    );
   }
 }
