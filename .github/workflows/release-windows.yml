@@ -1,0 +1,105 @@
+# Windows 向け Roola インストーラをビルドし GitHub Releases にアップロードする。
+# macOS の release.yml と並列実行され、同タグに両プラットフォームのアセットが
+# アップロードされる。
+#
+# トリガー: `v*` タグ push で自動起動。workflow_dispatch で手動実行も可能。
+# 手動実行時は Releases アップロードをスキップし、Actions Artifact のみ生成する。
+
+name: Release Windows
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release-windows:
+    runs-on: windows-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Read Flutter version from .fvmrc
+        id: fvm
+        shell: powershell
+        run: |
+          $version = (Get-Content .fvmrc | ConvertFrom-Json).flutter
+          echo "version=$version" >> $env:GITHUB_OUTPUT
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ steps.fvm.outputs.version }}
+          channel: stable
+          cache: true
+
+      - name: Enable Developer Mode (symlinks)
+        shell: powershell
+        run: |
+          $regPath = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock'
+          if (-not (Test-Path $regPath)) { New-Item -Path $regPath -Force | Out-Null }
+          Set-ItemProperty -Path $regPath -Name AllowDevelopmentWithoutDevLicense -Value 1
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Run code generation
+        run: flutter pub run build_runner build --delete-conflicting-outputs
+
+      - name: Build Windows (Release)
+        run: flutter build windows --release --dart-define-from-file dart_defines/prod.json
+
+      - name: Install Inno Setup
+        shell: powershell
+        run: choco install innosetup -y
+
+      - name: Get app version from pubspec.yaml
+        id: version
+        shell: powershell
+        run: |
+          $line = (Get-Content pubspec.yaml | Select-String '^version:').Line
+          $version = $line.Split(':')[1].Trim().Split('+')[0]
+          echo "version=$version" >> $env:GITHUB_OUTPUT
+          echo "App version: $version"
+
+      - name: Build installer
+        shell: powershell
+        run: |
+          $issPath = "windows\installer\roola.iss"
+          $version = "${{ steps.version.outputs.version }}"
+          & 'C:\Program Files (x86)\Inno Setup 6\iscc.exe' $issPath /DMyAppVersion=$version
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          echo "Installer built: build\RoolaSetup-$version.exe"
+
+      - name: Verify installer exists
+        shell: powershell
+        run: |
+          $version = "${{ steps.version.outputs.version }}"
+          $path = "build\RoolaSetup-$version.exe"
+          if (-not (Test-Path $path)) {
+            Write-Error "Installer not found: $path"
+            exit 1
+          }
+          Write-Host "Verified: $path ($([Math]::Round((Get-Item $path).Length / 1MB, 1)) MB)"
+
+      - name: Upload installer as workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: RoolaSetup-windows
+          path: build/RoolaSetup-${{ steps.version.outputs.version }}.exe
+          if-no-files-found: error
+
+      - name: Upload installer to GitHub Releases
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: build/RoolaSetup-${{ steps.version.outputs.version }}.exe
+          generate_release_notes: false
+          draft: false
+          fail_on_unmatched_files: true

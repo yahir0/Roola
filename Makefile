@@ -33,6 +33,11 @@ APP_BUNDLE     := build/macos/Build/Products/Release/Roola.app
 DMG_PATH       := build/Roola.dmg
 DMG_VOLUME     := Roola Installer
 WIN_EXE_DIR    := build/windows/x64/runner/Release
+WIN_INSTALLER_DIR := windows/installer
+WIN_ISS        := $(WIN_INSTALLER_DIR)/roola.iss
+# Inno Setup の iscc.exe パス。PATH に通っていない場合はデフォルト場所を使う。
+# 別の場所にインストールした場合: make installer-windows ISCC="C:\path\to\iscc.exe"
+ISCC           ?= C:\Program Files (x86)\Inno Setup 6\iscc.exe
 
 # 配布用署名・公証の設定。
 # - SIGN_IDENTITY: codesign に渡す Developer ID Application 証明書の識別子。
@@ -50,7 +55,7 @@ ENTITLEMENTS   := macos/Runner/Release.entitlements
 
 .DEFAULT_GOAL := help
 
-.PHONY: help setup get gen watch run format analyze test check build build-windows sign dmg notarize staple dist clean reset reset-windows
+.PHONY: help setup get gen watch run format analyze test check build build-windows installer-windows sign dmg notarize staple dist clean reset reset-windows
 
 help: ## このヘルプを表示
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  %-10s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -85,6 +90,11 @@ build: ## macOS Release ビルド（$(APP_BUNDLE) に出力）
 
 build-windows: ## Windows Release ビルド（$(WIN_EXE_DIR)/roola.exe に出力）※ Developer Mode 必須
 	$(FLUTTER) build windows --release $(DEFINES)
+
+installer-windows: build-windows ## Windows インストーラ生成（build/RoolaSetup-<version>.exe に出力）※ Inno Setup 必須
+	$(eval VERSION := $(shell powershell -NoProfile -Command "(Get-Content pubspec.yaml | Select-String 'version:').Line.Split(':')[1].Trim().Split('+')[0]"))
+	"$(ISCC)" "$(WIN_ISS)" /DMyAppVersion=$(VERSION)
+	@echo Installer: build/RoolaSetup-$(VERSION).exe
 
 sign: build ## Developer ID で .app を Hardened Runtime 付きで再帰署名
 	@if [ -z "$(SIGN_IDENTITY)" ]; then \
