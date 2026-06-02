@@ -96,6 +96,13 @@ dev_dependencies:
   # custom_lint: ^0.x
   # riverpod_lint: ^3.x
 
+dependency_overrides:
+  # flutter_pty 0.4.2 has a Sleep(1000) in pty_create (flutter_pty_win.c:365)
+  # that blocks the Dart VM for 1 second on every terminal launch on Windows.
+  # This local fork removes that call.
+  flutter_pty:
+    path: packages/flutter_pty
+
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 

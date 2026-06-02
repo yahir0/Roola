@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -35,7 +38,7 @@ class WindowCloseGuard extends HookConsumerWidget {
   Future<void> _handleClose(WidgetRef ref) async {
     final sessions = ref.read(activeSessionsProvider);
     if (sessions.isEmpty) {
-      await windowManager.destroy();
+      _destroyWindow();
       return;
     }
 
@@ -53,7 +56,20 @@ class WindowCloseGuard extends HookConsumerWidget {
       return;
     }
     await ref.read(activeSessionsProvider.notifier).cancelAll();
-    await windowManager.destroy();
+    _destroyWindow();
+  }
+
+  /// ウィンドウを閉じてプロセスを終了する。
+  ///
+  /// Windows では PostQuitMessage(0) 後に FlutterEngineShutdown がメインスレッドを
+  /// ブロックし（WebView2 破棄・Dart VM 終了）、ウィンドウが残ったまま応答なし
+  /// になる。macOS と同様に exit() で即時終了させる。
+  static void _destroyWindow() {
+    if (Platform.isWindows) {
+      exit(0);
+    } else {
+      unawaited(windowManager.destroy());
+    }
   }
 }
 
