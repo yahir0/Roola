@@ -70,11 +70,8 @@ abstract final class HookInstaller {
 
     Map<String, dynamic> json = {};
     if (await file.exists()) {
-      try {
-        json = jsonDecode(await file.readAsString()) as Map<String, dynamic>;
-      } catch (_) {
-        // 破損 JSON → 空オブジェクトから再構築
-      }
+      // パース失敗時はそのまま例外を投げ、既存設定を上書きしない。
+      json = jsonDecode(await file.readAsString()) as Map<String, dynamic>;
     }
 
     final hooks = Map<String, dynamic>.from(
