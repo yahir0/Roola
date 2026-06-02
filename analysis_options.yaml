@@ -12,6 +12,7 @@ analyzer:
     - "**/*.freezed.dart"
     - "**/*.g.dart"
     - build/**
+    - packages/**
 
 linter:
   rules:
