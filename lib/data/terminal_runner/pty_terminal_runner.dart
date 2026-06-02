@@ -35,16 +35,6 @@ class PtyTerminalRunner implements TerminalRunner {
     Duration idleThreshold = const Duration(seconds: 2),
     WindowsShell windowsShell = WindowsShell.powershell,
   }) {
-    // Windows で ClaudeSkillAction は V1 未サポート。
-    if (Platform.isWindows && action is ClaudeSkillAction) {
-      return PtyTerminalRunner(
-        workingDirectory: workingDirectory,
-        executable: 'cmd.exe',
-        environment: _windowsEnvironment(environment),
-        idleThreshold: idleThreshold,
-        unsupportedError: 'Claude Code のスキル起動は Windows では未サポートです。',
-      );
-    }
     final (executable, arguments) = _resolveExecutable(
       action,
       windowsShell: windowsShell,
@@ -282,7 +272,8 @@ class PtyTerminalRunner implements TerminalRunner {
       OpenHereAction() => _windowsOpenHere(exe, shell),
       RunCommandAction(:final command, :final keepShellAfterExit) =>
         _windowsRunCommand(exe, shell, command, keepShellAfterExit),
-      ClaudeSkillAction() => (exe, const <String>[]),
+      ClaudeSkillAction(:final skillName) =>
+        _windowsClaudeSkill(exe, shell, skillName),
     };
   }
 
@@ -320,6 +311,20 @@ class PtyTerminalRunner implements TerminalRunner {
           exe,
           [if (keepShellAfterExit) '-NoExit', '-Command', command],
         ),
+    };
+  }
+
+  static (String, List<String>) _windowsClaudeSkill(
+    String exe,
+    WindowsShell shell,
+    String skillName,
+  ) {
+    final skill = skillName.startsWith('/') ? skillName : '/$skillName';
+    final command = 'claude $skill';
+    return switch (shell) {
+      WindowsShell.cmd => (exe, ['/C', command]),
+      WindowsShell.powershell => (exe, ['-Command', command]),
+      WindowsShell.pwsh => (exe, ['-Command', command]),
     };
   }
 

@@ -47,7 +47,7 @@ CLAUDE.md の規約「差し替え可能性が必要な箇所のみ Repository p
 
 - **レンダラ 2 本の並行保守**: macOS=SwiftTerm・Windows=xterm.js で 2 実装を維持する。将来 Linux 等を追加するたびに増える。その時点で全面 xterm.js 化（ADR-0031 §経路 b）を改めて判断する
 - **WebView2 のインストール前提**: Windows 11 は標準搭載、Windows 10 は Edge Chromium 同梱で大半の環境に入っているが、未インストール環境ではターミナルが起動しない。V1 は「WebView2 が必要」をドキュメントに記載するにとどめる
-- **ClaudeSkillAction の Windows 非対応**: Claude Code の公式 Windows サポート状況に依存するため V1 は対応しない。ランチャーから Claude Skill を起動しようとした場合はエラーメッセージを表示する
+- **ClaudeSkillAction の Windows 対応**: Claude Code が公式に Windows をサポートしたため、PowerShell / pwsh では `-Command "claude /skillName"`、cmd では `/C claude /skillName` で起動する。`claude` は PATH に存在する前提（macOS と同条件）
 
 ## References
 
