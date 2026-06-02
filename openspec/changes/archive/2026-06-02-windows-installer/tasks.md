@@ -9,8 +9,8 @@
 - [x] 2.2 `windows/installer/roola.iss` を作成する（AppName / AppVersion（`/DMyAppVersion` で外部注入）/ DefaultDirName=`{localappdata}\Roola` / PrivilegesRequired=lowest / LicenseFile=`license.rtf` / Source: ビルド成果物の再帰コピー / スタートメニューショートカット / デスクトップショートカット（オプション）/ アンインストーラ設定を含む）
 - [x] 2.3 `roola.iss` の `[Code]` セクションに Pascal スクリプトを追加し、アンインストール完了時（`CurUninstallStepChanged(usUninstallFinished)`）にメッセージボックス「設定・履歴などのユーザーデータを削除しますか？」を表示する。「はい」選択時は `%AppData%\tech.yahiro.Roola` を再帰削除する
 - [x] 2.4 ローカルで `flutter build windows --release` → `iscc windows/installer/roola.iss /DMyAppVersion=0.0.1` を手動実行して `RoolaSetup-0.0.1.exe` が生成されることを確認する
-- [ ] 2.5 生成したインストーラを Windows 環境でダブルクリックし、利用規約同意画面が表示されること・管理者権限なしでインストール・起動できることを確認する
-- [ ] 2.6 アンインストールを実行し、「データを削除しますか？」ダイアログが表示されること・「はい」でデータが完全削除されること・「いいえ」でデータが残ることを確認する
+- [x] 2.5 生成したインストーラを Windows 環境でダブルクリックし、利用規約同意画面が表示されること・管理者権限なしでインストール・起動できることを確認する
+- [x] 2.6 アンインストールを実行し、「データを削除しますか？」ダイアログが表示されること・「はい」でデータが完全削除されること・「いいえ」でデータが残ることを確認する
 
 ## 3. Makefile への `installer-windows` ターゲット追加
 
@@ -38,5 +38,5 @@
 
 ## 6. 動作確認（CI）
 
-- [ ] 6.1 `release-windows.yml` を `workflow_dispatch` で手動実行し、Actions Artifact から `RoolaSetup-<version>.exe` がダウンロードできることを確認する
-- [ ] 6.2 ダウンロードしたインストーラを Windows 環境で実行し、利用規約同意画面の表示・インストール・アプリ起動・アンインストールが問題なく完了することを確認する
+- [x] 6.1 `release-windows.yml` を `workflow_dispatch` で手動実行し、Actions Artifact から `RoolaSetup-<version>.exe` がダウンロードできることを確認する
+- [x] 6.2 ダウンロードしたインストーラを Windows 環境で実行し、利用規約同意画面の表示・インストール・アプリ起動・アンインストールが問題なく完了することを確認する
