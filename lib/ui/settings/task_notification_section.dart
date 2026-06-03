@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:roola/app/theme.dart';
 import 'package:roola/data/task_notification/hook_installer.dart';
@@ -158,6 +159,8 @@ class _HookSetup extends ConsumerWidget {
           style: Theme.of(context).textTheme.bodySmall,
         ),
         const SizedBox(height: PolarisTokens.space4),
+        const _PortField(),
+        const SizedBox(height: PolarisTokens.space4),
         _HookAutoInstall(port: port),
         const SizedBox(height: PolarisTokens.space4),
         PolarisFieldLabel(l10n.settingsTaskNotificationManualSetupTitle),
@@ -309,6 +312,94 @@ String _buildWindowsCommand(int port) {
       "'Content-Length':Buffer.byteLength(b)}});"
       'r.on(\'error\',()=>{});r.end(b)})';
   return 'node -e "$script" 2>/dev/null || true';
+}
+
+// ---------------------------------------------------------------------------
+// ポート設定フィールド
+// ---------------------------------------------------------------------------
+
+/// 待受ポートを変更できる入力欄。
+/// 変更を確定（Enter / フォーカス離脱）すると設定に保存し、サーバーが再 bind する。
+class _PortField extends HookConsumerWidget {
+  const _PortField();
+
+  static const _min = 1024;
+  static const _max = 65535;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final colors = Theme.of(context).colorScheme;
+    final tokens = PolarisTokens.of(context);
+
+    final settings = ref.watch(taskNotificationSettingsProvider);
+    final savedPort =
+        settings.value?.preferredPort ??
+        TaskNotificationServerNotifier.defaultPort;
+
+    final controller = useTextEditingController(text: savedPort.toString());
+    final errorText = useState<String?>(null);
+
+    // 外部から preferredPort が変わった場合にテキストを同期する。
+    useEffect(() {
+      controller.text = savedPort.toString();
+      return null;
+    }, [savedPort]);
+
+    void commit() {
+      final raw = controller.text.trim();
+      final value = int.tryParse(raw);
+      if (value == null || value < _min || value > _max) {
+        errorText.value = l10n.settingsTaskNotificationPortInvalid;
+        controller.text = savedPort.toString();
+        return;
+      }
+      errorText.value = null;
+      final portToSave = value == TaskNotificationServerNotifier.defaultPort
+          ? null
+          : value;
+      ref
+          .read(taskNotificationSettingsProvider.notifier)
+          .setPreferredPort(portToSave);
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        PolarisFieldLabel(l10n.settingsTaskNotificationPortFieldLabel),
+        const SizedBox(height: PolarisTokens.space2),
+        SizedBox(
+          width: 120,
+          child: TextField(
+            controller: controller,
+            keyboardType: TextInputType.number,
+            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+            decoration: InputDecoration(
+              hintText: l10n.settingsTaskNotificationPortHint,
+              errorText: errorText.value,
+              isDense: true,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: PolarisTokens.space3,
+                vertical: PolarisTokens.space2,
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(tokens.radius),
+              ),
+            ),
+            onSubmitted: (_) => commit(),
+            onTapOutside: (_) => commit(),
+          ),
+        ),
+        const SizedBox(height: PolarisTokens.space2),
+        Text(
+          l10n.settingsTaskNotificationPortReinstallNote,
+          style: Theme.of(
+            context,
+          ).textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant),
+        ),
+      ],
+    );
+  }
 }
 
 // ---------------------------------------------------------------------------

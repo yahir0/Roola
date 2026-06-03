@@ -76,10 +76,19 @@ class TaskNotificationSettingsNotifier
   /// （有効化時）が別途呼ぶ。本メソッドは設定の永続化のみを行う。
   Future<void> setEnabled(bool enabled) async {
     final current = state.value ?? TaskNotificationSettings.defaults();
-    if (current.enabled == enabled) {
-      return;
-    }
+    if (current.enabled == enabled) return;
     final next = current.copyWith(enabled: enabled);
+    state = await AsyncValue.guard(() async {
+      await _repository.save(next);
+      return next;
+    });
+  }
+
+  /// 待受ポートを変更する。null を渡すと既定ポートにリセットする。
+  Future<void> setPreferredPort(int? port) async {
+    final current = state.value ?? TaskNotificationSettings.defaults();
+    if (current.preferredPort == port) return;
+    final next = current.copyWith(preferredPort: port);
     state = await AsyncValue.guard(() async {
       await _repository.save(next);
       return next;

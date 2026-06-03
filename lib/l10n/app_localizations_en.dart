@@ -401,6 +401,20 @@ class AppLocalizationsEn extends AppLocalizations {
       'If the port number has changed, remove and reinstall.';
 
   @override
+  String get settingsTaskNotificationPortFieldLabel => 'Listening port';
+
+  @override
+  String get settingsTaskNotificationPortHint => 'e.g. 51763';
+
+  @override
+  String get settingsTaskNotificationPortInvalid =>
+      'Enter an integer between 1024 and 65535.';
+
+  @override
+  String get settingsTaskNotificationPortReinstallNote =>
+      'Reinstall the hook after changing the port.';
+
+  @override
   String get settingsKeyboardShortcutsTitle => 'Keyboard shortcuts';
 
   @override

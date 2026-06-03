@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$TaskNotificationSettings {
 
- bool get enabled;
+ bool get enabled; int? get preferredPort;
 /// Create a copy of TaskNotificationSettings
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $TaskNotificationSettingsCopyWith<TaskNotificationSettings> get copyWith => _$Ta
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is TaskNotificationSettings&&(identical(other.enabled, enabled) || other.enabled == enabled));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is TaskNotificationSettings&&(identical(other.enabled, enabled) || other.enabled == enabled)&&(identical(other.preferredPort, preferredPort) || other.preferredPort == preferredPort));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,enabled);
+int get hashCode => Object.hash(runtimeType,enabled,preferredPort);
 
 @override
 String toString() {
-  return 'TaskNotificationSettings(enabled: $enabled)';
+  return 'TaskNotificationSettings(enabled: $enabled, preferredPort: $preferredPort)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $TaskNotificationSettingsCopyWith<$Res>  {
   factory $TaskNotificationSettingsCopyWith(TaskNotificationSettings value, $Res Function(TaskNotificationSettings) _then) = _$TaskNotificationSettingsCopyWithImpl;
 @useResult
 $Res call({
- bool enabled
+ bool enabled, int? preferredPort
 });
 
 
@@ -62,10 +62,11 @@ class _$TaskNotificationSettingsCopyWithImpl<$Res>
 
 /// Create a copy of TaskNotificationSettings
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? enabled = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? enabled = null,Object? preferredPort = freezed,}) {
   return _then(_self.copyWith(
 enabled: null == enabled ? _self.enabled : enabled // ignore: cast_nullable_to_non_nullable
-as bool,
+as bool,preferredPort: freezed == preferredPort ? _self.preferredPort : preferredPort // ignore: cast_nullable_to_non_nullable
+as int?,
   ));
 }
 
@@ -150,10 +151,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( bool enabled)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( bool enabled,  int? preferredPort)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _TaskNotificationSettings() when $default != null:
-return $default(_that.enabled);case _:
+return $default(_that.enabled,_that.preferredPort);case _:
   return orElse();
 
 }
@@ -171,10 +172,10 @@ return $default(_that.enabled);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( bool enabled)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( bool enabled,  int? preferredPort)  $default,) {final _that = this;
 switch (_that) {
 case _TaskNotificationSettings():
-return $default(_that.enabled);case _:
+return $default(_that.enabled,_that.preferredPort);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -191,10 +192,10 @@ return $default(_that.enabled);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( bool enabled)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( bool enabled,  int? preferredPort)?  $default,) {final _that = this;
 switch (_that) {
 case _TaskNotificationSettings() when $default != null:
-return $default(_that.enabled);case _:
+return $default(_that.enabled,_that.preferredPort);case _:
   return null;
 
 }
@@ -206,10 +207,11 @@ return $default(_that.enabled);case _:
 
 
 class _TaskNotificationSettings implements TaskNotificationSettings {
-  const _TaskNotificationSettings({this.enabled = false});
+  const _TaskNotificationSettings({this.enabled = false, this.preferredPort});
   
 
 @override@JsonKey() final  bool enabled;
+@override final  int? preferredPort;
 
 /// Create a copy of TaskNotificationSettings
 /// with the given fields replaced by the non-null parameter values.
@@ -221,16 +223,16 @@ _$TaskNotificationSettingsCopyWith<_TaskNotificationSettings> get copyWith => __
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TaskNotificationSettings&&(identical(other.enabled, enabled) || other.enabled == enabled));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TaskNotificationSettings&&(identical(other.enabled, enabled) || other.enabled == enabled)&&(identical(other.preferredPort, preferredPort) || other.preferredPort == preferredPort));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,enabled);
+int get hashCode => Object.hash(runtimeType,enabled,preferredPort);
 
 @override
 String toString() {
-  return 'TaskNotificationSettings(enabled: $enabled)';
+  return 'TaskNotificationSettings(enabled: $enabled, preferredPort: $preferredPort)';
 }
 
 
@@ -241,7 +243,7 @@ abstract mixin class _$TaskNotificationSettingsCopyWith<$Res> implements $TaskNo
   factory _$TaskNotificationSettingsCopyWith(_TaskNotificationSettings value, $Res Function(_TaskNotificationSettings) _then) = __$TaskNotificationSettingsCopyWithImpl;
 @override @useResult
 $Res call({
- bool enabled
+ bool enabled, int? preferredPort
 });
 
 
@@ -258,10 +260,11 @@ class __$TaskNotificationSettingsCopyWithImpl<$Res>
 
 /// Create a copy of TaskNotificationSettings
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? enabled = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? enabled = null,Object? preferredPort = freezed,}) {
   return _then(_TaskNotificationSettings(
 enabled: null == enabled ? _self.enabled : enabled // ignore: cast_nullable_to_non_nullable
-as bool,
+as bool,preferredPort: freezed == preferredPort ? _self.preferredPort : preferredPort // ignore: cast_nullable_to_non_nullable
+as int?,
   ));
 }
 

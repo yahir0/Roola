@@ -141,6 +141,10 @@
   "settingsTaskNotificationUninstallSuccess": "フック設定を削除しました",
   "settingsTaskNotificationInstallError": "エラーが発生しました",
   "settingsTaskNotificationStalePortNote": "ポート番号が変わった場合は、削除してから再インストールしてください。",
+  "settingsTaskNotificationPortFieldLabel": "待受ポート",
+  "settingsTaskNotificationPortHint": "例: 51763",
+  "settingsTaskNotificationPortInvalid": "1024〜65535 の整数を入力してください。",
+  "settingsTaskNotificationPortReinstallNote": "ポートを変更したあとはフックを再インストールしてください。",
 
   "settingsKeyboardShortcutsTitle": "キーボードショートカット",
   "settingsKeyboardShortcutsDescription": "すべてのコマンドのショートカットは専用画面で確認・変更できます。",

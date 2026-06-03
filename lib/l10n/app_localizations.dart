@@ -812,6 +812,30 @@ abstract class AppLocalizations {
   /// **'ポート番号が変わった場合は、削除してから再インストールしてください。'**
   String get settingsTaskNotificationStalePortNote;
 
+  /// No description provided for @settingsTaskNotificationPortFieldLabel.
+  ///
+  /// In ja, this message translates to:
+  /// **'待受ポート'**
+  String get settingsTaskNotificationPortFieldLabel;
+
+  /// No description provided for @settingsTaskNotificationPortHint.
+  ///
+  /// In ja, this message translates to:
+  /// **'例: 51763'**
+  String get settingsTaskNotificationPortHint;
+
+  /// No description provided for @settingsTaskNotificationPortInvalid.
+  ///
+  /// In ja, this message translates to:
+  /// **'1024〜65535 の整数を入力してください。'**
+  String get settingsTaskNotificationPortInvalid;
+
+  /// No description provided for @settingsTaskNotificationPortReinstallNote.
+  ///
+  /// In ja, this message translates to:
+  /// **'ポートを変更したあとはフックを再インストールしてください。'**
+  String get settingsTaskNotificationPortReinstallNote;
+
   /// No description provided for @settingsKeyboardShortcutsTitle.
   ///
   /// In ja, this message translates to:

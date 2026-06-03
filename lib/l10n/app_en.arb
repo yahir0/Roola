@@ -141,6 +141,10 @@
   "settingsTaskNotificationUninstallSuccess": "Hook configuration removed",
   "settingsTaskNotificationInstallError": "An error occurred",
   "settingsTaskNotificationStalePortNote": "If the port number has changed, remove and reinstall.",
+  "settingsTaskNotificationPortFieldLabel": "Listening port",
+  "settingsTaskNotificationPortHint": "e.g. 51763",
+  "settingsTaskNotificationPortInvalid": "Enter an integer between 1024 and 65535.",
+  "settingsTaskNotificationPortReinstallNote": "Reinstall the hook after changing the port.",
 
   "settingsKeyboardShortcutsTitle": "Keyboard shortcuts",
   "settingsKeyboardShortcutsDescription": "All command shortcuts can be reviewed and changed on a dedicated screen.",

@@ -390,6 +390,19 @@ class AppLocalizationsJa extends AppLocalizations {
       'ポート番号が変わった場合は、削除してから再インストールしてください。';
 
   @override
+  String get settingsTaskNotificationPortFieldLabel => '待受ポート';
+
+  @override
+  String get settingsTaskNotificationPortHint => '例: 51763';
+
+  @override
+  String get settingsTaskNotificationPortInvalid => '1024〜65535 の整数を入力してください。';
+
+  @override
+  String get settingsTaskNotificationPortReinstallNote =>
+      'ポートを変更したあとはフックを再インストールしてください。';
+
+  @override
   String get settingsKeyboardShortcutsTitle => 'キーボードショートカット';
 
   @override

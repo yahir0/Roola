@@ -20,14 +20,20 @@ import 'package:roola/data/task_notification/task_notification_settings_reposito
 /// [TaskNotificationReceiver] に委譲する。本 Notifier は HttpServer の生存と、
 /// 照合成功時の通知発射の結線のみを担う。
 class TaskNotificationServerNotifier extends AsyncNotifier<int> {
-  /// 既定の待受ポート。使用中なら OS 任せの空きポートにフォールバックする。
-  static const int _preferredPort = 51763;
+  /// フォールバック先の既定ポート（ユーザー指定なし & 競合なし時に使う）。
+  static const int defaultPort = 51763;
 
   final TaskNotificationReceiver _receiver = TaskNotificationReceiver();
 
   @override
   Future<int> build() async {
-    final server = await _bind();
+    // preferredPort が変わったときだけ再 bind する。
+    final preferredPort = ref.watch(
+      taskNotificationSettingsProvider.select(
+        (s) => s.value?.preferredPort,
+      ),
+    );
+    final server = await _bind(preferredPort ?? defaultPort);
     ref.onDispose(() {
       unawaited(server.close(force: true));
     });
@@ -35,12 +41,9 @@ class TaskNotificationServerNotifier extends AsyncNotifier<int> {
     return server.port;
   }
 
-  Future<HttpServer> _bind() async {
+  Future<HttpServer> _bind(int port) async {
     try {
-      return await HttpServer.bind(
-        InternetAddress.loopbackIPv4,
-        _preferredPort,
-      );
+      return await HttpServer.bind(InternetAddress.loopbackIPv4, port);
     } on SocketException {
       // ポート競合時は OS 任せの空きポート（0）へフォールバックする。
       return HttpServer.bind(InternetAddress.loopbackIPv4, 0);
