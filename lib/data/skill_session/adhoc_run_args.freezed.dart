@@ -224,7 +224,7 @@ return $default(_that.adhocId,_that.workingDirectory,_that.displayName,_that.act
 
 class _AdhocRunArgs implements AdhocRunArgs {
   const _AdhocRunArgs({required this.adhocId, required this.workingDirectory, required this.displayName, required this.action, this.windowsShell});
-
+  
 
 @override final  String adhocId;
 @override final  String workingDirectory;
