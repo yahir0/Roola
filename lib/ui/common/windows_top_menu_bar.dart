@@ -39,7 +39,14 @@ class WindowsTopMenuBar extends ConsumerWidget {
           style: barStyle,
           menuStyle: dropStyle,
           menuChildren: items,
-          child: label,
+          child: SizedBox(
+            height: 28,
+            child: Align(
+              alignment: Alignment.center,
+              widthFactor: 1.0,
+              child: label,
+            ),
+          ),
         );
 
     MenuItemButton cmd(CommandId id) =>
@@ -48,87 +55,90 @@ class WindowsTopMenuBar extends ConsumerWidget {
     // Polaris 区切り線（dividerTheme: space=1, thickness=1, color=tokens.line）
     const div = Divider();
 
-    return MenuBar(
-      style: const MenuStyle(
-        backgroundColor: WidgetStatePropertyAll(Colors.transparent),
-        surfaceTintColor: WidgetStatePropertyAll(Colors.transparent),
-        elevation: WidgetStatePropertyAll(0),
-        padding: WidgetStatePropertyAll(EdgeInsets.zero),
-      ),
-      children: [
-        // ロゴアイコン → Roola メニュー（About / アップデートを確認 / 設定）
-        sub(
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
-            child: Image.asset(
-              'assets/branding/roola_icon.png',
-              width: 16,
-              height: 16,
-            ),
-          ),
-          [
-            _plainItem(l10n.aboutMenuItem, tokens, () {
-              final ctx = rootNavigatorKey.currentContext;
-              if (ctx != null) unawaited(showRoolaAboutDialog(ctx));
-            }),
-            div,
-            _plainItem(
-              l10n.checkForUpdatesMenuItem,
-              tokens,
-              () => ref.read(updateCheckerProvider).checkForUpdates(),
-            ),
-            div,
-            cmd(CommandId.openSettings),
-            cmd(CommandId.openKeybindings),
-          ],
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: MenuBar(
+        style: const MenuStyle(
+          backgroundColor: WidgetStatePropertyAll(Colors.transparent),
+          surfaceTintColor: WidgetStatePropertyAll(Colors.transparent),
+          elevation: WidgetStatePropertyAll(0),
+          padding: WidgetStatePropertyAll(EdgeInsets.zero),
         ),
-        sub(Text(l10n.appMenuFile), [
-          cmd(CommandId.newExplorerTab),
-          cmd(CommandId.newTerminalTab),
-          div,
-          cmd(CommandId.newFolder),
-          cmd(CommandId.newFile),
-          div,
-          cmd(CommandId.openLauncherManagement),
-          div,
-          cmd(CommandId.closeTab),
-        ]),
-        sub(Text(l10n.appMenuEdit), [
-          cmd(CommandId.copyItem),
-          cmd(CommandId.copyPath),
-          cmd(CommandId.pasteItem),
-          div,
-          cmd(CommandId.renameItem),
-          cmd(CommandId.moveToTrash),
-        ]),
-        sub(Text(l10n.appMenuView), [
-          cmd(CommandId.navigateBack),
-          cmd(CommandId.navigateForward),
-          cmd(CommandId.navigateUp),
-          div,
-          cmd(CommandId.nextTab),
-          cmd(CommandId.previousTab),
-          div,
-          cmd(CommandId.revealInFinder),
-          cmd(CommandId.showProperties),
-        ]),
-        sub(Text(l10n.appMenuTerminal), [
-          cmd(CommandId.openTerminalHere),
-          cmd(CommandId.openClaudeHere),
-        ]),
-        sub(Text(l10n.appMenuGit), [
-          cmd(CommandId.gitRefresh),
-          div,
-          cmd(CommandId.gitFetch),
-          cmd(CommandId.gitPull),
-          cmd(CommandId.gitPush),
-        ]),
-        sub(Text(l10n.appMenuPane), [
-          cmd(CommandId.moveTabTopLeft),
-          cmd(CommandId.moveTabTopRight),
-          cmd(CommandId.moveTabBottom),
-        ]),
-      ],
+        children: [
+          // ロゴアイコン → Roola メニュー（About / アップデートを確認 / 設定）
+          sub(
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: Image.asset(
+                'assets/branding/roola_icon.png',
+                width: 28,
+                height: 28,
+              ),
+            ),
+            [
+              _plainItem(l10n.aboutMenuItem, tokens, () {
+                final ctx = rootNavigatorKey.currentContext;
+                if (ctx != null) unawaited(showRoolaAboutDialog(ctx));
+              }),
+              div,
+              _plainItem(
+                l10n.checkForUpdatesMenuItem,
+                tokens,
+                () => ref.read(updateCheckerProvider).checkForUpdates(),
+              ),
+              div,
+              cmd(CommandId.openSettings),
+              cmd(CommandId.openKeybindings),
+            ],
+          ),
+          sub(Text(l10n.appMenuFile), [
+            cmd(CommandId.newExplorerTab),
+            cmd(CommandId.newTerminalTab),
+            div,
+            cmd(CommandId.newFolder),
+            cmd(CommandId.newFile),
+            div,
+            cmd(CommandId.openLauncherManagement),
+            div,
+            cmd(CommandId.closeTab),
+          ]),
+          sub(Text(l10n.appMenuEdit), [
+            cmd(CommandId.copyItem),
+            cmd(CommandId.copyPath),
+            cmd(CommandId.pasteItem),
+            div,
+            cmd(CommandId.renameItem),
+            cmd(CommandId.moveToTrash),
+          ]),
+          sub(Text(l10n.appMenuView), [
+            cmd(CommandId.navigateBack),
+            cmd(CommandId.navigateForward),
+            cmd(CommandId.navigateUp),
+            div,
+            cmd(CommandId.nextTab),
+            cmd(CommandId.previousTab),
+            div,
+            cmd(CommandId.revealInFinder),
+            cmd(CommandId.showProperties),
+          ]),
+          sub(Text(l10n.appMenuTerminal), [
+            cmd(CommandId.openTerminalHere),
+            cmd(CommandId.openClaudeHere),
+          ]),
+          sub(Text(l10n.appMenuGit), [
+            cmd(CommandId.gitRefresh),
+            div,
+            cmd(CommandId.gitFetch),
+            cmd(CommandId.gitPull),
+            cmd(CommandId.gitPush),
+          ]),
+          sub(Text(l10n.appMenuPane), [
+            cmd(CommandId.moveTabTopLeft),
+            cmd(CommandId.moveTabTopRight),
+            cmd(CommandId.moveTabBottom),
+          ]),
+        ],
+      ),
     );
   }
 }
@@ -146,9 +156,8 @@ ButtonStyle _barButtonStyle(PolarisTokens tokens) => ButtonStyle(
       padding: const WidgetStatePropertyAll(
         EdgeInsets.symmetric(horizontal: PolarisTokens.space2),
       ),
-      minimumSize: const WidgetStatePropertyAll(Size(0, 0)),
+      minimumSize: const WidgetStatePropertyAll(Size(0, 28)),
       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-      visualDensity: VisualDensity.compact,
       animationDuration: Duration.zero,
       shape: WidgetStatePropertyAll(
         RoundedRectangleBorder(
