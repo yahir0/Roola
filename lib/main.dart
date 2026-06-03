@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:local_notifier/local_notifier.dart';
 import 'package:pdfrx/pdfrx.dart';
 import 'package:roola/app/app.dart';
 import 'package:roola/app/license_bootstrap.dart';
@@ -17,6 +18,14 @@ Future<void> main() async {
   // 1 度だけ呼ぶ必要がある。
   await pdfrxFlutterInitialize();
   await windowManager.ensureInitialized();
+  // Windows Toast 通知（ADR-0057 / ADR-0058）。local_notifier は setup() で
+  // AUMID を登録しないと notify() が silently fail する。
+  if (Platform.isWindows) {
+    await localNotifier.setup(
+      appName: 'Roola',
+      shortcutPolicy: ShortcutPolicy.requireCreate,
+    );
+  }
 
   // ネイティブ依存（Sparkle / SwiftTerm）のライセンスを LicenseRegistry に
   // 追加する（ADR-0040）。`showLicensePage` までに登録されていればよいので
