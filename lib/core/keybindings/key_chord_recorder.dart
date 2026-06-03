@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/services.dart';
 import 'package:roola/data/keybindings/key_chord.dart';
 
@@ -80,12 +82,20 @@ final Set<int> _reservedTriggerKeyIds = {
 
 /// [chord] がテキスト編集用に予約されたコンビか（ADR-0035）。
 ///
-/// `⌘`（meta）単独 + {C, V, X, A, Z} の組だけを予約対象とする。⌘⇧C のように
-/// 修飾キーが増えたコンビは別物として割り当て可能（既定の copyPath 等）。
-/// 予約コンビはコマンドへ割り当てできず、コピー & ペースト等の標準動作に残す。
-bool isReservedChord(KeyChord chord) =>
-    chord.meta &&
-    !chord.control &&
-    !chord.shift &&
-    !chord.alt &&
-    _reservedTriggerKeyIds.contains(chord.triggerKeyId);
+/// macOS: ⌘単独 + {C, V, X, A, Z} を予約。
+/// Windows: Ctrl単独 + {C, V, X, A, Z} を予約。
+/// 修飾キーが増えたコンビ（⌘⇧C 等）は別物として割り当て可能（既定の copyPath 等）。
+bool isReservedChord(KeyChord chord) {
+  if (Platform.isWindows) {
+    return chord.control &&
+        !chord.meta &&
+        !chord.shift &&
+        !chord.alt &&
+        _reservedTriggerKeyIds.contains(chord.triggerKeyId);
+  }
+  return chord.meta &&
+      !chord.control &&
+      !chord.shift &&
+      !chord.alt &&
+      _reservedTriggerKeyIds.contains(chord.triggerKeyId);
+}

@@ -1,11 +1,13 @@
+import 'dart:io';
+
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:roola/data/keybindings/key_chord.dart';
 
 /// [KeyChord] の表示文字列化と [SingleActivator] への変換（ADR-0033）。
 ///
-/// 表示は macOS の慣習に合わせ、修飾キーを Control → Option → Shift →
-/// Command の順（⌃⌥⇧⌘）で並べ、最後にトリガキーのラベルを置く。
+/// macOS: 修飾キーを Control → Option → Shift → Command の順（⌃⌥⇧⌘）で並べる。
+/// Windows: ⌘(meta) → Ctrl、⌃(control) → Ctrl、⌘+⌃ → Ctrl+Alt にマップする。
 
 /// 特殊キーの表示シンボル。printable なキー（英数字・記号）は
 /// [LogicalKeyboardKey.keyLabel] にフォールバックする。
@@ -41,8 +43,15 @@ String formatTriggerKey(LogicalKeyboardKey key) {
   return key.debugName ?? 'Key';
 }
 
-/// [KeyChord] を「⌘⇧C」のような表示文字列にする。
+/// [KeyChord] を表示文字列にする。
+///
+/// macOS: 「⌘⇧C」形式。
+/// Windows: macOS の ⌘(meta) を Ctrl に、⌘+⌃(meta+control) を Ctrl+Alt に
+/// マップし「Ctrl+Shift+C」形式で返す。
 String formatChord(KeyChord chord) {
+  if (Platform.isWindows) {
+    return _formatChordWindows(chord);
+  }
   final buffer = StringBuffer();
   if (chord.control) {
     buffer.write('⌃');
@@ -60,9 +69,29 @@ String formatChord(KeyChord chord) {
   return buffer.toString();
 }
 
+String _formatChordWindows(KeyChord chord) {
+  final parts = <String>[];
+  // ⌘(meta) → Ctrl、⌃(control) だけでも → Ctrl、⌘+⌃ → Ctrl+Alt
+  if (chord.meta || chord.control) parts.add('Ctrl');
+  if (chord.alt || (chord.meta && chord.control)) parts.add('Alt');
+  if (chord.shift) parts.add('Shift');
+  parts.add(formatTriggerKey(chord.triggerKey));
+  return parts.join('+');
+}
+
 /// [KeyChord] を Flutter の [SingleActivator]（`MenuSerializableShortcut`）に
 /// 変換する。`PlatformMenuItem.shortcut` に渡せる。
+///
+/// Windows では macOS の ⌘(meta) を control に、⌘+⌃ を control+alt にマップする。
 SingleActivator toSingleActivator(KeyChord chord) {
+  if (Platform.isWindows) {
+    return SingleActivator(
+      chord.triggerKey,
+      control: chord.meta || chord.control,
+      shift: chord.shift,
+      alt: chord.alt || (chord.meta && chord.control),
+    );
+  }
   return SingleActivator(
     chord.triggerKey,
     control: chord.control,

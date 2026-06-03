@@ -515,6 +515,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Click a row to change its shortcut. It must include at least one modifier key (⌘ ⌥ ⌃ ⇧), and a key combination that conflicts with another command cannot be saved.';
 
   @override
+  String get keybindingsIntroWindows =>
+      'Click a row to change its shortcut. It must include at least one modifier key (Ctrl Alt Shift), and a key combination that conflicts with another command cannot be saved.';
+
+  @override
   String get keybindingsResetAllButton => 'Reset all to defaults';
 
   @override
@@ -532,8 +536,16 @@ class AppLocalizationsEn extends AppLocalizations {
       'Include at least one modifier key (⌘ ⌥ ⌃ ⇧).';
 
   @override
+  String get keyChordErrorMissingModifierWindows =>
+      'Include at least one modifier key (Ctrl Alt Shift).';
+
+  @override
   String get keyChordErrorReserved =>
       '⌘C / ⌘V / ⌘X / ⌘A / ⌘Z are reserved for text editing (copy & paste, etc.).';
+
+  @override
+  String get keyChordErrorReservedWindows =>
+      'Ctrl+C / Ctrl+V / Ctrl+X / Ctrl+A / Ctrl+Z are reserved for text editing (copy & paste, etc.).';
 
   @override
   String keyChordErrorAlreadyAssigned(String label) {

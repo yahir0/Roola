@@ -494,6 +494,10 @@ class AppLocalizationsJa extends AppLocalizations {
       '行をクリックしてショートカットを変更できます。修飾キー（⌘ ⌥ ⌃ ⇧）を 1 つ以上含める必要があり、他のコマンドと重複するキーは保存できません。';
 
   @override
+  String get keybindingsIntroWindows =>
+      '行をクリックしてショートカットを変更できます。修飾キー（Ctrl Alt Shift）を 1 つ以上含める必要があり、他のコマンドと重複するキーは保存できません。';
+
+  @override
   String get keybindingsResetAllButton => 'すべてデフォルトに戻す';
 
   @override
@@ -509,8 +513,16 @@ class AppLocalizationsJa extends AppLocalizations {
   String get keyChordErrorMissingModifier => '修飾キー（⌘ ⌥ ⌃ ⇧）を 1 つ以上含めてください。';
 
   @override
+  String get keyChordErrorMissingModifierWindows =>
+      '修飾キー（Ctrl Alt Shift）を 1 つ以上含めてください。';
+
+  @override
   String get keyChordErrorReserved =>
       '⌘C / ⌘V / ⌘X / ⌘A / ⌘Z はコピー & ペースト等のテキスト編集用に予約されています。';
+
+  @override
+  String get keyChordErrorReservedWindows =>
+      'Ctrl+C / Ctrl+V / Ctrl+X / Ctrl+A / Ctrl+Z はコピー & ペースト等のテキスト編集用に予約されています。';
 
   @override
   String keyChordErrorAlreadyAssigned(String label) {

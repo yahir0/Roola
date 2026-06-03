@@ -185,12 +185,15 @@
 
   "keybindingsPageTitle": "Keyboard shortcuts",
   "keybindingsIntro": "Click a row to change its shortcut. It must include at least one modifier key (⌘ ⌥ ⌃ ⇧), and a key combination that conflicts with another command cannot be saved.",
+  "keybindingsIntroWindows": "Click a row to change its shortcut. It must include at least one modifier key (Ctrl Alt Shift), and a key combination that conflicts with another command cannot be saved.",
   "keybindingsResetAllButton": "Reset all to defaults",
   "keybindingsResetAllConfirmTitle": "Reset all to defaults?",
   "keybindingsResetAllConfirmMessage": "Resets every shortcut to its default key combination.",
   "keybindingsResetOneTooltip": "Reset to default",
   "keyChordErrorMissingModifier": "Include at least one modifier key (⌘ ⌥ ⌃ ⇧).",
+  "keyChordErrorMissingModifierWindows": "Include at least one modifier key (Ctrl Alt Shift).",
   "keyChordErrorReserved": "⌘C / ⌘V / ⌘X / ⌘A / ⌘Z are reserved for text editing (copy & paste, etc.).",
+  "keyChordErrorReservedWindows": "Ctrl+C / Ctrl+V / Ctrl+X / Ctrl+A / Ctrl+Z are reserved for text editing (copy & paste, etc.).",
   "keyChordErrorAlreadyAssigned": "Already assigned to \"{label}\".",
   "@keyChordErrorAlreadyAssigned": {
     "placeholders": { "label": { "type": "String" } }

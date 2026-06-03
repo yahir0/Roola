@@ -185,12 +185,15 @@
 
   "keybindingsPageTitle": "キーボードショートカット",
   "keybindingsIntro": "行をクリックしてショートカットを変更できます。修飾キー（⌘ ⌥ ⌃ ⇧）を 1 つ以上含める必要があり、他のコマンドと重複するキーは保存できません。",
+  "keybindingsIntroWindows": "行をクリックしてショートカットを変更できます。修飾キー（Ctrl Alt Shift）を 1 つ以上含める必要があり、他のコマンドと重複するキーは保存できません。",
   "keybindingsResetAllButton": "すべてデフォルトに戻す",
   "keybindingsResetAllConfirmTitle": "すべてデフォルトに戻しますか？",
   "keybindingsResetAllConfirmMessage": "すべてのショートカットを既定のキーコンビに戻します。",
   "keybindingsResetOneTooltip": "デフォルトに戻す",
   "keyChordErrorMissingModifier": "修飾キー（⌘ ⌥ ⌃ ⇧）を 1 つ以上含めてください。",
+  "keyChordErrorMissingModifierWindows": "修飾キー（Ctrl Alt Shift）を 1 つ以上含めてください。",
   "keyChordErrorReserved": "⌘C / ⌘V / ⌘X / ⌘A / ⌘Z はコピー & ペースト等のテキスト編集用に予約されています。",
+  "keyChordErrorReservedWindows": "Ctrl+C / Ctrl+V / Ctrl+X / Ctrl+A / Ctrl+Z はコピー & ペースト等のテキスト編集用に予約されています。",
   "keyChordErrorAlreadyAssigned": "「{label}」に割り当て済みです。",
   "@keyChordErrorAlreadyAssigned": {
     "placeholders": { "label": { "type": "String" } }
