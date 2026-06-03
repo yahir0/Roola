@@ -4,12 +4,12 @@
     <title>Roola Changelog</title>
     <language>ja</language>
     <item>
-      <title>Version 0.0.38</title>
-      <sparkle:releaseNotesLink>https://github.com/yahir0/Roola/releases/tag/v0.0.38</sparkle:releaseNotesLink>
-      <pubDate>Tue, 02 Jun 2026 16:41:03 +0000</pubDate>
-      <enclosure url="https://github.com/yahir0/Roola/releases/download/v0.0.38/RoolaSetup-0.0.38.exe"
-                 sparkle:version="0.0.38.38"
-                 length="39102873"
+      <title>Version 0.0.39</title>
+      <sparkle:releaseNotesLink>https://github.com/yahir0/Roola/releases/tag/v0.0.39</sparkle:releaseNotesLink>
+      <pubDate>Wed, 03 Jun 2026 04:02:14 +0000</pubDate>
+      <enclosure url="https://github.com/yahir0/Roola/releases/download/v0.0.39/RoolaSetup-0.0.39.exe"
+                 sparkle:version="0.0.39.39"
+                 length="39104778"
                  type="application/octet-stream" />
     </item>
   </channel>
