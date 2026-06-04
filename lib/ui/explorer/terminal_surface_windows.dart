@@ -179,24 +179,33 @@ var ro = new ResizeObserver(function() {
 });
 ro.observe(document.getElementById('terminal'));
 
-// キーボードショートカット（Windows Terminal 慣習）
-// Ctrl+Shift+C: 選択テキストをコピー
-// Ctrl+Shift+V: クリップボードからペースト
+// キーボードコピペ
+// Ctrl+Shift+C / Ctrl+Alt+C: 選択テキストをコピー
+// Ctrl+Shift+V / Ctrl+Alt+V: クリップボードからペースト
+// e.preventDefault() でブラウザデフォルト（DevTools 等）を抑止する
 term.attachCustomKeyEventHandler(function(e) {
   if (e.type !== 'keydown') return true;
-  if (e.ctrlKey && e.shiftKey && !e.altKey) {
-    if (e.code === 'KeyC') {
-      if (term.hasSelection()) {
-        var text = term.getSelection();
-        term.clearSelection();
-        window.chrome.webview.postMessage(JSON.stringify({ type: 'copy', text: text }));
-      }
-      return false;
+  var key = e.code || '';
+  var isC = key === 'KeyC';
+  var isV = key === 'KeyV';
+  if (!isC && !isV) return true;
+  var isCopy    = e.ctrlKey && e.shiftKey && !e.altKey && isC;
+  var isCopyAlt = e.ctrlKey && e.altKey && !e.shiftKey && isC;
+  var isPaste    = e.ctrlKey && e.shiftKey && !e.altKey && isV;
+  var isPasteAlt = e.ctrlKey && e.altKey && !e.shiftKey && isV;
+  if (isCopy || isCopyAlt) {
+    e.preventDefault();
+    if (term.hasSelection()) {
+      var text = term.getSelection();
+      term.clearSelection();
+      window.chrome.webview.postMessage(JSON.stringify({ type: 'copy', text: text }));
     }
-    if (e.code === 'KeyV') {
-      window.chrome.webview.postMessage(JSON.stringify({ type: 'paste' }));
-      return false;
-    }
+    return false;
+  }
+  if (isPaste || isPasteAlt) {
+    e.preventDefault();
+    window.chrome.webview.postMessage(JSON.stringify({ type: 'paste' }));
+    return false;
   }
   return true;
 });
