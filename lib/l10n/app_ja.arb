@@ -191,7 +191,7 @@
   "keybindingsResetAllConfirmMessage": "すべてのショートカットを既定のキーコンビに戻します。",
   "keybindingsResetOneTooltip": "デフォルトに戻す",
   "keyChordErrorMissingModifier": "修飾キー（⌘ ⌥ ⌃ ⇧）を 1 つ以上含めてください。",
-  "keyChordErrorMissingModifierWindows": "修飾キー（Ctrl Alt Shift）を 1 つ以上含めてください。",
+  "keyChordErrorMissingModifierWindows": "修飾キー（Ctrl Alt Shift）を 1 つ以上含めるか、F1〜F12 または Delete を指定してください。",
   "keyChordErrorReserved": "⌘C / ⌘V / ⌘X / ⌘A / ⌘Z はコピー & ペースト等のテキスト編集用に予約されています。",
   "keyChordErrorReservedWindows": "Ctrl+C / Ctrl+V / Ctrl+X / Ctrl+A / Ctrl+Z はコピー & ペースト等のテキスト編集用に予約されています。",
   "keyChordErrorAlreadyAssigned": "「{label}」に割り当て済みです。",

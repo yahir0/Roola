@@ -514,7 +514,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get keyChordErrorMissingModifierWindows =>
-      '修飾キー（Ctrl Alt Shift）を 1 つ以上含めてください。';
+      '修飾キー（Ctrl Alt Shift）を 1 つ以上含めるか、F1〜F12 または Delete を指定してください。';
 
   @override
   String get keyChordErrorReserved =>

@@ -191,7 +191,7 @@
   "keybindingsResetAllConfirmMessage": "Resets every shortcut to its default key combination.",
   "keybindingsResetOneTooltip": "Reset to default",
   "keyChordErrorMissingModifier": "Include at least one modifier key (⌘ ⌥ ⌃ ⇧).",
-  "keyChordErrorMissingModifierWindows": "Include at least one modifier key (Ctrl Alt Shift).",
+  "keyChordErrorMissingModifierWindows": "Include at least one modifier key (Ctrl Alt Shift), or use F1–F12 or Delete.",
   "keyChordErrorReserved": "⌘C / ⌘V / ⌘X / ⌘A / ⌘Z are reserved for text editing (copy & paste, etc.).",
   "keyChordErrorReservedWindows": "Ctrl+C / Ctrl+V / Ctrl+X / Ctrl+A / Ctrl+Z are reserved for text editing (copy & paste, etc.).",
   "keyChordErrorAlreadyAssigned": "Already assigned to \"{label}\".",

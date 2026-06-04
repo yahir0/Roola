@@ -17,6 +17,6 @@ final effectiveKeybindingsProvider = Provider<Map<CommandId, KeyChord>>((ref) {
       const <CommandId, KeyChord>{};
   return {
     for (final id in CommandId.values)
-      id: overrides[id] ?? CommandRegistry.metadataFor(id).defaultChord,
+      id: overrides[id] ?? CommandRegistry.metadataFor(id).platformDefaultChord,
   };
 });

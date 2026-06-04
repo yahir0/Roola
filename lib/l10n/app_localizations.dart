@@ -1037,7 +1037,7 @@ abstract class AppLocalizations {
   /// No description provided for @keyChordErrorMissingModifierWindows.
   ///
   /// In ja, this message translates to:
-  /// **'修飾キー（Ctrl Alt Shift）を 1 つ以上含めてください。'**
+  /// **'修飾キー（Ctrl Alt Shift）を 1 つ以上含めるか、F1〜F12 または Delete を指定してください。'**
   String get keyChordErrorMissingModifierWindows;
 
   /// No description provided for @keyChordErrorReserved.

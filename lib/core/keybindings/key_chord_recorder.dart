@@ -67,8 +67,35 @@ KeyChord? recordChord(KeyEvent event, {HardwareKeyboard? keyboard}) {
   );
 }
 
-/// 割り当て可能なキーコンビか。修飾キーを 1 つ以上含む必要がある（ADR-0033）。
-bool isAssignableChord(KeyChord chord) => !chord.hasNoModifier;
+/// Windows で修飾キーなしでも割り当て可能な特殊キーの keyId 集合。
+/// F1〜F12 と Delete は Windows Explorer 慣習に合わせて許可する。
+final Set<int> _windowsModifierFreeAllowed = {
+  LogicalKeyboardKey.f1.keyId,
+  LogicalKeyboardKey.f2.keyId,
+  LogicalKeyboardKey.f3.keyId,
+  LogicalKeyboardKey.f4.keyId,
+  LogicalKeyboardKey.f5.keyId,
+  LogicalKeyboardKey.f6.keyId,
+  LogicalKeyboardKey.f7.keyId,
+  LogicalKeyboardKey.f8.keyId,
+  LogicalKeyboardKey.f9.keyId,
+  LogicalKeyboardKey.f10.keyId,
+  LogicalKeyboardKey.f11.keyId,
+  LogicalKeyboardKey.f12.keyId,
+  LogicalKeyboardKey.delete.keyId,
+};
+
+/// 割り当て可能なキーコンビか（ADR-0033）。
+///
+/// macOS: 修飾キーを 1 つ以上含む必要がある。
+/// Windows: F1〜F12 / Delete は修飾キーなしでも許可（Windows Explorer 慣習）。
+bool isAssignableChord(KeyChord chord) {
+  if (!chord.hasNoModifier) return true;
+  if (Platform.isWindows) {
+    return _windowsModifierFreeAllowed.contains(chord.triggerKeyId);
+  }
+  return false;
+}
 
 /// テキスト編集の標準ショートカットとして予約されたトリガキー（ADR-0035）。
 /// コピー / ペースト / カット / 全選択 / 取り消しに対応する C / V / X / A / Z。

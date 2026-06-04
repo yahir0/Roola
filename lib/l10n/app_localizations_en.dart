@@ -537,7 +537,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get keyChordErrorMissingModifierWindows =>
-      'Include at least one modifier key (Ctrl Alt Shift).';
+      'Include at least one modifier key (Ctrl Alt Shift), or use F1–F12 or Delete.';
 
   @override
   String get keyChordErrorReserved =>

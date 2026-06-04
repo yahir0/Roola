@@ -72,9 +72,26 @@ class _TerminalSurfaceWindowsState
         final cols = (map['cols'] as num?)?.toInt() ?? 80;
         final rows = (map['rows'] as num?)?.toInt() ?? 24;
         widget.runner.resize(cols: cols, rows: rows);
+      } else if (type == 'copy') {
+        // 右クリック選択テキストをクリップボードにコピー。
+        final text = map['text'] as String?;
+        if (text != null && text.isNotEmpty) {
+          unawaited(Clipboard.setData(ClipboardData(text: text)));
+        }
+      } else if (type == 'paste') {
+        // 右クリックでクリップボードの内容を PTY へ送る。
+        unawaited(_pasteFromClipboard());
       }
     } catch (_) {
       // JSON パース失敗は無視する。
+    }
+  }
+
+  Future<void> _pasteFromClipboard() async {
+    final data = await Clipboard.getData(Clipboard.kTextPlain);
+    final text = data?.text;
+    if (text != null && text.isNotEmpty) {
+      widget.runner.write(Uint8List.fromList(utf8.encode(text)));
     }
   }
 
@@ -161,6 +178,18 @@ var ro = new ResizeObserver(function() {
   );
 });
 ro.observe(document.getElementById('terminal'));
+
+// 右クリック: 選択あり→コピー、選択なし→ペースト（Windows Terminal 慣習）
+document.addEventListener('contextmenu', function(e) {
+  e.preventDefault();
+  if (term.hasSelection()) {
+    var text = term.getSelection();
+    term.clearSelection();
+    window.chrome.webview.postMessage(JSON.stringify({ type: 'copy', text: text }));
+  } else {
+    window.chrome.webview.postMessage(JSON.stringify({ type: 'paste' }));
+  }
+});
 </script>
 </body>
 </html>
