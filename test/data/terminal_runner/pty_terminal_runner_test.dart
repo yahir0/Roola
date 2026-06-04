@@ -202,15 +202,20 @@ void main() {
       expect(runner.arguments, contains('-NoExit'));
     });
 
-    test('Windows: ClaudeSkillAction → unsupportedError が設定される', () {
+    test('Windows: ClaudeSkillAction → 既定シェルで claude /<skillName> を起動', () {
       if (!Platform.isWindows) return;
+      // ADR-0058 の Windows 対応で ClaudeSkillAction を有効化済み
+      // （fix: Windows で ClaudeSkillAction を有効化する）。既定の powershell で
+      // `claude /<skillName>` を実行し、未サポート扱いにはしない。
       final runner = PtyTerminalRunner.fromAction(
         workingDirectory: dir.path,
         action: const LauncherAction.claudeSkill(skillName: 'my-skill'),
       );
       addTearDown(runner.dispose);
-      expect(runner.unsupportedError, isNotNull);
-      expect(runner.unsupportedError, contains('未サポート'));
+      expect(runner.unsupportedError, isNull);
+      expect(runner.executable, 'powershell.exe');
+      expect(runner.arguments, contains('-Command'));
+      expect(runner.arguments, contains('claude /my-skill'));
     });
 
     test('Windows: RunCommandAction(cmd) → cmd.exe /K <command>', () {
