@@ -46,7 +46,7 @@ final activityMonitorProvider =
     );
 
 /// どのアクティビティモニタのポップオーバーが開いているか。
-enum ActivityPopover { none, cpu, memory }
+enum ActivityPopover { none, cpu, memory, ccUsage }
 
 /// アクティビティモニタのポップオーバー開閉状態（ADR-0039 D6）。
 ///

@@ -526,6 +526,21 @@
   "activityMonitorColumnCpu": "CPU",
   "activityMonitorColumnMemory": "メモリ",
   "activityMonitorEmpty": "プロセス情報を取得できません",
+  "ccUsageTooltip": "本日の Claude Code 使用量（推定）: {tokens} トークン / {cost}",
+  "@ccUsageTooltip": {
+    "placeholders": {
+      "tokens": { "type": "String" },
+      "cost": { "type": "String" }
+    }
+  },
+  "ccUsagePopoverTitle": "Claude Code — 本日（推定）",
+  "ccUsageRowInput": "入力",
+  "ccUsageRowOutput": "出力",
+  "ccUsageRowCacheRead": "キャッシュ読取",
+  "ccUsageRowCacheWrite": "キャッシュ書込",
+  "ccUsageRowTotal": "合計",
+  "ccUsageRowCost": "推定コスト",
+  "ccUsageEstimateNote": "トークン数はローカルログ集計。コストは推定で請求額ではありません。",
 
   "buttonDiscard": "破棄",
   "buttonRename": "リネーム",

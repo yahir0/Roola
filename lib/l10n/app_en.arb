@@ -499,6 +499,21 @@
   "activityMonitorColumnCpu": "CPU",
   "activityMonitorColumnMemory": "MEM",
   "activityMonitorEmpty": "No process data available",
+  "ccUsageTooltip": "Claude Code usage today (estimated): {tokens} tokens / {cost}",
+  "@ccUsageTooltip": {
+    "placeholders": {
+      "tokens": { "type": "String" },
+      "cost": { "type": "String" }
+    }
+  },
+  "ccUsagePopoverTitle": "Claude Code — today (estimated)",
+  "ccUsageRowInput": "Input",
+  "ccUsageRowOutput": "Output",
+  "ccUsageRowCacheRead": "Cache read",
+  "ccUsageRowCacheWrite": "Cache write",
+  "ccUsageRowTotal": "Total",
+  "ccUsageRowCost": "Est. cost",
+  "ccUsageEstimateNote": "Token totals from local logs. Cost is estimated, not a bill.",
 
   "buttonDiscard": "Discard",
   "buttonRename": "Rename",
