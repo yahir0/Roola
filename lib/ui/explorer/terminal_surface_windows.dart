@@ -179,6 +179,28 @@ var ro = new ResizeObserver(function() {
 });
 ro.observe(document.getElementById('terminal'));
 
+// キーボードショートカット（Windows Terminal 慣習）
+// Ctrl+Shift+C: 選択テキストをコピー
+// Ctrl+Shift+V: クリップボードからペースト
+term.attachCustomKeyEventHandler(function(e) {
+  if (e.type !== 'keydown') return true;
+  if (e.ctrlKey && e.shiftKey && !e.altKey) {
+    if (e.code === 'KeyC') {
+      if (term.hasSelection()) {
+        var text = term.getSelection();
+        term.clearSelection();
+        window.chrome.webview.postMessage(JSON.stringify({ type: 'copy', text: text }));
+      }
+      return false;
+    }
+    if (e.code === 'KeyV') {
+      window.chrome.webview.postMessage(JSON.stringify({ type: 'paste' }));
+      return false;
+    }
+  }
+  return true;
+});
+
 // 右クリック: 選択あり→コピー、選択なし→ペースト（Windows Terminal 慣習）
 document.addEventListener('contextmenu', function(e) {
   e.preventDefault();
