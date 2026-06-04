@@ -1142,6 +1142,35 @@ class AppLocalizationsJa extends AppLocalizations {
   String get activityMonitorEmpty => 'プロセス情報を取得できません';
 
   @override
+  String ccUsageTooltip(String tokens, String cost) {
+    return '本日の Claude Code 使用量（推定）: $tokens トークン / $cost';
+  }
+
+  @override
+  String get ccUsagePopoverTitle => 'Claude Code — 本日（推定）';
+
+  @override
+  String get ccUsageRowInput => '入力';
+
+  @override
+  String get ccUsageRowOutput => '出力';
+
+  @override
+  String get ccUsageRowCacheRead => 'キャッシュ読取';
+
+  @override
+  String get ccUsageRowCacheWrite => 'キャッシュ書込';
+
+  @override
+  String get ccUsageRowTotal => '合計';
+
+  @override
+  String get ccUsageRowCost => '推定コスト';
+
+  @override
+  String get ccUsageEstimateNote => 'トークン数はローカルログ集計。コストは推定で請求額ではありません。';
+
+  @override
   String get buttonDiscard => '破棄';
 
   @override

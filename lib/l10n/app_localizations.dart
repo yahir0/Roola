@@ -2132,6 +2132,60 @@ abstract class AppLocalizations {
   /// **'プロセス情報を取得できません'**
   String get activityMonitorEmpty;
 
+  /// No description provided for @ccUsageTooltip.
+  ///
+  /// In ja, this message translates to:
+  /// **'本日の Claude Code 使用量（推定）: {tokens} トークン / {cost}'**
+  String ccUsageTooltip(String tokens, String cost);
+
+  /// No description provided for @ccUsagePopoverTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'Claude Code — 本日（推定）'**
+  String get ccUsagePopoverTitle;
+
+  /// No description provided for @ccUsageRowInput.
+  ///
+  /// In ja, this message translates to:
+  /// **'入力'**
+  String get ccUsageRowInput;
+
+  /// No description provided for @ccUsageRowOutput.
+  ///
+  /// In ja, this message translates to:
+  /// **'出力'**
+  String get ccUsageRowOutput;
+
+  /// No description provided for @ccUsageRowCacheRead.
+  ///
+  /// In ja, this message translates to:
+  /// **'キャッシュ読取'**
+  String get ccUsageRowCacheRead;
+
+  /// No description provided for @ccUsageRowCacheWrite.
+  ///
+  /// In ja, this message translates to:
+  /// **'キャッシュ書込'**
+  String get ccUsageRowCacheWrite;
+
+  /// No description provided for @ccUsageRowTotal.
+  ///
+  /// In ja, this message translates to:
+  /// **'合計'**
+  String get ccUsageRowTotal;
+
+  /// No description provided for @ccUsageRowCost.
+  ///
+  /// In ja, this message translates to:
+  /// **'推定コスト'**
+  String get ccUsageRowCost;
+
+  /// No description provided for @ccUsageEstimateNote.
+  ///
+  /// In ja, this message translates to:
+  /// **'トークン数はローカルログ集計。コストは推定で請求額ではありません。'**
+  String get ccUsageEstimateNote;
+
   /// No description provided for @buttonDiscard.
   ///
   /// In ja, this message translates to:

@@ -4,6 +4,7 @@ import 'package:roola/app/theme.dart';
 import 'package:roola/data/activity_metrics/system_metrics_repository.dart';
 import 'package:roola/ui/activity_monitor/activity_monitor_popover.dart';
 import 'package:roola/ui/activity_monitor/activity_monitor_view_model.dart';
+import 'package:roola/ui/activity_monitor/cc_usage_popover.dart';
 
 /// アクティビティモニタのポップオーバーを描くレイヤー（ADR-0039 D6）。
 ///
@@ -28,10 +29,17 @@ class ActivityMonitorPopoverLayer extends ConsumerWidget {
     if (open == ActivityPopover.none) {
       return const SizedBox.shrink();
     }
-    final sortKey = open == ActivityPopover.cpu
-        ? ProcessSortKey.cpu
-        : ProcessSortKey.memory;
     final notifier = ref.read(activityPopoverProvider.notifier);
+
+    // CPU / メモリは上位プロセス一覧、使用量メーターはトークン内訳パネルを開く。
+    final Widget panel = switch (open) {
+      ActivityPopover.ccUsage => const CcUsagePopover(),
+      ActivityPopover.cpu => const ActivityMonitorPopover(
+        sortKey: ProcessSortKey.cpu,
+      ),
+      ActivityPopover.memory || ActivityPopover.none =>
+        const ActivityMonitorPopover(sortKey: ProcessSortKey.memory),
+    };
 
     // 子が Positioned 1 つだけだと Stack 自身が 0×0 に縮むため、`fit` で
     // 親いっぱいに広げる。Positioned 配置の基準を body 領域に揃える。
@@ -47,7 +55,7 @@ class ActivityMonitorPopoverLayer extends ConsumerWidget {
           child: TapRegion(
             groupId: activityPopoverGroupId,
             onTapOutside: (_) => notifier.close(),
-            child: ActivityMonitorPopover(sortKey: sortKey),
+            child: panel,
           ),
         ),
       ],

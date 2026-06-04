@@ -42,7 +42,6 @@ class WindowsTopMenuBar extends ConsumerWidget {
           child: SizedBox(
             height: 28,
             child: Align(
-              alignment: Alignment.center,
               widthFactor: 1.0,
               child: label,
             ),

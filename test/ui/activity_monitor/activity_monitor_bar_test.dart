@@ -1,9 +1,14 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:roola/core/health/claude_health_check.dart';
 import 'package:roola/data/activity_metrics/process_metrics.dart';
 import 'package:roola/data/activity_metrics/system_metrics.dart';
 import 'package:roola/data/activity_metrics/system_metrics_repository.dart';
+import 'package:roola/data/cc_usage/cc_usage.dart';
+import 'package:roola/data/cc_usage/cc_usage_repository.dart';
 import 'package:roola/l10n/app_localizations.dart';
 import 'package:roola/ui/activity_monitor/activity_monitor_bar.dart';
 import 'package:roola/ui/activity_monitor/activity_monitor_popover_layer.dart';
@@ -26,9 +31,20 @@ class _FakeRepository implements SystemMetricsRepository {
   ];
 }
 
-Widget _app() => ProviderScope(
+/// 実ファイル監視を張らない（projectsDirectory が null）使用量リポジトリ。
+class _FakeCcUsageRepository extends CcUsageRepository {
+  @override
+  Directory? projectsDirectory() => null;
+
+  @override
+  Future<CcUsage> aggregateToday() async => CcUsage.zero;
+}
+
+Widget _app({bool claudeAvailable = true}) => ProviderScope(
   overrides: [
     systemMetricsRepositoryProvider.overrideWithValue(const _FakeRepository()),
+    claudeAvailableProvider.overrideWithValue(claudeAvailable),
+    ccUsageRepositoryProvider.overrideWithValue(_FakeCcUsageRepository()),
   ],
   child: const MaterialApp(
     localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -63,6 +79,23 @@ void main() {
     expect(find.byIcon(Icons.speed), findsOneWidget);
     expect(find.byIcon(Icons.memory), findsOneWidget);
     expect(find.text('Top processes — CPU'), findsNothing);
+  });
+
+  testWidgets('Claude 利用可能時は使用量メーターが表示される', (tester) async {
+    await tester.pumpWidget(_app());
+    await _settle(tester);
+
+    expect(find.byIcon(Icons.data_usage), findsOneWidget);
+  });
+
+  testWidgets('Claude 未検出時は使用量メーターを表示しない（ADR-0022）', (tester) async {
+    await tester.pumpWidget(_app(claudeAvailable: false));
+    await _settle(tester);
+
+    // 使用量メーターは消え、CPU / メモリは残る。
+    expect(find.byIcon(Icons.data_usage), findsNothing);
+    expect(find.byIcon(Icons.speed), findsOneWidget);
+    expect(find.byIcon(Icons.memory), findsOneWidget);
   });
 
   testWidgets('CPU クリックで上位プロセスのポップオーバーが開く', (tester) async {

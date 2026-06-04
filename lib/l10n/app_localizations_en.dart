@@ -1175,6 +1175,36 @@ class AppLocalizationsEn extends AppLocalizations {
   String get activityMonitorEmpty => 'No process data available';
 
   @override
+  String ccUsageTooltip(String tokens, String cost) {
+    return 'Claude Code usage today (estimated): $tokens tokens / $cost';
+  }
+
+  @override
+  String get ccUsagePopoverTitle => 'Claude Code — today (estimated)';
+
+  @override
+  String get ccUsageRowInput => 'Input';
+
+  @override
+  String get ccUsageRowOutput => 'Output';
+
+  @override
+  String get ccUsageRowCacheRead => 'Cache read';
+
+  @override
+  String get ccUsageRowCacheWrite => 'Cache write';
+
+  @override
+  String get ccUsageRowTotal => 'Total';
+
+  @override
+  String get ccUsageRowCost => 'Est. cost';
+
+  @override
+  String get ccUsageEstimateNote =>
+      'Token totals from local logs. Cost is estimated, not a bill.';
+
+  @override
   String get buttonDiscard => 'Discard';
 
   @override

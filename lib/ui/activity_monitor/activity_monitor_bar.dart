@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:roola/app/theme.dart';
+import 'package:roola/core/health/claude_health_check.dart';
 import 'package:roola/l10n/app_localizations.dart';
 import 'package:roola/ui/activity_monitor/activity_monitor_popover_layer.dart';
 import 'package:roola/ui/activity_monitor/activity_monitor_view_model.dart';
+import 'package:roola/ui/activity_monitor/cc_usage_format.dart';
+import 'package:roola/ui/activity_monitor/cc_usage_view_model.dart';
 
 /// トップバーに常駐するアクティビティモニタ（ADR-0039）。
 ///
@@ -16,17 +19,26 @@ import 'package:roola/ui/activity_monitor/activity_monitor_view_model.dart';
 /// ポップオーバー本体はトップバーではなくワークスペース body 側の
 /// [ActivityMonitorPopoverLayer] が描く。開閉状態は [activityPopoverProvider]
 /// 経由で共有する。
-class ActivityMonitorBar extends StatelessWidget {
+///
+/// Claude Code 使用量メーター（ADR-0060）は Claude 関連機能の 1 つなので、
+/// `claude` CLI が見つからない環境では非表示にする（ADR-0022 / optional 化）。
+/// CPU / メモリは常に表示する。
+class ActivityMonitorBar extends ConsumerWidget {
   const ActivityMonitorBar({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return const Row(
+  Widget build(BuildContext context, WidgetRef ref) {
+    final claudeAvailable = ref.watch(claudeAvailableProvider);
+    return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        _ActivityGaugeButton(kind: ActivityPopover.cpu),
-        SizedBox(width: PolarisTokens.space1),
-        _ActivityGaugeButton(kind: ActivityPopover.memory),
+        const _ActivityGaugeButton(kind: ActivityPopover.cpu),
+        const SizedBox(width: PolarisTokens.space1),
+        const _ActivityGaugeButton(kind: ActivityPopover.memory),
+        if (claudeAvailable) ...[
+          const SizedBox(width: PolarisTokens.space1),
+          const _CcUsageButton(),
+        ],
       ],
     );
   }
@@ -138,6 +150,94 @@ class _ActivityGauge extends StatelessWidget {
                 color: tint,
                 leadingDistribution: TextLeadingDistribution.even,
               ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Claude Code 使用量メーター 1 項目（ADR-0060）。CPU / メモリのゲージと
+/// 並べ、当日のコンパクトなトークン数を表示する。クリックで内訳ポップオーバー
+/// を開閉する。CPU / メモリと違い「上限に対する割合」が無い（レートリミット
+/// 残量は取得不可）ため、レベルバーは持たずアイコン＋数値のみで表す。
+class _CcUsageButton extends HookConsumerWidget {
+  const _CcUsageButton();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final hovering = useState(false);
+    final usage = ref.watch(ccUsageProvider);
+    final isOpen =
+        ref.watch(activityPopoverProvider) == ActivityPopover.ccUsage;
+    final l10n = AppLocalizations.of(context);
+    final tooltip = l10n.ccUsageTooltip(
+      CcUsageFormat.groupedTokens(usage.totalTokens),
+      CcUsageFormat.cost(usage.estimatedCostUsd),
+    );
+
+    return TapRegion(
+      groupId: activityPopoverGroupId,
+      child: MouseRegion(
+        onEnter: (_) => hovering.value = true,
+        onExit: (_) => hovering.value = false,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () => ref
+              .read(activityPopoverProvider.notifier)
+              .toggle(ActivityPopover.ccUsage),
+          child: Tooltip(
+            message: tooltip,
+            child: _CcUsageReadout(
+              tokens: usage.totalTokens,
+              active: isOpen || hovering.value,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// 使用量メーターの見た目 — アイコン＋当日のコンパクトなトークン数。
+class _CcUsageReadout extends StatelessWidget {
+  const _CcUsageReadout({required this.tokens, required this.active});
+
+  /// 当日の総トークン数。
+  final int tokens;
+
+  /// ホバー中 / ポップオーバー展開中。
+  final bool active;
+
+  /// CPU / メモリのゲージと同じ高さに揃える。
+  static const double _height = 32;
+
+  @override
+  Widget build(BuildContext context) {
+    final tokensStyle = PolarisTokens.of(context);
+    final tint = active ? tokensStyle.accent : tokensStyle.textDim;
+    return Container(
+      height: _height,
+      padding: const EdgeInsets.symmetric(horizontal: PolarisTokens.space2),
+      decoration: BoxDecoration(
+        color: active ? tokensStyle.surface : null,
+        borderRadius: BorderRadius.circular(tokensStyle.radius),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.data_usage,
+            size: PolarisIconSize.small,
+            color: tint,
+          ),
+          const SizedBox(width: PolarisTokens.space2),
+          Text(
+            CcUsageFormat.compactTokens(tokens),
+            style: tokensStyle.mono.copyWith(
+              color: tint,
+              leadingDistribution: TextLeadingDistribution.even,
             ),
           ),
         ],
