@@ -132,6 +132,7 @@
 - ADR-0058: Windows 対応（ADR-0001 Supersede）—対応プラットフォームを macOS + Windows に拡張する
 - ADR-0060: アクティビティモニタに Claude Code 使用量メーター（ローカル JSONL 集計・推定コスト）を追加する
 - ADR-0061: プレビューのテキストを Text.rich で描画し選択・コピー可能にする（flutter_highlight → highlight）
+- ADR-0062: ランチャーの Claude Skill に実行時引数（プロンプト）を渡せるようにする（コマンドライン引数・複数行入力）
 
 ## ディレクトリ構成
 

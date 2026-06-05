@@ -17,7 +17,8 @@ mixin _$EntryEditState {
  String get displayName; String get workingDirectory; LauncherAction get action;/// 「⚡ コマンド実行」セグメント用の編集中コマンド文字列。
  String get editedCommand;/// 「⚡ コマンド実行」セグメント用の「終了後シェル残留」フラグ。
  bool get editedKeepShellAfterExit;/// 「🤖 Claude Skill」セグメント用の編集中 Skill 名。
- String get editedSkillName;/// 現在の作業ディレクトリ配下で検出された Skill 名候補。
+ String get editedSkillName;/// 「🤖 Claude Skill」で実行時に引数（プロンプト）を求めるか（ADR-0062）。
+ bool get editedRequiresArgument;/// 現在の作業ディレクトリ配下で検出された Skill 名候補。
 /// `<dir>/.claude/skills/<name>/SKILL.md` の `<name>` を集めたもの。
  List<String> get availableSkills;/// 所属させるフォルダ ID。null なら root（フォルダなし、ADR-0019）。
  String? get folderId; Map<String, String> get errors; bool get isSubmitting;
@@ -31,16 +32,16 @@ $EntryEditStateCopyWith<EntryEditState> get copyWith => _$EntryEditStateCopyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is EntryEditState&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.workingDirectory, workingDirectory) || other.workingDirectory == workingDirectory)&&(identical(other.action, action) || other.action == action)&&(identical(other.editedCommand, editedCommand) || other.editedCommand == editedCommand)&&(identical(other.editedKeepShellAfterExit, editedKeepShellAfterExit) || other.editedKeepShellAfterExit == editedKeepShellAfterExit)&&(identical(other.editedSkillName, editedSkillName) || other.editedSkillName == editedSkillName)&&const DeepCollectionEquality().equals(other.availableSkills, availableSkills)&&(identical(other.folderId, folderId) || other.folderId == folderId)&&const DeepCollectionEquality().equals(other.errors, errors)&&(identical(other.isSubmitting, isSubmitting) || other.isSubmitting == isSubmitting));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is EntryEditState&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.workingDirectory, workingDirectory) || other.workingDirectory == workingDirectory)&&(identical(other.action, action) || other.action == action)&&(identical(other.editedCommand, editedCommand) || other.editedCommand == editedCommand)&&(identical(other.editedKeepShellAfterExit, editedKeepShellAfterExit) || other.editedKeepShellAfterExit == editedKeepShellAfterExit)&&(identical(other.editedSkillName, editedSkillName) || other.editedSkillName == editedSkillName)&&(identical(other.editedRequiresArgument, editedRequiresArgument) || other.editedRequiresArgument == editedRequiresArgument)&&const DeepCollectionEquality().equals(other.availableSkills, availableSkills)&&(identical(other.folderId, folderId) || other.folderId == folderId)&&const DeepCollectionEquality().equals(other.errors, errors)&&(identical(other.isSubmitting, isSubmitting) || other.isSubmitting == isSubmitting));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,displayName,workingDirectory,action,editedCommand,editedKeepShellAfterExit,editedSkillName,const DeepCollectionEquality().hash(availableSkills),folderId,const DeepCollectionEquality().hash(errors),isSubmitting);
+int get hashCode => Object.hash(runtimeType,displayName,workingDirectory,action,editedCommand,editedKeepShellAfterExit,editedSkillName,editedRequiresArgument,const DeepCollectionEquality().hash(availableSkills),folderId,const DeepCollectionEquality().hash(errors),isSubmitting);
 
 @override
 String toString() {
-  return 'EntryEditState(displayName: $displayName, workingDirectory: $workingDirectory, action: $action, editedCommand: $editedCommand, editedKeepShellAfterExit: $editedKeepShellAfterExit, editedSkillName: $editedSkillName, availableSkills: $availableSkills, folderId: $folderId, errors: $errors, isSubmitting: $isSubmitting)';
+  return 'EntryEditState(displayName: $displayName, workingDirectory: $workingDirectory, action: $action, editedCommand: $editedCommand, editedKeepShellAfterExit: $editedKeepShellAfterExit, editedSkillName: $editedSkillName, editedRequiresArgument: $editedRequiresArgument, availableSkills: $availableSkills, folderId: $folderId, errors: $errors, isSubmitting: $isSubmitting)';
 }
 
 
@@ -51,7 +52,7 @@ abstract mixin class $EntryEditStateCopyWith<$Res>  {
   factory $EntryEditStateCopyWith(EntryEditState value, $Res Function(EntryEditState) _then) = _$EntryEditStateCopyWithImpl;
 @useResult
 $Res call({
- String displayName, String workingDirectory, LauncherAction action, String editedCommand, bool editedKeepShellAfterExit, String editedSkillName, List<String> availableSkills, String? folderId, Map<String, String> errors, bool isSubmitting
+ String displayName, String workingDirectory, LauncherAction action, String editedCommand, bool editedKeepShellAfterExit, String editedSkillName, bool editedRequiresArgument, List<String> availableSkills, String? folderId, Map<String, String> errors, bool isSubmitting
 });
 
 
@@ -68,7 +69,7 @@ class _$EntryEditStateCopyWithImpl<$Res>
 
 /// Create a copy of EntryEditState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? displayName = null,Object? workingDirectory = null,Object? action = null,Object? editedCommand = null,Object? editedKeepShellAfterExit = null,Object? editedSkillName = null,Object? availableSkills = null,Object? folderId = freezed,Object? errors = null,Object? isSubmitting = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? displayName = null,Object? workingDirectory = null,Object? action = null,Object? editedCommand = null,Object? editedKeepShellAfterExit = null,Object? editedSkillName = null,Object? editedRequiresArgument = null,Object? availableSkills = null,Object? folderId = freezed,Object? errors = null,Object? isSubmitting = null,}) {
   return _then(_self.copyWith(
 displayName: null == displayName ? _self.displayName : displayName // ignore: cast_nullable_to_non_nullable
 as String,workingDirectory: null == workingDirectory ? _self.workingDirectory : workingDirectory // ignore: cast_nullable_to_non_nullable
@@ -76,7 +77,8 @@ as String,action: null == action ? _self.action : action // ignore: cast_nullabl
 as LauncherAction,editedCommand: null == editedCommand ? _self.editedCommand : editedCommand // ignore: cast_nullable_to_non_nullable
 as String,editedKeepShellAfterExit: null == editedKeepShellAfterExit ? _self.editedKeepShellAfterExit : editedKeepShellAfterExit // ignore: cast_nullable_to_non_nullable
 as bool,editedSkillName: null == editedSkillName ? _self.editedSkillName : editedSkillName // ignore: cast_nullable_to_non_nullable
-as String,availableSkills: null == availableSkills ? _self.availableSkills : availableSkills // ignore: cast_nullable_to_non_nullable
+as String,editedRequiresArgument: null == editedRequiresArgument ? _self.editedRequiresArgument : editedRequiresArgument // ignore: cast_nullable_to_non_nullable
+as bool,availableSkills: null == availableSkills ? _self.availableSkills : availableSkills // ignore: cast_nullable_to_non_nullable
 as List<String>,folderId: freezed == folderId ? _self.folderId : folderId // ignore: cast_nullable_to_non_nullable
 as String?,errors: null == errors ? _self.errors : errors // ignore: cast_nullable_to_non_nullable
 as Map<String, String>,isSubmitting: null == isSubmitting ? _self.isSubmitting : isSubmitting // ignore: cast_nullable_to_non_nullable
@@ -174,10 +176,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String displayName,  String workingDirectory,  LauncherAction action,  String editedCommand,  bool editedKeepShellAfterExit,  String editedSkillName,  List<String> availableSkills,  String? folderId,  Map<String, String> errors,  bool isSubmitting)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String displayName,  String workingDirectory,  LauncherAction action,  String editedCommand,  bool editedKeepShellAfterExit,  String editedSkillName,  bool editedRequiresArgument,  List<String> availableSkills,  String? folderId,  Map<String, String> errors,  bool isSubmitting)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _EntryEditState() when $default != null:
-return $default(_that.displayName,_that.workingDirectory,_that.action,_that.editedCommand,_that.editedKeepShellAfterExit,_that.editedSkillName,_that.availableSkills,_that.folderId,_that.errors,_that.isSubmitting);case _:
+return $default(_that.displayName,_that.workingDirectory,_that.action,_that.editedCommand,_that.editedKeepShellAfterExit,_that.editedSkillName,_that.editedRequiresArgument,_that.availableSkills,_that.folderId,_that.errors,_that.isSubmitting);case _:
   return orElse();
 
 }
@@ -195,10 +197,10 @@ return $default(_that.displayName,_that.workingDirectory,_that.action,_that.edit
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String displayName,  String workingDirectory,  LauncherAction action,  String editedCommand,  bool editedKeepShellAfterExit,  String editedSkillName,  List<String> availableSkills,  String? folderId,  Map<String, String> errors,  bool isSubmitting)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String displayName,  String workingDirectory,  LauncherAction action,  String editedCommand,  bool editedKeepShellAfterExit,  String editedSkillName,  bool editedRequiresArgument,  List<String> availableSkills,  String? folderId,  Map<String, String> errors,  bool isSubmitting)  $default,) {final _that = this;
 switch (_that) {
 case _EntryEditState():
-return $default(_that.displayName,_that.workingDirectory,_that.action,_that.editedCommand,_that.editedKeepShellAfterExit,_that.editedSkillName,_that.availableSkills,_that.folderId,_that.errors,_that.isSubmitting);case _:
+return $default(_that.displayName,_that.workingDirectory,_that.action,_that.editedCommand,_that.editedKeepShellAfterExit,_that.editedSkillName,_that.editedRequiresArgument,_that.availableSkills,_that.folderId,_that.errors,_that.isSubmitting);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -215,10 +217,10 @@ return $default(_that.displayName,_that.workingDirectory,_that.action,_that.edit
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String displayName,  String workingDirectory,  LauncherAction action,  String editedCommand,  bool editedKeepShellAfterExit,  String editedSkillName,  List<String> availableSkills,  String? folderId,  Map<String, String> errors,  bool isSubmitting)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String displayName,  String workingDirectory,  LauncherAction action,  String editedCommand,  bool editedKeepShellAfterExit,  String editedSkillName,  bool editedRequiresArgument,  List<String> availableSkills,  String? folderId,  Map<String, String> errors,  bool isSubmitting)?  $default,) {final _that = this;
 switch (_that) {
 case _EntryEditState() when $default != null:
-return $default(_that.displayName,_that.workingDirectory,_that.action,_that.editedCommand,_that.editedKeepShellAfterExit,_that.editedSkillName,_that.availableSkills,_that.folderId,_that.errors,_that.isSubmitting);case _:
+return $default(_that.displayName,_that.workingDirectory,_that.action,_that.editedCommand,_that.editedKeepShellAfterExit,_that.editedSkillName,_that.editedRequiresArgument,_that.availableSkills,_that.folderId,_that.errors,_that.isSubmitting);case _:
   return null;
 
 }
@@ -230,7 +232,7 @@ return $default(_that.displayName,_that.workingDirectory,_that.action,_that.edit
 
 
 class _EntryEditState implements EntryEditState {
-  const _EntryEditState({required this.displayName, required this.workingDirectory, required this.action, this.editedCommand = '', this.editedKeepShellAfterExit = true, this.editedSkillName = '', final  List<String> availableSkills = const <String>[], this.folderId, final  Map<String, String> errors = const <String, String>{}, this.isSubmitting = false}): _availableSkills = availableSkills,_errors = errors;
+  const _EntryEditState({required this.displayName, required this.workingDirectory, required this.action, this.editedCommand = '', this.editedKeepShellAfterExit = true, this.editedSkillName = '', this.editedRequiresArgument = false, final  List<String> availableSkills = const <String>[], this.folderId, final  Map<String, String> errors = const <String, String>{}, this.isSubmitting = false}): _availableSkills = availableSkills,_errors = errors;
   
 
 @override final  String displayName;
@@ -242,6 +244,8 @@ class _EntryEditState implements EntryEditState {
 @override@JsonKey() final  bool editedKeepShellAfterExit;
 /// 「🤖 Claude Skill」セグメント用の編集中 Skill 名。
 @override@JsonKey() final  String editedSkillName;
+/// 「🤖 Claude Skill」で実行時に引数（プロンプト）を求めるか（ADR-0062）。
+@override@JsonKey() final  bool editedRequiresArgument;
 /// 現在の作業ディレクトリ配下で検出された Skill 名候補。
 /// `<dir>/.claude/skills/<name>/SKILL.md` の `<name>` を集めたもの。
  final  List<String> _availableSkills;
@@ -274,16 +278,16 @@ _$EntryEditStateCopyWith<_EntryEditState> get copyWith => __$EntryEditStateCopyW
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _EntryEditState&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.workingDirectory, workingDirectory) || other.workingDirectory == workingDirectory)&&(identical(other.action, action) || other.action == action)&&(identical(other.editedCommand, editedCommand) || other.editedCommand == editedCommand)&&(identical(other.editedKeepShellAfterExit, editedKeepShellAfterExit) || other.editedKeepShellAfterExit == editedKeepShellAfterExit)&&(identical(other.editedSkillName, editedSkillName) || other.editedSkillName == editedSkillName)&&const DeepCollectionEquality().equals(other._availableSkills, _availableSkills)&&(identical(other.folderId, folderId) || other.folderId == folderId)&&const DeepCollectionEquality().equals(other._errors, _errors)&&(identical(other.isSubmitting, isSubmitting) || other.isSubmitting == isSubmitting));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _EntryEditState&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.workingDirectory, workingDirectory) || other.workingDirectory == workingDirectory)&&(identical(other.action, action) || other.action == action)&&(identical(other.editedCommand, editedCommand) || other.editedCommand == editedCommand)&&(identical(other.editedKeepShellAfterExit, editedKeepShellAfterExit) || other.editedKeepShellAfterExit == editedKeepShellAfterExit)&&(identical(other.editedSkillName, editedSkillName) || other.editedSkillName == editedSkillName)&&(identical(other.editedRequiresArgument, editedRequiresArgument) || other.editedRequiresArgument == editedRequiresArgument)&&const DeepCollectionEquality().equals(other._availableSkills, _availableSkills)&&(identical(other.folderId, folderId) || other.folderId == folderId)&&const DeepCollectionEquality().equals(other._errors, _errors)&&(identical(other.isSubmitting, isSubmitting) || other.isSubmitting == isSubmitting));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,displayName,workingDirectory,action,editedCommand,editedKeepShellAfterExit,editedSkillName,const DeepCollectionEquality().hash(_availableSkills),folderId,const DeepCollectionEquality().hash(_errors),isSubmitting);
+int get hashCode => Object.hash(runtimeType,displayName,workingDirectory,action,editedCommand,editedKeepShellAfterExit,editedSkillName,editedRequiresArgument,const DeepCollectionEquality().hash(_availableSkills),folderId,const DeepCollectionEquality().hash(_errors),isSubmitting);
 
 @override
 String toString() {
-  return 'EntryEditState(displayName: $displayName, workingDirectory: $workingDirectory, action: $action, editedCommand: $editedCommand, editedKeepShellAfterExit: $editedKeepShellAfterExit, editedSkillName: $editedSkillName, availableSkills: $availableSkills, folderId: $folderId, errors: $errors, isSubmitting: $isSubmitting)';
+  return 'EntryEditState(displayName: $displayName, workingDirectory: $workingDirectory, action: $action, editedCommand: $editedCommand, editedKeepShellAfterExit: $editedKeepShellAfterExit, editedSkillName: $editedSkillName, editedRequiresArgument: $editedRequiresArgument, availableSkills: $availableSkills, folderId: $folderId, errors: $errors, isSubmitting: $isSubmitting)';
 }
 
 
@@ -294,7 +298,7 @@ abstract mixin class _$EntryEditStateCopyWith<$Res> implements $EntryEditStateCo
   factory _$EntryEditStateCopyWith(_EntryEditState value, $Res Function(_EntryEditState) _then) = __$EntryEditStateCopyWithImpl;
 @override @useResult
 $Res call({
- String displayName, String workingDirectory, LauncherAction action, String editedCommand, bool editedKeepShellAfterExit, String editedSkillName, List<String> availableSkills, String? folderId, Map<String, String> errors, bool isSubmitting
+ String displayName, String workingDirectory, LauncherAction action, String editedCommand, bool editedKeepShellAfterExit, String editedSkillName, bool editedRequiresArgument, List<String> availableSkills, String? folderId, Map<String, String> errors, bool isSubmitting
 });
 
 
@@ -311,7 +315,7 @@ class __$EntryEditStateCopyWithImpl<$Res>
 
 /// Create a copy of EntryEditState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? displayName = null,Object? workingDirectory = null,Object? action = null,Object? editedCommand = null,Object? editedKeepShellAfterExit = null,Object? editedSkillName = null,Object? availableSkills = null,Object? folderId = freezed,Object? errors = null,Object? isSubmitting = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? displayName = null,Object? workingDirectory = null,Object? action = null,Object? editedCommand = null,Object? editedKeepShellAfterExit = null,Object? editedSkillName = null,Object? editedRequiresArgument = null,Object? availableSkills = null,Object? folderId = freezed,Object? errors = null,Object? isSubmitting = null,}) {
   return _then(_EntryEditState(
 displayName: null == displayName ? _self.displayName : displayName // ignore: cast_nullable_to_non_nullable
 as String,workingDirectory: null == workingDirectory ? _self.workingDirectory : workingDirectory // ignore: cast_nullable_to_non_nullable
@@ -319,7 +323,8 @@ as String,action: null == action ? _self.action : action // ignore: cast_nullabl
 as LauncherAction,editedCommand: null == editedCommand ? _self.editedCommand : editedCommand // ignore: cast_nullable_to_non_nullable
 as String,editedKeepShellAfterExit: null == editedKeepShellAfterExit ? _self.editedKeepShellAfterExit : editedKeepShellAfterExit // ignore: cast_nullable_to_non_nullable
 as bool,editedSkillName: null == editedSkillName ? _self.editedSkillName : editedSkillName // ignore: cast_nullable_to_non_nullable
-as String,availableSkills: null == availableSkills ? _self._availableSkills : availableSkills // ignore: cast_nullable_to_non_nullable
+as String,editedRequiresArgument: null == editedRequiresArgument ? _self.editedRequiresArgument : editedRequiresArgument // ignore: cast_nullable_to_non_nullable
+as bool,availableSkills: null == availableSkills ? _self._availableSkills : availableSkills // ignore: cast_nullable_to_non_nullable
 as List<String>,folderId: freezed == folderId ? _self.folderId : folderId // ignore: cast_nullable_to_non_nullable
 as String?,errors: null == errors ? _self._errors : errors // ignore: cast_nullable_to_non_nullable
 as Map<String, String>,isSubmitting: null == isSubmitting ? _self.isSubmitting : isSubmitting // ignore: cast_nullable_to_non_nullable

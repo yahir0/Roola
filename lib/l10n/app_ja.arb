@@ -423,6 +423,14 @@
     "placeholders": { "count": { "type": "int" } }
   },
   "entryEditSkillNameSelectTooltip": "候補から選択",
+  "entryEditSkillRequiresArgumentTitle": "実行時に引数を求める",
+  "entryEditSkillRequiresArgumentSubtitle": "起動時に入力ダイアログを表示し、入力したテキストを `claude /スキル名 <入力>` の引数として渡します。ログや文字起こしなどの長文も入力できます。",
+  "launcherSkillArgumentPromptTitle": "{name} に渡す引数",
+  "@launcherSkillArgumentPromptTitle": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "launcherSkillArgumentPromptHint": "スキルに渡すテキスト（ログ・文字起こしなどの長文も貼り付け可）",
+  "launcherSkillArgumentPromptConfirm": "実行",
 
   "launcherManagementTitle": "ランチャー管理",
   "launcherAddFolderTooltip": "フォルダ追加",

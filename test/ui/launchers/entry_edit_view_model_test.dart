@@ -114,6 +114,49 @@ void main() {
   );
 
   test(
+    'setRequiresArgument は Claude Skill の requiresArgument を保存する（ADR-0062）',
+    () async {
+      await container.read(launcherEntriesProvider.future);
+      final notifier = container.read(
+        entryEditViewModelProvider(null).notifier,
+      );
+      notifier
+        ..setDisplayName('Transcribe')
+        ..setWorkingDirectory(tempDir.path)
+        ..setActionType(LauncherActionType.claudeSkill)
+        ..setSkillName('transcribe')
+        ..setRequiresArgument(true);
+
+      // state.action に反映されている。
+      final state = container.read(entryEditViewModelProvider(null));
+      expect(
+        state.action,
+        const LauncherAction.claudeSkill(
+          skillName: 'transcribe',
+          requiresArgument: true,
+        ),
+      );
+
+      final ok = await notifier.submit();
+      expect(ok, isTrue);
+      verify(
+        () => repo.add(
+          any(
+            that: isA<LauncherEntry>().having(
+              (e) => e.action,
+              'action',
+              const LauncherAction.claudeSkill(
+                skillName: 'transcribe',
+                requiresArgument: true,
+              ),
+            ),
+          ),
+        ),
+      ).called(1);
+    },
+  );
+
+  test(
     'submit succeeds for OpenHere action (no command/skillName needed)',
     () async {
       await container.read(launcherEntriesProvider.future);

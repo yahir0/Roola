@@ -33,9 +33,16 @@ sealed class LauncherAction with _$LauncherAction {
   /// `skillName` は必ず非空（バリデーションで保証される）。素の `claude`
   /// 起動が必要な場合は `RunCommandAction(command: 'claude')` で表現する
   /// （ADR-0016 / design.md Decision 4 を参照）。
+  ///
+  /// `requiresArgument` が true のとき、ランチャー起動時に複数行テキストの
+  /// 入力ダイアログを出し、入力値を `claude /<skillName> <入力>` の単一引数
+  /// として渡す（ADR-0062）。引数本文は永続化エントリには保存せず、実行時に
+  /// [AdhocRunArgs.skillArgument] として一時的に取り回す。
   @FreezedUnionValue('claudeSkill')
-  const factory LauncherAction.claudeSkill({required String skillName}) =
-      ClaudeSkillAction;
+  const factory LauncherAction.claudeSkill({
+    required String skillName,
+    @Default(false) bool requiresArgument,
+  }) = ClaudeSkillAction;
 
   factory LauncherAction.fromJson(Map<String, dynamic> json) =>
       _$LauncherActionFromJson(json);

@@ -332,8 +332,10 @@ class _ActionFields extends StatelessWidget {
         skillName: state.editedSkillName,
         availableSkills: state.availableSkills,
         workingDirectory: state.workingDirectory,
+        requiresArgument: state.editedRequiresArgument,
         errorText: state.errors['skillName'],
         onChanged: viewModel.setSkillName,
+        onRequiresArgumentChanged: viewModel.setRequiresArgument,
       ),
     };
   }
@@ -454,15 +456,19 @@ class _ClaudeSkillSection extends StatefulWidget {
     required this.skillName,
     required this.availableSkills,
     required this.workingDirectory,
+    required this.requiresArgument,
     required this.onChanged,
+    required this.onRequiresArgumentChanged,
     this.errorText,
   });
 
   final String skillName;
   final List<String> availableSkills;
   final String workingDirectory;
+  final bool requiresArgument;
   final String? errorText;
   final ValueChanged<String> onChanged;
+  final ValueChanged<bool> onRequiresArgumentChanged;
 
   @override
   State<_ClaudeSkillSection> createState() => _ClaudeSkillSectionState();
@@ -497,41 +503,60 @@ class _ClaudeSkillSectionState extends State<_ClaudeSkillSection> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    return TextField(
-      controller: _controller,
-      decoration: InputDecoration(
-        labelText: l10n.entryEditSkillNameLabel,
-        hintText: l10n.entryEditSkillNameHint,
-        helperText: widget.availableSkills.isEmpty
-            ? l10n.entryEditSkillNameHelperNoSkills
-            : l10n.entryEditSkillNameHelperWithSkills(
-                widget.availableSkills.length,
-              ),
-        errorText: widget.errorText,
-        suffixIcon: widget.availableSkills.isEmpty
-            ? null
-            : PopupMenuButton<String>(
-                // ValueKey で workingDirectory をひもづけ、ディレクトリ
-                // 変更時に PopupMenuButton を強制的に作り直す。
-                // InputDecorator が suffixIcon の同一性を保ったまま
-                // 子の itemBuilder 差し替えだけでは更新が反映されない
-                // macOS 実機の挙動を回避するための保険。
-                key: ValueKey('skill-suggest-${widget.workingDirectory}'),
-                // 右向きシェブロンを 90° 回して下向き（候補を開く）にする。
-                icon: RotatedBox(
-                  quarterTurns: 1,
-                  child: PolarisChevron(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        TextField(
+          controller: _controller,
+          decoration: InputDecoration(
+            labelText: l10n.entryEditSkillNameLabel,
+            hintText: l10n.entryEditSkillNameHint,
+            helperText: widget.availableSkills.isEmpty
+                ? l10n.entryEditSkillNameHelperNoSkills
+                : l10n.entryEditSkillNameHelperWithSkills(
+                    widget.availableSkills.length,
                   ),
-                ),
-                tooltip: l10n.entryEditSkillNameSelectTooltip,
-                itemBuilder: (context) => widget.availableSkills
-                    .map((s) => PopupMenuItem<String>(value: s, child: Text(s)))
-                    .toList(),
-                onSelected: widget.onChanged,
-              ),
-      ),
-      onChanged: widget.onChanged,
+            errorText: widget.errorText,
+            suffixIcon: widget.availableSkills.isEmpty
+                ? null
+                : PopupMenuButton<String>(
+                    // ValueKey で workingDirectory をひもづけ、ディレクトリ
+                    // 変更時に PopupMenuButton を強制的に作り直す。
+                    // InputDecorator が suffixIcon の同一性を保ったまま
+                    // 子の itemBuilder 差し替えだけでは更新が反映されない
+                    // macOS 実機の挙動を回避するための保険。
+                    key: ValueKey('skill-suggest-${widget.workingDirectory}'),
+                    // 右向きシェブロンを 90° 回して下向き（候補を開く）にする。
+                    icon: RotatedBox(
+                      quarterTurns: 1,
+                      child: PolarisChevron(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    tooltip: l10n.entryEditSkillNameSelectTooltip,
+                    itemBuilder: (context) => widget.availableSkills
+                        .map(
+                          (s) =>
+                              PopupMenuItem<String>(value: s, child: Text(s)),
+                        )
+                        .toList(),
+                    onSelected: widget.onChanged,
+                  ),
+          ),
+          onChanged: widget.onChanged,
+        ),
+        const SizedBox(height: PolarisTokens.space2),
+        // 実行時に引数（プロンプト）を求めるトグル（ADR-0062）。on のとき、
+        // ランチャー起動時に複数行入力ダイアログを出し、入力値を
+        // `claude /<skill> <入力>` の単一引数として渡す。
+        SwitchListTile(
+          contentPadding: EdgeInsets.zero,
+          title: Text(l10n.entryEditSkillRequiresArgumentTitle),
+          subtitle: Text(l10n.entryEditSkillRequiresArgumentSubtitle),
+          value: widget.requiresArgument,
+          onChanged: widget.onRequiresArgumentChanged,
+        ),
+      ],
     );
   }
 }

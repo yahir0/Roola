@@ -920,6 +920,25 @@ class AppLocalizationsJa extends AppLocalizations {
   String get entryEditSkillNameSelectTooltip => '候補から選択';
 
   @override
+  String get entryEditSkillRequiresArgumentTitle => '実行時に引数を求める';
+
+  @override
+  String get entryEditSkillRequiresArgumentSubtitle =>
+      '起動時に入力ダイアログを表示し、入力したテキストを `claude /スキル名 <入力>` の引数として渡します。ログや文字起こしなどの長文も入力できます。';
+
+  @override
+  String launcherSkillArgumentPromptTitle(String name) {
+    return '$name に渡す引数';
+  }
+
+  @override
+  String get launcherSkillArgumentPromptHint =>
+      'スキルに渡すテキスト（ログ・文字起こしなどの長文も貼り付け可）';
+
+  @override
+  String get launcherSkillArgumentPromptConfirm => '実行';
+
+  @override
   String get launcherManagementTitle => 'ランチャー管理';
 
   @override

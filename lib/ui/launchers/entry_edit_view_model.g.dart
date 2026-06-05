@@ -77,7 +77,7 @@ final class EntryEditViewModelProvider
 }
 
 String _$entryEditViewModelHash() =>
-    r'8372ea999c22ee24865085adee01b76dfb1bb578';
+    r'845310fdd05b85ada091508f73437e8938030365';
 
 /// エントリ編集 ViewModel。`entryId == null` で新規、それ以外で既存編集。
 ///

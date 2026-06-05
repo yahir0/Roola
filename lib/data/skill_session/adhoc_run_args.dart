@@ -29,5 +29,12 @@ abstract class AdhocRunArgs with _$AdhocRunArgs {
 
     /// Windows でシェルを明示指定する場合に使用。null の場合は設定値を使う。
     WindowsShell? windowsShell,
+
+    /// Claude Skill 起動時に渡す引数本文（ADR-0062）。`action` が
+    /// `ClaudeSkillAction(requiresArgument: true)` のとき、ランチャー起動時に
+    /// 入力ダイアログで受け取った値を入れる。`claude /<skill> <この値>` の
+    /// 単一引数として渡される。ログ / 文字起こしなど長文になりうる。
+    /// 永続化エントリには保存しない実行時専用の値。
+    String? skillArgument,
   }) = _AdhocRunArgs;
 }

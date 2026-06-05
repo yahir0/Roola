@@ -28,16 +28,22 @@ class PtyTerminalRunner implements TerminalRunner {
   });
 
   /// `LauncherAction` を解釈して runner を組み立てる factory。
+  ///
+  /// `skillArgument` は `ClaudeSkillAction` のとき `claude /<skill> <引数>` の
+  /// 単一引数として渡される（ADR-0062）。null / 空なら従来どおり引数なしで
+  /// `claude /<skill>` を起動する。
   factory PtyTerminalRunner.fromAction({
     required String workingDirectory,
     required LauncherAction action,
     Map<String, String>? environment,
     Duration idleThreshold = const Duration(seconds: 2),
     WindowsShell windowsShell = WindowsShell.powershell,
+    String? skillArgument,
   }) {
     final (executable, arguments) = _resolveExecutable(
       action,
       windowsShell: windowsShell,
+      skillArgument: skillArgument,
     );
     return PtyTerminalRunner(
       workingDirectory: workingDirectory,
@@ -234,20 +240,29 @@ class PtyTerminalRunner implements TerminalRunner {
   static (String, List<String>) _resolveExecutable(
     LauncherAction action, {
     WindowsShell windowsShell = WindowsShell.powershell,
+    String? skillArgument,
   }) {
     if (Platform.isWindows) {
-      return _resolveExecutableWindows(action, windowsShell);
+      return _resolveExecutableWindows(action, windowsShell, skillArgument);
     }
-    return _resolveExecutableMacos(action);
+    return _resolveExecutableMacos(action, skillArgument);
   }
 
-  static (String, List<String>) _resolveExecutableMacos(LauncherAction action) {
+  static (String, List<String>) _resolveExecutableMacos(
+    LauncherAction action,
+    String? skillArgument,
+  ) {
     return switch (action) {
       OpenHereAction() => (_userShell(), const <String>[]),
       RunCommandAction(:final command, :final keepShellAfterExit) => (
           _userShell(),
           ['-ilc', _buildShellCommand(command, keepShellAfterExit)],
         ),
+      // `exec "$@"` でログインシェルを claude プロセスに置き換える。引数は
+      // argv 要素としてそのまま渡るため、シェルのエスケープや文字コードの
+      // 変質を受けない（ADR-0062）。skillArgument は `/skill <本文>` の単一
+      // 引数に連結する（本文に空白 / 改行があっても 1 引数のまま claude に
+      // 届く）。
       ClaudeSkillAction(:final skillName) => (
           _userShell(),
           <String>[
@@ -257,7 +272,7 @@ class PtyTerminalRunner implements TerminalRunner {
             r'exec "$@"',
             '_',
             'claude',
-            skillName.startsWith('/') ? skillName : '/$skillName',
+            _claudeSkillPrompt(skillName, skillArgument),
           ],
         ),
     };
@@ -266,6 +281,7 @@ class PtyTerminalRunner implements TerminalRunner {
   static (String, List<String>) _resolveExecutableWindows(
     LauncherAction action,
     WindowsShell shell,
+    String? skillArgument,
   ) {
     final exe = _windowsShellExe(shell);
     return switch (action) {
@@ -273,8 +289,19 @@ class PtyTerminalRunner implements TerminalRunner {
       RunCommandAction(:final command, :final keepShellAfterExit) =>
         _windowsRunCommand(exe, shell, command, keepShellAfterExit),
       ClaudeSkillAction(:final skillName) =>
-        _windowsClaudeSkill(exe, shell, skillName),
+        _windowsClaudeSkill(exe, shell, skillName, skillArgument),
     };
+  }
+
+  /// `claude` に渡す単一の positional 引数（`/skill` または `/skill <本文>`）を
+  /// 組み立てる。`skillName` が `/` 始まりでなければ補う。`argument` が
+  /// 非空のときだけ半角空白で連結する。
+  static String _claudeSkillPrompt(String skillName, String? argument) {
+    final skill = skillName.startsWith('/') ? skillName : '/$skillName';
+    if (argument == null || argument.isEmpty) {
+      return skill;
+    }
+    return '$skill $argument';
   }
 
   static String _windowsShellExe(WindowsShell shell) => switch (shell) {
@@ -318,15 +345,44 @@ class PtyTerminalRunner implements TerminalRunner {
     String exe,
     WindowsShell shell,
     String skillName,
+    String? skillArgument,
   ) {
     final skill = skillName.startsWith('/') ? skillName : '/$skillName';
-    final command = 'claude $skill';
+    final hasArg = skillArgument != null && skillArgument.isNotEmpty;
+    // claude は npm の .cmd シム経由でしかないため、シェル（cmd / PowerShell）の
+    // コマンド文字列に埋め込まざるを得ない。引数なしは従来どおり素の
+    // `claude /skill`。引数ありは `prompt`（= `/skill <本文>`）を claude への
+    // 1 引数としてシェルごとにクォートする（ADR-0062）。PowerShell / pwsh は
+    // シングルクォート囲み（`'` → `''`）で `$` / バッククォート / `%` / `!` /
+    // 改行をリテラル化でき最も安全。cmd は仕様上アーバイトラリなテキストを
+    // 安全に渡しきれないため best-effort。
+    final String command;
+    if (!hasArg) {
+      command = 'claude $skill';
+    } else {
+      final prompt = '$skill $skillArgument';
+      command = switch (shell) {
+        WindowsShell.cmd => 'claude ${_cmdQuote(prompt)}',
+        WindowsShell.powershell ||
+        WindowsShell.pwsh => 'claude ${_powerShellQuote(prompt)}',
+      };
+    }
     return switch (shell) {
       WindowsShell.cmd => (exe, ['/C', command]),
       WindowsShell.powershell => (exe, ['-Command', command]),
       WindowsShell.pwsh => (exe, ['-Command', command]),
     };
   }
+
+  /// PowerShell のシングルクォート文字列リテラルとして安全に囲む。
+  /// シングルクォートのみ `''` にエスケープすればよく、`$` / バッククォート /
+  /// `%` / `!` / 改行はすべてリテラルとして扱われる。
+  static String _powerShellQuote(String s) => "'${s.replaceAll("'", "''")}'";
+
+  /// cmd.exe 向けの best-effort クォート。ダブルクォートで囲み、内側の `"` を
+  /// `""` にする。cmd の `%`（変数展開）等は完全には無害化できないため、長文 /
+  /// 特殊文字を確実に渡したい場合は PowerShell を推奨（ADR-0062）。
+  static String _cmdQuote(String s) => '"${s.replaceAll('"', '""')}"';
 
   static String _userShell() {
     final shell = Platform.environment['SHELL'];

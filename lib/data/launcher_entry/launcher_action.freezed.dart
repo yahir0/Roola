@@ -152,12 +152,12 @@ return claudeSkill(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  openHere,TResult Function( String command,  bool keepShellAfterExit)?  runCommand,TResult Function( String skillName)?  claudeSkill,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  openHere,TResult Function( String command,  bool keepShellAfterExit)?  runCommand,TResult Function( String skillName,  bool requiresArgument)?  claudeSkill,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case OpenHereAction() when openHere != null:
 return openHere();case RunCommandAction() when runCommand != null:
 return runCommand(_that.command,_that.keepShellAfterExit);case ClaudeSkillAction() when claudeSkill != null:
-return claudeSkill(_that.skillName);case _:
+return claudeSkill(_that.skillName,_that.requiresArgument);case _:
   return orElse();
 
 }
@@ -175,12 +175,12 @@ return claudeSkill(_that.skillName);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  openHere,required TResult Function( String command,  bool keepShellAfterExit)  runCommand,required TResult Function( String skillName)  claudeSkill,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  openHere,required TResult Function( String command,  bool keepShellAfterExit)  runCommand,required TResult Function( String skillName,  bool requiresArgument)  claudeSkill,}) {final _that = this;
 switch (_that) {
 case OpenHereAction():
 return openHere();case RunCommandAction():
 return runCommand(_that.command,_that.keepShellAfterExit);case ClaudeSkillAction():
-return claudeSkill(_that.skillName);}
+return claudeSkill(_that.skillName,_that.requiresArgument);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -194,12 +194,12 @@ return claudeSkill(_that.skillName);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  openHere,TResult? Function( String command,  bool keepShellAfterExit)?  runCommand,TResult? Function( String skillName)?  claudeSkill,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  openHere,TResult? Function( String command,  bool keepShellAfterExit)?  runCommand,TResult? Function( String skillName,  bool requiresArgument)?  claudeSkill,}) {final _that = this;
 switch (_that) {
 case OpenHereAction() when openHere != null:
 return openHere();case RunCommandAction() when runCommand != null:
 return runCommand(_that.command,_that.keepShellAfterExit);case ClaudeSkillAction() when claudeSkill != null:
-return claudeSkill(_that.skillName);case _:
+return claudeSkill(_that.skillName,_that.requiresArgument);case _:
   return null;
 
 }
@@ -325,10 +325,11 @@ as bool,
 @JsonSerializable()
 
 class ClaudeSkillAction implements LauncherAction {
-  const ClaudeSkillAction({required this.skillName, final  String? $type}): $type = $type ?? 'claudeSkill';
+  const ClaudeSkillAction({required this.skillName, this.requiresArgument = false, final  String? $type}): $type = $type ?? 'claudeSkill';
   factory ClaudeSkillAction.fromJson(Map<String, dynamic> json) => _$ClaudeSkillActionFromJson(json);
 
  final  String skillName;
+@JsonKey() final  bool requiresArgument;
 
 @JsonKey(name: 'type')
 final String $type;
@@ -347,16 +348,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ClaudeSkillAction&&(identical(other.skillName, skillName) || other.skillName == skillName));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ClaudeSkillAction&&(identical(other.skillName, skillName) || other.skillName == skillName)&&(identical(other.requiresArgument, requiresArgument) || other.requiresArgument == requiresArgument));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,skillName);
+int get hashCode => Object.hash(runtimeType,skillName,requiresArgument);
 
 @override
 String toString() {
-  return 'LauncherAction.claudeSkill(skillName: $skillName)';
+  return 'LauncherAction.claudeSkill(skillName: $skillName, requiresArgument: $requiresArgument)';
 }
 
 
@@ -367,7 +368,7 @@ abstract mixin class $ClaudeSkillActionCopyWith<$Res> implements $LauncherAction
   factory $ClaudeSkillActionCopyWith(ClaudeSkillAction value, $Res Function(ClaudeSkillAction) _then) = _$ClaudeSkillActionCopyWithImpl;
 @useResult
 $Res call({
- String skillName
+ String skillName, bool requiresArgument
 });
 
 
@@ -384,10 +385,11 @@ class _$ClaudeSkillActionCopyWithImpl<$Res>
 
 /// Create a copy of LauncherAction
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') $Res call({Object? skillName = null,}) {
+@pragma('vm:prefer-inline') $Res call({Object? skillName = null,Object? requiresArgument = null,}) {
   return _then(ClaudeSkillAction(
 skillName: null == skillName ? _self.skillName : skillName // ignore: cast_nullable_to_non_nullable
-as String,
+as String,requiresArgument: null == requiresArgument ? _self.requiresArgument : requiresArgument // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 
