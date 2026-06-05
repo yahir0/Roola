@@ -1630,8 +1630,13 @@ class _RunningTile extends ConsumerWidget {
       // 整合性が崩れている。表示しない。
       return const SizedBox.shrink();
     }
+    final tokens = PolarisTokens.of(context);
     final layout = ref.watch(workspaceProvider);
     final tab = _terminalTabFor(layout, sessionId);
+    // いま表示中（＝いずれかのペインの前面に出ている）ターミナルタブなら、
+    // 選択状態として強調する。お気に入りの現在地ハイライトと同じ語彙
+    // （surfaceHi 地 + accent 文字 + 左 2px アクセントバー）に揃える。
+    final isCurrent = _isCurrentTerminal(layout, sessionId);
     return InkWell(
       onTap: () {
         final workspace = ref.read(workspaceProvider.notifier);
@@ -1641,47 +1646,67 @@ class _RunningTile extends ConsumerWidget {
           workspace.addTerminalTab(PaneSlotId.bottom, args: adhocArgs);
         }
       },
-      child: Container(
-        height: PolarisTokens.space7,
-        padding: const EdgeInsets.symmetric(horizontal: PolarisTokens.space4),
-        child: Row(
-          children: [
-            SizedBox(
-              width: 18,
-              height: 18,
-              child: sessionStateAvatar(PolarisTokens.of(context), state),
+      child: Stack(
+        children: [
+          Container(
+            height: PolarisTokens.space7,
+            color: isCurrent ? tokens.surfaceHi : null,
+            padding: const EdgeInsets.symmetric(
+              horizontal: PolarisTokens.space4,
             ),
-            const SizedBox(width: PolarisTokens.space2),
-            Expanded(
-              child: Text(
-                adhocArgs.displayName,
-                style: Theme.of(context).textTheme.bodyMedium,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 18,
+                  height: 18,
+                  // 状態アバターは色で実行状態を伝えるため、強調時も色は変えない。
+                  child: sessionStateAvatar(tokens, state),
+                ),
+                const SizedBox(width: PolarisTokens.space2),
+                Expanded(
+                  child: Text(
+                    adhocArgs.displayName,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: isCurrent ? tokens.accent : null,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close, size: PolarisIconSize.standard),
+                  tooltip: AppLocalizations.of(
+                    context,
+                  ).explorerSessionDiscardTooltip,
+                  visualDensity: VisualDensity.compact,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(
+                    minWidth: 24,
+                    minHeight: 24,
+                  ),
+                  onPressed: () {
+                    if (tab != null) {
+                      ref.read(workspaceProvider.notifier).closeTab(tab.id);
+                    } else {
+                      // タブを持たない孤立セッション。直接破棄する。
+                      ref
+                          .read(activeSessionsProvider.notifier)
+                          .unregister(sessionId);
+                      ref.invalidate(adhocRunViewModelProvider(adhocArgs));
+                    }
+                  },
+                ),
+              ],
             ),
-            IconButton(
-              icon: const Icon(Icons.close, size: PolarisIconSize.standard),
-              tooltip: AppLocalizations.of(
-                context,
-              ).explorerSessionDiscardTooltip,
-              visualDensity: VisualDensity.compact,
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
-              onPressed: () {
-                if (tab != null) {
-                  ref.read(workspaceProvider.notifier).closeTab(tab.id);
-                } else {
-                  // タブを持たない孤立セッション。直接破棄する。
-                  ref
-                      .read(activeSessionsProvider.notifier)
-                      .unregister(sessionId);
-                  ref.invalidate(adhocRunViewModelProvider(adhocArgs));
-                }
-              },
+          ),
+          if (isCurrent)
+            Positioned(
+              left: 0,
+              top: 4,
+              bottom: 4,
+              child: Container(width: 2, color: tokens.accent),
             ),
-          ],
-        ),
+        ],
       ),
     );
   }
@@ -1699,6 +1724,19 @@ class _RunningTile extends ConsumerWidget {
       }
     }
     return null;
+  }
+
+  /// `sessionId` のターミナルタブが、いずれかのペインの前面（activeTab）に
+  /// 出ているか。複数ペインに別々のターミナルが前面表示される構成もあるため、
+  /// 全ペインの activeTab を調べる。
+  static bool _isCurrentTerminal(WorkspaceLayout layout, String sessionId) {
+    for (final slotId in PaneSlotId.values) {
+      final active = layout.slot(slotId).activeTab;
+      if (active is TerminalTab && active.args.adhocId == sessionId) {
+        return true;
+      }
+    }
+    return false;
   }
 }
 
