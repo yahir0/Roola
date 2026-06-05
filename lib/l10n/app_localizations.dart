@@ -272,6 +272,12 @@ abstract class AppLocalizations {
   /// **'ここでターミナルを開く'**
   String get commandOpenTerminalHere;
 
+  /// No description provided for @explorerOpenInNewTab.
+  ///
+  /// In ja, this message translates to:
+  /// **'新しいタブで開く'**
+  String get explorerOpenInNewTab;
+
   /// No description provided for @explorerOpenTerminalCmdPrompt.
   ///
   /// In ja, this message translates to:

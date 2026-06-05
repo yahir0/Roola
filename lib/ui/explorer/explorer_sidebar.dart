@@ -6,6 +6,9 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:roola/app/router.dart';
 import 'package:roola/app/theme.dart';
+import 'package:roola/core/health/claude_health_check.dart';
+import 'package:roola/data/keybindings/command_id.dart';
+import 'package:roola/data/launcher_entry/launcher_action.dart';
 import 'package:roola/data/launcher_entry/launcher_entries_provider.dart';
 import 'package:roola/data/launcher_entry/launcher_entry.dart';
 import 'package:roola/data/launcher_entry/launcher_folder.dart';
@@ -15,6 +18,7 @@ import 'package:roola/data/repo_explorer/explorer_settings_repository_impl.dart'
 import 'package:roola/data/repo_explorer/favorite_tree_provider.dart';
 import 'package:roola/data/skill_session/active_sessions.dart';
 import 'package:roola/data/terminal_runner/terminal_run_state.dart';
+import 'package:roola/data/terminal_runner/windows_shell.dart';
 import 'package:roola/data/workspace/workspace_layout.dart';
 import 'package:roola/data/workspace/workspace_tab.dart';
 import 'package:roola/l10n/app_localizations.dart';
@@ -773,6 +777,9 @@ class _FavoriteTile extends HookConsumerWidget {
     Offset position,
   ) async {
     final l10n = AppLocalizations.of(context);
+    // Claude CLI 未導入時は「Claude Code で開く」を非表示にする（ADR-0022）。
+    // cached な claudeHealthProvider を参照するだけで I/O は発生しない。
+    final claudeAvailable = ref.read(claudeAvailableProvider);
     final selected = await showMenu<_FavoriteAction>(
       context: context,
       position: RelativeRect.fromLTRB(
@@ -782,6 +789,40 @@ class _FavoriteTile extends HookConsumerWidget {
         position.dy,
       ),
       items: [
+        polarisPopupMenuItem<_FavoriteAction>(
+          context,
+          value: _FavoriteAction.openInNewTab,
+          icon: Icons.tab_outlined,
+          label: l10n.explorerOpenInNewTab,
+        ),
+        if (claudeAvailable)
+          commandPopupMenuItem<_FavoriteAction>(
+            context,
+            ref,
+            command: CommandId.openClaudeHere,
+            value: _FavoriteAction.openClaude,
+          ),
+        if (Platform.isWindows) ...[
+          polarisPopupMenuItem<_FavoriteAction>(
+            context,
+            value: _FavoriteAction.openTerminalCmd,
+            icon: Icons.developer_mode,
+            label: l10n.explorerOpenTerminalCmdPrompt,
+          ),
+          polarisPopupMenuItem<_FavoriteAction>(
+            context,
+            value: _FavoriteAction.openTerminalPs,
+            icon: Icons.developer_mode,
+            label: l10n.explorerOpenTerminalPowerShell,
+          ),
+        ] else
+          commandPopupMenuItem<_FavoriteAction>(
+            context,
+            ref,
+            command: CommandId.openTerminalHere,
+            value: _FavoriteAction.openTerminal,
+          ),
+        const PopupMenuDivider(height: polarisMenuDividerHeight),
         polarisPopupMenuItem<_FavoriteAction>(
           context,
           value: _FavoriteAction.rename,
@@ -801,6 +842,57 @@ class _FavoriteTile extends HookConsumerWidget {
     }
     final notifier = ref.read(explorerSettingsProvider.notifier);
     switch (selected) {
+      case _FavoriteAction.openInNewTab:
+        // フォーカス追従ではなく、常に新規エクスプローラタブを開く。
+        ref
+            .read(workspaceProvider.notifier)
+            .addExplorerTab(PaneSlotId.topLeft, path: favorite.path);
+      case _FavoriteAction.openClaude:
+        // 「Claude Code で開く」は素の `claude` 起動（ADR-0016）。
+        ref.read(workspaceProvider.notifier).addTerminalTab(
+              PaneSlotId.bottom,
+              args: AdhocRunArgs(
+                adhocId: 'adhoc-${_uuid.v4()}',
+                workingDirectory: favorite.path,
+                displayName: '${favorite.name} (Claude)',
+                action: const LauncherAction.runCommand(
+                  command: 'claude',
+                  keepShellAfterExit: false,
+                ),
+              ),
+            );
+      case _FavoriteAction.openTerminal:
+        ref.read(workspaceProvider.notifier).addTerminalTab(
+              PaneSlotId.bottom,
+              args: AdhocRunArgs(
+                adhocId: 'adhoc-${_uuid.v4()}',
+                workingDirectory: favorite.path,
+                displayName: '${favorite.name} (Terminal)',
+                action: const LauncherAction.openHere(),
+              ),
+            );
+      case _FavoriteAction.openTerminalCmd:
+        ref.read(workspaceProvider.notifier).addTerminalTab(
+              PaneSlotId.bottom,
+              args: AdhocRunArgs(
+                adhocId: 'adhoc-${_uuid.v4()}',
+                workingDirectory: favorite.path,
+                displayName: '${favorite.name} (cmd)',
+                action: const LauncherAction.openHere(),
+                windowsShell: WindowsShell.cmd,
+              ),
+            );
+      case _FavoriteAction.openTerminalPs:
+        ref.read(workspaceProvider.notifier).addTerminalTab(
+              PaneSlotId.bottom,
+              args: AdhocRunArgs(
+                adhocId: 'adhoc-${_uuid.v4()}',
+                workingDirectory: favorite.path,
+                displayName: '${favorite.name} (PowerShell)',
+                action: const LauncherAction.openHere(),
+                windowsShell: WindowsShell.powershell,
+              ),
+            );
       case _FavoriteAction.rename:
         final newName = await promptName(
           context,
@@ -817,7 +909,15 @@ class _FavoriteTile extends HookConsumerWidget {
   }
 }
 
-enum _FavoriteAction { rename, remove }
+enum _FavoriteAction {
+  openInNewTab,
+  openClaude,
+  openTerminal,
+  openTerminalCmd,
+  openTerminalPs,
+  rename,
+  remove,
+}
 
 enum _FavoritesHeaderAction { newFolder, addCurrent }
 
