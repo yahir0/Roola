@@ -131,6 +131,7 @@
 - ADR-0057: Claude Code のタスク完了を Stop フック + ローカル受信口で macOS 通知する
 - ADR-0058: Windows 対応（ADR-0001 Supersede）—対応プラットフォームを macOS + Windows に拡張する
 - ADR-0060: アクティビティモニタに Claude Code 使用量メーター（ローカル JSONL 集計・推定コスト）を追加する
+- ADR-0061: プレビューのテキストを Text.rich で描画し選択・コピー可能にする（flutter_highlight → highlight）
 
 ## ディレクトリ構成
 

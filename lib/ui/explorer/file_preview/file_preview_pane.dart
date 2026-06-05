@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_highlight/flutter_highlight.dart';
+import 'package:highlight/highlight.dart' show highlight, Node;
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:pdfrx/pdfrx.dart';
 import 'package:roola/app/theme.dart';
@@ -12,7 +12,7 @@ import 'package:roola/ui/explorer/file_preview/polaris_highlight_theme.dart';
 
 /// Explorer タブ右ペインのファイルプレビュー（ADR-0046）。
 ///
-/// 主選択ファイルを `flutter_highlight` でシンタックスハイライト表示する
+/// 主選択ファイルを `highlight` パッケージでシンタックスハイライト表示する
 /// 読み取り専用ビュー。バイナリ / 大きすぎ / 失敗のケースはそれぞれ専用の
 /// placeholder を出す。`PolarisDisplayPanel` の中に置く前提で、地色は
 /// 親（`well`）に任せ、本 Widget では塗らない。
@@ -126,8 +126,13 @@ class _PreviewBody extends StatelessWidget {
   }
 }
 
-/// テキスト本体。`flutter_highlight` の [HighlightView] に Polaris テーマを
-/// 渡して描画する。truncate された場合は上部にバナーを表示する。
+/// テキスト本体。`highlight` パッケージで構文解析した結果を Polaris テーマで
+/// [Text.rich] として描画する。truncate された場合は上部にバナーを表示する。
+///
+/// flutter_highlight の `HighlightView` は内部で生の [RichText] を使うため
+/// 祖先の [SelectionArea] に選択対象として登録されず、テキスト選択 / コピーが
+/// できない。ここでは同じハイライト結果を [Text.rich] で描画することで
+/// [SelectionArea] 経由のドラッグ選択・⌘C コピーを有効にする。
 class _TextBody extends StatelessWidget {
   const _TextBody({required this.content});
 
@@ -138,15 +143,15 @@ class _TextBody extends StatelessWidget {
     final tokens = PolarisTokens.of(context);
     final l10n = AppLocalizations.of(context);
     final theme = polarisHighlightTheme(tokens);
-    final highlight = HighlightView(
+    // ベース（root）の色は theme['root'] から、フォントは mono を使う。地色は
+    // 親の計器ディスプレイ（well）に任せるため塗らない。
+    final baseStyle = tokens.mono.copyWith(color: theme['root']?.color);
+    final spans = _highlightSpans(
       content.content,
-      // 言語未判定（プレーンテキスト）は HighlightView がそのまま素通しで
-      // 描画するよう空文字を渡す（`'plaintext'` でも同じ挙動だが、明示的
-      // にスタイルなしを意図して空にする）。
-      language: content.language ?? '',
-      theme: theme,
-      padding: const EdgeInsets.all(PolarisTokens.space3),
-      textStyle: tokens.mono,
+      // 言語未判定（プレーンテキスト）は空文字を渡す。`highlight.parse` は
+      // 未登録言語を plaintext にフォールバックするため素通しで描画される。
+      content.language ?? '',
+      theme,
     );
     return Column(
       children: [
@@ -165,11 +170,18 @@ class _TextBody extends StatelessWidget {
           ),
         if (content.isTruncated) Container(height: 1, color: tokens.line),
         Expanded(
-          child: Scrollbar(
-            child: SingleChildScrollView(
+          child: SelectionArea(
+            child: Scrollbar(
               child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: SelectionArea(child: highlight),
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Padding(
+                    padding: const EdgeInsets.all(PolarisTokens.space3),
+                    child: Text.rich(
+                      TextSpan(style: baseStyle, children: spans),
+                    ),
+                  ),
+                ),
               ),
             ),
           ),
@@ -177,6 +189,48 @@ class _TextBody extends StatelessWidget {
       ],
     );
   }
+}
+
+/// `highlight` パッケージの構文木（[Node]）を Polaris テーマ付きの [TextSpan]
+/// 列へ変換する。flutter_highlight の `HighlightView._convert` と同じ走査だが、
+/// 描画先を [Text.rich]（選択可能）にするために自前で持つ。
+List<TextSpan> _highlightSpans(
+  String source,
+  String language,
+  Map<String, TextStyle> theme,
+) {
+  final nodes = highlight.parse(source, language: language).nodes ?? const [];
+  final spans = <TextSpan>[];
+  var currentSpans = spans;
+  final stack = <List<TextSpan>>[];
+
+  void traverse(Node node) {
+    if (node.value != null) {
+      currentSpans.add(
+        node.className == null
+            ? TextSpan(text: node.value)
+            : TextSpan(text: node.value, style: theme[node.className!]),
+      );
+    } else if (node.children != null) {
+      final children = <TextSpan>[];
+      currentSpans.add(
+        TextSpan(children: children, style: theme[node.className!]),
+      );
+      stack.add(currentSpans);
+      currentSpans = children;
+      for (final child in node.children!) {
+        traverse(child);
+        if (child == node.children!.last) {
+          currentSpans = stack.isEmpty ? spans : stack.removeLast();
+        }
+      }
+    }
+  }
+
+  for (final node in nodes) {
+    traverse(node);
+  }
+  return spans;
 }
 
 /// 画像本体（ADR-0050）。`Image.file` をピンチ / ドラッグでパン・ズーム

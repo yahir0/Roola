@@ -68,7 +68,13 @@ dependencies:
   # シンタックスハイライトのみを担当する最小コンポーネント（編集 UI を
   # 内包する flutter_code_editor は意図的に採用しない）。テーマは
   # Polaris トークンから組み立てた Map<String, TextStyle> を渡す。
-  flutter_highlight: ^0.7.0
+  #
+  # 描画は flutter_highlight の HighlightView ではなく、本パッケージの
+  # `highlight.parse` で得たノードを自前で TextSpan 化して Text.rich に渡す。
+  # HighlightView は内部で生の RichText を使うため SelectionArea の選択対象
+  # にならず、テキスト選択 / コピーができないため（プレビューはコピー可を要件
+  # とする）。
+  highlight: ^0.7.0
 
   # プレビューパネルの PDF 描画用（ADR-0050）。macOS は PDFium XCFramework を
   # CocoaPods 経由でリンクする。読み取り専用ビューア（スクロール / ズーム /
