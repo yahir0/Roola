@@ -253,7 +253,11 @@ class PtyTerminalRunner implements TerminalRunner {
     String? skillArgument,
   ) {
     return switch (action) {
-      OpenHereAction() => (_userShell(), const <String>[]),
+      // ログインシェル（-l）で起動する。macOS の Terminal.app / iTerm2 は既定で
+      // ログインシェルを開くため、それに揃えないと `/etc/zprofile` の
+      // path_helper（/usr/local/bin 等を PATH に追加）や `~/.zprofile` が走らず、
+      // Homebrew / node 系コマンドが見つからない（ADR-0063）。
+      OpenHereAction() => (_userShell(), const <String>['-l']),
       RunCommandAction(:final command, :final keepShellAfterExit) => (
           _userShell(),
           ['-ilc', _buildShellCommand(command, keepShellAfterExit)],
