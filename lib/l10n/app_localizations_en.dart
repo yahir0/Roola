@@ -96,6 +96,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get commandOpenTerminalHere => 'Open terminal here';
 
   @override
+  String get explorerOpenInNewTab => 'Open in new tab';
+
+  @override
   String get explorerOpenTerminalCmdPrompt => 'Open Command Prompt';
 
   @override
