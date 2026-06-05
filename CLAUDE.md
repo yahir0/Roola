@@ -133,6 +133,7 @@
 - ADR-0060: アクティビティモニタに Claude Code 使用量メーター（ローカル JSONL 集計・推定コスト）を追加する
 - ADR-0061: プレビューのテキストを Text.rich で描画し選択・コピー可能にする（flutter_highlight → highlight）
 - ADR-0062: ランチャーの Claude Skill に実行時引数（プロンプト）を渡せるようにする（コマンドライン引数・複数行入力）
+- ADR-0063: 「素のシェル（OpenHere）」をログインシェルで起動する（Terminal.app と同じ PATH 構築・node 等の command not found を解消）
 
 ## ディレクトリ構成
 

@@ -104,7 +104,7 @@ void main() {
     });
 
     test(
-      r'OpenHereAction → executable は $SHELL（無ければ /bin/zsh）, arguments は空',
+      r'OpenHereAction → executable は $SHELL（無ければ /bin/zsh）, arguments は -l（ログインシェル）',
       () {
         if (Platform.isWindows) return;
         final runner = PtyTerminalRunner.fromAction(
@@ -114,7 +114,7 @@ void main() {
         addTearDown(runner.dispose);
         final expectedShell = Platform.environment['SHELL'] ?? '/bin/zsh';
         expect(runner.executable, expectedShell);
-        expect(runner.arguments, isEmpty);
+        expect(runner.arguments, const ['-l']);
       },
     );
 
