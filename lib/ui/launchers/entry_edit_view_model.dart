@@ -37,6 +37,9 @@ abstract class EntryEditState with _$EntryEditState {
     /// 「🤖 Claude Skill」セグメント用の編集中 Skill 名。
     @Default('') String editedSkillName,
 
+    /// 「🤖 Claude Skill」で実行時に引数（プロンプト）を求めるか（ADR-0062）。
+    @Default(false) bool editedRequiresArgument,
+
     /// 現在の作業ディレクトリ配下で検出された Skill 名候補。
     /// `<dir>/.claude/skills/<name>/SKILL.md` の `<name>` を集めたもの。
     @Default(<String>[]) List<String> availableSkills,
@@ -88,6 +91,10 @@ class EntryEditViewModel extends _$EntryEditViewModel {
       ClaudeSkillAction(:final skillName) => skillName,
       _ => '',
     };
+    final requiresArgument = switch (entry.action) {
+      ClaudeSkillAction(:final requiresArgument) => requiresArgument,
+      _ => false,
+    };
     return EntryEditState(
       displayName: entry.displayName,
       workingDirectory: entry.workingDirectory,
@@ -95,6 +102,7 @@ class EntryEditViewModel extends _$EntryEditViewModel {
       editedCommand: command,
       editedKeepShellAfterExit: keepShell,
       editedSkillName: skillName,
+      editedRequiresArgument: requiresArgument,
       availableSkills: scanSkills
           ? _scanner.scan(entry.workingDirectory)
           : const [],
@@ -132,6 +140,7 @@ class EntryEditViewModel extends _$EntryEditViewModel {
       ),
       LauncherActionType.claudeSkill => LauncherAction.claudeSkill(
         skillName: state.editedSkillName,
+        requiresArgument: state.editedRequiresArgument,
       ),
     };
     state = state.copyWith(
@@ -173,6 +182,17 @@ class EntryEditViewModel extends _$EntryEditViewModel {
           ? action.copyWith(skillName: value)
           : action,
       errors: _clearError('skillName'),
+    );
+  }
+
+  /// 「🤖 Claude Skill」で実行時に引数を求めるかを更新する（ADR-0062）。
+  void setRequiresArgument(bool value) {
+    final action = state.action;
+    state = state.copyWith(
+      editedRequiresArgument: value,
+      action: action is ClaudeSkillAction
+          ? action.copyWith(requiresArgument: value)
+          : action,
     );
   }
 
@@ -253,9 +273,11 @@ class EntryEditViewModel extends _$EntryEditViewModel {
         command: command.trim(),
         keepShellAfterExit: keepShellAfterExit,
       ),
-    ClaudeSkillAction(:final skillName) => LauncherAction.claudeSkill(
-      skillName: skillName.trim(),
-    ),
+    ClaudeSkillAction(:final skillName, :final requiresArgument) =>
+      LauncherAction.claudeSkill(
+        skillName: skillName.trim(),
+        requiresArgument: requiresArgument,
+      ),
   };
 
   DateTime? _existingCreatedAt(String id) {

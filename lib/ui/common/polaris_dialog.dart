@@ -162,6 +162,84 @@ Future<String?> showPolarisPrompt(
   );
 }
 
+/// Polaris の複数行入力ダイアログ。ログ / 文字起こしなど長文を貼り付けて
+/// 渡す用途（ADR-0062）。確定で入力文字列（**trim しない**）、取消で `null`。
+///
+/// 1 行版（[showPolarisPrompt]）と違い、入力は **trim しない**。先頭 / 末尾の
+/// 改行や空白も意味を持ちうる本文（プロンプト全文）をそのまま渡すため。
+/// Enter は改行入力になるので、確定はボタンで行う（空入力も許可）。
+Future<String?> showPolarisMultilinePrompt(
+  BuildContext context, {
+  required String title,
+  required String confirmLabel,
+  required String cancelLabel,
+  String? hintText,
+  String initialValue = '',
+}) {
+  return showDialog<String>(
+    context: context,
+    builder: (context) => _MultilinePromptDialog(
+      title: title,
+      confirmLabel: confirmLabel,
+      cancelLabel: cancelLabel,
+      hintText: hintText,
+      initialValue: initialValue,
+    ),
+  );
+}
+
+class _MultilinePromptDialog extends HookWidget {
+  const _MultilinePromptDialog({
+    required this.title,
+    required this.confirmLabel,
+    required this.cancelLabel,
+    required this.hintText,
+    required this.initialValue,
+  });
+
+  final String title;
+  final String confirmLabel;
+  final String cancelLabel;
+  final String? hintText;
+  final String initialValue;
+
+  @override
+  Widget build(BuildContext context) {
+    final controller = useTextEditingController(text: initialValue);
+    // 確定時は trim せず生の本文を返す（長文プロンプトを改変しない）。
+    void submit() => Navigator.of(context).pop(controller.text);
+
+    return PolarisDialog(
+      // 長文を見渡せるよう広めに取る。
+      width: 560,
+      title: title,
+      content: SizedBox(
+        height: 320,
+        child: TextField(
+          controller: controller,
+          autofocus: true,
+          // 高さいっぱいに広げ、長文はスクロールで扱う。文字数に上限は設けない。
+          expands: true,
+          maxLines: null,
+          textAlignVertical: TextAlignVertical.top,
+          keyboardType: TextInputType.multiline,
+          decoration: InputDecoration(
+            hintText: hintText,
+            alignLabelWithHint: true,
+          ),
+        ),
+      ),
+      actions: [
+        OutlinedButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(cancelLabel),
+        ),
+        FilledButton(onPressed: submit, child: Text(confirmLabel)),
+      ],
+    );
+  }
+}
+
 class _PromptDialog extends HookWidget {
   const _PromptDialog({
     required this.title,

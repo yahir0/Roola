@@ -1418,7 +1418,7 @@ class _LauncherTile extends ConsumerWidget {
   Widget _tile(BuildContext context, WidgetRef ref, {required bool dragging}) {
     final colors = Theme.of(context).colorScheme;
     return InkWell(
-      onTap: dragging ? null : () => launchLauncherEntry(ref, entry),
+      onTap: dragging ? null : () => launchLauncherEntry(context, ref, entry),
       child: Container(
         height: PolarisTokens.space7,
         padding: EdgeInsets.fromLTRB(

@@ -1,8 +1,11 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:roola/data/launcher_entry/launcher_action.dart';
 import 'package:roola/data/launcher_entry/launcher_entry.dart';
 import 'package:roola/data/skill_session/active_sessions.dart';
 import 'package:roola/data/workspace/workspace_layout.dart';
+import 'package:roola/l10n/app_localizations.dart';
+import 'package:roola/ui/common/polaris_dialog.dart';
 import 'package:roola/ui/run/adhoc_run_view_model.dart';
 import 'package:roola/ui/workspace/workspace_provider.dart';
 import 'package:uuid/uuid.dart';
@@ -19,7 +22,33 @@ const _uuid = Uuid();
 /// 付ける。Finder で同名の新規ファイルが「foo 2」「foo 3」と増えるのと同じ
 /// 感覚で、同じエントリを複数並行できるようにする。連番は「現在 active な
 /// 表示名のみ」を見て決めるので、閉じた跡は空き番号として埋まる。
-void launchLauncherEntry(WidgetRef ref, LauncherEntry entry) {
+/// `ClaudeSkillAction(requiresArgument: true)` のときは、起動前に複数行入力
+/// ダイアログで引数（プロンプト本文）を受け取り、`skillArgument` として渡す
+/// （ADR-0062）。ダイアログを取消した場合は起動しない。引数入力には
+/// [BuildContext] が要るため、引数要求ありのエントリではこの非同期パスを使う。
+Future<void> launchLauncherEntry(
+  BuildContext context,
+  WidgetRef ref,
+  LauncherEntry entry,
+) async {
+  final action = entry.action;
+  String? skillArgument;
+  if (action is ClaudeSkillAction && action.requiresArgument) {
+    final l10n = AppLocalizations.of(context);
+    final input = await showPolarisMultilinePrompt(
+      context,
+      title: l10n.launcherSkillArgumentPromptTitle(entry.displayName),
+      hintText: l10n.launcherSkillArgumentPromptHint,
+      confirmLabel: l10n.launcherSkillArgumentPromptConfirm,
+      cancelLabel: l10n.buttonCancel,
+    );
+    // 取消（null）なら起動しない。空文字での確定は許可（引数なしで実行）。
+    if (input == null) {
+      return;
+    }
+    skillArgument = input;
+  }
+
   final sessions = ref.read(activeSessionsProvider);
   final used = _collectActiveDisplayNames(ref, sessions.keys);
   final displayName = generateUniqueDisplayName(entry.displayName, used);
@@ -28,6 +57,7 @@ void launchLauncherEntry(WidgetRef ref, LauncherEntry entry) {
     workingDirectory: entry.workingDirectory,
     displayName: displayName,
     action: entry.action,
+    skillArgument: skillArgument,
   );
   ref
       .read(workspaceProvider.notifier)

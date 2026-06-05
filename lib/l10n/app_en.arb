@@ -396,6 +396,14 @@
     "placeholders": { "count": { "type": "int" } }
   },
   "entryEditSkillNameSelectTooltip": "Select from suggestions",
+  "entryEditSkillRequiresArgumentTitle": "Ask for an argument on launch",
+  "entryEditSkillRequiresArgumentSubtitle": "Shows an input dialog on launch and passes the entered text as the argument of `claude /skill <input>`. You can paste long text such as logs or transcripts.",
+  "launcherSkillArgumentPromptTitle": "Argument for {name}",
+  "@launcherSkillArgumentPromptTitle": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "launcherSkillArgumentPromptHint": "Text to pass to the skill (you can paste long text such as logs or transcripts)",
+  "launcherSkillArgumentPromptConfirm": "Run",
 
   "launcherManagementTitle": "Launcher management",
   "launcherAddFolderTooltip": "Add folder",

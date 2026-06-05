@@ -180,6 +180,43 @@ void main() {
       addTearDown(runner.dispose);
       expect(runner.arguments.last, '/already-slashed');
     });
+
+    test(
+      'ClaudeSkillAction + skillArgument → `/skill <本文>` を単一 argv で渡す（ADR-0062）',
+      () {
+        if (Platform.isWindows) return;
+        // 改行 / 引用符 / `$` を含む本文。argv 要素なのでシェルを通さず、
+        // エスケープも文字コード変質もなくそのまま 1 引数で渡る。
+        const arg = 'line1\nline2 "q" \$x 50%';
+        final runner = PtyTerminalRunner.fromAction(
+          workingDirectory: dir.path,
+          action: const LauncherAction.claudeSkill(
+            skillName: 'transcribe',
+            requiresArgument: true,
+          ),
+          skillArgument: arg,
+        );
+        addTearDown(runner.dispose);
+        // 末尾要素が `/transcribe <本文>` の 1 要素になっている。
+        expect(runner.arguments.last, '/transcribe $arg');
+        // 本文を別 argv に割らない（claude の単一プロンプトとして渡すため）。
+        expect(runner.arguments.length, 7);
+      },
+    );
+
+    test('ClaudeSkillAction で skillArgument が空なら従来どおり `/skill` のみ', () {
+      if (Platform.isWindows) return;
+      final runner = PtyTerminalRunner.fromAction(
+        workingDirectory: dir.path,
+        action: const LauncherAction.claudeSkill(
+          skillName: 'transcribe',
+          requiresArgument: true,
+        ),
+        skillArgument: '',
+      );
+      addTearDown(runner.dispose);
+      expect(runner.arguments.last, '/transcribe');
+    });
   });
 
   group('PtyTerminalRunner.fromAction (Windows)', () {
@@ -217,6 +254,25 @@ void main() {
       expect(runner.arguments, contains('-Command'));
       expect(runner.arguments, contains('claude /my-skill'));
     });
+
+    test(
+      'Windows: ClaudeSkillAction + skillArgument → PowerShell シングルクォート囲み（ADR-0062）',
+      () {
+        if (!Platform.isWindows) return;
+        final runner = PtyTerminalRunner.fromAction(
+          workingDirectory: dir.path,
+          action: const LauncherAction.claudeSkill(
+            skillName: 'transcribe',
+            requiresArgument: true,
+          ),
+          // シングルクォートを含む本文。`'` → `''` にエスケープされる。
+          skillArgument: "it's a log",
+        );
+        addTearDown(runner.dispose);
+        expect(runner.executable, 'powershell.exe');
+        expect(runner.arguments, contains("claude '/transcribe it''s a log'"));
+      },
+    );
 
     test('Windows: RunCommandAction(cmd) → cmd.exe /K <command>', () {
       if (!Platform.isWindows) return;

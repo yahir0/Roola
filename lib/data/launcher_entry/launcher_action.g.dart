@@ -29,8 +29,13 @@ Map<String, dynamic> _$RunCommandActionToJson(RunCommandAction instance) =>
 ClaudeSkillAction _$ClaudeSkillActionFromJson(Map<String, dynamic> json) =>
     ClaudeSkillAction(
       skillName: json['skillName'] as String,
+      requiresArgument: json['requiresArgument'] as bool? ?? false,
       $type: json['type'] as String?,
     );
 
 Map<String, dynamic> _$ClaudeSkillActionToJson(ClaudeSkillAction instance) =>
-    <String, dynamic>{'skillName': instance.skillName, 'type': instance.$type};
+    <String, dynamic>{
+      'skillName': instance.skillName,
+      'requiresArgument': instance.requiresArgument,
+      'type': instance.$type,
+    };

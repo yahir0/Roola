@@ -59,6 +59,7 @@ class AdhocRunViewModel extends _$AdhocRunViewModel {
         token: ref.read(notifyTokenProvider),
       ),
       windowsShell: windowsShell,
+      skillArgument: args.skillArgument,
     );
     final entry = LauncherEntry(
       id: args.adhocId,

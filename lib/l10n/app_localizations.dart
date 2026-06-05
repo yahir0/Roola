@@ -1730,6 +1730,36 @@ abstract class AppLocalizations {
   /// **'候補から選択'**
   String get entryEditSkillNameSelectTooltip;
 
+  /// No description provided for @entryEditSkillRequiresArgumentTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'実行時に引数を求める'**
+  String get entryEditSkillRequiresArgumentTitle;
+
+  /// No description provided for @entryEditSkillRequiresArgumentSubtitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'起動時に入力ダイアログを表示し、入力したテキストを `claude /スキル名 <入力>` の引数として渡します。ログや文字起こしなどの長文も入力できます。'**
+  String get entryEditSkillRequiresArgumentSubtitle;
+
+  /// No description provided for @launcherSkillArgumentPromptTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'{name} に渡す引数'**
+  String launcherSkillArgumentPromptTitle(String name);
+
+  /// No description provided for @launcherSkillArgumentPromptHint.
+  ///
+  /// In ja, this message translates to:
+  /// **'スキルに渡すテキスト（ログ・文字起こしなどの長文も貼り付け可）'**
+  String get launcherSkillArgumentPromptHint;
+
+  /// No description provided for @launcherSkillArgumentPromptConfirm.
+  ///
+  /// In ja, this message translates to:
+  /// **'実行'**
+  String get launcherSkillArgumentPromptConfirm;
+
   /// No description provided for @launcherManagementTitle.
   ///
   /// In ja, this message translates to:

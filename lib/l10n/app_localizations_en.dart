@@ -951,6 +951,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String get entryEditSkillNameSelectTooltip => 'Select from suggestions';
 
   @override
+  String get entryEditSkillRequiresArgumentTitle =>
+      'Ask for an argument on launch';
+
+  @override
+  String get entryEditSkillRequiresArgumentSubtitle =>
+      'Shows an input dialog on launch and passes the entered text as the argument of `claude /skill <input>`. You can paste long text such as logs or transcripts.';
+
+  @override
+  String launcherSkillArgumentPromptTitle(String name) {
+    return 'Argument for $name';
+  }
+
+  @override
+  String get launcherSkillArgumentPromptHint =>
+      'Text to pass to the skill (you can paste long text such as logs or transcripts)';
+
+  @override
+  String get launcherSkillArgumentPromptConfirm => 'Run';
+
+  @override
   String get launcherManagementTitle => 'Launcher management';
 
   @override
