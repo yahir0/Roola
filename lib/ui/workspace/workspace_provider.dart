@@ -65,6 +65,28 @@ class Workspace extends _$Workspace {
     return tab.id;
   }
 
+  /// 新しいノートパッドタブを指定スロットに追加し、アクティブにする。
+  /// [noteId] が指定された場合は保存済みメモを開く。追加したタブの id を返す。
+  String addNotepadTab(PaneSlotId slotId, {String? noteId, String? title}) {
+    final tab = WorkspaceTab.notepad(id: newTabId(), noteId: noteId, title: title);
+    _appendTab(slotId, tab);
+    return tab.id;
+  }
+
+  /// 保存済みメモを開く。同一 [noteId] のタブが既にあればアクティブにし、
+  /// なければ [PaneSlotId.bottom] に新規タブを追加する。
+  void openNotepadNote(String noteId, {String? title}) {
+    for (final slotId in PaneSlotId.values) {
+      for (final tab in state.slot(slotId).tabs) {
+        if (tab is NotepadTab && tab.noteId == noteId) {
+          activateTab(tab.id);
+          return;
+        }
+      }
+    }
+    addNotepadTab(PaneSlotId.bottom, noteId: noteId, title: title);
+  }
+
   /// 指定リポジトリの Git ビュータブを開く（ADR-0030）。
   ///
   /// 同一 `repoRoot` の [GitTab] が既に存在する場合は新規生成せず、その
@@ -116,7 +138,8 @@ class Workspace extends _$Workspace {
   /// これにより「いま見えているエクスプローラタブ」にサイドバーの遷移先
   /// （`lastExplorerTabId`）が追従する。「+」での新規タブやチップ切替の直後に
   /// body をクリックしていなくても、サイドバー操作がアクティブなタブへ届く。
-  /// ターミナル / Git のアクティブ化では `lastExplorerTabId` は据え置く。
+  /// ターミナル / Git / ノートパッドのアクティブ化では `lastExplorerTabId` は
+  /// 据え置く。
   void _trackFocus(WorkspaceTab tab) {
     final focus = ref.read(focusedTabProvider.notifier);
     switch (tab) {
@@ -126,6 +149,8 @@ class Workspace extends _$Workspace {
         focus.focusTerminal(tab.id);
       case GitTab():
         focus.focusGit(tab.id);
+      case NotepadTab():
+        focus.focusNotepad(tab.id);
     }
   }
 
@@ -204,6 +229,19 @@ class Workspace extends _$Workspace {
     _apply(layout);
   }
 
+  /// ノートパッドタブの noteId とタイトルを更新する（初回保存後に呼ばれる）。
+  void updateNotepadTabAfterSave(String tabId, String noteId, String title) {
+    final loc = _locate(tabId);
+    if (loc == null) return;
+    final (slotId, index) = loc;
+    final slot = state.slot(slotId);
+    final tab = slot.tabs[index];
+    if (tab is! NotepadTab) return;
+    final tabs = [...slot.tabs];
+    tabs[index] = tab.copyWith(noteId: noteId, title: title);
+    _apply(state.withSlot(slotId, slot.copyWith(tabs: tabs)));
+  }
+
   /// エクスプローラタブのカレントパスを更新する（永続化用 / ADR-0028）。
   /// `ExplorerViewModel.navigateTo` などから呼ばれる。
   void updateTabPath(String tabId, String path) {
@@ -259,6 +297,9 @@ class Workspace extends _$Workspace {
         SchedulerBinding.instance.addPostFrameCallback((_) {
           ref.invalidate(adhocRunViewModelProvider(args));
         });
+      case NotepadTab():
+        // ノートパッドタブは per-tab state を持たないため破棄不要。
+        break;
     }
   }
 

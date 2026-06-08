@@ -2126,6 +2126,84 @@ abstract class AppLocalizations {
   /// **'メモを入力…'**
   String get notepadHint;
 
+  /// No description provided for @notepadUnsavedTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'(無題)'**
+  String get notepadUnsavedTitle;
+
+  /// No description provided for @notepadNewNote.
+  ///
+  /// In ja, this message translates to:
+  /// **'新規メモ'**
+  String get notepadNewNote;
+
+  /// No description provided for @notepadNameDialogTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'メモに名前を付ける'**
+  String get notepadNameDialogTitle;
+
+  /// No description provided for @notepadDraftSubHeader.
+  ///
+  /// In ja, this message translates to:
+  /// **'下書き'**
+  String get notepadDraftSubHeader;
+
+  /// No description provided for @notepadSavedSubHeader.
+  ///
+  /// In ja, this message translates to:
+  /// **'保存済み'**
+  String get notepadSavedSubHeader;
+
+  /// No description provided for @notepadEmptyHint.
+  ///
+  /// In ja, this message translates to:
+  /// **'保存するとここに登録されます'**
+  String get notepadEmptyHint;
+
+  /// No description provided for @notepadSaveAsTxt.
+  ///
+  /// In ja, this message translates to:
+  /// **'TXT で保存'**
+  String get notepadSaveAsTxt;
+
+  /// No description provided for @notepadSavedToNotepad.
+  ///
+  /// In ja, this message translates to:
+  /// **'ノートパッドに保存しました'**
+  String get notepadSavedToNotepad;
+
+  /// No description provided for @notepadMoveToUnclassified.
+  ///
+  /// In ja, this message translates to:
+  /// **'未分類に移動'**
+  String get notepadMoveToUnclassified;
+
+  /// No description provided for @notepadDeleteNote.
+  ///
+  /// In ja, this message translates to:
+  /// **'メモを削除'**
+  String get notepadDeleteNote;
+
+  /// No description provided for @notepadDeleteNoteConfirm.
+  ///
+  /// In ja, this message translates to:
+  /// **'「{title}」を削除しますか？'**
+  String notepadDeleteNoteConfirm(String title);
+
+  /// No description provided for @notepadDeleteFolder.
+  ///
+  /// In ja, this message translates to:
+  /// **'フォルダを削除'**
+  String get notepadDeleteFolder;
+
+  /// No description provided for @notepadDeleteFolderConfirm.
+  ///
+  /// In ja, this message translates to:
+  /// **'フォルダ「{name}」を削除し、メモを未分類に移しますか？'**
+  String notepadDeleteFolderConfirm(String name);
+
   /// No description provided for @activityMonitorCpuTooltip.
   ///
   /// In ja, this message translates to:

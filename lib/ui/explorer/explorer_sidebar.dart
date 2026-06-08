@@ -13,6 +13,9 @@ import 'package:roola/data/launcher_entry/launcher_entries_provider.dart';
 import 'package:roola/data/launcher_entry/launcher_entry.dart';
 import 'package:roola/data/launcher_entry/launcher_folder.dart';
 import 'package:roola/data/launcher_entry/launcher_folders_provider.dart';
+import 'package:roola/data/notepad/notepad_note.dart';
+import 'package:roola/data/notepad/notepad_note_folder.dart';
+import 'package:roola/data/notepad/notepad_notes_provider.dart';
 import 'package:roola/data/repo_explorer/explorer_settings.dart';
 import 'package:roola/data/repo_explorer/explorer_settings_repository_impl.dart';
 import 'package:roola/data/repo_explorer/favorite_tree_provider.dart';
@@ -67,6 +70,28 @@ class ExplorerSidebar extends HookConsumerWidget {
     final entries = ref.watch(launcherEntriesProvider).value ?? const [];
     final folders = ref.watch(launcherFoldersProvider).value ?? const [];
     final sessions = ref.watch(activeSessionsProvider);
+    final notepadNotes = ref.watch(notepadNotesProvider).value ?? const [];
+    final notepadFolders = ref.watch(notepadFoldersProvider).value ?? const [];
+    final layout = ref.watch(workspaceProvider);
+
+    // 開いているノートパッドタブを収集する。
+    final allNotepadTabs = <NotepadTab>[
+      for (final slotId in PaneSlotId.values)
+        for (final tab in layout.slot(slotId).tabs)
+          if (tab is NotepadTab) tab,
+    ];
+    // 各ペインの前面に出ているノートパッドタブの noteId / tabId を収集。
+    final activeNoteIds = <String>{};
+    final activeTabIds = <String>{};
+    for (final slotId in PaneSlotId.values) {
+      final active = layout.slot(slotId).activeTab;
+      if (active is NotepadTab) {
+        activeTabIds.add(active.id);
+        if (active.noteId != null) activeNoteIds.add(active.noteId!);
+      }
+    }
+    // 未保存（noteId == null）の開いているタブ。
+    final unsavedNotepadTabs = allNotepadTabs.where((t) => t.noteId == null).toList();
 
     // フォーカス中エクスプローラタブのカレントパス。場所 / お気に入りの
     // ハイライト判定に使う。エクスプローラタブが無ければ null。
@@ -119,6 +144,24 @@ class ExplorerSidebar extends HookConsumerWidget {
       }
       expandedTreePaths.value = next;
     }
+
+    // ノートパッドフォルダの展開状態（セッション内のみ・永続化なし）。
+    final expandedNotepadFolderIds = useState<Set<String>>({
+      for (final f in notepadFolders) f.id,
+    });
+    useEffect(() {
+      final missing = notepadFolders
+          .where((f) => !expandedNotepadFolderIds.value.contains(f.id))
+          .map((f) => f.id)
+          .toSet();
+      if (missing.isNotEmpty) {
+        expandedNotepadFolderIds.value = {
+          ...expandedNotepadFolderIds.value,
+          ...missing,
+        };
+      }
+      return null;
+    }, [notepadFolders]);
 
     final favoritePaths = {for (final f in favorites) f.path};
     final hasFavoriteAtCurrent =
@@ -228,6 +271,58 @@ class ExplorerSidebar extends HookConsumerWidget {
           else
             for (final entry in sessions.entries)
               _RunningTile(sessionId: entry.key, state: entry.value),
+          const SizedBox(height: PolarisTokens.space2),
+          const Divider(height: 1),
+
+          // ノートパッド
+          const _NotepadHeader(),
+          if (unsavedNotepadTabs.isEmpty && notepadNotes.isEmpty && notepadFolders.isEmpty)
+            const _NotepadEmptyHint()
+          else ...[
+            // 下書き（未保存タブ）
+            if (unsavedNotepadTabs.isNotEmpty) ...[
+              _NotepadSubSectionHeader(AppLocalizations.of(context).notepadDraftSubHeader),
+              for (final tab in unsavedNotepadTabs)
+                _NotepadUnsavedTabTile(
+                  tab: tab,
+                  isSelected: activeTabIds.contains(tab.id),
+                ),
+            ],
+            // 保存済み
+            if (notepadNotes.isNotEmpty || notepadFolders.isNotEmpty) ...[
+              _NotepadSubSectionHeader(AppLocalizations.of(context).notepadSavedSubHeader),
+              for (final folder in notepadFolders) ...[
+                _NotepadFolderTile(
+                  folder: folder,
+                  expanded: expandedNotepadFolderIds.value.contains(folder.id),
+                  onToggle: () {
+                    final next = Set<String>.from(expandedNotepadFolderIds.value);
+                    if (!next.add(folder.id)) {
+                      next.remove(folder.id);
+                    }
+                    expandedNotepadFolderIds.value = next;
+                  },
+                ),
+                if (expandedNotepadFolderIds.value.contains(folder.id))
+                  for (final note in notepadNotes.where(
+                    (n) => n.folderId == folder.id,
+                  ))
+                    _NotepadNoteTile(
+                      note: note,
+                      folders: notepadFolders,
+                      indented: true,
+                      isSelected: activeNoteIds.contains(note.id),
+                    ),
+              ],
+              if (notepadFolders.isNotEmpty) const _NotepadRootDropZone(),
+              for (final note in notepadNotes.where((n) => n.folderId == null))
+                _NotepadNoteTile(
+                  note: note,
+                  folders: notepadFolders,
+                  isSelected: activeNoteIds.contains(note.id),
+                ),
+            ],
+          ],
           const SizedBox(height: PolarisTokens.space2),
         ],
       ),
@@ -1758,6 +1853,525 @@ class _RunningEmptyTile extends StatelessWidget {
           color: Theme.of(context).colorScheme.onSurfaceVariant,
         ),
       ),
+    );
+  }
+}
+
+/// 未保存のノートパッドタブ 1 件のタイル（RUNNING セクションと同じ語彙）。
+class _NotepadUnsavedTabTile extends ConsumerWidget {
+  const _NotepadUnsavedTabTile({
+    required this.tab,
+    required this.isSelected,
+  });
+
+  final NotepadTab tab;
+  final bool isSelected;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final tokens = PolarisTokens.of(context);
+    return InkWell(
+      onTap: () => ref.read(workspaceProvider.notifier).activateTab(tab.id),
+      child: Stack(
+        children: [
+          Container(
+            height: PolarisTokens.space7,
+            color: isSelected ? tokens.surfaceHi : null,
+            padding: const EdgeInsets.symmetric(
+              horizontal: PolarisTokens.space4,
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.sticky_note_2_outlined,
+                  size: PolarisIconSize.standard,
+                  color: isSelected ? tokens.accent : tokens.textFaint,
+                ),
+                const SizedBox(width: PolarisTokens.space2),
+                Expanded(
+                  child: Text(
+                    AppLocalizations.of(context).notepadUnsavedTitle,
+                    style: tokens.body.copyWith(
+                      color: isSelected ? tokens.accent : tokens.textDim,
+                      fontStyle: FontStyle.italic,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (isSelected)
+            Positioned(
+              left: 0,
+              top: 4,
+              bottom: 4,
+              child: Container(width: 2, color: tokens.accent),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+// ----- ノートパッドセクション -----
+
+/// NOTEPAD セクション内のサブセクション見出し（「下書き」「保存済み」）。
+class _NotepadSubSectionHeader extends StatelessWidget {
+  const _NotepadSubSectionHeader(this.label);
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = PolarisTokens.of(context);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        PolarisTokens.space4,
+        PolarisTokens.space2,
+        PolarisTokens.space4,
+        2,
+      ),
+      child: Text(
+        label,
+        style: tokens.label.copyWith(color: tokens.textFaint, fontSize: 10),
+      ),
+    );
+  }
+}
+
+/// NOTEPAD セクションのヘッダ（「＋」で新規メモ or フォルダのメニューを表示）。
+class _NotepadHeader extends ConsumerWidget {
+  const _NotepadHeader();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    return GestureDetector(
+      onSecondaryTapDown: (details) =>
+          _showContextMenu(context, ref, details.globalPosition),
+      child: _SidebarSectionHeader(
+        'Notepad',
+        action: _SectionHeaderAddButton(
+          tooltip: l10n.notepadNewNote,
+          onPressed: (buttonContext) => _showContextMenu(
+            context,
+            ref,
+            _menuAnchorBelowButton(buttonContext),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showContextMenu(
+    BuildContext context,
+    WidgetRef ref,
+    Offset globalPosition,
+  ) async {
+    final l10n = AppLocalizations.of(context);
+    final selected = await showMenu<_NotepadHeaderAction>(
+      context: context,
+      position: RelativeRect.fromLTRB(
+        globalPosition.dx,
+        globalPosition.dy,
+        globalPosition.dx,
+        globalPosition.dy,
+      ),
+      items: [
+        PopupMenuItem(
+          value: _NotepadHeaderAction.newNote,
+          child: ListTile(
+            leading: const Icon(Icons.sticky_note_2_outlined),
+            title: Text(l10n.notepadNewNote),
+            dense: true,
+          ),
+        ),
+        PopupMenuItem(
+          value: _NotepadHeaderAction.newFolder,
+          child: ListTile(
+            leading: const Icon(Icons.folder_outlined),
+            title: Text(l10n.launcherFolderNameTitle),
+            dense: true,
+          ),
+        ),
+      ],
+    );
+    if (selected == null || !context.mounted) return;
+    switch (selected) {
+      case _NotepadHeaderAction.newNote:
+        ref.read(workspaceProvider.notifier).addNotepadTab(PaneSlotId.bottom);
+      case _NotepadHeaderAction.newFolder:
+        final name = await promptName(
+          context,
+          title: l10n.launcherFolderNameTitle,
+          hintText: l10n.explorerLauncherFolderHint,
+        );
+        if (name == null || name.trim().isEmpty || !context.mounted) return;
+        await ref.read(notepadFoldersProvider.notifier).addFolder(
+          NotepadNoteFolder(
+            id: _uuid.v4(),
+            name: name.trim(),
+            createdAt: DateTime.now(),
+          ),
+        );
+    }
+  }
+}
+
+enum _NotepadHeaderAction { newNote, newFolder }
+
+/// ノートパッドメモがない場合のヒント。
+class _NotepadEmptyHint extends StatelessWidget {
+  const _NotepadEmptyHint();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        PolarisTokens.space4,
+        PolarisTokens.space1,
+        PolarisTokens.space4,
+        PolarisTokens.space1,
+      ),
+      child: Text(
+        AppLocalizations.of(context).notepadEmptyHint,
+        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
+      ),
+    );
+  }
+}
+
+/// ノートパッドのメモ 1 件のタイル。長押しドラッグでフォルダへ移動できる。
+class _NotepadNoteTile extends ConsumerWidget {
+  const _NotepadNoteTile({
+    required this.note,
+    required this.folders,
+    this.indented = false,
+    this.isSelected = false,
+  });
+
+  final NotepadNote note;
+  final List<NotepadNoteFolder> folders;
+  final bool indented;
+  final bool isSelected;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final tokens = PolarisTokens.of(context);
+    final body = GestureDetector(
+      onSecondaryTapDown: (details) =>
+          _showContextMenu(context, ref, details.globalPosition),
+      child: InkWell(
+        onTap: () => ref
+            .read(workspaceProvider.notifier)
+            .openNotepadNote(note.id, title: note.title),
+        child: Stack(
+          children: [
+            Container(
+              color: isSelected ? tokens.surfaceHi : null,
+              height: PolarisTokens.space7,
+              padding: EdgeInsets.fromLTRB(
+                indented ? PolarisTokens.space8 : PolarisTokens.space4,
+                0,
+                PolarisTokens.space4,
+                0,
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.sticky_note_2_outlined,
+                    size: PolarisIconSize.standard,
+                    color: isSelected ? tokens.accent : tokens.textFaint,
+                  ),
+                  const SizedBox(width: PolarisTokens.space2),
+                  Expanded(
+                    child: Text(
+                      note.title,
+                      style: tokens.body.copyWith(
+                        color: isSelected ? tokens.accent : tokens.text,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (isSelected)
+              Positioned(
+                left: 0,
+                top: 4,
+                bottom: 4,
+                child: Container(width: 2, color: tokens.accent),
+              ),
+          ],
+        ),
+      ),
+    );
+    return LongPressDraggable<NotepadNote>(
+      data: note,
+      feedback: Material(
+        elevation: 4,
+        borderRadius: BorderRadius.circular(tokens.radius),
+        child: SizedBox(
+          width: ExplorerSidebar.width - 16,
+          child: Container(
+            height: PolarisTokens.space7,
+            color: tokens.surface,
+            padding: const EdgeInsets.symmetric(horizontal: PolarisTokens.space4),
+            child: Row(
+              children: [
+                Icon(Icons.sticky_note_2_outlined, size: PolarisIconSize.standard, color: tokens.accent),
+                const SizedBox(width: PolarisTokens.space2),
+                Expanded(
+                  child: Text(
+                    note.title,
+                    style: tokens.body.copyWith(color: tokens.accent),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+      childWhenDragging: Opacity(opacity: 0.4, child: body),
+      child: body,
+    );
+  }
+
+  Future<void> _showContextMenu(
+    BuildContext context,
+    WidgetRef ref,
+    Offset position,
+  ) async {
+    final l10n = AppLocalizations.of(context);
+    final items = <PopupMenuEntry<_NotepadNoteMenuAction>>[];
+    // 移動先フォルダ
+    for (final folder in folders) {
+      if (note.folderId != folder.id) {
+        items.add(PopupMenuItem<_NotepadNoteMenuAction>(
+          value: _NotepadNoteMoveToFolder(folder.id),
+          child: ListTile(
+            leading: const Icon(Icons.folder_outlined),
+            title: Text(folder.name),
+            dense: true,
+            contentPadding: EdgeInsets.zero,
+          ),
+        ));
+      }
+    }
+    // フォルダ内にあるときは「未分類に戻す」
+    if (note.folderId != null) {
+      items.add(PopupMenuItem<_NotepadNoteMenuAction>(
+        value: const _NotepadNoteMoveToRoot(),
+        child: ListTile(
+          leading: const Icon(Icons.folder_off_outlined),
+          title: Text(l10n.notepadMoveToUnclassified),
+          dense: true,
+          contentPadding: EdgeInsets.zero,
+        ),
+      ));
+    }
+    if (items.isNotEmpty) items.add(const PopupMenuDivider());
+    items.add(PopupMenuItem<_NotepadNoteMenuAction>(
+      value: const _NotepadNoteDelete(),
+      child: ListTile(
+        leading: const Icon(Icons.delete_outline),
+        title: Text(l10n.notepadDeleteNote),
+        dense: true,
+        contentPadding: EdgeInsets.zero,
+      ),
+    ));
+
+    final selected = await showMenu<_NotepadNoteMenuAction>(
+      context: context,
+      position: RelativeRect.fromLTRB(position.dx, position.dy, position.dx, position.dy),
+      items: items,
+    );
+    if (selected == null || !context.mounted) return;
+    switch (selected) {
+      case _NotepadNoteDelete():
+        final confirmed = await showPolarisConfirm(
+          context,
+          title: l10n.notepadDeleteNote,
+          message: l10n.notepadDeleteNoteConfirm(note.title),
+          confirmLabel: l10n.buttonDelete,
+          cancelLabel: l10n.buttonCancel,
+          destructive: true,
+        );
+        if (confirmed == true && context.mounted) {
+          await ref.read(notepadNotesProvider.notifier).deleteNote(note.id);
+        }
+      case _NotepadNoteMoveToFolder(:final folderId):
+        await ref.read(notepadNotesProvider.notifier).updateNote(
+          note.copyWith(folderId: folderId, updatedAt: DateTime.now()),
+        );
+      case _NotepadNoteMoveToRoot():
+        await ref.read(notepadNotesProvider.notifier).updateNote(
+          note.copyWith(folderId: null, updatedAt: DateTime.now()),
+        );
+    }
+  }
+}
+
+sealed class _NotepadNoteMenuAction {}
+
+class _NotepadNoteDelete implements _NotepadNoteMenuAction {
+  const _NotepadNoteDelete();
+}
+
+class _NotepadNoteMoveToFolder implements _NotepadNoteMenuAction {
+  const _NotepadNoteMoveToFolder(this.folderId);
+  final String folderId;
+}
+
+class _NotepadNoteMoveToRoot implements _NotepadNoteMenuAction {
+  const _NotepadNoteMoveToRoot();
+}
+
+/// ノートパッドフォルダ 1 件のタイル。
+class _NotepadFolderTile extends ConsumerWidget {
+  const _NotepadFolderTile({
+    required this.folder,
+    required this.expanded,
+    required this.onToggle,
+  });
+
+  final NotepadNoteFolder folder;
+  final bool expanded;
+  final VoidCallback onToggle;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final tokens = PolarisTokens.of(context);
+    return DragTarget<NotepadNote>(
+      onWillAcceptWithDetails: (details) => details.data.folderId != folder.id,
+      onAcceptWithDetails: (details) async {
+        await ref.read(notepadNotesProvider.notifier).updateNote(
+          details.data.copyWith(folderId: folder.id, updatedAt: DateTime.now()),
+        );
+      },
+      builder: (context, candidate, rejected) {
+        final hover = candidate.isNotEmpty;
+        return GestureDetector(
+          onSecondaryTapDown: (details) =>
+              _showContextMenu(context, ref, details.globalPosition),
+          child: InkWell(
+            onTap: onToggle,
+            child: Container(
+              color: hover ? tokens.surfaceHi : null,
+              height: PolarisTokens.space7,
+              padding: const EdgeInsets.symmetric(
+                horizontal: PolarisTokens.space3,
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    expanded ? Icons.arrow_drop_down : Icons.arrow_right,
+                    size: PolarisIconSize.standard,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                  Icon(
+                    hover ? Icons.folder_open_outlined : Icons.folder_outlined,
+                    size: PolarisIconSize.standard,
+                    color: hover ? tokens.accent : Theme.of(context).colorScheme.secondary,
+                  ),
+                  const SizedBox(width: PolarisTokens.space2),
+                  Expanded(
+                    child: Text(
+                      folder.name,
+                      style: Theme.of(context).textTheme.bodyMedium,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _showContextMenu(
+    BuildContext context,
+    WidgetRef ref,
+    Offset position,
+  ) async {
+    final l10n = AppLocalizations.of(context);
+    final selected = await showMenu<_NotepadFolderMenuAction>(
+      context: context,
+      position: RelativeRect.fromLTRB(
+        position.dx,
+        position.dy,
+        position.dx,
+        position.dy,
+      ),
+      items: [
+        PopupMenuItem(
+          value: _NotepadFolderMenuAction.delete,
+          child: ListTile(
+            leading: const Icon(Icons.folder_delete_outlined),
+            title: Text(l10n.notepadDeleteFolder),
+            dense: true,
+          ),
+        ),
+      ],
+    );
+    if (selected == null || !context.mounted) return;
+    switch (selected) {
+      case _NotepadFolderMenuAction.delete:
+        final confirmed = await showPolarisConfirm(
+          context,
+          title: l10n.notepadDeleteFolder,
+          message: l10n.notepadDeleteFolderConfirm(folder.name),
+          confirmLabel: l10n.buttonDelete,
+          cancelLabel: l10n.buttonCancel,
+          destructive: true,
+        );
+        if (confirmed == true && context.mounted) {
+          await ref.read(notepadFoldersProvider.notifier).deleteFolder(folder.id);
+        }
+    }
+  }
+}
+
+enum _NotepadFolderMenuAction { delete }
+
+/// フォルダ群と未分類メモの間に挟むドロップゾーン（フォルダ内メモを未分類に戻す）。
+class _NotepadRootDropZone extends ConsumerWidget {
+  const _NotepadRootDropZone();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final tokens = PolarisTokens.of(context);
+    return DragTarget<NotepadNote>(
+      onWillAcceptWithDetails: (details) => details.data.folderId != null,
+      onAcceptWithDetails: (details) async {
+        await ref.read(notepadNotesProvider.notifier).updateNote(
+          details.data.copyWith(folderId: null, updatedAt: DateTime.now()),
+        );
+      },
+      builder: (context, candidate, rejected) {
+        final hover = candidate.isNotEmpty;
+        return Container(
+          color: hover ? tokens.surfaceHi : null,
+          padding: const EdgeInsets.fromLTRB(
+            PolarisTokens.space4,
+            PolarisTokens.space2,
+            PolarisTokens.space4,
+            PolarisTokens.space1,
+          ),
+          child: _SectionLabelText(AppLocalizations.of(context).unclassified),
+        );
+      },
     );
   }
 }

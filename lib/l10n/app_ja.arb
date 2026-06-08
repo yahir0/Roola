@@ -521,6 +521,25 @@
   "notepadButtonTooltip": "ノートパッド",
   "notepadTitle": "ノートパッド",
   "notepadHint": "メモを入力…",
+  "notepadUnsavedTitle": "(無題)",
+  "notepadNewNote": "新規メモ",
+  "notepadNameDialogTitle": "メモに名前を付ける",
+  "notepadDraftSubHeader": "下書き",
+  "notepadSavedSubHeader": "保存済み",
+  "notepadEmptyHint": "保存するとここに登録されます",
+  "notepadSaveAsTxt": "TXT で保存",
+  "notepadSavedToNotepad": "ノートパッドに保存しました",
+  "notepadMoveToUnclassified": "未分類に移動",
+  "notepadDeleteNote": "メモを削除",
+  "notepadDeleteNoteConfirm": "「{title}」を削除しますか？",
+  "@notepadDeleteNoteConfirm": {
+    "placeholders": { "title": { "type": "String" } }
+  },
+  "notepadDeleteFolder": "フォルダを削除",
+  "notepadDeleteFolderConfirm": "フォルダ「{name}」を削除し、メモを未分類に移しますか？",
+  "@notepadDeleteFolderConfirm": {
+    "placeholders": { "name": { "type": "String" } }
+  },
 
   "activityMonitorCpuTooltip": "CPU {percent}%",
   "@activityMonitorCpuTooltip": {

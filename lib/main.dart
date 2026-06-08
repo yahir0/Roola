@@ -9,7 +9,10 @@ import 'package:roola/app/license_bootstrap.dart';
 import 'package:roola/core/storage/app_paths.dart';
 import 'package:roola/data/launcher_entry/launcher_entry_repository_impl.dart';
 import 'package:roola/data/locale/locale_settings_repository_impl.dart';
+import 'package:roola/data/notepad/notepad_catalog_store.dart';
+import 'package:roola/data/notepad/notepad_note.dart';
 import 'package:roola/data/notepad/notepad_repository_impl.dart';
+import 'package:uuid/uuid.dart';
 import 'package:window_manager/window_manager.dart';
 
 Future<void> main() async {
@@ -74,6 +77,11 @@ Future<void> main() async {
   // Provider に注入する（ADR-0036）。
   final initialNotepad = await NotepadRepositoryImpl(paths: paths).load();
 
+  // 旧バージョンの `notepad.json` に内容があれば、新カタログへ自動マイグレーション
+  // する（既存ユーザーのメモをサイドバーに引き継ぐ）。カタログがまだ存在しない
+  // かつ旧ファイルに内容がある場合のみ実行する。
+  await _migrateNotepadIfNeeded(paths: paths, legacyContent: initialNotepad);
+
   runApp(
     ProviderScope(
       overrides: [
@@ -84,4 +92,39 @@ Future<void> main() async {
       child: const App(),
     ),
   );
+}
+
+const _uuid = Uuid();
+
+/// 旧 `notepad.json` のコンテンツを新カタログへ 1 度だけマイグレーションする。
+///
+/// 条件: カタログファイルが存在しない & 旧コンテンツが空でない。
+/// 移行後は旧ファイルを残す（削除しない）。次回起動時も同じ条件チェックを
+/// するが、カタログが作成済みのため条件を満たさず再実行されない。
+Future<void> _migrateNotepadIfNeeded({
+  required AppPaths paths,
+  required String legacyContent,
+}) async {
+  if (legacyContent.trim().isEmpty) return;
+  if (paths.notepadCatalogFile.existsSync()) return;
+  try {
+    final now = DateTime.now();
+    final store = NotepadCatalogStore(paths: paths);
+    await store.save(
+      NotepadCatalogSnapshot(
+        folders: [],
+        notes: [
+          NotepadNote(
+            id: _uuid.v4(),
+            title: '移行済みメモ',
+            content: legacyContent,
+            createdAt: now,
+            updatedAt: now,
+          ),
+        ],
+      ),
+    );
+  } on Object {
+    // マイグレーション失敗はアプリ起動を妨げない。握り潰す。
+  }
 }

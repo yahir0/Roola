@@ -179,6 +179,11 @@ class _TabChip extends ConsumerWidget {
                   size: PolarisIconSize.small,
                   color: isActive ? tokens.accent : tokens.textFaint,
                 ),
+                NotepadTab() => Icon(
+                  Icons.sticky_note_2_outlined,
+                  size: PolarisIconSize.small,
+                  color: isActive ? tokens.accent : tokens.textFaint,
+                ),
               },
               const SizedBox(width: PolarisTokens.space2),
               Flexible(
@@ -282,6 +287,7 @@ class _TabChip extends ConsumerWidget {
     ExplorerTab(:final currentPath) => _basename(currentPath),
     TerminalTab(:final args) => args.displayName,
     GitTab(:final repoRoot) => 'Git: ${_basename(repoRoot)}',
+    NotepadTab(:final title) => title ?? '(無題)',
   };
 
   static String _basename(String path) {
@@ -342,6 +348,8 @@ class _AddTabButton extends ConsumerWidget {
             notifier.addExplorerTab(slotId);
           case _AddTabKind.terminal:
             notifier.addTerminalTab(slotId);
+          case _AddTabKind.notepad:
+            notifier.addNotepadTab(slotId);
         }
       },
       itemBuilder: (context) => const [
@@ -361,9 +369,17 @@ class _AddTabButton extends ConsumerWidget {
             dense: true,
           ),
         ),
+        PopupMenuItem(
+          value: _AddTabKind.notepad,
+          child: ListTile(
+            leading: Icon(Icons.sticky_note_2_outlined),
+            title: Text('ノートパッド'),
+            dense: true,
+          ),
+        ),
       ],
     );
   }
 }
 
-enum _AddTabKind { explorer, terminal }
+enum _AddTabKind { explorer, terminal, notepad }
