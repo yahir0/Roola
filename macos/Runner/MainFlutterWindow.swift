@@ -405,5 +405,51 @@ class MainFlutterWindow: NSWindow {
     }
 
     super.awakeFromNib()
+
+    // 信号灯（close / minimize / zoom）を Flutter 側トップバーの中で上下中央へ
+    // 寄せる（ADR-0064）。`titleBarStyle: hidden` + `titlebarAppearsTransparent`
+    // では信号灯が macOS 標準タイトルバー（約 28px）基準で上端寄りに置かれ、
+    // Roola の 40px トップバー（`MacosWindowAppBar._toolbarHeight`）の中では
+    // 上に詰まって見える。レイアウトのたびに各ボタンの y を再計算して中央へ
+    // 落とす。リサイズで AppKit が既定位置へ戻すため、リサイズ / フルスクリーン
+    // 復帰の通知でも再適用する。
+    NotificationCenter.default.addObserver(
+      self,
+      selector: #selector(centerWindowButtons),
+      name: NSWindow.didResizeNotification,
+      object: self
+    )
+    NotificationCenter.default.addObserver(
+      self,
+      selector: #selector(centerWindowButtons),
+      name: NSWindow.didExitFullScreenNotification,
+      object: self
+    )
+    // 初回表示時はビュー階層が組み上がった次の run loop で適用する。
+    DispatchQueue.main.async { [weak self] in self?.centerWindowButtons() }
+  }
+
+  /// 信号灯ボタンの中心を、トップバー上端から `topBarHeight / 2` の位置へ
+  /// 揃える。フルスクリーン中は OS がボタンを管理するため何もしない。
+  @objc private func centerWindowButtons() {
+    guard !styleMask.contains(.fullScreen) else { return }
+
+    // Flutter 側 `MacosWindowAppBar._toolbarHeight` と一致させる。
+    let topBarHeight: CGFloat = 40
+    let buttons = [
+      standardWindowButton(.closeButton),
+      standardWindowButton(.miniaturizeButton),
+      standardWindowButton(.zoomButton),
+    ].compactMap { $0 }
+    // ボタンの親（タイトルバービュー）はウィンドウ上端に固定されるので、その
+    // 上端からの距離でボタン中心を決める。非 flipped 座標なので上端は
+    // bounds.height、そこから topBarHeight/2 下げた位置が目標の中心。
+    guard let titlebar = buttons.first?.superview else { return }
+    let centerY = titlebar.bounds.height - topBarHeight / 2
+    for button in buttons {
+      var frame = button.frame
+      frame.origin.y = centerY - button.bounds.height / 2
+      button.frame = frame
+    }
   }
 }

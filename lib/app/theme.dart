@@ -630,18 +630,6 @@ class PolarisTokens extends ThemeExtension<PolarisTokens> {
     height: 1,
   );
 
-  /// ロゴワードマーク（ROOLA）。本文より一段重い w600。
-  TextStyle get wordmark => TextStyle(
-    fontSize: 12,
-    fontWeight: Platform.isWindows
-        ? FontWeight.w500
-        : FontWeight.w600,
-    letterSpacing: 2.4,
-    fontFamilyFallback: Platform.isWindows
-        ? const ['Yu Gothic UI', 'Meiryo']
-        : const ['Hiragino Sans'],
-  );
-
   /// 現在の [BuildContext] から [PolarisTokens] を取得する。
   ///
   /// テーマに拡張が無い文脈（テストハーネスなど）でも落ちないよう、欠落時は
