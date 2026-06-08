@@ -135,6 +135,7 @@
 - ADR-0061: プレビューのテキストを Text.rich で描画し選択・コピー可能にする（flutter_highlight → highlight）
 - ADR-0062: ランチャーの Claude Skill に実行時引数（プロンプト）を渡せるようにする（コマンドライン引数・複数行入力）
 - ADR-0063: 「素のシェル（OpenHere）」をログインシェルで起動する（Terminal.app と同じ PATH 構築・node 等の command not found を解消）
+- ADR-0064: macOS のトップバーからワードマークを廃止し、信号灯を 40px トップバー内で上下中央へ寄せる（ADR-0038 D9 を一部 Supersede）
 
 ## ディレクトリ構成
 
