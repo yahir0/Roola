@@ -497,6 +497,25 @@
   "notepadButtonTooltip": "Notepad",
   "notepadTitle": "Notepad",
   "notepadHint": "Jot a note…",
+  "notepadUnsavedTitle": "(Untitled)",
+  "notepadNewNote": "New note",
+  "notepadNameDialogTitle": "Name this note",
+  "notepadDraftSubHeader": "Drafts",
+  "notepadSavedSubHeader": "Saved",
+  "notepadEmptyHint": "Save a note to register it here",
+  "notepadSaveAsTxt": "Save as TXT",
+  "notepadSavedToNotepad": "Saved to Notepad",
+  "notepadMoveToUnclassified": "Move to Unclassified",
+  "notepadDeleteNote": "Delete note",
+  "notepadDeleteNoteConfirm": "Delete \"{title}\"?",
+  "@notepadDeleteNoteConfirm": {
+    "placeholders": { "title": { "type": "String" } }
+  },
+  "notepadDeleteFolder": "Delete folder",
+  "notepadDeleteFolderConfirm": "Delete folder \"{name}\" and move its notes to Uncategorized?",
+  "@notepadDeleteFolderConfirm": {
+    "placeholders": { "name": { "type": "String" } }
+  },
 
   "activityMonitorCpuTooltip": "CPU {percent}%",
   "@activityMonitorCpuTooltip": {

@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:roola/app/router.dart';
 import 'package:roola/app/theme.dart';
@@ -15,7 +14,6 @@ import 'package:roola/ui/common/macos_window_app_bar.dart';
 import 'package:roola/ui/common/windows_top_menu_bar.dart';
 import 'package:roola/ui/common/windows_window_controls.dart';
 import 'package:roola/ui/explorer/explorer_sidebar.dart';
-import 'package:roola/ui/notepad/notepad_panel.dart';
 import 'package:roola/ui/workspace/pane_widget.dart';
 import 'package:roola/ui/workspace/workspace_provider.dart';
 import 'package:roola/ui/workspace/workspace_split.dart';
@@ -28,13 +26,12 @@ import 'package:roola/ui/workspace/workspace_split.dart';
 ///
 /// ノートパッド（ADR-0036）の開閉はワークスペース内に閉じた一時的な
 /// UI 状態のため、Provider ではなく Hook のローカル状態で持つ。
-class WorkspacePage extends HookWidget {
+class WorkspacePage extends ConsumerWidget {
   const WorkspacePage({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
-    final notepadOpen = useState(false);
 
     return Scaffold(
       appBar: MacosWindowAppBar(
@@ -59,8 +56,9 @@ class WorkspacePage extends HookWidget {
             child: IconButton(
               icon: const Icon(Icons.sticky_note_2_outlined),
               tooltip: l10n.notepadButtonTooltip,
-              isSelected: notepadOpen.value,
-              onPressed: () => notepadOpen.value = !notepadOpen.value,
+              onPressed: () => ref
+                  .read(workspaceProvider.notifier)
+                  .addNotepadTab(PaneSlotId.bottom),
             ),
           ),
           ExcludeFocus(
@@ -77,24 +75,16 @@ class WorkspacePage extends HookWidget {
           ],
         ],
       ),
-      body: Row(
+      body: const Row(
         children: [
-          const ExplorerSidebar(),
+          ExplorerSidebar(),
           Expanded(
             child: Stack(
               children: [
-                const _WorkspaceArea(),
+                _WorkspaceArea(),
                 // アクティビティモニタのポップオーバー（ADR-0039）。閉じて
                 // いる間は SizedBox.shrink。
-                const ActivityMonitorPopoverLayer(),
-                if (notepadOpen.value)
-                  Positioned(
-                    right: 12,
-                    bottom: 12,
-                    child: NotepadPanel(
-                      onClose: () => notepadOpen.value = false,
-                    ),
-                  ),
+                ActivityMonitorPopoverLayer(),
               ],
             ),
           ),

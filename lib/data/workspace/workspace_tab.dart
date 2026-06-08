@@ -37,4 +37,12 @@ sealed class WorkspaceTab with _$WorkspaceTab {
     required String id,
     required String repoRoot,
   }) = GitTab;
+
+  /// ノートパッドタブ。[noteId] は保存済みメモの ID。null は未保存の新規メモ。
+  /// [title] はタブストリップ表示名。保存後に確定する。
+  const factory WorkspaceTab.notepad({
+    required String id,
+    String? noteId,
+    String? title,
+  }) = NotepadTab;
 }

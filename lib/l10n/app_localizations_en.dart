@@ -1185,6 +1185,49 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notepadHint => 'Jot a note…';
 
   @override
+  String get notepadUnsavedTitle => '(Untitled)';
+
+  @override
+  String get notepadNewNote => 'New note';
+
+  @override
+  String get notepadNameDialogTitle => 'Name this note';
+
+  @override
+  String get notepadDraftSubHeader => 'Drafts';
+
+  @override
+  String get notepadSavedSubHeader => 'Saved';
+
+  @override
+  String get notepadEmptyHint => 'Save a note to register it here';
+
+  @override
+  String get notepadSaveAsTxt => 'Save as TXT';
+
+  @override
+  String get notepadSavedToNotepad => 'Saved to Notepad';
+
+  @override
+  String get notepadMoveToUnclassified => 'Move to Unclassified';
+
+  @override
+  String get notepadDeleteNote => 'Delete note';
+
+  @override
+  String notepadDeleteNoteConfirm(String title) {
+    return 'Delete \"$title\"?';
+  }
+
+  @override
+  String get notepadDeleteFolder => 'Delete folder';
+
+  @override
+  String notepadDeleteFolderConfirm(String name) {
+    return 'Delete folder \"$name\" and move its notes to Uncategorized?';
+  }
+
+  @override
   String activityMonitorCpuTooltip(String percent) {
     return 'CPU $percent%';
   }

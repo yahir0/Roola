@@ -1151,6 +1151,49 @@ class AppLocalizationsJa extends AppLocalizations {
   String get notepadHint => 'メモを入力…';
 
   @override
+  String get notepadUnsavedTitle => '(無題)';
+
+  @override
+  String get notepadNewNote => '新規メモ';
+
+  @override
+  String get notepadNameDialogTitle => 'メモに名前を付ける';
+
+  @override
+  String get notepadDraftSubHeader => '下書き';
+
+  @override
+  String get notepadSavedSubHeader => '保存済み';
+
+  @override
+  String get notepadEmptyHint => '保存するとここに登録されます';
+
+  @override
+  String get notepadSaveAsTxt => 'TXT で保存';
+
+  @override
+  String get notepadSavedToNotepad => 'ノートパッドに保存しました';
+
+  @override
+  String get notepadMoveToUnclassified => '未分類に移動';
+
+  @override
+  String get notepadDeleteNote => 'メモを削除';
+
+  @override
+  String notepadDeleteNoteConfirm(String title) {
+    return '「$title」を削除しますか？';
+  }
+
+  @override
+  String get notepadDeleteFolder => 'フォルダを削除';
+
+  @override
+  String notepadDeleteFolderConfirm(String name) {
+    return 'フォルダ「$name」を削除し、メモを未分類に移しますか？';
+  }
+
+  @override
   String activityMonitorCpuTooltip(String percent) {
     return 'CPU $percent%';
   }

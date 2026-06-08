@@ -45,4 +45,13 @@ class FocusedTab extends _$FocusedTab {
       lastExplorerTabId: state.lastExplorerTabId,
     );
   }
+
+  /// ノートパッドタブにフォーカスが入ったことを記録する。
+  /// `lastExplorerTabId` は据え置く。
+  void focusNotepad(String tabId) {
+    state = FocusedTabState(
+      focusedTabId: tabId,
+      lastExplorerTabId: state.lastExplorerTabId,
+    );
+  }
 }

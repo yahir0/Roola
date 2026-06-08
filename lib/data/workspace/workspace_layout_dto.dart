@@ -123,6 +123,13 @@ class WorkspaceTabDto {
       id: id,
       repoRoot: repoRoot,
     ),
+    // ノートパッドタブは永続化対象外（ADR-0042 に従い workspace は毎回 seed）。
+    // switch を exhaustive にするためエントリを作るが、toEntity で除外される。
+    NotepadTab(:final id, :final noteId) => WorkspaceTabDto(
+      kind: 'notepad',
+      id: id,
+      currentPath: noteId,
+    ),
   };
 
   final String kind;
@@ -158,6 +165,11 @@ class WorkspaceTabDto {
         return null;
       }
       return WorkspaceTab.git(id: id, repoRoot: root);
+    }
+    if (kind == 'notepad') {
+      // ワークスペース永続化は ADR-0042 で廃止済み。このパスは旧 json からの
+      // 読み込みのみ。復元は行わず null を返して除外する。
+      return null;
     }
     return WorkspaceTab.explorer(id: id, currentPath: currentPath ?? '/');
   }

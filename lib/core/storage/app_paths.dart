@@ -42,6 +42,9 @@ class AppPaths {
   /// ノートパッドの本文の永続化先（ADR-0036）。
   File get notepadFile => File('${root.path}/notepad.json');
 
+  /// ノートパッドのメモ一覧・フォルダ一覧の永続化先。
+  File get notepadCatalogFile => File('${root.path}/notepad_catalog.json');
+
   /// 背景画像の保存先。
   File get backgroundImageFile => File('${root.path}/background.png');
 
