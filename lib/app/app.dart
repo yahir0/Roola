@@ -4,6 +4,7 @@ import 'package:roola/app/app_menu_bar.dart';
 import 'package:roola/app/router.dart';
 import 'package:roola/app/theme.dart';
 import 'package:roola/app/window_close_guard.dart';
+import 'package:roola/app/windows_keyboard_shortcut_bridge.dart';
 import 'package:roola/data/appearance/appearance_settings.dart';
 import 'package:roola/data/appearance/appearance_settings_repository_impl.dart';
 import 'package:roola/data/locale/locale_settings_repository_impl.dart';
@@ -44,18 +45,21 @@ class App extends ConsumerWidget {
       locale: locale.locale,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
-      // ネイティブメニューバー（ADR-0033）。ショートカットの発火を
-      // PlatformMenuBar に一本化するため、最上位に配置する。
+      // ネイティブメニューバー（ADR-0033）。macOS はここで PlatformMenuBar が
+      // ショートカットを発火させる。Windows は WindowsKeyboardShortcutBridge が
+      // HardwareKeyboard ハンドラで代替する（ADR-0052 相当）。
       builder: (context, child) => AppMenuBar(
         child: WindowCloseGuard(
-          child: _AppearanceLayer(
-            appearance: appearance,
-            // 初回フレーム後に OS 連携 DnD を有効化し、起動直後の
-            // engine/view レジストリ確定前に DropRegion 等が登録されて
-            // クラッシュするのを避ける（ADR-0049）。
-            child: DndReadyGate(
-              child: MouseNavigationListener(
-                child: child ?? const SizedBox.shrink(),
+          child: WindowsKeyboardShortcutBridge(
+            child: _AppearanceLayer(
+              appearance: appearance,
+              // 初回フレーム後に OS 連携 DnD を有効化し、起動直後の
+              // engine/view レジストリ確定前に DropRegion 等が登録されて
+              // クラッシュするのを避ける（ADR-0049）。
+              child: DndReadyGate(
+                child: MouseNavigationListener(
+                  child: child ?? const SizedBox.shrink(),
+                ),
               ),
             ),
           ),

@@ -1004,6 +1004,12 @@ abstract class AppLocalizations {
   /// **'行をクリックしてショートカットを変更できます。修飾キー（⌘ ⌥ ⌃ ⇧）を 1 つ以上含める必要があり、他のコマンドと重複するキーは保存できません。'**
   String get keybindingsIntro;
 
+  /// No description provided for @keybindingsIntroWindows.
+  ///
+  /// In ja, this message translates to:
+  /// **'行をクリックしてショートカットを変更できます。修飾キー（Ctrl Alt Shift）を 1 つ以上含める必要があり、他のコマンドと重複するキーは保存できません。'**
+  String get keybindingsIntroWindows;
+
   /// No description provided for @keybindingsResetAllButton.
   ///
   /// In ja, this message translates to:
@@ -1034,11 +1040,23 @@ abstract class AppLocalizations {
   /// **'修飾キー（⌘ ⌥ ⌃ ⇧）を 1 つ以上含めてください。'**
   String get keyChordErrorMissingModifier;
 
+  /// No description provided for @keyChordErrorMissingModifierWindows.
+  ///
+  /// In ja, this message translates to:
+  /// **'修飾キー（Ctrl Alt Shift）を 1 つ以上含めるか、F1〜F12 または Delete を指定してください。'**
+  String get keyChordErrorMissingModifierWindows;
+
   /// No description provided for @keyChordErrorReserved.
   ///
   /// In ja, this message translates to:
   /// **'⌘C / ⌘V / ⌘X / ⌘A / ⌘Z はコピー & ペースト等のテキスト編集用に予約されています。'**
   String get keyChordErrorReserved;
+
+  /// No description provided for @keyChordErrorReservedWindows.
+  ///
+  /// In ja, this message translates to:
+  /// **'Ctrl+C / Ctrl+V / Ctrl+X / Ctrl+A / Ctrl+Z はコピー & ペースト等のテキスト編集用に予約されています。'**
+  String get keyChordErrorReservedWindows;
 
   /// No description provided for @keyChordErrorAlreadyAssigned.
   ///

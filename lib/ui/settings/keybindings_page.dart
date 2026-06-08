@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:roola/app/theme.dart';
@@ -58,7 +60,9 @@ class _Intro extends ConsumerWidget {
         children: [
           Expanded(
             child: Text(
-              l10n.keybindingsIntro,
+              Platform.isWindows
+                  ? l10n.keybindingsIntroWindows
+                  : l10n.keybindingsIntro,
               style: Theme.of(
                 context,
               ).textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant),

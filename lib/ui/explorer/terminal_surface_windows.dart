@@ -72,9 +72,26 @@ class _TerminalSurfaceWindowsState
         final cols = (map['cols'] as num?)?.toInt() ?? 80;
         final rows = (map['rows'] as num?)?.toInt() ?? 24;
         widget.runner.resize(cols: cols, rows: rows);
+      } else if (type == 'copy') {
+        // 右クリック選択テキストをクリップボードにコピー。
+        final text = map['text'] as String?;
+        if (text != null && text.isNotEmpty) {
+          unawaited(Clipboard.setData(ClipboardData(text: text)));
+        }
+      } else if (type == 'paste') {
+        // 右クリックでクリップボードの内容を PTY へ送る。
+        unawaited(_pasteFromClipboard());
       }
     } catch (_) {
       // JSON パース失敗は無視する。
+    }
+  }
+
+  Future<void> _pasteFromClipboard() async {
+    final data = await Clipboard.getData(Clipboard.kTextPlain);
+    final text = data?.text;
+    if (text != null && text.isNotEmpty) {
+      widget.runner.write(Uint8List.fromList(utf8.encode(text)));
     }
   }
 
@@ -161,6 +178,49 @@ var ro = new ResizeObserver(function() {
   );
 });
 ro.observe(document.getElementById('terminal'));
+
+// キーボードコピペ
+// Ctrl+Shift+C / Ctrl+Alt+C: 選択テキストをコピー
+// Ctrl+Shift+V / Ctrl+Alt+V: クリップボードからペースト
+// e.preventDefault() でブラウザデフォルト（DevTools 等）を抑止する
+term.attachCustomKeyEventHandler(function(e) {
+  if (e.type !== 'keydown') return true;
+  var key = e.code || '';
+  var isC = key === 'KeyC';
+  var isV = key === 'KeyV';
+  if (!isC && !isV) return true;
+  var isCopy    = e.ctrlKey && e.shiftKey && !e.altKey && isC;
+  var isCopyAlt = e.ctrlKey && e.altKey && !e.shiftKey && isC;
+  var isPaste    = e.ctrlKey && e.shiftKey && !e.altKey && isV;
+  var isPasteAlt = e.ctrlKey && e.altKey && !e.shiftKey && isV;
+  if (isCopy || isCopyAlt) {
+    e.preventDefault();
+    if (term.hasSelection()) {
+      var text = term.getSelection();
+      term.clearSelection();
+      window.chrome.webview.postMessage(JSON.stringify({ type: 'copy', text: text }));
+    }
+    return false;
+  }
+  if (isPaste || isPasteAlt) {
+    e.preventDefault();
+    window.chrome.webview.postMessage(JSON.stringify({ type: 'paste' }));
+    return false;
+  }
+  return true;
+});
+
+// 右クリック: 選択あり→コピー、選択なし→ペースト（Windows Terminal 慣習）
+document.addEventListener('contextmenu', function(e) {
+  e.preventDefault();
+  if (term.hasSelection()) {
+    var text = term.getSelection();
+    term.clearSelection();
+    window.chrome.webview.postMessage(JSON.stringify({ type: 'copy', text: text }));
+  } else {
+    window.chrome.webview.postMessage(JSON.stringify({ type: 'paste' }));
+  }
+});
 </script>
 </body>
 </html>

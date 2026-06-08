@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -70,9 +72,13 @@ class _KeyChordRecorderDialog extends HookConsumerWidget {
     String? error;
     if (chord != null) {
       if (!isAssignableChord(chord)) {
-        error = l10n.keyChordErrorMissingModifier;
+        error = Platform.isWindows
+            ? l10n.keyChordErrorMissingModifierWindows
+            : l10n.keyChordErrorMissingModifier;
       } else if (isReservedChord(chord)) {
-        error = l10n.keyChordErrorReserved;
+        error = Platform.isWindows
+            ? l10n.keyChordErrorReservedWindows
+            : l10n.keyChordErrorReserved;
       } else {
         final conflict = conflictingCommand(
           effective: effective,
