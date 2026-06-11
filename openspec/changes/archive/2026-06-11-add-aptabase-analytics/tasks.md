@@ -44,7 +44,7 @@
 
 ## 7. 検証・仕上げ
 
-- [ ] 7.1 macOS で手動検証（新規状態で同意モーダル表示 → 同意 → Aptabase ダッシュボードに app_launched が届く / 再起動でモーダル非表示 / オプトアウトで送信停止）
-- [ ] 7.2 Windows で手動検証（同上 + インストーラの license.rtf が第 2 版であること）
+- [x] 7.1 macOS で手動検証（新規状態で同意モーダル表示 → 同意 → Aptabase ダッシュボードに app_launched が届く / 再起動でモーダル非表示 / オプトアウトで送信停止）
+- [x] 7.2 Windows で手動検証（同上 + インストーラの license.rtf が第 2 版であること）
 - [x] 7.3 `flutter analyze` / 全テストのパスを確認
 - [x] 7.4 CLAUDE.md の ADR 一覧に ADR-0065 を追記
