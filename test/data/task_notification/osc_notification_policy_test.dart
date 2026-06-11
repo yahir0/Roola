@@ -1,8 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:roola/data/task_notification/osc_notification_policy.dart';
 
-/// `OscNotificationPolicy` のフォーカス中サプレッション・レート制限・
-/// OSC 受信実績（ADR-0057 並走時の重複抑止）を検証する。
+/// `OscNotificationPolicy` のフォーカス中サプレッションとレート制限を検証する。
 void main() {
   final base = DateTime(2026, 6, 11, 12);
 
@@ -76,25 +75,13 @@ void main() {
     });
   });
 
-  group('isOscActive（ADR-0057 並走時の重複抑止）', () {
-    test('要求を受けたセッションは発射可否にかかわらず OSC 実績ありになる', () {
-      final policy = OscNotificationPolicy();
-
-      // フォーカス中で破棄されるケースでも実績は記録される。
-      policy.shouldNotify(sessionId: 's1', isFocused: true, now: base);
-
-      expect(policy.isOscActive('s1'), isTrue);
-      expect(policy.isOscActive('s2'), isFalse);
-    });
-
-    test('forgetSession で実績とレート制限の記録が消える', () {
+  group('forgetSession', () {
+    test('レート制限の記録が消え、直後でも発射できる', () {
       final policy = OscNotificationPolicy();
       policy.shouldNotify(sessionId: 's1', isFocused: false, now: base);
 
       policy.forgetSession('s1');
 
-      expect(policy.isOscActive('s1'), isFalse);
-      // レート制限の記録も消えるため、直後でも発射できる。
       final fire = policy.shouldNotify(
         sessionId: 's1',
         isFocused: false,

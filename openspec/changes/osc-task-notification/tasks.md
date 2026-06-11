@@ -44,8 +44,9 @@
       セッション単位レート制限（既定 2 秒・cat 洪水対策）・タイトル補完はコントローラ側
       - 設計メモ: OSC 経路は `TaskNotificationSettings.enabled`（ADR-0057 の opt-in トグル）を
         参照しない。設定ゼロ要件のため。通知許可が未決定なら初回発射時に要求する
-- [x] 4.3 ADR-0057 経路との重複抑止（`task_notification_server.dart` に
-      `isOscActive` チェックを追加。design.md D5）
+- [x] 4.3 ~~ADR-0057 経路との重複抑止~~ → **撤回**（design.md D5 改訂・2026-06-11）。
+      フック = 完了の瞬間 / OSC = 60 秒アイドルで別イベントのため抑止しない。
+      フック経路は即時完了通知のオプションとして存続（`isOscActive` は削除）
 - [x] 4.4 既存のネイティブ通知発射（`taskNotificationRepositoryProvider`）へ接続
 - [x] 4.5 通知ポリシーのユニットテスト（7 ケース: フォーカス破棄・レート制限・
       セッション独立・OSC 実績・forgetSession）
@@ -75,7 +76,10 @@
       - [ ] 通知クリック → ウィンドウ前面化 + 該当ペインへフォーカス。
             タブを閉じてからクリック → 何も起きない
       - [ ] OSC 9 を 100 個含むファイルを `cat` → 通知は 1 件程度
-      - [ ] フック（ADR-0057）登録済み環境で claude 完了 → 通知が 1 件のみ
+      - [x] claude 完了 → 即時には出ず、約 60 秒後に「Claude is waiting for your
+            input」が出る（2026-06-11 オーナー実機で確認・仕様として確定）
+      - [ ] フック（ADR-0057）登録 + 有効化済み環境で claude 完了 → 完了の瞬間に
+            「完了しました」、60 秒後に OSC 通知の両方が出る（独立発射）
       - [ ] Windows 実機で同セット（+ タスク 3.1 の送信側確認）
 - [x] 6.2 `flutter analyze`（No issues）/ `flutter test`（361 件パス）/
       `dart format`（変更ファイル 0 差分）/ `flutter build macos --debug`（Swift コンパイル成功）

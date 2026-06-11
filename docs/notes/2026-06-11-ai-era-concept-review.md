@@ -542,3 +542,4 @@ Issue #85 の「進め方の案」ステップ 2 のとおり、**新 ADR で AD
 - 2026-06-11: **ADR-0066 起草**（OSC 方式・フック廃止・スコープ原則・フォーカス転送・両 OS 対称実装・HTTP 版との並走方針）。ADR-0057 を Superseded に更新、CLAUDE.md の ADR リストに追記。残りは OpenSpec change 化と実装。
 - 2026-06-11: **OpenSpec change `osc-task-notification` を作成し実装ほぼ完了**（22 タスク中 19 完了）。TERM_PROGRAM 注入・SwiftTerm/xterm.js の OSC 9/777 受信・Dart 通知ポリシー層（フォーカス破棄/レート制限/フック経路との重複抑止）・通知クリック→ペインフォーカス復帰（両 OS）。analyze/test/build すべてグリーン。残: GUI での手動シナリオ確認（tasks 6.1）・Windows 実機確認（3.1）・確認後の Issue #85 クローズ（6.3）。
   - 実装で判明: SwiftTerm / xterm.js とも mode 1004（フォーカスレポーティング）は組み込み対応で、CSI I/O の自前実装は不要だった。SwiftTerm の `TerminalViewDelegate` に notify は転送されないため OSC 777 も `registerOscHandler` 明示登録で受けた。
+- 2026-06-11: オーナー実機確認で **通知意味論の差が顕在化** — claude ネイティブ通知は「許可待ち（即時）」と「入力待ちアイドル（`messageIdleNotifThresholdMs` 既定 60 秒）」のみで、**「完了の瞬間」の通知は存在しない**。オーナー判断: 既定は 60 秒アイドル通知で良し、**フック経路（ADR-0057）は即時完了通知のオプションとして正式存続**（「安定後に撤去」を撤回）。D5 の重複抑止は別イベントの混同だったため撤廃。ADR-0066/0057・design・spec を改訂済み。
