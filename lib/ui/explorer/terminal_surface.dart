@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:roola/data/task_notification/osc_notification_controller.dart';
 import 'package:roola/data/terminal_runner/terminal_channel.dart';
 import 'package:roola/data/terminal_runner/terminal_runner.dart';
 import 'package:roola/ui/explorer/terminal_surface_windows.dart';
@@ -75,6 +76,7 @@ class _TerminalSurfaceState extends ConsumerState<TerminalSurface> {
       ..onInput = widget.runner.write
       ..onResize = (cols, rows) => widget.runner.resize(cols: cols, rows: rows);
     _channel.onFocused = _handleNativeFocused;
+    _channel.onNotify = _handleNativeNotify;
     _focusNode = FocusNode(debugLabel: 'TerminalSurface($_channelName)')
       ..addListener(_handleFocusChange);
     // プラットフォームビュー生成前の出力は TerminalChannel がバッファする
@@ -115,6 +117,30 @@ class _TerminalSurfaceState extends ConsumerState<TerminalSurface> {
     super.dispose();
   }
 
+  /// ネイティブが解釈した OSC 9/777 通知要求（ADR-0066）。フォーカス判定
+  /// （このペインを今ユーザーが見ているか）だけ UI 層のここで行い、発射判断
+  /// （レート制限・許可・タイトル補完）はコントローラに委譲する。
+  ///
+  /// 「見ている」= 自タブが focusedTab かつアプリが前面（resumed）。
+  /// lifecycleState が未取得（null）の間は前面とみなす。
+  void _handleNativeNotify({String? title, required String body}) {
+    final lifecycle = WidgetsBinding.instance.lifecycleState;
+    final isFocused =
+        ref.read(focusedTabProvider).focusedTabId ==
+            ref.read(currentTabIdProvider) &&
+        (lifecycle == null || lifecycle == AppLifecycleState.resumed);
+    unawaited(
+      ref
+          .read(oscNotificationControllerProvider)
+          .handleNotify(
+            sessionId: widget.channelId,
+            isFocused: isFocused,
+            title: title,
+            body: body,
+          ),
+    );
+  }
+
   /// SwiftTerm がクリック等で first responder になったとき、native から
   /// 通知される（ADR-0055）。ターミナルがフォーカスされたことを
   /// [FocusedTab] に記録し、ウィンドウ再アクティブ化時の復帰対象にする。
@@ -149,7 +175,10 @@ class _TerminalSurfaceState extends ConsumerState<TerminalSurface> {
   Widget build(BuildContext context) {
     // Windows は xterm.js + WebView2 レンダラを使う（ADR-0058 D1）。
     if (Platform.isWindows) {
-      return TerminalSurfaceWindows(runner: widget.runner);
+      return TerminalSurfaceWindows(
+        channelId: widget.channelId,
+        runner: widget.runner,
+      );
     }
 
     // ウィンドウ再アクティブ化（ADR-0055）を購読し、直前にフォーカスされて

@@ -74,6 +74,29 @@
     term.resize(cols, rows);
   };
 
+  // OSC 9 / OSC 777 notification sequences → Dart (ADR-0066).
+  // Whether to actually show an OS notification (focus, rate limit,
+  // dedupe against the ADR-0057 hook route) is decided on the Dart side.
+  function postNotify(title, body) {
+    if (window.chrome && window.chrome.webview) {
+      window.chrome.webview.postMessage(
+        JSON.stringify({ type: 'notify', title: title, body: body })
+      );
+    }
+  }
+  term.parser.registerOscHandler(9, function(data) {
+    // "9;4;..." is the ConEmu progress report, not a notification.
+    if (!data || data === '4' || data.startsWith('4;')) return true;
+    postNotify(null, data);
+    return true;
+  });
+  term.parser.registerOscHandler(777, function(data) {
+    const parts = data.split(';');
+    if (parts.length < 3 || parts[0] !== 'notify') return true;
+    postNotify(parts[1], parts.slice(2).join(';'));
+    return true;
+  });
+
   // Auto-fit on window resize
   const ro = new ResizeObserver(function() {
     fitAddon.fit();

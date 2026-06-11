@@ -13,6 +13,7 @@ import 'package:roola/data/task_notification/task_notification_server.dart';
 import 'package:roola/l10n/app_localizations.dart';
 import 'package:roola/ui/common/mouse_navigation_listener.dart';
 import 'package:roola/ui/explorer/dnd_ready_provider.dart';
+import 'package:roola/ui/workspace/notification_click_provider.dart';
 
 /// アプリ最上位の Widget。
 ///
@@ -32,6 +33,8 @@ class App extends ConsumerWidget {
     // Claude Code 完了通知の受信口を起動時から常駐させる（ADR-0057）。
     // 値（確定ポート）は設定画面で参照するためここでは結果を使わない。
     ref.watch(taskNotificationServerProvider);
+    // 通知クリック→ペインフォーカス復帰のハンドラを常駐させる（ADR-0066）。
+    ref.watch(notificationClickProvider);
     return MaterialApp.router(
       title: 'Roola',
       // Polaris はダーク専用（ADR-0038 D2）。ライト/ダークの切替は持たない。

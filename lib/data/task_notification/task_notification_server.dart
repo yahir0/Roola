@@ -8,6 +8,7 @@ import 'package:roola/data/locale/locale_settings_repository_impl.dart';
 import 'package:roola/data/skill_session/active_sessions.dart';
 import 'package:roola/data/task_notification/hook_stop_payload.dart';
 import 'package:roola/data/task_notification/notify_token.dart';
+import 'package:roola/data/task_notification/osc_notification_policy.dart';
 import 'package:roola/data/task_notification/task_notification_receiver.dart';
 import 'package:roola/data/task_notification/task_notification_repository.dart';
 import 'package:roola/data/task_notification/task_notification_settings_repository_impl.dart';
@@ -29,9 +30,7 @@ class TaskNotificationServerNotifier extends AsyncNotifier<int> {
   Future<int> build() async {
     // preferredPort が変わったときだけ再 bind する。
     final preferredPort = ref.watch(
-      taskNotificationSettingsProvider.select(
-        (s) => s.value?.preferredPort,
-      ),
+      taskNotificationSettingsProvider.select((s) => s.value?.preferredPort),
     );
     final server = await _bind(preferredPort ?? defaultPort);
     ref.onDispose(() {
@@ -84,6 +83,12 @@ class TaskNotificationServerNotifier extends AsyncNotifier<int> {
 
   /// 照合・設定確認のうえ、条件を満たせば通知を発射する。
   void _maybeNotify(HookStopPayload payload) {
+    // OSC 経路（ADR-0066）が機能しているセッションはフック経路を破棄し、
+    // 並走期間中の二重通知を防ぐ（osc-task-notification design D5）。
+    if (ref.read(oscNotificationPolicyProvider).isOscActive(payload.tabId)) {
+      return;
+    }
+
     final sessions = ref.read(activeSessionsProvider);
     final expectedToken = ref.read(notifyTokenProvider);
     final shouldNotify = _receiver.shouldNotify(
@@ -116,7 +121,9 @@ class TaskNotificationServerNotifier extends AsyncNotifier<int> {
     unawaited(
       ref
           .read(taskNotificationRepositoryProvider)
-          .notify(title: title, body: bodyText),
+          // sessionId で通知クリック→ペインフォーカス復帰（ADR-0066）に
+          // 相乗りする。フック経路の tabId は ad-hoc セッション id と同じ。
+          .notify(title: title, body: bodyText, sessionId: payload.tabId),
     );
   }
 }

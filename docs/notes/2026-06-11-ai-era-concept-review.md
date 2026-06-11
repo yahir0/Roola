@@ -540,3 +540,5 @@ Issue #85 の「進め方の案」ステップ 2 のとおり、**新 ADR で AD
 - 2026-06-11: OSC の仕組み解説を追加。あわせて Windows の位置付けを訂正 —「将来・並行確認」ではなく **ADR-0058 で対応済みの一級プラットフォーム**として、スパイク・実装とも両 OS を必須要件に変更（Windows の xterm.js は `registerOscHandler` 公開 API があり対応の確実性はむしろ高い）。
 - 2026-06-11: **スパイク完了・全項目クリア**。Claude Code の OSC 9 出力を実機キャプチャで確認（`ESC ] 9 ; Claude needs your permission BEL`・TERM_PROGRAM 注入のみ・ユーザー設定ゼロ）。SwiftTerm は OSC 777 ネイティブ対応＋公開 registerOscHandler、xterm.js も同 API を確認。次は ADR-0057 を supersede する新 ADR の起草へ。
 - 2026-06-11: **ADR-0066 起草**（OSC 方式・フック廃止・スコープ原則・フォーカス転送・両 OS 対称実装・HTTP 版との並走方針）。ADR-0057 を Superseded に更新、CLAUDE.md の ADR リストに追記。残りは OpenSpec change 化と実装。
+- 2026-06-11: **OpenSpec change `osc-task-notification` を作成し実装ほぼ完了**（22 タスク中 19 完了）。TERM_PROGRAM 注入・SwiftTerm/xterm.js の OSC 9/777 受信・Dart 通知ポリシー層（フォーカス破棄/レート制限/フック経路との重複抑止）・通知クリック→ペインフォーカス復帰（両 OS）。analyze/test/build すべてグリーン。残: GUI での手動シナリオ確認（tasks 6.1）・Windows 実機確認（3.1）・確認後の Issue #85 クローズ（6.3）。
+  - 実装で判明: SwiftTerm / xterm.js とも mode 1004（フォーカスレポーティング）は組み込み対応で、CSI I/O の自前実装は不要だった。SwiftTerm の `TerminalViewDelegate` に notify は転送されないため OSC 777 も `registerOscHandler` 明示登録で受けた。

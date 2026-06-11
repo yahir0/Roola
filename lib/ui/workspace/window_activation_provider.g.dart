@@ -68,7 +68,7 @@ final class WindowActivationProvider
   }
 }
 
-String _$windowActivationHash() => r'd9c4bd6cea31357b70e234ccc46b91b07aacf4d8';
+String _$windowActivationHash() => r'a6679c94b47a8a4fbc999f7720cc76f37c665e49';
 
 /// ウィンドウ再アクティブ化（key 化）の epoch カウンタ（ADR-0055）。
 ///

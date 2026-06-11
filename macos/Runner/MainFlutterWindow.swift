@@ -42,12 +42,22 @@ final class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
     }
   }
 
+  /// 通知クリック時に呼ばれるコールバック（ADR-0066）。`sessionId` 付き
+  /// 通知（`notify(title:body:sessionId:)`）のみ対象。`MainFlutterWindow` が
+  /// `roola/notification` チャネルの `notificationClicked` へ橋渡しする。
+  var onNotificationClick: ((String) -> Void)?
+
   /// ローカル通知を 1 件発射する。`trigger: nil` で即時配信。
-  func notify(title: String, body: String) {
+  /// `sessionId` は通知元ペインの識別子。クリック時のフォーカス復帰
+  /// （ADR-0066）のため `userInfo` に載せる。
+  func notify(title: String, body: String, sessionId: String?) {
     let content = UNMutableNotificationContent()
     content.title = title
     content.body = body
     content.sound = .default
+    if let sessionId = sessionId {
+      content.userInfo = ["sessionId": sessionId]
+    }
     let request = UNNotificationRequest(
       identifier: UUID().uuidString,
       content: content,
@@ -73,6 +83,22 @@ final class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
       @escaping (UNNotificationPresentationOptions) -> Void
   ) {
     completionHandler([.banner, .sound, .list])
+  }
+
+  /// 通知クリック（ADR-0066）。`userInfo` の `sessionId` を Dart へ橋渡しし、
+  /// 該当ペインへのフォーカス復帰につなげる。クリックでアプリ自体は macOS が
+  /// 前面化（activate）させるため、ここでは識別子の転送のみ行う。
+  func userNotificationCenter(
+    _ center: UNUserNotificationCenter,
+    didReceive response: UNNotificationResponse,
+    withCompletionHandler completionHandler: @escaping () -> Void
+  ) {
+    defer { completionHandler() }
+    guard
+      let sessionId =
+        response.notification.request.content.userInfo["sessionId"] as? String
+    else { return }
+    onNotificationClick?(sessionId)
   }
 }
 
@@ -370,6 +396,14 @@ class MainFlutterWindow: NSWindow {
       name: "roola/notification",
       binaryMessenger: flutterViewController.engine.binaryMessenger
     )
+    // 通知クリック → Dart へ橋渡し（ADR-0066）。Dart 側は該当ペインへ
+    // フォーカスを戻す。
+    notificationManager.onNotificationClick = { sessionId in
+      notificationChannel.invokeMethod(
+        "notificationClicked",
+        arguments: ["sessionId": sessionId]
+      )
+    }
     notificationChannel.setMethodCallHandler { call, result in
       switch call.method {
       case "notify":
@@ -386,7 +420,11 @@ class MainFlutterWindow: NSWindow {
           )
           return
         }
-        notificationManager.notify(title: title, body: body)
+        notificationManager.notify(
+          title: title,
+          body: body,
+          sessionId: args["sessionId"] as? String
+        )
         result(nil)
       case "requestAuthorization":
         notificationManager.requestAuthorization { granted in

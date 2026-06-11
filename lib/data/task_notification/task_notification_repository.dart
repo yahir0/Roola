@@ -17,9 +17,20 @@ enum NotificationAuthorizationStatus {
       );
 }
 
-/// ローカル通知の抽象インタフェース（ADR-0057）。
+/// ローカル通知の抽象インタフェース（ADR-0057 / ADR-0066）。
 abstract interface class TaskNotificationRepository {
-  Future<void> notify({required String title, required String body});
+  /// 通知を 1 件発射する。[sessionId] を渡すと、クリック時に
+  /// [onNotificationClick] が同じ id で呼ばれる（該当ペインへのフォーカス
+  /// 復帰に使う。ADR-0066）。
+  Future<void> notify({
+    required String title,
+    required String body,
+    String? sessionId,
+  });
+
+  /// [sessionId] 付き通知がクリックされたときに呼ばれるハンドラ。
+  set onNotificationClick(void Function(String sessionId)? handler);
+
   Future<bool> requestAuthorization();
   Future<NotificationAuthorizationStatus> authorizationStatus();
   Future<void> openSystemSettings();
@@ -27,11 +38,9 @@ abstract interface class TaskNotificationRepository {
 
 final taskNotificationRepositoryProvider = Provider<TaskNotificationRepository>(
   (ref) {
-    if (Platform.isMacOS) return const NotificationServiceMacos();
-    if (Platform.isWindows) return const NotificationServiceWindows();
-    throw UnsupportedError(
-      'Unsupported platform: ${Platform.operatingSystem}',
-    );
+    if (Platform.isMacOS) return NotificationServiceMacos();
+    if (Platform.isWindows) return NotificationServiceWindows();
+    throw UnsupportedError('Unsupported platform: ${Platform.operatingSystem}');
   },
 );
 

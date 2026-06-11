@@ -27,4 +27,14 @@ class WindowActivation extends _$WindowActivation {
     ref.onDispose(() => _channel.setMethodCallHandler(null));
     return 0;
   }
+
+  /// アプリ内からフォーカス復帰シグナルを発火する（ADR-0066）。
+  ///
+  /// 通知クリックでタブをアクティブ化した直後、ウィンドウ key 化と同じ
+  /// 復帰経路（各ペインの `ref.listen` → focusedTab ならフォーカス再要求）を
+  /// 再利用するために使う。クリック時点で既にウィンドウが key だと
+  /// `didBecomeKey` が発火しないことがあるための補完。
+  void bump() {
+    state = state + 1;
+  }
 }

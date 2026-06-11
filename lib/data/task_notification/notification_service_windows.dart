@@ -8,15 +8,27 @@ import 'package:roola/data/task_notification/task_notification_repository.dart';
 /// Windows では OS レベルの通知許可はシステム設定で管理するため、
 /// `requestAuthorization` は常に `authorized` を返す。
 class NotificationServiceWindows implements TaskNotificationRepository {
-  const NotificationServiceWindows();
+  NotificationServiceWindows();
+
+  void Function(String sessionId)? _onNotificationClick;
 
   @override
-  Future<void> notify({required String title, required String body}) async {
+  set onNotificationClick(void Function(String sessionId)? handler) {
+    _onNotificationClick = handler;
+  }
+
+  @override
+  Future<void> notify({
+    required String title,
+    required String body,
+    String? sessionId,
+  }) async {
     try {
-      final notification = LocalNotification(
-        title: title,
-        body: body,
-      );
+      final notification = LocalNotification(title: title, body: body);
+      if (sessionId != null) {
+        // クリックで該当ペインへフォーカスを戻す（ADR-0066）。
+        notification.onClick = () => _onNotificationClick?.call(sessionId);
+      }
       await notification.show();
     } catch (_) {
       // 通知失敗は無視する。
@@ -37,9 +49,6 @@ class NotificationServiceWindows implements TaskNotificationRepository {
   @override
   Future<void> openSystemSettings() async {
     // ms-settings:notifications で「設定 > システム > 通知」を直接開く。
-    await Process.run(
-      'cmd',
-      ['/c', 'start', 'ms-settings:notifications'],
-    );
+    await Process.run('cmd', ['/c', 'start', 'ms-settings:notifications']);
   }
 }

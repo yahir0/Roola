@@ -80,15 +80,19 @@ WebView 通知）で同じ CSI を書く。
   プロトコル上正しい。SwiftTerm / xterm.js のフォーカスレポーティング対応状況を実装時に
   確認し、組み込み対応があればそれを使う（自前送信はフォールバック）
 
-### D4: 通知クリック → ペインフォーカスは「通知 ID → tabId」のマップで解決する
+### D4: 通知クリック → ペインフォーカスは通知自体に sessionId を載せて解決する
 
-通知発射時に Dart 層で通知 ID と tabId を対応付けて保持する。クリック時:
+（実装時に簡素化: 当初案の「通知 ID → tabId マップ」は持たない。マップと
+タブクローズ時の掃除が丸ごと不要になる。）通知発射時に sessionId
+（ad-hoc セッション id）を通知へ直接載せ、クリック時にワークスペースから
+タブを解決する:
 
-- macOS: `UNUserNotificationCenterDelegate.didReceive` を `MainFlutterWindow.swift` に
-  追加し、`userInfo` の通知 ID を既存 MethodChannel の逆方向（または新規イベント
-  チャネル）で Dart に通知 → ウィンドウ前面化 + 該当タブへフォーカス（ADR-0055 の
-  フォーカス復元機構を再利用）
-- Windows: `local_notifier` の `onClick` で同じ Dart 経路に乗せる
+- macOS: `userInfo["sessionId"]` に載せ、`UNUserNotificationCenterDelegate.didReceive`
+  が `roola/notification` チャネルの逆方向 `notificationClicked` で Dart へ送る
+- Windows: `LocalNotification.onClick` クロージャに sessionId を束縛する
+- Dart: `notification_click_provider.dart`（App から常駐 watch）が sessionId から
+  `TerminalTab` を探して `activateTab`、ADR-0055 の復帰経路を
+  `WindowActivation.bump()` で再利用。タブが見つからなければ no-op
 
 ### D5: ADR-0057 並走時の重複抑止は「OSC 通知が有効なら HTTP 通知を表示しない」で行う
 

@@ -1,17 +1,32 @@
 import 'package:roola/data/launcher_entry/launcher_action.dart';
 
-/// PTY 起動時に追加注入する、タスク完了通知（ADR-0057）用の環境変数を返す。
+/// Claude Code がターミナル判別（`preferredNotifChannel: auto`）に使う値。
+/// `iTerm.app` を名乗ると OSC 9 通知をネイティブに出力する（ADR-0066・
+/// 実機検証済みの組み合わせ）。
+const oscTermProgram = 'iTerm.app';
+
+/// `TERM_PROGRAM_VERSION`。claude は `/^[0-2]\./` を旧版とみなすため 3.x を名乗る。
+const oscTermProgramVersion = '3.5.0';
+
+/// PTY 起動時に追加注入する、タスク通知用の環境変数を返す。
 ///
-/// 完了通知の対象は Claude Code セッションのみ。`ClaudeSkillAction` のときだけ
-/// `ROOLA_TAB_ID`（当該タブを一意に指す）と `ROOLA_NOTIFY_TOKEN`（アプリ起動
-/// ごとのトークン）を返し、それ以外のアクションでは `null`（注入なし）。
-Map<String, String>? notificationEnvironment({
+/// 全アクション共通で `TERM_PROGRAM` / `TERM_PROGRAM_VERSION` を注入し、
+/// CLI ツールのネイティブ通知チャネル（OSC 9 等）を有効化する（ADR-0066）。
+/// claude 以外のツールも OSC を吐けるため、アクション種別では限定しない。
+///
+/// `ClaudeSkillAction` のときはさらに ADR-0057（Stop フック通知・OSC 版の
+/// 安定確認まで並走）用の `ROOLA_TAB_ID` / `ROOLA_NOTIFY_TOKEN` を加える。
+Map<String, String> notificationEnvironment({
   required LauncherAction action,
   required String tabId,
   required String token,
 }) {
-  if (action is! ClaudeSkillAction) {
-    return null;
-  }
-  return {'ROOLA_TAB_ID': tabId, 'ROOLA_NOTIFY_TOKEN': token};
+  return {
+    'TERM_PROGRAM': oscTermProgram,
+    'TERM_PROGRAM_VERSION': oscTermProgramVersion,
+    if (action is ClaudeSkillAction) ...{
+      'ROOLA_TAB_ID': tabId,
+      'ROOLA_NOTIFY_TOKEN': token,
+    },
+  };
 }
