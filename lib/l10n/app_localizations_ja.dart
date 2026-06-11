@@ -1359,4 +1359,35 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get launcherFolderOperationsTooltip => 'フォルダ操作';
+
+  @override
+  String get consentModalTitle => '利用規約への同意';
+
+  @override
+  String get consentModalIntro => 'Roola のご利用には、以下の利用規約への同意が必要です。';
+
+  @override
+  String get consentAnalyticsToggleLabel => '使用状況の統計を送信する';
+
+  @override
+  String get consentAnalyticsDescription =>
+      '匿名の利用統計（起動数・機能の利用回数・OS とアプリのバージョン）を Aptabase へ送信し、アプリの改善に役立てます。個人情報・ファイルパス・コマンドの内容は送信されません。設定からいつでも変更できます。';
+
+  @override
+  String get consentAcceptButton => '同意して開始';
+
+  @override
+  String get consentQuitButton => '終了';
+
+  @override
+  String get termsPageTitle => '利用規約';
+
+  @override
+  String get settingsPrivacyTitle => 'プライバシー';
+
+  @override
+  String get settingsPrivacyDescription => '匿名の利用統計の送信設定と、利用規約の確認。';
+
+  @override
+  String get settingsPrivacyViewTermsButton => '利用規約を表示';
 }

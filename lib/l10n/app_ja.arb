@@ -629,5 +629,16 @@
   "sessionStateFailed": "失敗",
   "sessionStateCancelled": "キャンセル",
 
-  "launcherFolderOperationsTooltip": "フォルダ操作"
+  "launcherFolderOperationsTooltip": "フォルダ操作",
+
+  "consentModalTitle": "利用規約への同意",
+  "consentModalIntro": "Roola のご利用には、以下の利用規約への同意が必要です。",
+  "consentAnalyticsToggleLabel": "使用状況の統計を送信する",
+  "consentAnalyticsDescription": "匿名の利用統計（起動数・機能の利用回数・OS とアプリのバージョン）を Aptabase へ送信し、アプリの改善に役立てます。個人情報・ファイルパス・コマンドの内容は送信されません。設定からいつでも変更できます。",
+  "consentAcceptButton": "同意して開始",
+  "consentQuitButton": "終了",
+  "termsPageTitle": "利用規約",
+  "settingsPrivacyTitle": "プライバシー",
+  "settingsPrivacyDescription": "匿名の利用統計の送信設定と、利用規約の確認。",
+  "settingsPrivacyViewTermsButton": "利用規約を表示"
 }

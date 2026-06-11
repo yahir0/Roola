@@ -602,5 +602,16 @@
   "sessionStateFailed": "Failed",
   "sessionStateCancelled": "Cancelled",
 
-  "launcherFolderOperationsTooltip": "Folder operations"
+  "launcherFolderOperationsTooltip": "Folder operations",
+
+  "consentModalTitle": "Terms of Use Agreement",
+  "consentModalIntro": "Using Roola requires agreeing to the Terms of Use below (the official text is in Japanese).",
+  "consentAnalyticsToggleLabel": "Share anonymous usage statistics",
+  "consentAnalyticsDescription": "Sends anonymous usage statistics (launch counts, feature usage, OS and app version) to Aptabase to help improve the app. No personal data, file paths, or command contents are ever sent. You can change this anytime in Settings.",
+  "consentAcceptButton": "Agree and Continue",
+  "consentQuitButton": "Quit",
+  "termsPageTitle": "Terms of Use",
+  "settingsPrivacyTitle": "Privacy",
+  "settingsPrivacyDescription": "Anonymous usage statistics and the Terms of Use.",
+  "settingsPrivacyViewTermsButton": "View Terms of Use"
 }

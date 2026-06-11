@@ -146,6 +146,9 @@ flutter:
     - assets/branding/
     # xterm.js ターミナルレンダラ（Windows 専用 ADR-0058 D1）。
     - assets/js/xterm/
+    # 利用規約の同梱コピー（同意モーダル / ADR-0065）。正本は docs/terms-of-use.md。
+    # 改定時は docs/release.md の「利用規約の改定チェックリスト」に従って更新する。
+    - assets/terms/
 
   # To add assets to your application, add an assets section, like this:
   # assets:

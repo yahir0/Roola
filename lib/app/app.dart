@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:roola/app/app_menu_bar.dart';
 import 'package:roola/app/router.dart';
+import 'package:roola/app/terms_consent_gate.dart';
 import 'package:roola/app/theme.dart';
 import 'package:roola/app/window_close_guard.dart';
 import 'package:roola/app/windows_keyboard_shortcut_bridge.dart';
@@ -57,8 +58,12 @@ class App extends ConsumerWidget {
               // engine/view レジストリ確定前に DropRegion 等が登録されて
               // クラッシュするのを避ける（ADR-0049）。
               child: DndReadyGate(
-                child: MouseNavigationListener(
-                  child: child ?? const SizedBox.shrink(),
+                // 規約未同意（macOS の既存ユーザーを含む）なら、メイン UI の
+                // 上に同意モーダルを被せる（ADR-0065）。
+                child: TermsConsentGate(
+                  child: MouseNavigationListener(
+                    child: child ?? const SizedBox.shrink(),
+                  ),
                 ),
               ),
             ),

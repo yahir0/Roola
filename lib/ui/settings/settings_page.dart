@@ -15,6 +15,7 @@ import 'package:roola/ui/common/polaris_modal_shell.dart';
 import 'package:roola/ui/common/polaris_settings_panel.dart';
 import 'package:roola/ui/common/polaris_toggle.dart';
 import 'package:roola/ui/settings/appearance_section.dart';
+import 'package:roola/ui/settings/privacy_section.dart';
 import 'package:roola/ui/settings/task_notification_section.dart';
 import 'package:roola/ui/settings/windows_shell_section.dart';
 
@@ -48,6 +49,8 @@ class SettingsPage extends ConsumerWidget {
           TaskNotificationSection(),
           PolarisSectionDivider(),
           WindowsShellSection(),
+          PolarisSectionDivider(),
+          PrivacySection(),
           PolarisSectionDivider(),
           _ShortcutsSection(),
           PolarisSectionDivider(),

@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/widgets.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:roola/data/analytics/analytics_service.dart';
 import 'package:roola/data/launcher_entry/launcher_action.dart';
 import 'package:roola/data/launcher_entry/launcher_entry.dart';
 import 'package:roola/data/skill_session/active_sessions.dart';
@@ -62,6 +65,14 @@ Future<void> launchLauncherEntry(
   ref
       .read(workspaceProvider.notifier)
       .addTerminalTab(PaneSlotId.bottom, args: args);
+
+  // 匿名利用統計（ADR-0065）。実行種別のみを送り、パス・コマンド・エントリ名
+  // は送らない。
+  unawaited(
+    ref.read(analyticsServiceProvider).trackEvent('launcher_executed', {
+      'kind': launcherActionTypeOf(action).name,
+    }),
+  );
 }
 
 /// 現在 active なセッション全件の表示名を集める。すべて ad-hoc 由来なので
