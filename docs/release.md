@@ -75,6 +75,31 @@ Apple Developer Portal の [Membership](https://developer.apple.com/account/#/me
 
 > ⚠️ 通常の Apple ID パスワードではなく **App-specific** が必要。
 
+## dart-define（`dart_defines/prod.json`）
+
+ビルド時の埋め込み値は `dart_defines/prod.json` に集約している（ADR-0004）。
+Makefile（`DEFINES`）と Windows のワークフローが `--dart-define-from-file`
+で渡すため、追加の設定は不要。
+
+| キー | 用途 |
+|---|---|
+| `APP_NAME` | アプリ表示名 |
+| `APTABASE_APP_KEY` | 匿名アナリティクスの App Key（ADR-0065）。**未設定（空）のビルドではアナリティクスが no-op になる** |
+
+IDE からの debug 実行などで prod.json を渡していない場合、アナリティクスは
+送信されない（開発中のノイズが計測に混ざらない）。
+
+## 利用規約の改定チェックリスト
+
+利用規約（`docs/terms-of-use.md`）を改定するときは、以下の **4 点を同時に
+更新** する（乖離すると同意フローと配布物の規約が食い違う / ADR-0065）:
+
+1. `docs/terms-of-use.md` — 正本。版数と改定日を末尾に明記
+2. `assets/terms/terms-of-use.md` — アプリ内表示用の同梱コピー（正本と同一内容）
+3. `windows/installer/license.rtf` — Inno Setup の同意画面用（正本から再生成）
+4. `lib/core/constants/terms.dart` の `currentTermsVersion` — インクリメント
+   すると全ユーザーに再同意モーダルが表示される
+
 ## ワークフローの 2 つの起動経路
 
 | 起動経路 | 目的 | Release 作成 | DMG の取得方法 |

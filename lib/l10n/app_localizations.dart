@@ -2515,6 +2515,66 @@ abstract class AppLocalizations {
   /// In ja, this message translates to:
   /// **'フォルダ操作'**
   String get launcherFolderOperationsTooltip;
+
+  /// No description provided for @consentModalTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'利用規約への同意'**
+  String get consentModalTitle;
+
+  /// No description provided for @consentModalIntro.
+  ///
+  /// In ja, this message translates to:
+  /// **'Roola のご利用には、以下の利用規約への同意が必要です。'**
+  String get consentModalIntro;
+
+  /// No description provided for @consentAnalyticsToggleLabel.
+  ///
+  /// In ja, this message translates to:
+  /// **'使用状況の統計を送信する'**
+  String get consentAnalyticsToggleLabel;
+
+  /// No description provided for @consentAnalyticsDescription.
+  ///
+  /// In ja, this message translates to:
+  /// **'匿名の利用統計（起動数・機能の利用回数・OS とアプリのバージョン）を Aptabase へ送信し、アプリの改善に役立てます。個人情報・ファイルパス・コマンドの内容は送信されません。設定からいつでも変更できます。'**
+  String get consentAnalyticsDescription;
+
+  /// No description provided for @consentAcceptButton.
+  ///
+  /// In ja, this message translates to:
+  /// **'同意して開始'**
+  String get consentAcceptButton;
+
+  /// No description provided for @consentQuitButton.
+  ///
+  /// In ja, this message translates to:
+  /// **'終了'**
+  String get consentQuitButton;
+
+  /// No description provided for @termsPageTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'利用規約'**
+  String get termsPageTitle;
+
+  /// No description provided for @settingsPrivacyTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'プライバシー'**
+  String get settingsPrivacyTitle;
+
+  /// No description provided for @settingsPrivacyDescription.
+  ///
+  /// In ja, this message translates to:
+  /// **'匿名の利用統計の送信設定と、利用規約の確認。'**
+  String get settingsPrivacyDescription;
+
+  /// No description provided for @settingsPrivacyViewTermsButton.
+  ///
+  /// In ja, this message translates to:
+  /// **'利用規約を表示'**
+  String get settingsPrivacyViewTermsButton;
 }
 
 class _AppLocalizationsDelegate

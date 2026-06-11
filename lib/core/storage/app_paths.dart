@@ -56,6 +56,9 @@ class AppPaths {
   File get terminalSettingsFile =>
       File('${root.path}/terminal_settings.json');
 
+  /// 利用規約の同意状態 + アナリティクス設定の永続化先（ADR-0065）。
+  File get privacySettingsFile => File('${root.path}/privacy_settings.json');
+
   /// ディレクトリが存在しない場合に作る（再帰的）。
   Future<void> ensureDirectories() async {
     if (!root.existsSync()) {

@@ -1395,4 +1395,37 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get launcherFolderOperationsTooltip => 'Folder operations';
+
+  @override
+  String get consentModalTitle => 'Terms of Use Agreement';
+
+  @override
+  String get consentModalIntro =>
+      'Using Roola requires agreeing to the Terms of Use below (the official text is in Japanese).';
+
+  @override
+  String get consentAnalyticsToggleLabel => 'Share anonymous usage statistics';
+
+  @override
+  String get consentAnalyticsDescription =>
+      'Sends anonymous usage statistics (launch counts, feature usage, OS and app version) to Aptabase to help improve the app. No personal data, file paths, or command contents are ever sent. You can change this anytime in Settings.';
+
+  @override
+  String get consentAcceptButton => 'Agree and Continue';
+
+  @override
+  String get consentQuitButton => 'Quit';
+
+  @override
+  String get termsPageTitle => 'Terms of Use';
+
+  @override
+  String get settingsPrivacyTitle => 'Privacy';
+
+  @override
+  String get settingsPrivacyDescription =>
+      'Anonymous usage statistics and the Terms of Use.';
+
+  @override
+  String get settingsPrivacyViewTermsButton => 'View Terms of Use';
 }

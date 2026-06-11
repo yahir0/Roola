@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:roola/ui/about/license_browser_page.dart';
+import 'package:roola/ui/consent/terms_page.dart';
 import 'package:roola/ui/launchers/entry_edit_page.dart';
 import 'package:roola/ui/launchers/launcher_management_page.dart';
 import 'package:roola/ui/settings/keybindings_page.dart';
@@ -95,6 +96,19 @@ class LicensesRoute extends GoRouteData with $LicensesRoute {
   @override
   Page<void> buildPage(BuildContext context, GoRouterState state) =>
       _modalPage(const LicenseBrowserPage());
+}
+
+/// 利用規約の閲覧ルート (`/terms`)。設定画面のプライバシーセクションから
+/// push（ADR-0065）。起動時の同意モーダル（`TermsConsentGate`）はルートでは
+/// なく builder チェーンのオーバーレイなので、こちらは閲覧専用。
+/// 遷移アニメを抑制する理由は `SettingsRoute` 参照。
+@TypedGoRoute<TermsRoute>(path: '/terms')
+class TermsRoute extends GoRouteData with $TermsRoute {
+  const TermsRoute();
+
+  @override
+  Page<void> buildPage(BuildContext context, GoRouterState state) =>
+      _modalPage(const TermsPage());
 }
 
 /// ランチャー管理画面ルート (`/launchers`)。登録済みエントリの一覧 + 追加 /
