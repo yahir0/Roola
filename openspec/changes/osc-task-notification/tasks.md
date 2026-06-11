@@ -78,8 +78,9 @@
       - [ ] OSC 9 を 100 個含むファイルを `cat` → 通知は 1 件程度
       - [x] claude 完了 → 即時には出ず、約 60 秒後に「Claude is waiting for your
             input」が出る（2026-06-11 オーナー実機で確認・仕様として確定）
-      - [ ] フック（ADR-0057）登録 + 有効化済み環境で claude 完了 → 完了の瞬間に
-            「完了しました」、60 秒後に OSC 通知の両方が出る（独立発射）
+      - [ ] （並走確認・任意）フック登録 + 有効化済み環境で claude 完了 →
+            完了の瞬間に「完了しました」、60 秒後に OSC 通知（互いに抑止しないこと。
+            フック経路は安定確認後に後続 change で撤去予定）
       - [ ] Windows 実機で同セット（+ タスク 3.1 の送信側確認）
 - [x] 6.2 `flutter analyze`（No issues）/ `flutter test`（361 件パス）/
       `dart format`（変更ファイル 0 差分）/ `flutter build macos --debug`（Swift コンパイル成功）
