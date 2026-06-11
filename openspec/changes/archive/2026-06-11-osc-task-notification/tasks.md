@@ -73,5 +73,5 @@
       - [ ] 残: Windows 実機で同セット（+ タスク 3.1 の送信側確認）— リリース前に確認
 - [x] 6.2 `flutter analyze`（No issues）/ `flutter test`（361 件パス）/
       `dart format`（変更ファイル 0 差分）/ `flutter build macos --debug`（Swift コンパイル成功）
-- [ ] 6.3 docs/notes の検討ノートに実装完了を追記し、Issue #85 をクローズできる状態にする
-      （6.1 の手動確認が済んでから）
+- [x] 6.3 docs/notes の検討ノートに実装完了を追記し、Issue #85 をクローズ
+      （PR #103 マージ・2026-06-11。Windows 実機確認〔3.1〕のみリリース前確認として残置）
