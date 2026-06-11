@@ -1,7 +1,11 @@
 # ADR-0057: Claude Code のタスク完了を Stop フック + ローカル受信口で macOS 通知する
 
-- **Status**: Accepted
+- **Status**: Superseded by ADR-0066
 - **Date**: 2026-05-25
+
+> **Superseded**: 本 ADR の Stop フック + ローカル HTTP 受信口方式は ADR-0066
+> （通知エスケープシーケンス（OSC）方式）に置き換えられた。OSC 版の安定確認まで
+> 本実装は並走させ、その後撤去する。
 
 ## Context
 

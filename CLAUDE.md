@@ -137,6 +137,7 @@
 - ADR-0063: 「素のシェル（OpenHere）」をログインシェルで起動する（Terminal.app と同じ PATH 構築・node 等の command not found を解消）
 - ADR-0064: macOS のトップバーからワードマークを廃止し、信号灯を 40px トップバー内で上下中央へ寄せる（ADR-0038 D9 を一部 Supersede）
 - ADR-0065: 匿名アナリティクスに Aptabase を採用する（REST 直叩き・利用規約第 2 版・起動時の同意モーダルとオプトアウト）
+- ADR-0066: タスク通知を通知エスケープシーケンス（OSC）方式へ移行する（ADR-0057 Supersede）— フック登録・HTTP 受信口を廃止し、ユーザー設定ゼロの in-band 通知へ。管理対象は Roola 内起動セッションのみ
 
 ## ディレクトリ構成
 
@@ -147,6 +148,7 @@
 │   ├── architecture.md        # MVVM レイヤー構成・依存方向・各層責務
 │   ├── coding-standards.md    # 命名・import 順・コメント・テスト・コミット規約
 │   ├── design-system.md       # Polaris デザインシステムの現行規約（生きた仕様）
+│   ├── notes/                 # 決定前の構想・議論ログ（日付付き、ADR/OpenSpec の前段階）
 │   └── adr/                   # 設計判断の時系列記録
 │       ├── README.md
 │       ├── 0001-flutter-desktop-macos.md
