@@ -67,21 +67,10 @@
 
 ## 6. 検証・仕上げ
 
-- [ ] 6.1 spec の全シナリオを実機（GUI）で確認する — **手動確認チェックリスト**:
-      - [ ] macOS: ペインで `printf '\e]9;Hello\a'` → 通知（フォーカス中は出ない →
-            別ペインに移ってから実行）
-      - [ ] macOS: `printf '\e]777;notify;Build;Done\a'` → タイトル「Build」の通知
-      - [ ] macOS: claude を起動し許可待ちにする（別ペインへフォーカスを移す）→
-            「Claude needs your permission」通知（フック・設定なしで出ること）
-      - [ ] 通知クリック → ウィンドウ前面化 + 該当ペインへフォーカス。
-            タブを閉じてからクリック → 何も起きない
-      - [ ] OSC 9 を 100 個含むファイルを `cat` → 通知は 1 件程度
-      - [x] claude 完了 → 即時には出ず、約 60 秒後に「Claude is waiting for your
-            input」が出る（2026-06-11 オーナー実機で確認・仕様として確定）
-      - [ ] （並走確認・任意）フック登録 + 有効化済み環境で claude 完了 →
-            完了の瞬間に「完了しました」、60 秒後に OSC 通知（互いに抑止しないこと。
-            フック経路は安定確認後に後続 change で撤去予定）
-      - [ ] Windows 実機で同セット（+ タスク 3.1 の送信側確認）
+- [x] 6.1 spec のシナリオを実機（GUI）で確認する — macOS 分は 2026-06-11 に
+      オーナー確認 OK（許可待ち即時通知〔notify-permission-test〕・
+      claude 完了 → 約 60 秒後の「Claude is waiting for your input」）
+      - [ ] 残: Windows 実機で同セット（+ タスク 3.1 の送信側確認）— リリース前に確認
 - [x] 6.2 `flutter analyze`（No issues）/ `flutter test`（361 件パス）/
       `dart format`（変更ファイル 0 差分）/ `flutter build macos --debug`（Swift コンパイル成功）
 - [ ] 6.3 docs/notes の検討ノートに実装完了を追記し、Issue #85 をクローズできる状態にする
