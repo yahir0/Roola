@@ -6,6 +6,7 @@ import 'package:roola/data/skill_session/active_sessions.dart';
 import 'package:roola/data/skill_session/adhoc_run_args.dart';
 import 'package:roola/data/task_notification/notification_environment.dart';
 import 'package:roola/data/task_notification/notify_token.dart';
+import 'package:roola/data/task_notification/osc_notification_policy.dart';
 import 'package:roola/data/terminal_runner/pty_terminal_runner.dart';
 import 'package:roola/data/terminal_runner/terminal_run_state.dart';
 import 'package:roola/data/terminal_runner/terminal_runner.dart';
@@ -47,9 +48,10 @@ class RunPageState {
 class AdhocRunViewModel extends _$AdhocRunViewModel {
   @override
   RunPageState build(AdhocRunArgs args) {
-    final windowsShell = args.windowsShell
-        ?? ref.read(terminalSettingsProvider).value?.windowsShell
-        ?? WindowsShell.powershell;
+    final windowsShell =
+        args.windowsShell ??
+        ref.read(terminalSettingsProvider).value?.windowsShell ??
+        WindowsShell.powershell;
     final runner = PtyTerminalRunner.fromAction(
       workingDirectory: args.workingDirectory,
       action: args.action,
@@ -70,6 +72,7 @@ class AdhocRunViewModel extends _$AdhocRunViewModel {
     );
 
     final registry = ref.read(activeSessionsProvider.notifier);
+    final oscPolicy = ref.read(oscNotificationPolicyProvider);
 
     late final StreamSubscription<SkillRunState> sub;
     sub = runner.state.listen((next) {
@@ -78,6 +81,7 @@ class AdhocRunViewModel extends _$AdhocRunViewModel {
     });
 
     ref.onDispose(() async {
+      oscPolicy.forgetSession(args.adhocId);
       await sub.cancel();
       await runner.dispose();
     });

@@ -4,7 +4,10 @@ import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:roola/data/task_notification/osc_notification_controller.dart';
 import 'package:roola/data/terminal_runner/terminal_runner.dart';
+import 'package:roola/ui/workspace/current_tab_id_provider.dart';
+import 'package:roola/ui/workspace/focused_tab_provider.dart';
 import 'package:webview_windows/webview_windows.dart';
 
 /// Windows 専用: xterm.js を WebView2 に埋め込んだターミナル面（ADR-0058 D1）。
@@ -15,9 +18,13 @@ import 'package:webview_windows/webview_windows.dart';
 /// リサイズは ResizeObserver 経由で xterm.js → WebView message → [TerminalRunner.resize]。
 class TerminalSurfaceWindows extends ConsumerStatefulWidget {
   const TerminalSurfaceWindows({
+    required this.channelId,
     required this.runner,
     super.key,
   });
+
+  /// ad-hoc セッション id。OSC 通知要求のセッション識別に使う（ADR-0066）。
+  final String channelId;
 
   final TerminalRunner runner;
 
@@ -48,7 +55,9 @@ class _TerminalSurfaceWindowsState
     // xterm.js と CSS を Flutter assets から読み込んで HTML に inline embed する。
     final xtermJs = await rootBundle.loadString('assets/js/xterm/xterm.js');
     final xtermCss = await rootBundle.loadString('assets/js/xterm/xterm.css');
-    final fitJs = await rootBundle.loadString('assets/js/xterm/xterm-addon-fit.js');
+    final fitJs = await rootBundle.loadString(
+      'assets/js/xterm/xterm-addon-fit.js',
+    );
 
     await _controller.loadStringContent(_buildHtml(xtermJs, xtermCss, fitJs));
 
@@ -81,10 +90,37 @@ class _TerminalSurfaceWindowsState
       } else if (type == 'paste') {
         // 右クリックでクリップボードの内容を PTY へ送る。
         unawaited(_pasteFromClipboard());
+      } else if (type == 'notify') {
+        // xterm.js が解釈した OSC 9/777 通知要求（ADR-0066）。
+        _handleNotify(
+          title: map['title'] as String?,
+          body: map['body'] as String? ?? '',
+        );
       }
     } catch (_) {
       // JSON パース失敗は無視する。
     }
+  }
+
+  /// OSC 通知要求のフォーカス判定（macOS 側 `TerminalSurface` と同じ規則:
+  /// 自タブが focusedTab かつアプリ前面なら「見ている」ので発射しない）。
+  /// 発射判断の本体はコントローラに委譲する。
+  void _handleNotify({String? title, required String body}) {
+    final lifecycle = WidgetsBinding.instance.lifecycleState;
+    final isFocused =
+        ref.read(focusedTabProvider).focusedTabId ==
+            ref.read(currentTabIdProvider) &&
+        (lifecycle == null || lifecycle == AppLifecycleState.resumed);
+    unawaited(
+      ref
+          .read(oscNotificationControllerProvider)
+          .handleNotify(
+            sessionId: widget.channelId,
+            isFocused: isFocused,
+            title: title,
+            body: body,
+          ),
+    );
   }
 
   Future<void> _pasteFromClipboard() async {
@@ -119,11 +155,7 @@ class _TerminalSurfaceWindowsState
     return Webview(_controller);
   }
 
-  static String _buildHtml(
-    String xtermJs,
-    String xtermCss,
-    String fitJs,
-  ) {
+  static String _buildHtml(String xtermJs, String xtermCss, String fitJs) {
     return '''
 <!DOCTYPE html>
 <html>
@@ -178,6 +210,28 @@ var ro = new ResizeObserver(function() {
   );
 });
 ro.observe(document.getElementById('terminal'));
+
+// OSC 9 / OSC 777 通知シーケンス → Dart（ADR-0066）。発射判断（フォーカス・
+// レート制限・ADR-0057 経路との重複抑止）は Dart 側に集約する。
+// フォーカスレポーティング（mode 1004 の CSI I/O）は xterm.js が組み込みで
+// 送出するため、ここでの実装は不要。
+function postNotify(title, body) {
+  window.chrome.webview.postMessage(
+    JSON.stringify({ type: 'notify', title: title, body: body })
+  );
+}
+term.parser.registerOscHandler(9, function(data) {
+  // "9;4;..." は ConEmu 進捗レポートであり通知ではない。
+  if (!data || data === '4' || data.indexOf('4;') === 0) return true;
+  postNotify(null, data);
+  return true;
+});
+term.parser.registerOscHandler(777, function(data) {
+  var parts = data.split(';');
+  if (parts.length < 3 || parts[0] !== 'notify') return true;
+  postNotify(parts[1], parts.slice(2).join(';'));
+  return true;
+});
 
 // キーボードコピペ
 // Ctrl+Shift+C / Ctrl+Alt+C: 選択テキストをコピー

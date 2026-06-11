@@ -43,6 +43,10 @@ class TerminalChannel {
   /// （focusedTabProvider）を更新する。
   void Function()? onFocused;
 
+  /// ネイティブが解釈した OSC 9/777 通知要求を受け取るコールバック
+  /// （ADR-0066）。`title` は OSC 9 のとき null（受け手がタブ名で補完する）。
+  void Function({String? title, required String body})? onNotify;
+
   bool _ready = false;
   final List<ByteData> _pending = [];
 
@@ -96,6 +100,12 @@ class TerminalChannel {
         onResize?.call(args['cols'] as int, args['rows'] as int);
       case 'terminalDidFocus':
         onFocused?.call();
+      case 'notify':
+        final args = (call.arguments as Map).cast<String, dynamic>();
+        onNotify?.call(
+          title: args['title'] as String?,
+          body: args['body'] as String? ?? '',
+        );
     }
     return null;
   }
@@ -108,5 +118,6 @@ class TerminalChannel {
     onInput = null;
     onResize = null;
     onFocused = null;
+    onNotify = null;
   }
 }

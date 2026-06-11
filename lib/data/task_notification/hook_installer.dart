@@ -122,9 +122,9 @@ abstract final class HookInstaller {
 
   // ---- internal helpers --------------------------------------------------
 
-  static bool _containsRoolaHook(Map<String, dynamic> json) =>
-      _stopList((json['hooks'] as Map<String, dynamic>?) ?? {})
-          .any(_isRoolaEntry);
+  static bool _containsRoolaHook(Map<String, dynamic> json) => _stopList(
+    (json['hooks'] as Map<String, dynamic>?) ?? {},
+  ).any(_isRoolaEntry);
 
   static List<Map<String, dynamic>> _stopList(Map<String, dynamic> hooks) =>
       ((hooks['Stop'] as List<dynamic>?) ?? [])

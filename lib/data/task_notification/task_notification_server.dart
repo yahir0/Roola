@@ -29,9 +29,7 @@ class TaskNotificationServerNotifier extends AsyncNotifier<int> {
   Future<int> build() async {
     // preferredPort が変わったときだけ再 bind する。
     final preferredPort = ref.watch(
-      taskNotificationSettingsProvider.select(
-        (s) => s.value?.preferredPort,
-      ),
+      taskNotificationSettingsProvider.select((s) => s.value?.preferredPort),
     );
     final server = await _bind(preferredPort ?? defaultPort);
     ref.onDispose(() {
@@ -83,6 +81,10 @@ class TaskNotificationServerNotifier extends AsyncNotifier<int> {
   }
 
   /// 照合・設定確認のうえ、条件を満たせば通知を発射する。
+  ///
+  /// OSC 経路（ADR-0066）とは独立して発射する。フック経路は「完了の瞬間」、
+  /// OSC 経路は「許可待ち / 入力待ち 60 秒」と通知するイベントが異なるため、
+  /// 抑止し合わない（osc-task-notification design D5）。
   void _maybeNotify(HookStopPayload payload) {
     final sessions = ref.read(activeSessionsProvider);
     final expectedToken = ref.read(notifyTokenProvider);
@@ -116,7 +118,9 @@ class TaskNotificationServerNotifier extends AsyncNotifier<int> {
     unawaited(
       ref
           .read(taskNotificationRepositoryProvider)
-          .notify(title: title, body: bodyText),
+          // sessionId で通知クリック→ペインフォーカス復帰（ADR-0066）に
+          // 相乗りする。フック経路の tabId は ad-hoc セッション id と同じ。
+          .notify(title: title, body: bodyText, sessionId: payload.tabId),
     );
   }
 }

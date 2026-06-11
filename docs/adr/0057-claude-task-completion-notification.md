@@ -1,7 +1,13 @@
 # ADR-0057: Claude Code のタスク完了を Stop フック + ローカル受信口で macOS 通知する
 
-- **Status**: Accepted
+- **Status**: Superseded by ADR-0066
 - **Date**: 2026-05-25
+
+> **Superseded**: 本 ADR の Stop フック + ローカル HTTP 受信口方式は ADR-0066
+> （通知エスケープシーケンス（OSC）方式・設定ゼロ）に置き換えられた。
+> OSC 版の安定確認まで本実装は並走させ、その後撤去する（ADR-0066 Decision 7）。
+> 通知の意味論は「完了の瞬間」から「許可待ち即時 + 入力待ち 60 秒アイドル」に
+> 変わるが、これは Ghostty / iTerm2 等のネイティブ通知と同一の挙動であり許容。
 
 ## Context
 

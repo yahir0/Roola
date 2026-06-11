@@ -139,6 +139,7 @@ class RoolaTerminalView: NSView, TerminalViewDelegate {
     }
 
     installKeyMonitor()
+    installOscNotificationHandlers()
   }
 
   required init?(coder: NSCoder) {
@@ -217,6 +218,47 @@ class RoolaTerminalView: NSView, TerminalViewDelegate {
       && flags.contains(.shift)
       // Ctrl / Cmd / Option との同時押しは SwiftTerm 既定処理に委ねる。
       && flags.isDisjoint(with: [.control, .command, .option])
+  }
+
+  // MARK: OSC 通知（ADR-0066）
+
+  /// OSC 9（iTerm2 系: `ESC ] 9 ; body BEL`）と OSC 777
+  /// （`ESC ] 777 ; notify ; title ; body BEL`）を通知要求として Dart へ
+  /// 転送する。OS 通知を出すか否か（フォーカス・レート制限・ADR-0057 との
+  /// 重複抑止）の判断は Dart 側の通知ポリシー層に集約する。
+  ///
+  /// `registerOscHandler` で登録したハンドラは SwiftTerm 組み込みの解釈より
+  /// 優先される。OSC 777 は組み込みでも解釈されるが、その通知は
+  /// `TerminalDelegate.notify`（Terminal レベル）止まりで
+  /// `TerminalViewDelegate` まで転送されないため、9 / 777 とも明示登録で受ける。
+  private func installOscNotificationHandlers() {
+    let term = terminal.getTerminal()
+    term.registerOscHandler(code: 9) { [weak self] data in
+      guard let body = String(bytes: data, encoding: .utf8), !body.isEmpty
+      else { return }
+      // `9;4;...` は ConEmu 進捗レポートであり通知ではないため無視する
+      // （明示登録は SwiftTerm 組み込みの progress 解釈を上書きするため、
+      // ここで弾かないと進捗更新のたびに偽通知になる）。
+      if body == "4" || body.hasPrefix("4;") { return }
+      self?.sendNotifyToDart(title: nil, body: body)
+    }
+    term.registerOscHandler(code: 777) { [weak self] data in
+      guard let text = String(bytes: data, encoding: .utf8) else { return }
+      let parts = text.components(separatedBy: ";")
+      guard parts.count >= 3, parts[0] == "notify" else { return }
+      self?.sendNotifyToDart(
+        title: parts[1],
+        body: parts[2...].joined(separator: ";")
+      )
+    }
+  }
+
+  /// native→Dart: 通知要求イベント。title は OSC 9 のとき nil（Dart 側が
+  /// タブ名で補完する）。
+  private func sendNotifyToDart(title: String?, body: String) {
+    var arguments: [String: Any] = ["body": body]
+    if let title = title { arguments["title"] = title }
+    ctrlChannel.invokeMethod("notify", arguments: arguments)
   }
 
   // MARK: TerminalViewDelegate
