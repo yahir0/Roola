@@ -17,7 +17,7 @@ enum NotificationAuthorizationStatus {
       );
 }
 
-/// ローカル通知の抽象インタフェース（ADR-0057 / ADR-0066）。
+/// ローカル通知の抽象インタフェース（ADR-0066）。
 abstract interface class TaskNotificationRepository {
   /// 通知を 1 件発射する。[sessionId] を渡すと、クリック時に
   /// [onNotificationClick] が同じ id で呼ばれる（該当ペインへのフォーカス

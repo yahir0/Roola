@@ -212,7 +212,7 @@ var ro = new ResizeObserver(function() {
 ro.observe(document.getElementById('terminal'));
 
 // OSC 9 / OSC 777 通知シーケンス → Dart（ADR-0066）。発射判断（フォーカス・
-// レート制限・ADR-0057 経路との重複抑止）は Dart 側に集約する。
+// レート制限）は Dart 側に集約する。
 // フォーカスレポーティング（mode 1004 の CSI I/O）は xterm.js が組み込みで
 // 送出するため、ここでの実装は不要。
 function postNotify(title, body) {

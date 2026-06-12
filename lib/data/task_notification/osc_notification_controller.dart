@@ -11,9 +11,8 @@ import 'package:roola/data/task_notification/task_notification_repository.dart';
 /// [handleNotify] で受け、[OscNotificationPolicy] の判定を通った要求だけを
 /// ネイティブ通知として発射する。
 ///
-/// ADR-0057 の設定トグル（`TaskNotificationSettings.enabled`・既定 off）は
-/// フック経路専用であり、本経路は参照しない。OSC 通知は設定ゼロで動くことが
-/// 要件（spec: 設定ゼロ有効化）。無効化したいユーザーには OS の通知設定
+/// 通知の ON/OFF 設定は持たない。OSC 通知は設定ゼロで動くことが要件
+/// （spec: 設定ゼロ有効化）。無効化したいユーザーには OS の通知設定
 /// （アプリ単位のオフ）がある。
 class OscNotificationController {
   OscNotificationController(this._ref);
@@ -44,9 +43,8 @@ class OscNotificationController {
 
     final repository = _ref.read(taskNotificationRepositoryProvider);
 
-    // 設定ゼロで動かすため、未決定なら初回発射時に通知許可を要求する
-    // （ADR-0057 は設定画面の有効化を許可要求の起点にしていたが、本経路に
-    // 有効化操作は存在しない）。拒否済みなら何もしない。
+    // 設定ゼロで動かすため、未決定なら初回発射時に通知許可を要求する。
+    // 拒否済みなら何もしない。
     switch (await repository.authorizationStatus()) {
       case NotificationAuthorizationStatus.notDetermined:
         final granted = await repository.requestAuthorization();

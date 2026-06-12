@@ -9,7 +9,6 @@ import 'package:roola/app/windows_keyboard_shortcut_bridge.dart';
 import 'package:roola/data/appearance/appearance_settings.dart';
 import 'package:roola/data/appearance/appearance_settings_repository_impl.dart';
 import 'package:roola/data/locale/locale_settings_repository_impl.dart';
-import 'package:roola/data/task_notification/task_notification_server.dart';
 import 'package:roola/l10n/app_localizations.dart';
 import 'package:roola/ui/common/mouse_navigation_listener.dart';
 import 'package:roola/ui/explorer/dnd_ready_provider.dart';
@@ -30,9 +29,6 @@ class App extends ConsumerWidget {
         ref.watch(appearanceSettingsProvider).value ??
         AppearanceSettings.defaults();
     final locale = ref.watch(appLocaleProvider);
-    // Claude Code 完了通知の受信口を起動時から常駐させる（ADR-0057）。
-    // 値（確定ポート）は設定画面で参照するためここでは結果を使わない。
-    ref.watch(taskNotificationServerProvider);
     // 通知クリック→ペインフォーカス復帰のハンドラを常駐させる（ADR-0066）。
     ref.watch(notificationClickProvider);
     return MaterialApp.router(
