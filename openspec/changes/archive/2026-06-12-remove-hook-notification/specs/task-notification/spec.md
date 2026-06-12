@@ -7,10 +7,10 @@
 
 ### Requirement: 完了通知の意味論
 
-タスク完了の通知は claude ネイティブの「入力待ちアイドル通知」
-（完了から `messageIdleNotifThresholdMs`・既定 60 秒後）を正とする。
-「完了の瞬間」の通知は提供しない（Ghostty / iTerm2 等のネイティブ通知と
-同一の挙動）。
+タスク完了の通知は claude ネイティブの「入力待ちアイドル通知」を正としなければならない（SHALL）。
+アイドル通知は完了から `messageIdleNotifThresholdMs`（既定 60 秒）後に出る。
+「完了の瞬間」の通知（旧フック経路）を提供してはならない（MUST NOT）。
+Ghostty / iTerm2 等のネイティブ通知と同一の挙動。
 
 #### Scenario: 完了から約 60 秒後に入力待ち通知が出る
 
