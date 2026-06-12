@@ -1,5 +1,3 @@
-import 'package:roola/data/launcher_entry/launcher_action.dart';
-
 /// Claude Code がターミナル判別（`preferredNotifChannel: auto`）に使う値。
 /// `iTerm.app` を名乗ると OSC 9 通知をネイティブに出力する（ADR-0066・
 /// 実機検証済みの組み合わせ）。
@@ -13,20 +11,9 @@ const oscTermProgramVersion = '3.5.0';
 /// 全アクション共通で `TERM_PROGRAM` / `TERM_PROGRAM_VERSION` を注入し、
 /// CLI ツールのネイティブ通知チャネル（OSC 9 等）を有効化する（ADR-0066）。
 /// claude 以外のツールも OSC を吐けるため、アクション種別では限定しない。
-///
-/// `ClaudeSkillAction` のときはさらに ADR-0057（Stop フック通知・OSC 版の
-/// 安定確認まで並走）用の `ROOLA_TAB_ID` / `ROOLA_NOTIFY_TOKEN` を加える。
-Map<String, String> notificationEnvironment({
-  required LauncherAction action,
-  required String tabId,
-  required String token,
-}) {
+Map<String, String> notificationEnvironment() {
   return {
     'TERM_PROGRAM': oscTermProgram,
     'TERM_PROGRAM_VERSION': oscTermProgramVersion,
-    if (action is ClaudeSkillAction) ...{
-      'ROOLA_TAB_ID': tabId,
-      'ROOLA_NOTIFY_TOKEN': token,
-    },
   };
 }

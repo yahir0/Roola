@@ -21,7 +21,7 @@ Future<void> main() async {
   // 1 度だけ呼ぶ必要がある。
   await pdfrxFlutterInitialize();
   await windowManager.ensureInitialized();
-  // Windows Toast 通知（ADR-0057 / ADR-0058）。local_notifier は setup() で
+  // Windows Toast 通知（ADR-0066 / ADR-0058）。local_notifier は setup() で
   // AUMID を登録しないと notify() が silently fail する。
   if (Platform.isWindows) {
     await localNotifier.setup(appName: 'Roola');

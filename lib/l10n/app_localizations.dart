@@ -635,20 +635,14 @@ abstract class AppLocalizations {
   /// No description provided for @settingsTaskNotificationTitle.
   ///
   /// In ja, this message translates to:
-  /// **'タスク完了通知'**
+  /// **'通知'**
   String get settingsTaskNotificationTitle;
 
   /// No description provided for @settingsTaskNotificationDescription.
   ///
   /// In ja, this message translates to:
-  /// **'Roola で起動した Claude Code がタスクを終えて入力待ちに戻ったとき、システム通知でお知らせします。'**
+  /// **'Roola 内で起動した Claude Code が許可待ち・入力待ちになったとき、システム通知でお知らせします。設定は不要です。'**
   String get settingsTaskNotificationDescription;
-
-  /// No description provided for @settingsTaskNotificationEnableLabel.
-  ///
-  /// In ja, this message translates to:
-  /// **'通知'**
-  String get settingsTaskNotificationEnableLabel;
 
   /// No description provided for @settingsTaskNotificationOn.
   ///
@@ -691,156 +685,6 @@ abstract class AppLocalizations {
   /// In ja, this message translates to:
   /// **'システム設定を開く'**
   String get settingsTaskNotificationOpenSettingsButton;
-
-  /// No description provided for @settingsTaskNotificationSetupTitle.
-  ///
-  /// In ja, this message translates to:
-  /// **'フックの設定'**
-  String get settingsTaskNotificationSetupTitle;
-
-  /// No description provided for @settingsTaskNotificationSetupInstructions.
-  ///
-  /// In ja, this message translates to:
-  /// **'次のスニペットを `~/.claude/settings.json` の `hooks` に追記してください（既に `hooks` がある場合は `Stop` 配列に統合します）。ポートはこの Roola が待ち受けている番号です。'**
-  String get settingsTaskNotificationSetupInstructions;
-
-  /// No description provided for @settingsTaskNotificationPortLabel.
-  ///
-  /// In ja, this message translates to:
-  /// **'待受ポート: {port}'**
-  String settingsTaskNotificationPortLabel(int port);
-
-  /// No description provided for @settingsTaskNotificationCopyTooltip.
-  ///
-  /// In ja, this message translates to:
-  /// **'スニペットをコピー'**
-  String get settingsTaskNotificationCopyTooltip;
-
-  /// No description provided for @settingsTaskNotificationCopied.
-  ///
-  /// In ja, this message translates to:
-  /// **'フック設定をコピーしました'**
-  String get settingsTaskNotificationCopied;
-
-  /// No description provided for @settingsTaskNotificationJqNote.
-  ///
-  /// In ja, this message translates to:
-  /// **'トークンは環境変数 `\$ROOLA_NOTIFY_TOKEN` を参照するため、Roola を再起動しても貼り直す必要はありません（ポート番号が変わったときのみ更新してください）。'**
-  String get settingsTaskNotificationJqNote;
-
-  /// No description provided for @settingsTaskNotificationAutoSetupTitle.
-  ///
-  /// In ja, this message translates to:
-  /// **'自動セットアップ'**
-  String get settingsTaskNotificationAutoSetupTitle;
-
-  /// No description provided for @settingsTaskNotificationHookInstalled.
-  ///
-  /// In ja, this message translates to:
-  /// **'インストール済み'**
-  String get settingsTaskNotificationHookInstalled;
-
-  /// No description provided for @settingsTaskNotificationHookNotInstalled.
-  ///
-  /// In ja, this message translates to:
-  /// **'未インストール'**
-  String get settingsTaskNotificationHookNotInstalled;
-
-  /// No description provided for @settingsTaskNotificationInstallButton.
-  ///
-  /// In ja, this message translates to:
-  /// **'自動でインストール'**
-  String get settingsTaskNotificationInstallButton;
-
-  /// No description provided for @settingsTaskNotificationUninstallButton.
-  ///
-  /// In ja, this message translates to:
-  /// **'削除'**
-  String get settingsTaskNotificationUninstallButton;
-
-  /// No description provided for @settingsTaskNotificationManualSetupTitle.
-  ///
-  /// In ja, this message translates to:
-  /// **'手動セットアップ（参考）'**
-  String get settingsTaskNotificationManualSetupTitle;
-
-  /// No description provided for @settingsTaskNotificationBackupDialogTitle.
-  ///
-  /// In ja, this message translates to:
-  /// **'settings.json を変更します'**
-  String get settingsTaskNotificationBackupDialogTitle;
-
-  /// No description provided for @settingsTaskNotificationBackupDialogContent.
-  ///
-  /// In ja, this message translates to:
-  /// **'Claude Code の設定ファイル（settings.json）を書き換えます。\n\n万が一に備えて、実行前にバックアップを作成することをお勧めします。'**
-  String get settingsTaskNotificationBackupDialogContent;
-
-  /// No description provided for @settingsTaskNotificationBackupAndProceed.
-  ///
-  /// In ja, this message translates to:
-  /// **'バックアップして続行'**
-  String get settingsTaskNotificationBackupAndProceed;
-
-  /// No description provided for @settingsTaskNotificationProceedWithoutBackup.
-  ///
-  /// In ja, this message translates to:
-  /// **'このまま続行'**
-  String get settingsTaskNotificationProceedWithoutBackup;
-
-  /// No description provided for @settingsTaskNotificationBackupCreated.
-  ///
-  /// In ja, this message translates to:
-  /// **'バックアップを作成しました'**
-  String get settingsTaskNotificationBackupCreated;
-
-  /// No description provided for @settingsTaskNotificationInstallSuccess.
-  ///
-  /// In ja, this message translates to:
-  /// **'フック設定をインストールしました'**
-  String get settingsTaskNotificationInstallSuccess;
-
-  /// No description provided for @settingsTaskNotificationUninstallSuccess.
-  ///
-  /// In ja, this message translates to:
-  /// **'フック設定を削除しました'**
-  String get settingsTaskNotificationUninstallSuccess;
-
-  /// No description provided for @settingsTaskNotificationInstallError.
-  ///
-  /// In ja, this message translates to:
-  /// **'エラーが発生しました'**
-  String get settingsTaskNotificationInstallError;
-
-  /// No description provided for @settingsTaskNotificationStalePortNote.
-  ///
-  /// In ja, this message translates to:
-  /// **'ポート番号が変わった場合は、削除してから再インストールしてください。'**
-  String get settingsTaskNotificationStalePortNote;
-
-  /// No description provided for @settingsTaskNotificationPortFieldLabel.
-  ///
-  /// In ja, this message translates to:
-  /// **'待受ポート'**
-  String get settingsTaskNotificationPortFieldLabel;
-
-  /// No description provided for @settingsTaskNotificationPortHint.
-  ///
-  /// In ja, this message translates to:
-  /// **'例: 51763'**
-  String get settingsTaskNotificationPortHint;
-
-  /// No description provided for @settingsTaskNotificationPortInvalid.
-  ///
-  /// In ja, this message translates to:
-  /// **'1024〜65535 の整数を入力してください。'**
-  String get settingsTaskNotificationPortInvalid;
-
-  /// No description provided for @settingsTaskNotificationPortReinstallNote.
-  ///
-  /// In ja, this message translates to:
-  /// **'ポートを変更したあとはフックを再インストールしてください。'**
-  String get settingsTaskNotificationPortReinstallNote;
 
   /// No description provided for @settingsKeyboardShortcutsTitle.
   ///

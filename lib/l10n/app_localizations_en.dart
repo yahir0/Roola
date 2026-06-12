@@ -295,14 +295,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'After installing, restart Roola for it to be detected.';
 
   @override
-  String get settingsTaskNotificationTitle => 'Task completion notifications';
+  String get settingsTaskNotificationTitle => 'Notifications';
 
   @override
   String get settingsTaskNotificationDescription =>
-      'Get a system notification when Claude Code launched from Roola finishes a task and returns to the input prompt.';
-
-  @override
-  String get settingsTaskNotificationEnableLabel => 'Notifications';
+      'Get a system notification when Claude Code launched in Roola needs your permission or is waiting for input. No setup required.';
 
   @override
   String get settingsTaskNotificationOn => 'On';
@@ -328,94 +325,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settingsTaskNotificationOpenSettingsButton =>
       'Open System Settings';
-
-  @override
-  String get settingsTaskNotificationSetupTitle => 'Hook setup';
-
-  @override
-  String get settingsTaskNotificationSetupInstructions =>
-      'Add the snippet below to the `hooks` section of `~/.claude/settings.json` (merge it into the `Stop` array if one already exists). The port is the one this Roola instance is listening on.';
-
-  @override
-  String settingsTaskNotificationPortLabel(int port) {
-    return 'Listening port: $port';
-  }
-
-  @override
-  String get settingsTaskNotificationCopyTooltip => 'Copy snippet';
-
-  @override
-  String get settingsTaskNotificationCopied => 'Copied hook configuration';
-
-  @override
-  String get settingsTaskNotificationJqNote =>
-      'The token references the `\$ROOLA_NOTIFY_TOKEN` environment variable, so you don\'t need to re-paste after restarting Roola (only update it if the port number changes).';
-
-  @override
-  String get settingsTaskNotificationAutoSetupTitle => 'Auto setup';
-
-  @override
-  String get settingsTaskNotificationHookInstalled => 'Installed';
-
-  @override
-  String get settingsTaskNotificationHookNotInstalled => 'Not installed';
-
-  @override
-  String get settingsTaskNotificationInstallButton => 'Install automatically';
-
-  @override
-  String get settingsTaskNotificationUninstallButton => 'Remove';
-
-  @override
-  String get settingsTaskNotificationManualSetupTitle =>
-      'Manual setup (reference)';
-
-  @override
-  String get settingsTaskNotificationBackupDialogTitle =>
-      'Modifying settings.json';
-
-  @override
-  String get settingsTaskNotificationBackupDialogContent =>
-      'This will modify your Claude Code settings file (settings.json).\n\nWe recommend creating a backup before proceeding.';
-
-  @override
-  String get settingsTaskNotificationBackupAndProceed => 'Back up and continue';
-
-  @override
-  String get settingsTaskNotificationProceedWithoutBackup =>
-      'Continue without backup';
-
-  @override
-  String get settingsTaskNotificationBackupCreated => 'Backup created';
-
-  @override
-  String get settingsTaskNotificationInstallSuccess =>
-      'Hook configuration installed';
-
-  @override
-  String get settingsTaskNotificationUninstallSuccess =>
-      'Hook configuration removed';
-
-  @override
-  String get settingsTaskNotificationInstallError => 'An error occurred';
-
-  @override
-  String get settingsTaskNotificationStalePortNote =>
-      'If the port number has changed, remove and reinstall.';
-
-  @override
-  String get settingsTaskNotificationPortFieldLabel => 'Listening port';
-
-  @override
-  String get settingsTaskNotificationPortHint => 'e.g. 51763';
-
-  @override
-  String get settingsTaskNotificationPortInvalid =>
-      'Enter an integer between 1024 and 65535.';
-
-  @override
-  String get settingsTaskNotificationPortReinstallNote =>
-      'Reinstall the hook after changing the port.';
 
   @override
   String get settingsKeyboardShortcutsTitle => 'Keyboard shortcuts';

@@ -17,7 +17,7 @@ class OscNotificationPolicy {
 
   /// 通知を発射すべきなら `true` を返し、レート制限用の最終発火時刻を更新する。
   ///
-  /// - [sessionId]: ad-hoc セッション id（`ROOLA_TAB_ID` と同じ id 空間）。
+  /// - [sessionId]: ad-hoc セッション id。
   /// - [isFocused]: 当該ペインがフォーカス中か。ユーザーが見ている画面からの
   ///   通知は出さない。
   bool shouldNotify({
