@@ -12,6 +12,317 @@ part of 'git_view_state.dart';
 // dart format off
 T _$identity<T>(T value) => value;
 /// @nodoc
+mixin _$GitWorktreeEntry {
+
+/// worktree 本体。
+ GitWorktree get worktree;/// 軽量な作業状態。孤児（prunable）では取得できず `null`。
+ WorktreeStatusSummary? get summary;/// ブランチが既定ブランチへマージ済みか（ワンクリック掃除の対象）。
+ bool get isMerged;
+/// Create a copy of GitWorktreeEntry
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$GitWorktreeEntryCopyWith<GitWorktreeEntry> get copyWith => _$GitWorktreeEntryCopyWithImpl<GitWorktreeEntry>(this as GitWorktreeEntry, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is GitWorktreeEntry&&(identical(other.worktree, worktree) || other.worktree == worktree)&&(identical(other.summary, summary) || other.summary == summary)&&(identical(other.isMerged, isMerged) || other.isMerged == isMerged));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,worktree,summary,isMerged);
+
+@override
+String toString() {
+  return 'GitWorktreeEntry(worktree: $worktree, summary: $summary, isMerged: $isMerged)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $GitWorktreeEntryCopyWith<$Res>  {
+  factory $GitWorktreeEntryCopyWith(GitWorktreeEntry value, $Res Function(GitWorktreeEntry) _then) = _$GitWorktreeEntryCopyWithImpl;
+@useResult
+$Res call({
+ GitWorktree worktree, WorktreeStatusSummary? summary, bool isMerged
+});
+
+
+$GitWorktreeCopyWith<$Res> get worktree;$WorktreeStatusSummaryCopyWith<$Res>? get summary;
+
+}
+/// @nodoc
+class _$GitWorktreeEntryCopyWithImpl<$Res>
+    implements $GitWorktreeEntryCopyWith<$Res> {
+  _$GitWorktreeEntryCopyWithImpl(this._self, this._then);
+
+  final GitWorktreeEntry _self;
+  final $Res Function(GitWorktreeEntry) _then;
+
+/// Create a copy of GitWorktreeEntry
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? worktree = null,Object? summary = freezed,Object? isMerged = null,}) {
+  return _then(_self.copyWith(
+worktree: null == worktree ? _self.worktree : worktree // ignore: cast_nullable_to_non_nullable
+as GitWorktree,summary: freezed == summary ? _self.summary : summary // ignore: cast_nullable_to_non_nullable
+as WorktreeStatusSummary?,isMerged: null == isMerged ? _self.isMerged : isMerged // ignore: cast_nullable_to_non_nullable
+as bool,
+  ));
+}
+/// Create a copy of GitWorktreeEntry
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$GitWorktreeCopyWith<$Res> get worktree {
+  
+  return $GitWorktreeCopyWith<$Res>(_self.worktree, (value) {
+    return _then(_self.copyWith(worktree: value));
+  });
+}/// Create a copy of GitWorktreeEntry
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$WorktreeStatusSummaryCopyWith<$Res>? get summary {
+    if (_self.summary == null) {
+    return null;
+  }
+
+  return $WorktreeStatusSummaryCopyWith<$Res>(_self.summary!, (value) {
+    return _then(_self.copyWith(summary: value));
+  });
+}
+}
+
+
+/// Adds pattern-matching-related methods to [GitWorktreeEntry].
+extension GitWorktreeEntryPatterns on GitWorktreeEntry {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _GitWorktreeEntry value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _GitWorktreeEntry() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _GitWorktreeEntry value)  $default,){
+final _that = this;
+switch (_that) {
+case _GitWorktreeEntry():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _GitWorktreeEntry value)?  $default,){
+final _that = this;
+switch (_that) {
+case _GitWorktreeEntry() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( GitWorktree worktree,  WorktreeStatusSummary? summary,  bool isMerged)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _GitWorktreeEntry() when $default != null:
+return $default(_that.worktree,_that.summary,_that.isMerged);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( GitWorktree worktree,  WorktreeStatusSummary? summary,  bool isMerged)  $default,) {final _that = this;
+switch (_that) {
+case _GitWorktreeEntry():
+return $default(_that.worktree,_that.summary,_that.isMerged);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( GitWorktree worktree,  WorktreeStatusSummary? summary,  bool isMerged)?  $default,) {final _that = this;
+switch (_that) {
+case _GitWorktreeEntry() when $default != null:
+return $default(_that.worktree,_that.summary,_that.isMerged);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+
+
+class _GitWorktreeEntry implements GitWorktreeEntry {
+  const _GitWorktreeEntry({required this.worktree, this.summary, this.isMerged = false});
+  
+
+/// worktree 本体。
+@override final  GitWorktree worktree;
+/// 軽量な作業状態。孤児（prunable）では取得できず `null`。
+@override final  WorktreeStatusSummary? summary;
+/// ブランチが既定ブランチへマージ済みか（ワンクリック掃除の対象）。
+@override@JsonKey() final  bool isMerged;
+
+/// Create a copy of GitWorktreeEntry
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$GitWorktreeEntryCopyWith<_GitWorktreeEntry> get copyWith => __$GitWorktreeEntryCopyWithImpl<_GitWorktreeEntry>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _GitWorktreeEntry&&(identical(other.worktree, worktree) || other.worktree == worktree)&&(identical(other.summary, summary) || other.summary == summary)&&(identical(other.isMerged, isMerged) || other.isMerged == isMerged));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,worktree,summary,isMerged);
+
+@override
+String toString() {
+  return 'GitWorktreeEntry(worktree: $worktree, summary: $summary, isMerged: $isMerged)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$GitWorktreeEntryCopyWith<$Res> implements $GitWorktreeEntryCopyWith<$Res> {
+  factory _$GitWorktreeEntryCopyWith(_GitWorktreeEntry value, $Res Function(_GitWorktreeEntry) _then) = __$GitWorktreeEntryCopyWithImpl;
+@override @useResult
+$Res call({
+ GitWorktree worktree, WorktreeStatusSummary? summary, bool isMerged
+});
+
+
+@override $GitWorktreeCopyWith<$Res> get worktree;@override $WorktreeStatusSummaryCopyWith<$Res>? get summary;
+
+}
+/// @nodoc
+class __$GitWorktreeEntryCopyWithImpl<$Res>
+    implements _$GitWorktreeEntryCopyWith<$Res> {
+  __$GitWorktreeEntryCopyWithImpl(this._self, this._then);
+
+  final _GitWorktreeEntry _self;
+  final $Res Function(_GitWorktreeEntry) _then;
+
+/// Create a copy of GitWorktreeEntry
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? worktree = null,Object? summary = freezed,Object? isMerged = null,}) {
+  return _then(_GitWorktreeEntry(
+worktree: null == worktree ? _self.worktree : worktree // ignore: cast_nullable_to_non_nullable
+as GitWorktree,summary: freezed == summary ? _self.summary : summary // ignore: cast_nullable_to_non_nullable
+as WorktreeStatusSummary?,isMerged: null == isMerged ? _self.isMerged : isMerged // ignore: cast_nullable_to_non_nullable
+as bool,
+  ));
+}
+
+/// Create a copy of GitWorktreeEntry
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$GitWorktreeCopyWith<$Res> get worktree {
+  
+  return $GitWorktreeCopyWith<$Res>(_self.worktree, (value) {
+    return _then(_self.copyWith(worktree: value));
+  });
+}/// Create a copy of GitWorktreeEntry
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$WorktreeStatusSummaryCopyWith<$Res>? get summary {
+    if (_self.summary == null) {
+    return null;
+  }
+
+  return $WorktreeStatusSummaryCopyWith<$Res>(_self.summary!, (value) {
+    return _then(_self.copyWith(summary: value));
+  });
+}
+}
+
+/// @nodoc
 mixin _$GitNotice {
 
  GitNoticeKind get kind; String get message;/// `true` のとき「ターミナルで開く」導線を併記する（同期失敗時など）。
@@ -286,7 +597,9 @@ mixin _$GitViewState {
  List<GitBranch> get branches;/// 履歴グラフの行。
  List<GitGraphRow> get graph;/// さらに古い履歴を取得できる可能性があるか。
  bool get hasMoreHistory;/// stash 一覧。
- List<GitStashEntry> get stashes;/// 履歴で選択中のコミット SHA。
+ List<GitStashEntry> get stashes;/// worktree 一覧（先頭は本体 / ADR-0067）。
+ List<GitWorktreeEntry> get worktrees;/// リポジトリの既定ブランチ short 名（マージ済み判定の基準）。
+ String? get defaultBranchName;/// 履歴で選択中のコミット SHA。
  String? get selectedSha;/// 選択中コミットの変更ファイル一覧。
  List<GitFileChange> get selectedCommitFiles;/// 進行中の Git 操作。`null` なら操作可能。
  GitOperation? get runningOperation;/// 通知バーに出すメッセージ。
@@ -301,16 +614,16 @@ $GitViewStateCopyWith<GitViewState> get copyWith => _$GitViewStateCopyWithImpl<G
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is GitViewState&&(identical(other.repoRoot, repoRoot) || other.repoRoot == repoRoot)&&(identical(other.gitMissing, gitMissing) || other.gitMissing == gitMissing)&&(identical(other.status, status) || other.status == status)&&const DeepCollectionEquality().equals(other.branches, branches)&&const DeepCollectionEquality().equals(other.graph, graph)&&(identical(other.hasMoreHistory, hasMoreHistory) || other.hasMoreHistory == hasMoreHistory)&&const DeepCollectionEquality().equals(other.stashes, stashes)&&(identical(other.selectedSha, selectedSha) || other.selectedSha == selectedSha)&&const DeepCollectionEquality().equals(other.selectedCommitFiles, selectedCommitFiles)&&(identical(other.runningOperation, runningOperation) || other.runningOperation == runningOperation)&&(identical(other.notice, notice) || other.notice == notice));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is GitViewState&&(identical(other.repoRoot, repoRoot) || other.repoRoot == repoRoot)&&(identical(other.gitMissing, gitMissing) || other.gitMissing == gitMissing)&&(identical(other.status, status) || other.status == status)&&const DeepCollectionEquality().equals(other.branches, branches)&&const DeepCollectionEquality().equals(other.graph, graph)&&(identical(other.hasMoreHistory, hasMoreHistory) || other.hasMoreHistory == hasMoreHistory)&&const DeepCollectionEquality().equals(other.stashes, stashes)&&const DeepCollectionEquality().equals(other.worktrees, worktrees)&&(identical(other.defaultBranchName, defaultBranchName) || other.defaultBranchName == defaultBranchName)&&(identical(other.selectedSha, selectedSha) || other.selectedSha == selectedSha)&&const DeepCollectionEquality().equals(other.selectedCommitFiles, selectedCommitFiles)&&(identical(other.runningOperation, runningOperation) || other.runningOperation == runningOperation)&&(identical(other.notice, notice) || other.notice == notice));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,repoRoot,gitMissing,status,const DeepCollectionEquality().hash(branches),const DeepCollectionEquality().hash(graph),hasMoreHistory,const DeepCollectionEquality().hash(stashes),selectedSha,const DeepCollectionEquality().hash(selectedCommitFiles),runningOperation,notice);
+int get hashCode => Object.hash(runtimeType,repoRoot,gitMissing,status,const DeepCollectionEquality().hash(branches),const DeepCollectionEquality().hash(graph),hasMoreHistory,const DeepCollectionEquality().hash(stashes),const DeepCollectionEquality().hash(worktrees),defaultBranchName,selectedSha,const DeepCollectionEquality().hash(selectedCommitFiles),runningOperation,notice);
 
 @override
 String toString() {
-  return 'GitViewState(repoRoot: $repoRoot, gitMissing: $gitMissing, status: $status, branches: $branches, graph: $graph, hasMoreHistory: $hasMoreHistory, stashes: $stashes, selectedSha: $selectedSha, selectedCommitFiles: $selectedCommitFiles, runningOperation: $runningOperation, notice: $notice)';
+  return 'GitViewState(repoRoot: $repoRoot, gitMissing: $gitMissing, status: $status, branches: $branches, graph: $graph, hasMoreHistory: $hasMoreHistory, stashes: $stashes, worktrees: $worktrees, defaultBranchName: $defaultBranchName, selectedSha: $selectedSha, selectedCommitFiles: $selectedCommitFiles, runningOperation: $runningOperation, notice: $notice)';
 }
 
 
@@ -321,7 +634,7 @@ abstract mixin class $GitViewStateCopyWith<$Res>  {
   factory $GitViewStateCopyWith(GitViewState value, $Res Function(GitViewState) _then) = _$GitViewStateCopyWithImpl;
 @useResult
 $Res call({
- String repoRoot, bool gitMissing, GitStatus? status, List<GitBranch> branches, List<GitGraphRow> graph, bool hasMoreHistory, List<GitStashEntry> stashes, String? selectedSha, List<GitFileChange> selectedCommitFiles, GitOperation? runningOperation, GitNotice? notice
+ String repoRoot, bool gitMissing, GitStatus? status, List<GitBranch> branches, List<GitGraphRow> graph, bool hasMoreHistory, List<GitStashEntry> stashes, List<GitWorktreeEntry> worktrees, String? defaultBranchName, String? selectedSha, List<GitFileChange> selectedCommitFiles, GitOperation? runningOperation, GitNotice? notice
 });
 
 
@@ -338,7 +651,7 @@ class _$GitViewStateCopyWithImpl<$Res>
 
 /// Create a copy of GitViewState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? repoRoot = null,Object? gitMissing = null,Object? status = freezed,Object? branches = null,Object? graph = null,Object? hasMoreHistory = null,Object? stashes = null,Object? selectedSha = freezed,Object? selectedCommitFiles = null,Object? runningOperation = freezed,Object? notice = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? repoRoot = null,Object? gitMissing = null,Object? status = freezed,Object? branches = null,Object? graph = null,Object? hasMoreHistory = null,Object? stashes = null,Object? worktrees = null,Object? defaultBranchName = freezed,Object? selectedSha = freezed,Object? selectedCommitFiles = null,Object? runningOperation = freezed,Object? notice = freezed,}) {
   return _then(_self.copyWith(
 repoRoot: null == repoRoot ? _self.repoRoot : repoRoot // ignore: cast_nullable_to_non_nullable
 as String,gitMissing: null == gitMissing ? _self.gitMissing : gitMissing // ignore: cast_nullable_to_non_nullable
@@ -347,7 +660,9 @@ as GitStatus?,branches: null == branches ? _self.branches : branches // ignore: 
 as List<GitBranch>,graph: null == graph ? _self.graph : graph // ignore: cast_nullable_to_non_nullable
 as List<GitGraphRow>,hasMoreHistory: null == hasMoreHistory ? _self.hasMoreHistory : hasMoreHistory // ignore: cast_nullable_to_non_nullable
 as bool,stashes: null == stashes ? _self.stashes : stashes // ignore: cast_nullable_to_non_nullable
-as List<GitStashEntry>,selectedSha: freezed == selectedSha ? _self.selectedSha : selectedSha // ignore: cast_nullable_to_non_nullable
+as List<GitStashEntry>,worktrees: null == worktrees ? _self.worktrees : worktrees // ignore: cast_nullable_to_non_nullable
+as List<GitWorktreeEntry>,defaultBranchName: freezed == defaultBranchName ? _self.defaultBranchName : defaultBranchName // ignore: cast_nullable_to_non_nullable
+as String?,selectedSha: freezed == selectedSha ? _self.selectedSha : selectedSha // ignore: cast_nullable_to_non_nullable
 as String?,selectedCommitFiles: null == selectedCommitFiles ? _self.selectedCommitFiles : selectedCommitFiles // ignore: cast_nullable_to_non_nullable
 as List<GitFileChange>,runningOperation: freezed == runningOperation ? _self.runningOperation : runningOperation // ignore: cast_nullable_to_non_nullable
 as GitOperation?,notice: freezed == notice ? _self.notice : notice // ignore: cast_nullable_to_non_nullable
@@ -460,10 +775,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String repoRoot,  bool gitMissing,  GitStatus? status,  List<GitBranch> branches,  List<GitGraphRow> graph,  bool hasMoreHistory,  List<GitStashEntry> stashes,  String? selectedSha,  List<GitFileChange> selectedCommitFiles,  GitOperation? runningOperation,  GitNotice? notice)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String repoRoot,  bool gitMissing,  GitStatus? status,  List<GitBranch> branches,  List<GitGraphRow> graph,  bool hasMoreHistory,  List<GitStashEntry> stashes,  List<GitWorktreeEntry> worktrees,  String? defaultBranchName,  String? selectedSha,  List<GitFileChange> selectedCommitFiles,  GitOperation? runningOperation,  GitNotice? notice)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _GitViewState() when $default != null:
-return $default(_that.repoRoot,_that.gitMissing,_that.status,_that.branches,_that.graph,_that.hasMoreHistory,_that.stashes,_that.selectedSha,_that.selectedCommitFiles,_that.runningOperation,_that.notice);case _:
+return $default(_that.repoRoot,_that.gitMissing,_that.status,_that.branches,_that.graph,_that.hasMoreHistory,_that.stashes,_that.worktrees,_that.defaultBranchName,_that.selectedSha,_that.selectedCommitFiles,_that.runningOperation,_that.notice);case _:
   return orElse();
 
 }
@@ -481,10 +796,10 @@ return $default(_that.repoRoot,_that.gitMissing,_that.status,_that.branches,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String repoRoot,  bool gitMissing,  GitStatus? status,  List<GitBranch> branches,  List<GitGraphRow> graph,  bool hasMoreHistory,  List<GitStashEntry> stashes,  String? selectedSha,  List<GitFileChange> selectedCommitFiles,  GitOperation? runningOperation,  GitNotice? notice)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String repoRoot,  bool gitMissing,  GitStatus? status,  List<GitBranch> branches,  List<GitGraphRow> graph,  bool hasMoreHistory,  List<GitStashEntry> stashes,  List<GitWorktreeEntry> worktrees,  String? defaultBranchName,  String? selectedSha,  List<GitFileChange> selectedCommitFiles,  GitOperation? runningOperation,  GitNotice? notice)  $default,) {final _that = this;
 switch (_that) {
 case _GitViewState():
-return $default(_that.repoRoot,_that.gitMissing,_that.status,_that.branches,_that.graph,_that.hasMoreHistory,_that.stashes,_that.selectedSha,_that.selectedCommitFiles,_that.runningOperation,_that.notice);case _:
+return $default(_that.repoRoot,_that.gitMissing,_that.status,_that.branches,_that.graph,_that.hasMoreHistory,_that.stashes,_that.worktrees,_that.defaultBranchName,_that.selectedSha,_that.selectedCommitFiles,_that.runningOperation,_that.notice);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -501,10 +816,10 @@ return $default(_that.repoRoot,_that.gitMissing,_that.status,_that.branches,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String repoRoot,  bool gitMissing,  GitStatus? status,  List<GitBranch> branches,  List<GitGraphRow> graph,  bool hasMoreHistory,  List<GitStashEntry> stashes,  String? selectedSha,  List<GitFileChange> selectedCommitFiles,  GitOperation? runningOperation,  GitNotice? notice)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String repoRoot,  bool gitMissing,  GitStatus? status,  List<GitBranch> branches,  List<GitGraphRow> graph,  bool hasMoreHistory,  List<GitStashEntry> stashes,  List<GitWorktreeEntry> worktrees,  String? defaultBranchName,  String? selectedSha,  List<GitFileChange> selectedCommitFiles,  GitOperation? runningOperation,  GitNotice? notice)?  $default,) {final _that = this;
 switch (_that) {
 case _GitViewState() when $default != null:
-return $default(_that.repoRoot,_that.gitMissing,_that.status,_that.branches,_that.graph,_that.hasMoreHistory,_that.stashes,_that.selectedSha,_that.selectedCommitFiles,_that.runningOperation,_that.notice);case _:
+return $default(_that.repoRoot,_that.gitMissing,_that.status,_that.branches,_that.graph,_that.hasMoreHistory,_that.stashes,_that.worktrees,_that.defaultBranchName,_that.selectedSha,_that.selectedCommitFiles,_that.runningOperation,_that.notice);case _:
   return null;
 
 }
@@ -516,7 +831,7 @@ return $default(_that.repoRoot,_that.gitMissing,_that.status,_that.branches,_tha
 
 
 class _GitViewState extends GitViewState {
-  const _GitViewState({required this.repoRoot, this.gitMissing = false, this.status, final  List<GitBranch> branches = const <GitBranch>[], final  List<GitGraphRow> graph = const <GitGraphRow>[], this.hasMoreHistory = true, final  List<GitStashEntry> stashes = const <GitStashEntry>[], this.selectedSha, final  List<GitFileChange> selectedCommitFiles = const <GitFileChange>[], this.runningOperation, this.notice}): _branches = branches,_graph = graph,_stashes = stashes,_selectedCommitFiles = selectedCommitFiles,super._();
+  const _GitViewState({required this.repoRoot, this.gitMissing = false, this.status, final  List<GitBranch> branches = const <GitBranch>[], final  List<GitGraphRow> graph = const <GitGraphRow>[], this.hasMoreHistory = true, final  List<GitStashEntry> stashes = const <GitStashEntry>[], final  List<GitWorktreeEntry> worktrees = const <GitWorktreeEntry>[], this.defaultBranchName, this.selectedSha, final  List<GitFileChange> selectedCommitFiles = const <GitFileChange>[], this.runningOperation, this.notice}): _branches = branches,_graph = graph,_stashes = stashes,_worktrees = worktrees,_selectedCommitFiles = selectedCommitFiles,super._();
   
 
 /// 対象リポジトリのルート絶対パス。
@@ -554,6 +869,17 @@ class _GitViewState extends GitViewState {
   return EqualUnmodifiableListView(_stashes);
 }
 
+/// worktree 一覧（先頭は本体 / ADR-0067）。
+ final  List<GitWorktreeEntry> _worktrees;
+/// worktree 一覧（先頭は本体 / ADR-0067）。
+@override@JsonKey() List<GitWorktreeEntry> get worktrees {
+  if (_worktrees is EqualUnmodifiableListView) return _worktrees;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_worktrees);
+}
+
+/// リポジトリの既定ブランチ short 名（マージ済み判定の基準）。
+@override final  String? defaultBranchName;
 /// 履歴で選択中のコミット SHA。
 @override final  String? selectedSha;
 /// 選択中コミットの変更ファイル一覧。
@@ -580,16 +906,16 @@ _$GitViewStateCopyWith<_GitViewState> get copyWith => __$GitViewStateCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _GitViewState&&(identical(other.repoRoot, repoRoot) || other.repoRoot == repoRoot)&&(identical(other.gitMissing, gitMissing) || other.gitMissing == gitMissing)&&(identical(other.status, status) || other.status == status)&&const DeepCollectionEquality().equals(other._branches, _branches)&&const DeepCollectionEquality().equals(other._graph, _graph)&&(identical(other.hasMoreHistory, hasMoreHistory) || other.hasMoreHistory == hasMoreHistory)&&const DeepCollectionEquality().equals(other._stashes, _stashes)&&(identical(other.selectedSha, selectedSha) || other.selectedSha == selectedSha)&&const DeepCollectionEquality().equals(other._selectedCommitFiles, _selectedCommitFiles)&&(identical(other.runningOperation, runningOperation) || other.runningOperation == runningOperation)&&(identical(other.notice, notice) || other.notice == notice));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _GitViewState&&(identical(other.repoRoot, repoRoot) || other.repoRoot == repoRoot)&&(identical(other.gitMissing, gitMissing) || other.gitMissing == gitMissing)&&(identical(other.status, status) || other.status == status)&&const DeepCollectionEquality().equals(other._branches, _branches)&&const DeepCollectionEquality().equals(other._graph, _graph)&&(identical(other.hasMoreHistory, hasMoreHistory) || other.hasMoreHistory == hasMoreHistory)&&const DeepCollectionEquality().equals(other._stashes, _stashes)&&const DeepCollectionEquality().equals(other._worktrees, _worktrees)&&(identical(other.defaultBranchName, defaultBranchName) || other.defaultBranchName == defaultBranchName)&&(identical(other.selectedSha, selectedSha) || other.selectedSha == selectedSha)&&const DeepCollectionEquality().equals(other._selectedCommitFiles, _selectedCommitFiles)&&(identical(other.runningOperation, runningOperation) || other.runningOperation == runningOperation)&&(identical(other.notice, notice) || other.notice == notice));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,repoRoot,gitMissing,status,const DeepCollectionEquality().hash(_branches),const DeepCollectionEquality().hash(_graph),hasMoreHistory,const DeepCollectionEquality().hash(_stashes),selectedSha,const DeepCollectionEquality().hash(_selectedCommitFiles),runningOperation,notice);
+int get hashCode => Object.hash(runtimeType,repoRoot,gitMissing,status,const DeepCollectionEquality().hash(_branches),const DeepCollectionEquality().hash(_graph),hasMoreHistory,const DeepCollectionEquality().hash(_stashes),const DeepCollectionEquality().hash(_worktrees),defaultBranchName,selectedSha,const DeepCollectionEquality().hash(_selectedCommitFiles),runningOperation,notice);
 
 @override
 String toString() {
-  return 'GitViewState(repoRoot: $repoRoot, gitMissing: $gitMissing, status: $status, branches: $branches, graph: $graph, hasMoreHistory: $hasMoreHistory, stashes: $stashes, selectedSha: $selectedSha, selectedCommitFiles: $selectedCommitFiles, runningOperation: $runningOperation, notice: $notice)';
+  return 'GitViewState(repoRoot: $repoRoot, gitMissing: $gitMissing, status: $status, branches: $branches, graph: $graph, hasMoreHistory: $hasMoreHistory, stashes: $stashes, worktrees: $worktrees, defaultBranchName: $defaultBranchName, selectedSha: $selectedSha, selectedCommitFiles: $selectedCommitFiles, runningOperation: $runningOperation, notice: $notice)';
 }
 
 
@@ -600,7 +926,7 @@ abstract mixin class _$GitViewStateCopyWith<$Res> implements $GitViewStateCopyWi
   factory _$GitViewStateCopyWith(_GitViewState value, $Res Function(_GitViewState) _then) = __$GitViewStateCopyWithImpl;
 @override @useResult
 $Res call({
- String repoRoot, bool gitMissing, GitStatus? status, List<GitBranch> branches, List<GitGraphRow> graph, bool hasMoreHistory, List<GitStashEntry> stashes, String? selectedSha, List<GitFileChange> selectedCommitFiles, GitOperation? runningOperation, GitNotice? notice
+ String repoRoot, bool gitMissing, GitStatus? status, List<GitBranch> branches, List<GitGraphRow> graph, bool hasMoreHistory, List<GitStashEntry> stashes, List<GitWorktreeEntry> worktrees, String? defaultBranchName, String? selectedSha, List<GitFileChange> selectedCommitFiles, GitOperation? runningOperation, GitNotice? notice
 });
 
 
@@ -617,7 +943,7 @@ class __$GitViewStateCopyWithImpl<$Res>
 
 /// Create a copy of GitViewState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? repoRoot = null,Object? gitMissing = null,Object? status = freezed,Object? branches = null,Object? graph = null,Object? hasMoreHistory = null,Object? stashes = null,Object? selectedSha = freezed,Object? selectedCommitFiles = null,Object? runningOperation = freezed,Object? notice = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? repoRoot = null,Object? gitMissing = null,Object? status = freezed,Object? branches = null,Object? graph = null,Object? hasMoreHistory = null,Object? stashes = null,Object? worktrees = null,Object? defaultBranchName = freezed,Object? selectedSha = freezed,Object? selectedCommitFiles = null,Object? runningOperation = freezed,Object? notice = freezed,}) {
   return _then(_GitViewState(
 repoRoot: null == repoRoot ? _self.repoRoot : repoRoot // ignore: cast_nullable_to_non_nullable
 as String,gitMissing: null == gitMissing ? _self.gitMissing : gitMissing // ignore: cast_nullable_to_non_nullable
@@ -626,7 +952,9 @@ as GitStatus?,branches: null == branches ? _self._branches : branches // ignore:
 as List<GitBranch>,graph: null == graph ? _self._graph : graph // ignore: cast_nullable_to_non_nullable
 as List<GitGraphRow>,hasMoreHistory: null == hasMoreHistory ? _self.hasMoreHistory : hasMoreHistory // ignore: cast_nullable_to_non_nullable
 as bool,stashes: null == stashes ? _self._stashes : stashes // ignore: cast_nullable_to_non_nullable
-as List<GitStashEntry>,selectedSha: freezed == selectedSha ? _self.selectedSha : selectedSha // ignore: cast_nullable_to_non_nullable
+as List<GitStashEntry>,worktrees: null == worktrees ? _self._worktrees : worktrees // ignore: cast_nullable_to_non_nullable
+as List<GitWorktreeEntry>,defaultBranchName: freezed == defaultBranchName ? _self.defaultBranchName : defaultBranchName // ignore: cast_nullable_to_non_nullable
+as String?,selectedSha: freezed == selectedSha ? _self.selectedSha : selectedSha // ignore: cast_nullable_to_non_nullable
 as String?,selectedCommitFiles: null == selectedCommitFiles ? _self._selectedCommitFiles : selectedCommitFiles // ignore: cast_nullable_to_non_nullable
 as List<GitFileChange>,runningOperation: freezed == runningOperation ? _self.runningOperation : runningOperation // ignore: cast_nullable_to_non_nullable
 as GitOperation?,notice: freezed == notice ? _self.notice : notice // ignore: cast_nullable_to_non_nullable

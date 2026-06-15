@@ -585,6 +585,63 @@
     "placeholders": { "name": { "type": "String" } }
   },
 
+  "worktreeMenuCreate": "Worktree を切って開く…",
+  "worktreeCreateTitle": "Worktree を切る",
+  "worktreeModeNewBranch": "新規ブランチ",
+  "worktreeModeExistingBranch": "既存ブランチ",
+  "worktreeBranchNameLabel": "ブランチ名",
+  "worktreeBranchNameTaken": "同名のブランチが既に存在します。",
+  "worktreeBaseLabel": "分岐元",
+  "worktreeBaseHead": "現在の HEAD",
+  "worktreeBranchPickerLabel": "ブランチ",
+  "worktreeBranchCheckedOut": "{branch}（チェックアウト中）",
+  "@worktreeBranchCheckedOut": {
+    "placeholders": { "branch": { "type": "String" } }
+  },
+  "worktreePostActionLabel": "作成後に開く",
+  "worktreePostActionNone": "開かない",
+  "worktreePostActionShell": "シェル",
+  "worktreeCreateButton": "作成",
+  "worktreeCreatedSnack": "worktree {name} を作成しました",
+  "@worktreeCreatedSnack": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "worktreeSectionTitle": "Worktrees",
+  "worktreeCreateTooltip": "Worktree を切る",
+  "worktreeMenuPrune": "管理情報を整理（prune）",
+  "worktreeMenuRepair": "リンクを修復（repair）",
+  "worktreePrunableHint": "フォルダが存在しない worktree があります。「管理情報を整理」で片付けられます。",
+  "worktreeChipMain": "MAIN",
+  "worktreeChipPrunable": "missing",
+  "worktreeChipDirty": "dirty",
+  "worktreeChipMerged": "merged",
+  "worktreeMenuOpenTerminal": "ここでターミナルを開く",
+  "worktreeMenuOpenClaude": "ここで Claude を開く",
+  "worktreeMenuCleanup": "掃除（worktree とブランチを削除）",
+  "worktreeMenuRemove": "削除…",
+  "worktreeCleanupTitle": "worktree を掃除",
+  "worktreeCleanupMessage": "ブランチ {branch} は {into} へマージ済みです。worktree とブランチを削除します。",
+  "@worktreeCleanupMessage": {
+    "placeholders": {
+      "branch": { "type": "String" },
+      "into": { "type": "String" }
+    }
+  },
+  "worktreeCleanupButton": "掃除",
+  "worktreeRemoveTitle": "worktree を削除",
+  "worktreeRemoveMessage": "worktree {name} を削除します。",
+  "@worktreeRemoveMessage": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "worktreeRemoveDirtyWarning": "未コミットの変更があります。削除すると失われます。",
+  "worktreeRemoveBranchToo": "ブランチ {branch} も削除する",
+  "@worktreeRemoveBranchToo": {
+    "placeholders": { "branch": { "type": "String" } }
+  },
+  "worktreeRemoveUnmergedBranchWarning": "このブランチは既定ブランチへ未マージです。コミットが失われる可能性があります。",
+  "worktreeRemoveButton": "削除",
+  "worktreeRemoveForceButton": "変更ごと削除",
+
   "sessionStateIdle": "待機中",
   "sessionStateStarting": "起動中…",
   "sessionStateRunning": "実行中",

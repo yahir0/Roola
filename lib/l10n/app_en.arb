@@ -558,6 +558,63 @@
     "placeholders": { "name": { "type": "String" } }
   },
 
+  "worktreeMenuCreate": "New worktree…",
+  "worktreeCreateTitle": "New worktree",
+  "worktreeModeNewBranch": "New branch",
+  "worktreeModeExistingBranch": "Existing branch",
+  "worktreeBranchNameLabel": "Branch name",
+  "worktreeBranchNameTaken": "A branch with this name already exists.",
+  "worktreeBaseLabel": "Base",
+  "worktreeBaseHead": "Current HEAD",
+  "worktreeBranchPickerLabel": "Branch",
+  "worktreeBranchCheckedOut": "{branch} (checked out)",
+  "@worktreeBranchCheckedOut": {
+    "placeholders": { "branch": { "type": "String" } }
+  },
+  "worktreePostActionLabel": "After creating",
+  "worktreePostActionNone": "Nothing",
+  "worktreePostActionShell": "Shell",
+  "worktreeCreateButton": "Create",
+  "worktreeCreatedSnack": "Created worktree {name}",
+  "@worktreeCreatedSnack": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "worktreeSectionTitle": "Worktrees",
+  "worktreeCreateTooltip": "New worktree",
+  "worktreeMenuPrune": "Clean up stale entries (prune)",
+  "worktreeMenuRepair": "Repair links (repair)",
+  "worktreePrunableHint": "Some worktree folders no longer exist. Use \"Clean up stale entries\" to remove them.",
+  "worktreeChipMain": "MAIN",
+  "worktreeChipPrunable": "missing",
+  "worktreeChipDirty": "dirty",
+  "worktreeChipMerged": "merged",
+  "worktreeMenuOpenTerminal": "Open terminal here",
+  "worktreeMenuOpenClaude": "Open Claude here",
+  "worktreeMenuCleanup": "Clean up (remove worktree & branch)",
+  "worktreeMenuRemove": "Remove…",
+  "worktreeCleanupTitle": "Clean up worktree",
+  "worktreeCleanupMessage": "Branch {branch} is merged into {into}. The worktree and the branch will be removed.",
+  "@worktreeCleanupMessage": {
+    "placeholders": {
+      "branch": { "type": "String" },
+      "into": { "type": "String" }
+    }
+  },
+  "worktreeCleanupButton": "Clean up",
+  "worktreeRemoveTitle": "Remove worktree",
+  "worktreeRemoveMessage": "Worktree {name} will be removed.",
+  "@worktreeRemoveMessage": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "worktreeRemoveDirtyWarning": "This worktree has uncommitted changes. They will be lost.",
+  "worktreeRemoveBranchToo": "Also delete branch {branch}",
+  "@worktreeRemoveBranchToo": {
+    "placeholders": { "branch": { "type": "String" } }
+  },
+  "worktreeRemoveUnmergedBranchWarning": "This branch is not merged into the default branch. Its commits may be lost.",
+  "worktreeRemoveButton": "Remove",
+  "worktreeRemoveForceButton": "Remove with changes",
+
   "sessionStateIdle": "Idle",
   "sessionStateStarting": "Starting…",
   "sessionStateRunning": "Running",

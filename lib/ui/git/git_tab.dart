@@ -12,6 +12,7 @@ import 'package:roola/ui/git/git_history_section.dart';
 import 'package:roola/ui/git/git_toolbar.dart';
 import 'package:roola/ui/git/git_view_model.dart';
 import 'package:roola/ui/git/git_view_state.dart';
+import 'package:roola/ui/git/git_worktree_section.dart';
 import 'package:roola/ui/workspace/current_tab_id_provider.dart';
 import 'package:roola/ui/workspace/workspace_provider.dart';
 import 'package:roola/ui/workspace/workspace_split.dart';
@@ -134,25 +135,34 @@ class _GitWorkspace extends HookWidget {
             _GitNoticeBar(tabId: tabId, notice: state.notice!),
           Expanded(
             child: PolarisDisplayPanel(
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  if (constraints.maxWidth < _narrowThreshold) {
-                    return _NarrowBody(
-                      tabId: tabId,
-                      state: state,
-                      section: narrowSection,
-                      changedCount: changedCount,
-                    );
-                  }
-                  return _WideBody(
-                    tabId: tabId,
-                    state: state,
-                    changesCollapsed: changesCollapsed,
-                    historyCollapsed: historyCollapsed,
-                    splitRatio: splitRatio,
-                    changedCount: changedCount,
-                  );
-                },
+              child: Column(
+                children: [
+                  // worktree セクション（ADR-0067）。少数前提の固定リストなので
+                  // Changes / History のスプリッタ配分には参加させない。
+                  GitWorktreeSection(tabId: tabId, state: state),
+                  Expanded(
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        if (constraints.maxWidth < _narrowThreshold) {
+                          return _NarrowBody(
+                            tabId: tabId,
+                            state: state,
+                            section: narrowSection,
+                            changedCount: changedCount,
+                          );
+                        }
+                        return _WideBody(
+                          tabId: tabId,
+                          state: state,
+                          changesCollapsed: changesCollapsed,
+                          historyCollapsed: historyCollapsed,
+                          splitRatio: splitRatio,
+                          changedCount: changedCount,
+                        );
+                      },
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
