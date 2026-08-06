@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:roola/core/keybindings/chord_formatter.dart';
+import 'package:roola/data/keybindings/command_id.dart';
+import 'package:roola/data/keybindings/command_registry.dart';
 import 'package:roola/data/keybindings/keybindings.dart';
 import 'package:roola/data/keybindings/keybindings_repository.dart';
 import 'package:roola/data/keybindings/keybindings_repository_impl.dart';
@@ -48,7 +51,11 @@ void main() {
     expect(find.text('パスをコピー'), findsOneWidget);
     expect(find.text('新規フォルダ'), findsOneWidget);
 
-    // 既定のショートカット表示（copyPath = ⇧⌘C）。
-    expect(find.text('⇧⌘C'), findsOneWidget);
+    // 既定のショートカット表示（copyPath = macOS ⇧⌘C / Windows Ctrl+Shift+C）。
+    // 表記はプラットフォームで変わるため、期待値も `formatChord` から起こす。
+    final copyPathChord = formatChord(
+      CommandRegistry.metadataFor(CommandId.copyPath).platformDefaultChord,
+    );
+    expect(find.text(copyPathChord), findsOneWidget);
   });
 }

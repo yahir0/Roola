@@ -97,7 +97,14 @@ void main() {
       final effective = container.read(effectiveKeybindingsProvider);
       expect(effective.length, CommandId.values.length);
       for (final id in CommandId.values) {
-        expect(effective[id], CommandRegistry.metadataFor(id).defaultChord);
+        // `defaultChord` は macOS 基準の生値。Windows では
+        // `windowsDefaultChord` が優先されるため、実効値の比較対象は
+        // `platformDefaultChord`（ADR-0058 Case A）。
+        expect(
+          effective[id],
+          CommandRegistry.metadataFor(id).platformDefaultChord,
+          reason: '$id',
+        );
       }
     });
 
@@ -114,7 +121,7 @@ void main() {
       expect(effective[CommandId.copyPath], chord);
       expect(
         effective[CommandId.closeTab],
-        CommandRegistry.metadataFor(CommandId.closeTab).defaultChord,
+        CommandRegistry.metadataFor(CommandId.closeTab).platformDefaultChord,
       );
     });
   });

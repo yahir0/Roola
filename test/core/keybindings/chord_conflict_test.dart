@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:roola/core/keybindings/chord_conflict.dart';
+import 'package:roola/core/keybindings/key_chord_recorder.dart';
 import 'package:roola/data/keybindings/command_id.dart';
 import 'package:roola/data/keybindings/command_registry.dart';
 import 'package:roola/data/keybindings/key_chord.dart';
@@ -85,12 +88,35 @@ void main() {
       expect(findConflicts(CommandRegistry.defaults), isEmpty);
     });
 
-    test('既定キーコンビはすべて修飾キーを含む', () {
+    // 「修飾キーを含むこと」は macOS の規則で、Windows は F1〜F12 / Delete を
+    // 修飾キー無しでも許可する（Windows Explorer 慣習 / ADR-0033・ADR-0058。
+    // 実際 renameItem = F2 / moveToTrash = Delete が該当する）。両方を貫く
+    // 不変条件は「割り当て可能なコンビであること」なので、それを検証する。
+    test('既定キーコンビはすべて割り当て可能', () {
       for (final entry in CommandRegistry.defaults.entries) {
         expect(
-          entry.value.hasNoModifier,
-          isFalse,
-          reason: '${entry.key} は修飾なし',
+          isAssignableChord(entry.value),
+          isTrue,
+          reason: '${entry.key} は割り当て不可なコンビ',
+        );
+      }
+    });
+
+    test('修飾キー無しの既定はプラットフォームの許可キーに限られる', () {
+      final modifierFree = CommandRegistry.defaults.entries
+          .where((e) => e.value.hasNoModifier)
+          .toList();
+      if (!Platform.isWindows) {
+        // macOS は修飾キー無しの既定を一切持たない。
+        expect(modifierFree, isEmpty);
+        return;
+      }
+      // Windows は F1〜F12 / Delete のみ許可。
+      for (final entry in modifierFree) {
+        expect(
+          isAssignableChord(entry.value),
+          isTrue,
+          reason: '${entry.key} は修飾なしだが許可対象外',
         );
       }
     });
