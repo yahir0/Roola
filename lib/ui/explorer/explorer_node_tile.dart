@@ -460,10 +460,10 @@ Future<void> _handleDirectoryAction(
           keepShellAfterExit: false,
         ),
       );
-      // bottom ペインに新規ターミナルタブとして開く（ADR-0026）。
+      // 左下ペインに新規ターミナルタブとして開く（ADR-0026）。
       ref
           .read(workspaceProvider.notifier)
-          .addTerminalTab(PaneSlotId.bottom, args: args);
+          .addTerminalTab(PaneSlotId.bottomLeft, args: args);
     case _ActionOpenTerminal():
       final adhocId = 'adhoc-${_uuid.v4()}';
       final args = AdhocRunArgs(
@@ -474,7 +474,7 @@ Future<void> _handleDirectoryAction(
       );
       ref
           .read(workspaceProvider.notifier)
-          .addTerminalTab(PaneSlotId.bottom, args: args);
+          .addTerminalTab(PaneSlotId.bottomLeft, args: args);
     case _ActionOpenTerminalCmd():
       final adhocId = 'adhoc-${_uuid.v4()}';
       final args = AdhocRunArgs(
@@ -486,7 +486,7 @@ Future<void> _handleDirectoryAction(
       );
       ref
           .read(workspaceProvider.notifier)
-          .addTerminalTab(PaneSlotId.bottom, args: args);
+          .addTerminalTab(PaneSlotId.bottomLeft, args: args);
     case _ActionOpenTerminalPs():
       final adhocId = 'adhoc-${_uuid.v4()}';
       final args = AdhocRunArgs(
@@ -498,7 +498,7 @@ Future<void> _handleDirectoryAction(
       );
       ref
           .read(workspaceProvider.notifier)
-          .addTerminalTab(PaneSlotId.bottom, args: args);
+          .addTerminalTab(PaneSlotId.bottomLeft, args: args);
     case _ActionCreateWorktree(:final repoRoot):
       await runCreateWorktree(context, ref, repoRoot: repoRoot);
     case _ActionRevealInFinder():
@@ -563,7 +563,7 @@ Future<void> _handleDirectoryAction(
       );
       ref
           .read(workspaceProvider.notifier)
-          .addTerminalTab(PaneSlotId.bottom, args: args);
+          .addTerminalTab(PaneSlotId.bottomLeft, args: args);
     case _ActionRegisterSkill(:final skillName):
       unawaited(
         EntryNewRoute(
@@ -710,7 +710,7 @@ Future<void> _copyPathToClipboard(BuildContext context, String path) {
 }
 
 /// [tabId] のタブが属するペインスロットを返す。見つからなければ
-/// `PaneSlotId.bottom` にフォールバックする。
+/// `PaneSlotId.bottomLeft` にフォールバックする。
 /// 右クリック起点のタブ（vim 等）を、操作元のエクスプローラと同じペインに
 /// 開くために使う。
 PaneSlotId _slotContainingTab(WorkspaceLayout layout, String tabId) {
@@ -719,7 +719,7 @@ PaneSlotId _slotContainingTab(WorkspaceLayout layout, String tabId) {
       return slotId;
     }
   }
-  return PaneSlotId.bottom;
+  return PaneSlotId.bottomLeft;
 }
 
 /// シェルコマンド文字列に埋め込む引数を安全にクォートする。

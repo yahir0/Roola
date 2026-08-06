@@ -64,7 +64,7 @@ Future<void> launchLauncherEntry(
   );
   ref
       .read(workspaceProvider.notifier)
-      .addTerminalTab(PaneSlotId.bottom, args: args);
+      .addTerminalTab(PaneSlotId.bottomLeft, args: args);
 
   // 匿名利用統計（ADR-0065）。実行種別のみを送り、パス・コマンド・エントリ名
   // は送らない。

@@ -338,11 +338,17 @@ abstract class AppLocalizations {
   /// **'タブを右上ペインへ移動'**
   String get commandMoveTabTopRight;
 
-  /// No description provided for @commandMoveTabBottom.
+  /// No description provided for @commandMoveTabBottomLeft.
   ///
   /// In ja, this message translates to:
-  /// **'タブを下ペインへ移動'**
-  String get commandMoveTabBottom;
+  /// **'タブを左下ペインへ移動'**
+  String get commandMoveTabBottomLeft;
+
+  /// No description provided for @commandMoveTabBottomRight.
+  ///
+  /// In ja, this message translates to:
+  /// **'タブを右下ペインへ移動'**
+  String get commandMoveTabBottomRight;
 
   /// No description provided for @commandOpenLauncherManagement.
   ///

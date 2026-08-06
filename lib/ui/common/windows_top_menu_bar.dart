@@ -134,7 +134,8 @@ class WindowsTopMenuBar extends ConsumerWidget {
           sub(Text(l10n.appMenuPane), [
             cmd(CommandId.moveTabTopLeft),
             cmd(CommandId.moveTabTopRight),
-            cmd(CommandId.moveTabBottom),
+            cmd(CommandId.moveTabBottomLeft),
+            cmd(CommandId.moveTabBottomRight),
           ]),
         ],
       ),

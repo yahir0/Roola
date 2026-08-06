@@ -945,7 +945,7 @@ class _FavoriteTile extends HookConsumerWidget {
       case _FavoriteAction.openClaude:
         // 「Claude Code で開く」は素の `claude` 起動（ADR-0016）。
         ref.read(workspaceProvider.notifier).addTerminalTab(
-              PaneSlotId.bottom,
+              PaneSlotId.bottomLeft,
               args: AdhocRunArgs(
                 adhocId: 'adhoc-${_uuid.v4()}',
                 workingDirectory: favorite.path,
@@ -958,7 +958,7 @@ class _FavoriteTile extends HookConsumerWidget {
             );
       case _FavoriteAction.openTerminal:
         ref.read(workspaceProvider.notifier).addTerminalTab(
-              PaneSlotId.bottom,
+              PaneSlotId.bottomLeft,
               args: AdhocRunArgs(
                 adhocId: 'adhoc-${_uuid.v4()}',
                 workingDirectory: favorite.path,
@@ -968,7 +968,7 @@ class _FavoriteTile extends HookConsumerWidget {
             );
       case _FavoriteAction.openTerminalCmd:
         ref.read(workspaceProvider.notifier).addTerminalTab(
-              PaneSlotId.bottom,
+              PaneSlotId.bottomLeft,
               args: AdhocRunArgs(
                 adhocId: 'adhoc-${_uuid.v4()}',
                 workingDirectory: favorite.path,
@@ -979,7 +979,7 @@ class _FavoriteTile extends HookConsumerWidget {
             );
       case _FavoriteAction.openTerminalPs:
         ref.read(workspaceProvider.notifier).addTerminalTab(
-              PaneSlotId.bottom,
+              PaneSlotId.bottomLeft,
               args: AdhocRunArgs(
                 adhocId: 'adhoc-${_uuid.v4()}',
                 workingDirectory: favorite.path,
@@ -1482,7 +1482,7 @@ class _LauncherManageTile extends StatelessWidget {
 }
 
 /// ランチャー登録エントリ 1 件のタイル。クリックで `launchLauncherEntry`
-/// を呼び、bottom ペインにターミナルタブとして開く（ADR-0026）。
+/// を呼び、左下ペインにターミナルタブとして開く（ADR-0026）。
 class _LauncherTile extends ConsumerWidget {
   const _LauncherTile({required this.entry, this.indented = false});
 
@@ -1709,7 +1709,7 @@ class _LauncherRootDropZone extends ConsumerWidget {
 // ----- 実行中セクション -----
 
 /// 実行中セッション 1 件のタイル。クリックで該当ターミナルタブにフォーカス
-/// （無ければ bottom ペインに再作成）。✕ でタブごと破棄する（ADR-0026）。
+/// （無ければ左下ペインに再作成）。✕ でタブごと破棄する（ADR-0026）。
 class _RunningTile extends ConsumerWidget {
   const _RunningTile({required this.sessionId, required this.state});
 
@@ -1738,7 +1738,7 @@ class _RunningTile extends ConsumerWidget {
         if (tab != null) {
           workspace.activateTab(tab.id);
         } else {
-          workspace.addTerminalTab(PaneSlotId.bottom, args: adhocArgs);
+          workspace.addTerminalTab(PaneSlotId.bottomLeft, args: adhocArgs);
         }
       },
       child: Stack(
@@ -2001,7 +2001,7 @@ class _NotepadHeader extends ConsumerWidget {
     if (selected == null || !context.mounted) return;
     switch (selected) {
       case _NotepadHeaderAction.newNote:
-        ref.read(workspaceProvider.notifier).addNotepadTab(PaneSlotId.bottom);
+        ref.read(workspaceProvider.notifier).addNotepadTab(PaneSlotId.bottomLeft);
       case _NotepadHeaderAction.newFolder:
         final name = await promptName(
           context,

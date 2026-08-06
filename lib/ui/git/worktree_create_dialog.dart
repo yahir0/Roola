@@ -135,12 +135,12 @@ Future<void> runCreateWorktree(
   }
 }
 
-/// worktree を作業ディレクトリにした素のシェルタブを bottom ペインに開く。
+/// worktree を作業ディレクトリにした素のシェルタブを左下ペインに開く。
 void openWorktreeShellTab(WidgetRef ref, {required String worktreePath}) {
   ref
       .read(workspaceProvider.notifier)
       .addTerminalTab(
-        PaneSlotId.bottom,
+        PaneSlotId.bottomLeft,
         args: AdhocRunArgs(
           adhocId: 'adhoc-${_uuid.v4()}',
           workingDirectory: worktreePath,
@@ -150,12 +150,12 @@ void openWorktreeShellTab(WidgetRef ref, {required String worktreePath}) {
       );
 }
 
-/// worktree を作業ディレクトリにした claude セッションタブを bottom ペインに開く。
+/// worktree を作業ディレクトリにした claude セッションタブを左下ペインに開く。
 void openWorktreeClaudeTab(WidgetRef ref, {required String worktreePath}) {
   ref
       .read(workspaceProvider.notifier)
       .addTerminalTab(
-        PaneSlotId.bottom,
+        PaneSlotId.bottomLeft,
         args: AdhocRunArgs(
           adhocId: 'adhoc-${_uuid.v4()}',
           workingDirectory: worktreePath,

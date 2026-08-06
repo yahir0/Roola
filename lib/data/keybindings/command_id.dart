@@ -32,7 +32,8 @@ enum CommandId {
   previousTab,
   moveTabTopLeft,
   moveTabTopRight,
-  moveTabBottom,
+  moveTabBottomLeft,
+  moveTabBottomRight,
 
   // ランチャー / アプリ
   openLauncherManagement,
