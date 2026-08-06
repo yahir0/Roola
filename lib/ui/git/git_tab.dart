@@ -424,7 +424,7 @@ class _GitNoticeBar extends ConsumerWidget {
     ref
         .read(workspaceProvider.notifier)
         .addTerminalTab(
-          PaneSlotId.bottom,
+          PaneSlotId.bottomLeft,
           args: AdhocRunArgs(
             adhocId: 'adhoc-${_uuid.v4()}',
             workingDirectory: repoRoot,

@@ -26,7 +26,7 @@ void main() {
         WorkspaceLayout(
           topLeft: _explorerSlot(['a']),
           topRight: PaneSlot.empty,
-          bottom: PaneSlot.empty,
+          bottomLeft: PaneSlot.empty,
         ),
       );
       final workspace = container.read(workspaceProvider.notifier);
@@ -42,13 +42,13 @@ void main() {
         WorkspaceLayout(
           topLeft: _explorerSlot(['a']),
           topRight: PaneSlot.empty,
-          bottom: PaneSlot.empty,
+          bottomLeft: PaneSlot.empty,
         ),
       );
       final workspace = container.read(workspaceProvider.notifier);
-      workspace.addTerminalTab(PaneSlotId.bottom);
+      workspace.addTerminalTab(PaneSlotId.bottomLeft);
 
-      final tab = container.read(workspaceProvider).bottom.tabs.single;
+      final tab = container.read(workspaceProvider).bottomLeft.tabs.single;
       expect(tab, isA<TerminalTab>());
     });
 
@@ -57,7 +57,7 @@ void main() {
         WorkspaceLayout(
           topLeft: _explorerSlot(['a', 'b', 'c']),
           topRight: PaneSlot.empty,
-          bottom: PaneSlot.empty,
+          bottomLeft: PaneSlot.empty,
         ),
       );
       container.read(workspaceProvider.notifier).activateTab('c');
@@ -77,7 +77,7 @@ void main() {
             activeIndex: 1,
           ),
           topRight: PaneSlot.empty,
-          bottom: PaneSlot.empty,
+          bottomLeft: PaneSlot.empty,
         ),
       );
       container.read(workspaceProvider.notifier).closeTab('b');
@@ -92,7 +92,7 @@ void main() {
         WorkspaceLayout(
           topLeft: _explorerSlot(['a']),
           topRight: _explorerSlot(['b']),
-          bottom: PaneSlot.empty,
+          bottomLeft: PaneSlot.empty,
         ),
       );
       container.read(workspaceProvider.notifier).closeTab('b');
@@ -104,7 +104,7 @@ void main() {
         WorkspaceLayout(
           topLeft: _explorerSlot(['a']),
           topRight: PaneSlot.empty,
-          bottom: PaneSlot.empty,
+          bottomLeft: PaneSlot.empty,
         ),
       );
       container.read(workspaceProvider.notifier).closeTab('a');
@@ -121,7 +121,7 @@ void main() {
         WorkspaceLayout(
           topLeft: _explorerSlot(['a', 'b', 'c']),
           topRight: PaneSlot.empty,
-          bottom: PaneSlot.empty,
+          bottomLeft: PaneSlot.empty,
         ),
       );
       // a を末尾ギャップ（index 3）へ。
@@ -140,7 +140,7 @@ void main() {
         WorkspaceLayout(
           topLeft: _explorerSlot(['a', 'b']),
           topRight: _explorerSlot(['x']),
-          bottom: PaneSlot.empty,
+          bottomLeft: PaneSlot.empty,
         ),
       );
       container
@@ -157,7 +157,7 @@ void main() {
         WorkspaceLayout(
           topLeft: _explorerSlot(['a']),
           topRight: PaneSlot.empty,
-          bottom: PaneSlot.empty,
+          bottomLeft: PaneSlot.empty,
         ),
       );
       container
@@ -175,7 +175,7 @@ void main() {
         WorkspaceLayout(
           topLeft: _explorerSlot(['a']),
           topRight: PaneSlot.empty,
-          bottom: PaneSlot.empty,
+          bottomLeft: PaneSlot.empty,
         ),
       );
       final workspace = container.read(workspaceProvider.notifier);
@@ -190,7 +190,7 @@ void main() {
         WorkspaceLayout(
           topLeft: _explorerSlot(['a', 'b']),
           topRight: PaneSlot.empty,
-          bottom: PaneSlot.empty,
+          bottomLeft: PaneSlot.empty,
         ),
       );
       container.read(workspaceProvider.notifier).activateTab('b');
@@ -202,13 +202,13 @@ void main() {
         WorkspaceLayout(
           topLeft: _explorerSlot(['a']),
           topRight: PaneSlot.empty,
-          bottom: PaneSlot.empty,
+          bottomLeft: PaneSlot.empty,
         ),
       );
       final workspace = container.read(workspaceProvider.notifier);
       // まずエクスプローラ a を遷移先にしておく。
       workspace.activateTab('a');
-      workspace.addTerminalTab(PaneSlotId.bottom);
+      workspace.addTerminalTab(PaneSlotId.bottomLeft);
 
       expect(container.read(focusedTabProvider).lastExplorerTabId, 'a');
     });
@@ -222,6 +222,86 @@ void main() {
       expect(container.read(workspaceProvider).topRatio, 0.85);
       workspace.setLeftRatio(0.01);
       expect(container.read(workspaceProvider).leftRatio, 0.15);
+      workspace.setBottomLeftRatio(0.99);
+      expect(container.read(workspaceProvider).bottomLeftRatio, 0.85);
+    });
+
+    test('上段と下段の左右比率は独立して動く', () {
+      final container = _container(seedDefaultWorkspace());
+      final workspace = container.read(workspaceProvider.notifier);
+      workspace.setLeftRatio(0.3);
+      expect(container.read(workspaceProvider).leftRatio, 0.3);
+      // 下段を動かしても上段は据え置き。
+      expect(container.read(workspaceProvider).bottomLeftRatio, 0.5);
+      workspace.setBottomLeftRatio(0.7);
+      expect(container.read(workspaceProvider).leftRatio, 0.3);
+      expect(container.read(workspaceProvider).bottomLeftRatio, 0.7);
+    });
+  });
+
+  group('Workspace 4 分割（ADR-0068）', () {
+    test('既定 seed は bottomRight が空（起動直後は 3 分割）', () {
+      final layout = seedDefaultWorkspace();
+      expect(layout.bottomRight.isEmpty, isTrue);
+      expect(layout.nonEmptySlots, [
+        PaneSlotId.topLeft,
+        PaneSlotId.topRight,
+        PaneSlotId.bottomLeft,
+      ]);
+    });
+
+    test('bottomRight へタブを移動すると 4 スロットすべてが埋まる', () {
+      final container = _container(
+        WorkspaceLayout(
+          topLeft: _explorerSlot(['a', 'b']),
+          topRight: _explorerSlot(['c']),
+          bottomLeft: _explorerSlot(['d']),
+        ),
+      );
+      final workspace = container.read(workspaceProvider.notifier);
+      workspace.moveTab('b', PaneSlotId.bottomRight, 0);
+
+      final layout = container.read(workspaceProvider);
+      expect(layout.topLeft.tabs.map((t) => t.id), ['a']);
+      expect(layout.bottomRight.tabs.map((t) => t.id), ['b']);
+      expect(layout.bottomRight.activeIndex, 0);
+      expect(layout.nonEmptySlots.length, 4);
+    });
+
+    test('bottomRight の最後のタブを閉じると 3 分割へ戻る', () {
+      final container = _container(
+        WorkspaceLayout(
+          topLeft: _explorerSlot(['a']),
+          topRight: _explorerSlot(['b']),
+          bottomLeft: _explorerSlot(['c']),
+          bottomRight: _explorerSlot(['d']),
+        ),
+      );
+      container.read(workspaceProvider.notifier).closeTab('d');
+
+      final layout = container.read(workspaceProvider);
+      expect(layout.bottomRight.isEmpty, isTrue);
+      expect(layout.nonEmptySlots, [
+        PaneSlotId.topLeft,
+        PaneSlotId.topRight,
+        PaneSlotId.bottomLeft,
+      ]);
+    });
+
+    test('bottomRight のタブも tabById / _locate で見つかる', () {
+      final container = _container(
+        WorkspaceLayout(
+          topLeft: _explorerSlot(['a']),
+          topRight: PaneSlot.empty,
+          bottomLeft: PaneSlot.empty,
+          bottomRight: _explorerSlot(['z']),
+        ),
+      );
+      final workspace = container.read(workspaceProvider.notifier);
+      expect(workspace.tabById('z'), isA<ExplorerTab>());
+      // activateTab は _locate 経由。見つからなければ no-op になる。
+      workspace.activateTab('z');
+      expect(container.read(focusedTabProvider).focusedTabId, 'z');
     });
   });
 }

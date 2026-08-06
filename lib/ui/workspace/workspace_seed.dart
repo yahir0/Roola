@@ -24,8 +24,8 @@ String defaultWorkspaceHome() {
 
 /// 既定の素のシェル ad-hoc 起動引数（$HOME / `OpenHereAction`）。
 ///
-/// ターミナルタブを「+」から追加するときと、初回 seed の `bottom` ペインで
-/// 使う。`adhocId` は毎回新規払い出し（ADR-0028: ターミナルは再 spawn）。
+/// ターミナルタブを「+」から追加するときと、初回 seed の `bottomLeft` ペイン
+/// で使う。`adhocId` は毎回新規払い出し（ADR-0028: ターミナルは再 spawn）。
 AdhocRunArgs defaultTerminalArgs() => AdhocRunArgs(
   adhocId: 'adhoc-${_uuid.v4()}',
   workingDirectory: defaultWorkspaceHome(),
@@ -33,10 +33,11 @@ AdhocRunArgs defaultTerminalArgs() => AdhocRunArgs(
   action: const LauncherAction.openHere(),
 );
 
-/// 初回起動 / 永続データ無し時の既定 3 ペインレイアウト（ADR-0026）。
+/// 起動時の既定 3 ペインレイアウト（ADR-0026 / ADR-0068）。
 ///
-/// `topLeft` / `topRight` はエクスプローラ（$HOME）、`bottom` は素のシェル
-/// のターミナル（$HOME）。
+/// `topLeft` / `topRight` はエクスプローラ（$HOME）、`bottomLeft` は素のシェル
+/// のターミナル（$HOME）。`bottomRight` は**空**にしておき、4 分割は
+/// ユーザーがタブを移動して初めて現れる（ADR-0068）。
 WorkspaceLayout seedDefaultWorkspace() {
   final home = defaultWorkspaceHome();
   return WorkspaceLayout(
@@ -46,7 +47,7 @@ WorkspaceLayout seedDefaultWorkspace() {
     topRight: PaneSlot(
       tabs: [WorkspaceTab.explorer(id: newTabId(), currentPath: home)],
     ),
-    bottom: PaneSlot(
+    bottomLeft: PaneSlot(
       tabs: [
         WorkspaceTab.terminal(id: newTabId(), args: defaultTerminalArgs()),
       ],

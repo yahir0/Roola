@@ -56,7 +56,7 @@ void main() {
         tabs: [WorkspaceTab.git(id: 'g1', repoRoot: '/repo')],
       ),
       topRight: PaneSlot.empty,
-      bottom: PaneSlot.empty,
+      bottomLeft: PaneSlot.empty,
     );
     final container = ProviderContainer(
       overrides: [

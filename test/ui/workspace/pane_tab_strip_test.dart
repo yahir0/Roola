@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -44,7 +45,7 @@ void main() {
             ],
           ),
           topRight: PaneSlot.empty,
-          bottom: PaneSlot.empty,
+          bottomLeft: PaneSlot.empty,
         ),
       ),
     );
@@ -63,7 +64,7 @@ void main() {
             ],
           ),
           topRight: PaneSlot.empty,
-          bottom: PaneSlot.empty,
+          bottomLeft: PaneSlot.empty,
         ),
       ),
     );
@@ -76,5 +77,61 @@ void main() {
     expect(find.byIcon(Icons.close), findsOneWidget);
     expect(find.text('tmp'), findsNothing);
     expect(find.text('var'), findsOneWidget);
+  });
+
+  testWidgets('右クリックメニューから右下ペインへ移動して 4 分割になる（ADR-0068）', (tester) async {
+    late ProviderContainer container;
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          workspaceInitialLayoutProvider.overrideWithValue(
+            const WorkspaceLayout(
+              topLeft: PaneSlot(
+                tabs: [
+                  WorkspaceTab.explorer(id: 'a', currentPath: '/tmp'),
+                  WorkspaceTab.explorer(id: 'b', currentPath: '/var'),
+                ],
+              ),
+              topRight: PaneSlot(
+                tabs: [WorkspaceTab.explorer(id: 'c', currentPath: '/usr')],
+              ),
+              bottomLeft: PaneSlot(
+                tabs: [WorkspaceTab.explorer(id: 'd', currentPath: '/etc')],
+              ),
+            ),
+          ),
+        ],
+        child: Builder(
+          builder: (context) {
+            container = ProviderScope.containerOf(context);
+            return const MaterialApp(
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              locale: Locale('ja'),
+              home: Scaffold(body: _Harness()),
+            );
+          },
+        ),
+      ),
+    );
+
+    // タブ chip を右クリックしてメニューを開く。
+    await tester.tap(find.text('tmp'), buttons: kSecondaryButton);
+    await tester.pumpAndSettle();
+
+    // 現在のペイン（左上）以外の 3 つが並ぶ。
+    expect(find.text('タブを右上ペインへ移動'), findsOneWidget);
+    expect(find.text('タブを左下ペインへ移動'), findsOneWidget);
+    expect(find.text('タブを右下ペインへ移動'), findsOneWidget);
+    expect(find.text('タブを左上ペインへ移動'), findsNothing);
+
+    await tester.tap(find.text('タブを右下ペインへ移動'));
+    await tester.pumpAndSettle();
+
+    final layout = container.read(workspaceProvider);
+    expect(layout.bottomRight.tabs.single.id, 'a');
+    expect(layout.topLeft.tabs.map((t) => t.id), ['b']);
+    // 4 スロットすべてが埋まる = 4 分割。
+    expect(layout.nonEmptySlots.length, 4);
   });
 }

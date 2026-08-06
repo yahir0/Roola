@@ -129,7 +129,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get commandMoveTabTopRight => 'Move tab to top-right pane';
 
   @override
-  String get commandMoveTabBottom => 'Move tab to bottom pane';
+  String get commandMoveTabBottomLeft => 'Move tab to bottom-left pane';
+
+  @override
+  String get commandMoveTabBottomRight => 'Move tab to bottom-right pane';
 
   @override
   String get commandOpenLauncherManagement => 'Open launcher management';

@@ -129,7 +129,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get commandMoveTabTopRight => 'タブを右上ペインへ移動';
 
   @override
-  String get commandMoveTabBottom => 'タブを下ペインへ移動';
+  String get commandMoveTabBottomLeft => 'タブを左下ペインへ移動';
+
+  @override
+  String get commandMoveTabBottomRight => 'タブを右下ペインへ移動';
 
   @override
   String get commandOpenLauncherManagement => 'ランチャー管理を開く';
