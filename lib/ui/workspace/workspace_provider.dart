@@ -12,7 +12,7 @@ import 'package:roola/ui/workspace/workspace_seed.dart';
 
 part 'workspace_provider.g.dart';
 
-/// ワークスペースのレイアウト（3 ペインスロット × タブ群）の単一の真実。
+/// ワークスペースのレイアウト（4 ペインスロット × タブ群）の単一の真実。
 ///
 /// タブの生成 / 閉じる / アクティブ化 / 移動とスプリッタ比率を一手に扱う
 /// （ADR-0026）。タブを閉じた / 移動した際の per-tab family プロバイダの
@@ -74,7 +74,7 @@ class Workspace extends _$Workspace {
   }
 
   /// 保存済みメモを開く。同一 [noteId] のタブが既にあればアクティブにし、
-  /// なければ [PaneSlotId.bottom] に新規タブを追加する。
+  /// なければ [PaneSlotId.bottomLeft] に新規タブを追加する。
   void openNotepadNote(String noteId, {String? title}) {
     for (final slotId in PaneSlotId.values) {
       for (final tab in state.slot(slotId).tabs) {
@@ -84,7 +84,7 @@ class Workspace extends _$Workspace {
         }
       }
     }
-    addNotepadTab(PaneSlotId.bottom, noteId: noteId, title: title);
+    addNotepadTab(PaneSlotId.bottomLeft, noteId: noteId, title: title);
   }
 
   /// 指定リポジトリの Git ビュータブを開く（ADR-0030）。
@@ -268,6 +268,12 @@ class Workspace extends _$Workspace {
   /// 上段左右スプリッタの比率を更新する（`topLeft` の幅比率）。
   void setLeftRatio(double ratio) {
     _apply(state.copyWith(leftRatio: ratio.clamp(0.15, 0.85)));
+  }
+
+  /// 下段左右スプリッタの比率を更新する（`bottomLeft` の幅比率 / ADR-0068）。
+  /// 上段の [setLeftRatio] とは独立に動く。
+  void setBottomLeftRatio(double ratio) {
+    _apply(state.copyWith(bottomLeftRatio: ratio.clamp(0.15, 0.85)));
   }
 
   /// 全スロットが空になったら $HOME のエクスプローラタブを 1 つ seed する。

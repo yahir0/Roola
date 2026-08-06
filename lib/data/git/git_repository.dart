@@ -3,6 +3,7 @@ import 'package:roola/data/git/git_commit.dart';
 import 'package:roola/data/git/git_diff.dart';
 import 'package:roola/data/git/git_stash_entry.dart';
 import 'package:roola/data/git/git_status.dart';
+import 'package:roola/data/git/git_worktree.dart';
 
 /// Git リポジトリへのアクセスを抽象化する Repository（ADR-0030）。
 ///
@@ -60,8 +61,9 @@ abstract interface class GitRepository {
   /// [name] のブランチを現在ブランチへマージする。
   Future<void> mergeBranch(String repoRoot, String name);
 
-  /// [name] のローカルブランチを削除する。
-  Future<void> deleteBranch(String repoRoot, String name);
+  /// [name] のローカルブランチを削除する。[force] が `true` なら未マージでも
+  /// 削除する（`-D`）。
+  Future<void> deleteBranch(String repoRoot, String name, {bool force});
 
   /// [sha] のコミットで変更されたファイル一覧を取得する。
   Future<List<GitFileChange>> commitFiles(String repoRoot, String sha);
@@ -91,4 +93,45 @@ abstract interface class GitRepository {
 
   /// stash を破棄する。
   Future<void> stashDrop(String repoRoot, int index);
+
+  // ---- worktree（ADR-0067） ----------------------------------------------
+
+  /// worktree の一覧を取得する。先頭は本体（main worktree）。
+  Future<List<GitWorktree>> listWorktrees(String repoRoot);
+
+  /// worktree を [path] に作成する。指定は以下のいずれか 1 つ:
+  ///
+  /// - [newBranch]: 新規ブランチを [base]（省略時は HEAD）から作成して展開
+  /// - [existingBranch]: 既存ローカルブランチをチェックアウトして展開
+  /// - [trackRemote]: リモートブランチ（例 `origin/x`）をトラッキングする
+  ///   ローカルブランチを作成して展開
+  Future<void> addWorktree(
+    String repoRoot,
+    String path, {
+    String? newBranch,
+    String? base,
+    String? existingBranch,
+    String? trackRemote,
+  });
+
+  /// worktree を削除する。未コミットの変更があると失敗する。[force] が
+  /// `true` なら変更ごと削除する。
+  Future<void> removeWorktree(String repoRoot, String path, {bool force});
+
+  /// 管理情報だけ残った worktree（孤児）を整理する。
+  Future<void> pruneWorktrees(String repoRoot);
+
+  /// リポジトリ移動等でリンク切れした worktree の管理情報を修復する。
+  Future<void> repairWorktrees(String repoRoot);
+
+  /// リポジトリの既定ブランチ short 名を返す。`origin/HEAD` → `main` →
+  /// `master` の順で解決し、いずれも無ければ `null`（design D5）。
+  Future<String?> defaultBranch(String repoRoot);
+
+  /// [into] にマージ済みのローカルブランチ short 名一覧を返す
+  /// （[into] 自身は含まない）。
+  Future<List<String>> mergedBranches(String repoRoot, String into);
+
+  /// worktree（[worktreePath]）の軽量な作業状態を取得する。
+  Future<WorktreeStatusSummary> worktreeStatusSummary(String worktreePath);
 }

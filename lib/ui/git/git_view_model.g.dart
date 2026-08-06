@@ -80,7 +80,7 @@ final class GitViewModelProvider
   }
 }
 
-String _$gitViewModelHash() => r'd1ea82df5020d694ac92ba4045524978b7090710';
+String _$gitViewModelHash() => r'64467f1bbb02b9e4cadb644d484e6fb5cae943a0';
 
 /// Git ビュータブ 1 つ分の ViewModel（`AsyncNotifier.family(tabId)` /
 /// keepAlive / ADR-0027・ADR-0030）。

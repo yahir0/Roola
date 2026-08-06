@@ -8,7 +8,7 @@ part of 'workspace_provider.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
-/// ワークスペースのレイアウト（3 ペインスロット × タブ群）の単一の真実。
+/// ワークスペースのレイアウト（4 ペインスロット × タブ群）の単一の真実。
 ///
 /// タブの生成 / 閉じる / アクティブ化 / 移動とスプリッタ比率を一手に扱う
 /// （ADR-0026）。タブを閉じた / 移動した際の per-tab family プロバイダの
@@ -17,14 +17,14 @@ part of 'workspace_provider.dart';
 @ProviderFor(Workspace)
 final workspaceProvider = WorkspaceProvider._();
 
-/// ワークスペースのレイアウト（3 ペインスロット × タブ群）の単一の真実。
+/// ワークスペースのレイアウト（4 ペインスロット × タブ群）の単一の真実。
 ///
 /// タブの生成 / 閉じる / アクティブ化 / 移動とスプリッタ比率を一手に扱う
 /// （ADR-0026）。タブを閉じた / 移動した際の per-tab family プロバイダの
 /// 破棄もここに集約する（ADR-0027）。
 final class WorkspaceProvider
     extends $NotifierProvider<Workspace, WorkspaceLayout> {
-  /// ワークスペースのレイアウト（3 ペインスロット × タブ群）の単一の真実。
+  /// ワークスペースのレイアウト（4 ペインスロット × タブ群）の単一の真実。
   ///
   /// タブの生成 / 閉じる / アクティブ化 / 移動とスプリッタ比率を一手に扱う
   /// （ADR-0026）。タブを閉じた / 移動した際の per-tab family プロバイダの
@@ -56,9 +56,9 @@ final class WorkspaceProvider
   }
 }
 
-String _$workspaceHash() => r'5bc7668f8b9fe9d881f26eafd8aa8d77b09a34f0';
+String _$workspaceHash() => r'60b7009d0f25d9dcf1c701549d103ddf34bfc0b8';
 
-/// ワークスペースのレイアウト（3 ペインスロット × タブ群）の単一の真実。
+/// ワークスペースのレイアウト（4 ペインスロット × タブ群）の単一の真実。
 ///
 /// タブの生成 / 閉じる / アクティブ化 / 移動とスプリッタ比率を一手に扱う
 /// （ADR-0026）。タブを閉じた / 移動した際の per-tab family プロバイダの

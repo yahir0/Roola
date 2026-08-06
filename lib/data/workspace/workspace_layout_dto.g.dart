@@ -10,18 +10,26 @@ WorkspaceLayoutDto _$WorkspaceLayoutDtoFromJson(Map<String, dynamic> json) =>
     WorkspaceLayoutDto(
       topLeft: PaneSlotDto.fromJson(json['topLeft'] as Map<String, dynamic>),
       topRight: PaneSlotDto.fromJson(json['topRight'] as Map<String, dynamic>),
-      bottom: PaneSlotDto.fromJson(json['bottom'] as Map<String, dynamic>),
+      bottomLeft: PaneSlotDto.fromJson(
+        _readBottomLeft(json, 'bottomLeft') as Map<String, dynamic>,
+      ),
+      bottomRight: json['bottomRight'] == null
+          ? null
+          : PaneSlotDto.fromJson(json['bottomRight'] as Map<String, dynamic>),
       topRatio: (json['topRatio'] as num?)?.toDouble() ?? 0.62,
       leftRatio: (json['leftRatio'] as num?)?.toDouble() ?? 0.5,
+      bottomLeftRatio: (json['bottomLeftRatio'] as num?)?.toDouble() ?? 0.5,
     );
 
 Map<String, dynamic> _$WorkspaceLayoutDtoToJson(WorkspaceLayoutDto instance) =>
     <String, dynamic>{
       'topLeft': instance.topLeft.toJson(),
       'topRight': instance.topRight.toJson(),
-      'bottom': instance.bottom.toJson(),
+      'bottomLeft': instance.bottomLeft.toJson(),
+      'bottomRight': instance.bottomRight?.toJson(),
       'topRatio': instance.topRatio,
       'leftRatio': instance.leftRatio,
+      'bottomLeftRatio': instance.bottomLeftRatio,
     };
 
 PaneSlotDto _$PaneSlotDtoFromJson(Map<String, dynamic> json) => PaneSlotDto(

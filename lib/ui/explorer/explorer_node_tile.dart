@@ -28,6 +28,8 @@ import 'package:roola/ui/explorer/explorer_commands.dart';
 import 'package:roola/ui/explorer/explorer_item_selection.dart';
 import 'package:roola/ui/explorer/explorer_properties_dialog.dart';
 import 'package:roola/ui/explorer/explorer_view_model.dart';
+import 'package:roola/ui/git/git_view_model.dart';
+import 'package:roola/ui/git/worktree_create_dialog.dart';
 import 'package:roola/ui/run/adhoc_run_view_model.dart';
 import 'package:roola/ui/workspace/current_tab_id_provider.dart';
 import 'package:roola/ui/workspace/workspace_provider.dart';
@@ -67,6 +69,11 @@ Future<void> showExplorerContextMenu(
   // OS クリップボードの状態は非同期でしか取れないため、showMenu の前に
   // 一度問い合わせて「ペースト」項目の表示可否を確定させる。
   final hasClipboard = await ref.read(osClipboardServiceProvider).hasFile();
+  // git リポジトリ配下なら「Worktree を切って開く」を出す（ADR-0067）。
+  // family キャッシュ済みの provider なので毎回 git は起動しない。
+  final worktreeRepoRoot = await ref.read(
+    gitRepositoryRootProvider(node.path).future,
+  );
   // Claude CLI 未導入時は Claude 起動 / Skill 系メニューを非表示にする
   // （ADR-0022）。判定は cached な claudeHealthProvider を参照するだけで
   // I/O は発生しない。
@@ -111,6 +118,13 @@ Future<void> showExplorerContextMenu(
         ref,
         command: CommandId.openTerminalHere,
         value: const _ActionOpenTerminal(),
+      ),
+    if (worktreeRepoRoot != null)
+      polarisPopupMenuItem<ExplorerNodeAction>(
+        context,
+        value: _ActionCreateWorktree(worktreeRepoRoot),
+        icon: Icons.fork_right,
+        label: l10n.worktreeMenuCreate,
       ),
     commandPopupMenuItem<ExplorerNodeAction>(
       context,
@@ -446,10 +460,10 @@ Future<void> _handleDirectoryAction(
           keepShellAfterExit: false,
         ),
       );
-      // bottom ペインに新規ターミナルタブとして開く（ADR-0026）。
+      // 左下ペインに新規ターミナルタブとして開く（ADR-0026）。
       ref
           .read(workspaceProvider.notifier)
-          .addTerminalTab(PaneSlotId.bottom, args: args);
+          .addTerminalTab(PaneSlotId.bottomLeft, args: args);
     case _ActionOpenTerminal():
       final adhocId = 'adhoc-${_uuid.v4()}';
       final args = AdhocRunArgs(
@@ -460,7 +474,7 @@ Future<void> _handleDirectoryAction(
       );
       ref
           .read(workspaceProvider.notifier)
-          .addTerminalTab(PaneSlotId.bottom, args: args);
+          .addTerminalTab(PaneSlotId.bottomLeft, args: args);
     case _ActionOpenTerminalCmd():
       final adhocId = 'adhoc-${_uuid.v4()}';
       final args = AdhocRunArgs(
@@ -472,7 +486,7 @@ Future<void> _handleDirectoryAction(
       );
       ref
           .read(workspaceProvider.notifier)
-          .addTerminalTab(PaneSlotId.bottom, args: args);
+          .addTerminalTab(PaneSlotId.bottomLeft, args: args);
     case _ActionOpenTerminalPs():
       final adhocId = 'adhoc-${_uuid.v4()}';
       final args = AdhocRunArgs(
@@ -484,7 +498,9 @@ Future<void> _handleDirectoryAction(
       );
       ref
           .read(workspaceProvider.notifier)
-          .addTerminalTab(PaneSlotId.bottom, args: args);
+          .addTerminalTab(PaneSlotId.bottomLeft, args: args);
+    case _ActionCreateWorktree(:final repoRoot):
+      await runCreateWorktree(context, ref, repoRoot: repoRoot);
     case _ActionRevealInFinder():
       await ref.read(fileOpenerProvider).open(node.path);
     case _ActionAddToFavorite():
@@ -547,7 +563,7 @@ Future<void> _handleDirectoryAction(
       );
       ref
           .read(workspaceProvider.notifier)
-          .addTerminalTab(PaneSlotId.bottom, args: args);
+          .addTerminalTab(PaneSlotId.bottomLeft, args: args);
     case _ActionRegisterSkill(:final skillName):
       unawaited(
         EntryNewRoute(
@@ -694,7 +710,7 @@ Future<void> _copyPathToClipboard(BuildContext context, String path) {
 }
 
 /// [tabId] のタブが属するペインスロットを返す。見つからなければ
-/// `PaneSlotId.bottom` にフォールバックする。
+/// `PaneSlotId.bottomLeft` にフォールバックする。
 /// 右クリック起点のタブ（vim 等）を、操作元のエクスプローラと同じペインに
 /// 開くために使う。
 PaneSlotId _slotContainingTab(WorkspaceLayout layout, String tabId) {
@@ -703,7 +719,7 @@ PaneSlotId _slotContainingTab(WorkspaceLayout layout, String tabId) {
       return slotId;
     }
   }
-  return PaneSlotId.bottom;
+  return PaneSlotId.bottomLeft;
 }
 
 /// シェルコマンド文字列に埋め込む引数を安全にクォートする。
@@ -956,6 +972,13 @@ class _ActionOpenTerminalPs extends ExplorerNodeAction {
   const _ActionOpenTerminalPs();
 }
 
+class _ActionCreateWorktree extends ExplorerNodeAction {
+  const _ActionCreateWorktree(this.repoRoot);
+
+  /// クリックしたノードが属するリポジトリのルート。
+  final String repoRoot;
+}
+
 class _ActionRevealInFinder extends ExplorerNodeAction {
   const _ActionRevealInFinder();
 }
@@ -1027,6 +1050,42 @@ double explorerRowHeight(bool compact, {bool skillSubtitle = false}) =>
 
 /// Skill 検知済みディレクトリの末尾に出す最小バッジ（雷マーク＋件数）。
 /// 行高を揃えるため `Chip` でなくインラインの小要素にする。
+/// worktree タイルに出すブランチ名バッジ（ADR-0067 / design D4）。
+/// 判定・ブランチ名は loader の `WorktreeScanner`（FS 読みのみ）で解決済み。
+class _WorktreeBadge extends StatelessWidget {
+  const _WorktreeBadge({required this.branch});
+
+  final String branch;
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = PolarisTokens.of(context);
+    return Tooltip(
+      message: 'worktree: $branch',
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.fork_right,
+            size: PolarisIconSize.small,
+            color: tokens.textDim,
+          ),
+          const SizedBox(width: 2),
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 120),
+            child: Text(
+              branch,
+              style: tokens.mono.copyWith(color: tokens.textDim),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _SkillBadge extends StatelessWidget {
   const _SkillBadge({required this.names, required this.color});
 
@@ -1210,6 +1269,10 @@ class _DirectoryTile extends HookConsumerWidget {
                     ],
                   ),
                 ),
+                if (node.worktreeBranch != null) ...[
+                  const SizedBox(width: PolarisTokens.space2),
+                  _WorktreeBadge(branch: node.worktreeBranch!),
+                ],
                 if (hasSkill) ...[
                   const SizedBox(width: PolarisTokens.space2),
                   _SkillBadge(names: node.skillNames, color: tokens.accent),

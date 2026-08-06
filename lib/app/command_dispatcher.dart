@@ -52,8 +52,10 @@ void dispatchCommand(CommandId id, WidgetRef ref) {
       _moveFocusedTab(ref, PaneSlotId.topLeft);
     case CommandId.moveTabTopRight:
       _moveFocusedTab(ref, PaneSlotId.topRight);
-    case CommandId.moveTabBottom:
-      _moveFocusedTab(ref, PaneSlotId.bottom);
+    case CommandId.moveTabBottomLeft:
+      _moveFocusedTab(ref, PaneSlotId.bottomLeft);
+    case CommandId.moveTabBottomRight:
+      _moveFocusedTab(ref, PaneSlotId.bottomRight);
 
     // ナビゲーション
     case CommandId.navigateBack:

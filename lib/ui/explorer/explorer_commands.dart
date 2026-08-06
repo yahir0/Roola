@@ -275,7 +275,7 @@ void runOpenTerminalHere(
   );
   ref
       .read(workspaceProvider.notifier)
-      .addTerminalTab(PaneSlotId.bottom, args: args);
+      .addTerminalTab(PaneSlotId.bottomLeft, args: args);
 }
 
 /// [dirPath] で Claude Code を開く（bottom ペインに新規ターミナルタブ）。
@@ -295,5 +295,5 @@ void runOpenClaudeHere(
   );
   ref
       .read(workspaceProvider.notifier)
-      .addTerminalTab(PaneSlotId.bottom, args: args);
+      .addTerminalTab(PaneSlotId.bottomLeft, args: args);
 }

@@ -8,8 +8,8 @@
 > （例: 「フック経路をオプション存続」案 → 最終的に撤去方針へ）。
 > 確定済みの決定は ADR-0066 / アーカイブ済み change が正本。
 > **次にやる作業（優先順）:**
-> 1. **git worktree 統合**を OpenSpec change として起こして実装する
->    （本ノート「第 2 優先」の 3・技術レビューで実現可能性「高」確認済み・最有力）
+> 1. ~~**git worktree 統合**を OpenSpec change として起こして実装する~~
+>    → **完了（2026-06-12）**: change `add-git-worktree-integration` / ADR-0067 で実装済み
 > 2. OSC 133 による実行中／入力待ち状態検知の ADR 起草
 >    （セッションダッシュボードの状態源。図 4 参照）
 > 3. ~~フック経路（ADR-0057 実装一式）の撤去 change（OSC 通知の安定確認後）~~
@@ -554,6 +554,12 @@ Issue #85 の「進め方の案」ステップ 2 のとおり、**新 ADR で AD
   change `remove-hook-notification` で HTTP 受信口・トークン・フックインストーラ・
   設定永続化・設定画面のフック節を撤去。設定画面は通知許可セクションのみに縮退。
   残: Windows 実機確認（リリース前）。
+- 2026-06-12: **git worktree 統合を実装**（change `add-git-worktree-integration` /
+  ADR-0067）。タイル右クリックから worktree 作成（新規 / 既存 / リモート追跡）→
+  シェル / Claude 起動、Git ビューに一覧・状態・掃除（マージ済みワンクリック /
+  prune / repair）、タイルにブランチ名バッジ（FS 判定）。置き場所は探索の結果
+  兄弟ディレクトリ `../<repo>.worktrees/` に確定（B/C 案の却下理由は ADR-0067）。
+  残: OSC 133 状態検知の ADR 起草・Windows 実機確認（リリース前）。
 
 ## 更新履歴
 

@@ -182,7 +182,8 @@ class AppMenuBar extends ConsumerWidget {
         menus: [
           item(CommandId.moveTabTopLeft),
           item(CommandId.moveTabTopRight),
-          item(CommandId.moveTabBottom),
+          item(CommandId.moveTabBottomLeft),
+          item(CommandId.moveTabBottomRight),
         ],
       ),
     ];

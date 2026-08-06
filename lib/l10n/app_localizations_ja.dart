@@ -129,7 +129,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get commandMoveTabTopRight => 'タブを右上ペインへ移動';
 
   @override
-  String get commandMoveTabBottom => 'タブを下ペインへ移動';
+  String get commandMoveTabBottomLeft => 'タブを左下ペインへ移動';
+
+  @override
+  String get commandMoveTabBottomRight => 'タブを右下ペインへ移動';
 
   @override
   String get commandOpenLauncherManagement => 'ランチャー管理を開く';
@@ -1242,6 +1245,132 @@ class AppLocalizationsJa extends AppLocalizations {
   String gitTerminalDisplayName(String name) {
     return '$name (git)';
   }
+
+  @override
+  String get worktreeMenuCreate => 'Worktree を切って開く…';
+
+  @override
+  String get worktreeCreateTitle => 'Worktree を切る';
+
+  @override
+  String get worktreeModeNewBranch => '新規ブランチ';
+
+  @override
+  String get worktreeModeExistingBranch => '既存ブランチ';
+
+  @override
+  String get worktreeBranchNameLabel => 'ブランチ名';
+
+  @override
+  String get worktreeBranchNameTaken => '同名のブランチが既に存在します。';
+
+  @override
+  String get worktreeBaseLabel => '分岐元';
+
+  @override
+  String get worktreeBaseHead => '現在の HEAD';
+
+  @override
+  String get worktreeBranchPickerLabel => 'ブランチ';
+
+  @override
+  String worktreeBranchCheckedOut(String branch) {
+    return '$branch（チェックアウト中）';
+  }
+
+  @override
+  String get worktreePostActionLabel => '作成後に開く';
+
+  @override
+  String get worktreePostActionNone => '開かない';
+
+  @override
+  String get worktreePostActionShell => 'シェル';
+
+  @override
+  String get worktreeCreateButton => '作成';
+
+  @override
+  String worktreeCreatedSnack(String name) {
+    return 'worktree $name を作成しました';
+  }
+
+  @override
+  String get worktreeSectionTitle => 'Worktrees';
+
+  @override
+  String get worktreeCreateTooltip => 'Worktree を切る';
+
+  @override
+  String get worktreeMenuPrune => '管理情報を整理（prune）';
+
+  @override
+  String get worktreeMenuRepair => 'リンクを修復（repair）';
+
+  @override
+  String get worktreePrunableHint =>
+      'フォルダが存在しない worktree があります。「管理情報を整理」で片付けられます。';
+
+  @override
+  String get worktreeChipMain => 'MAIN';
+
+  @override
+  String get worktreeChipPrunable => 'missing';
+
+  @override
+  String get worktreeChipDirty => 'dirty';
+
+  @override
+  String get worktreeChipMerged => 'merged';
+
+  @override
+  String get worktreeMenuOpenTerminal => 'ここでターミナルを開く';
+
+  @override
+  String get worktreeMenuOpenClaude => 'ここで Claude を開く';
+
+  @override
+  String get worktreeMenuCleanup => '掃除（worktree とブランチを削除）';
+
+  @override
+  String get worktreeMenuRemove => '削除…';
+
+  @override
+  String get worktreeCleanupTitle => 'worktree を掃除';
+
+  @override
+  String worktreeCleanupMessage(String branch, String into) {
+    return 'ブランチ $branch は $into へマージ済みです。worktree とブランチを削除します。';
+  }
+
+  @override
+  String get worktreeCleanupButton => '掃除';
+
+  @override
+  String get worktreeRemoveTitle => 'worktree を削除';
+
+  @override
+  String worktreeRemoveMessage(String name) {
+    return 'worktree $name を削除します。';
+  }
+
+  @override
+  String get worktreeRemoveDirtyWarning => '未コミットの変更があります。削除すると失われます。';
+
+  @override
+  String worktreeRemoveBranchToo(String branch) {
+    return 'ブランチ $branch も削除する';
+  }
+
+  @override
+  String get worktreeRemoveUnmergedBranchWarning =>
+      'このブランチは既定ブランチへ未マージです。コミットが失われる可能性があります。';
+
+  @override
+  String get worktreeRemoveButton => '削除';
+
+  @override
+  String get worktreeRemoveForceButton => '変更ごと削除';
 
   @override
   String get sessionStateIdle => '待機中';

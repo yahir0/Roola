@@ -40,7 +40,7 @@ void main() {
         WorkspaceLayout(
           topLeft: _explorerSlot(['a', 'b', 'c']),
           topRight: PaneSlot.empty,
-          bottom: PaneSlot.empty,
+          bottomLeft: PaneSlot.empty,
         ),
       );
       ref.read(focusedTabProvider.notifier).focusExplorer('a');
@@ -55,7 +55,7 @@ void main() {
         WorkspaceLayout(
           topLeft: _explorerSlot(['a', 'b']),
           topRight: PaneSlot.empty,
-          bottom: PaneSlot.empty,
+          bottomLeft: PaneSlot.empty,
         ),
       );
       ref.read(focusedTabProvider.notifier).focusExplorer('b');
@@ -70,7 +70,7 @@ void main() {
         WorkspaceLayout(
           topLeft: _explorerSlot(['a', 'b', 'c']),
           topRight: PaneSlot.empty,
-          bottom: PaneSlot.empty,
+          bottomLeft: PaneSlot.empty,
         ),
       );
       ref.read(focusedTabProvider.notifier).focusExplorer('c');
@@ -85,7 +85,7 @@ void main() {
         WorkspaceLayout(
           topLeft: _explorerSlot(['a', 'b']),
           topRight: PaneSlot.empty,
-          bottom: PaneSlot.empty,
+          bottomLeft: PaneSlot.empty,
         ),
       );
       ref.read(focusedTabProvider.notifier).focusExplorer('a');
@@ -101,15 +101,15 @@ void main() {
         WorkspaceLayout(
           topLeft: _explorerSlot(['a', 'b']),
           topRight: PaneSlot.empty,
-          bottom: PaneSlot.empty,
+          bottomLeft: PaneSlot.empty,
         ),
       );
       ref.read(focusedTabProvider.notifier).focusExplorer('a');
 
-      dispatchCommand(CommandId.moveTabBottom, ref);
+      dispatchCommand(CommandId.moveTabBottomLeft, ref);
       final layout = ref.read(workspaceProvider);
       expect(layout.topLeft.tabs.map((t) => t.id), ['b']);
-      expect(layout.bottom.tabs.map((t) => t.id), ['a']);
+      expect(layout.bottomLeft.tabs.map((t) => t.id), ['a']);
     });
 
     testWidgets('newTerminalTab はフォーカス中ペインにタブを足す', (tester) async {
@@ -118,7 +118,7 @@ void main() {
         WorkspaceLayout(
           topLeft: _explorerSlot(['a']),
           topRight: PaneSlot.empty,
-          bottom: PaneSlot.empty,
+          bottomLeft: PaneSlot.empty,
         ),
       );
       ref.read(focusedTabProvider.notifier).focusExplorer('a');
