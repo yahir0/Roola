@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:roola/core/keybindings/key_chord_recorder.dart';
@@ -61,15 +63,30 @@ void main() {
   });
 
   group('isReservedChord', () {
-    KeyChord cmd(LogicalKeyboardKey key) => buildChord(
+    // テキスト編集用に予約される修飾キーは macOS が ⌘、Windows が Ctrl
+    // （ADR-0035 / ADR-0058）。予約側 / 非予約側の修飾キーをプラットフォームで
+    // 入れ替え、規則そのものは両方で同じように検証する。
+    final usesControl = Platform.isWindows;
+
+    /// 予約対象の修飾キー単独のコンビ（macOS: ⌘ / Windows: Ctrl）。
+    KeyChord primary(LogicalKeyboardKey key) => buildChord(
       trigger: key,
-      meta: true,
-      control: false,
+      meta: !usesControl,
+      control: usesControl,
       shift: false,
       alt: false,
     );
 
-    test('⌘ のみ + C/V/X/A/Z は予約コンビ', () {
+    /// 予約対象**外**の修飾キー単独のコンビ（macOS: ⌃ / Windows: Win）。
+    KeyChord secondary(LogicalKeyboardKey key) => buildChord(
+      trigger: key,
+      meta: usesControl,
+      control: !usesControl,
+      shift: false,
+      alt: false,
+    );
+
+    test('予約修飾キー単独 + C/V/X/A/Z は予約コンビ', () {
       for (final key in [
         LogicalKeyboardKey.keyC,
         LogicalKeyboardKey.keyV,
@@ -77,39 +94,34 @@ void main() {
         LogicalKeyboardKey.keyA,
         LogicalKeyboardKey.keyZ,
       ]) {
-        expect(isReservedChord(cmd(key)), isTrue, reason: key.debugName);
+        expect(isReservedChord(primary(key)), isTrue, reason: key.debugName);
       }
     });
 
-    test('修飾キーが増えたコンビ（⌘⇧C / ⌘⌥C）は予約対象外', () {
-      final cmdShiftC = buildChord(
+    test('修飾キーが増えたコンビ（⌘⇧C / ⌘⌥C 相当）は予約対象外', () {
+      final withShift = buildChord(
         trigger: LogicalKeyboardKey.keyC,
-        meta: true,
-        control: false,
+        meta: !usesControl,
+        control: usesControl,
         shift: true,
         alt: false,
       );
-      final cmdAltC = buildChord(
+      final withAlt = buildChord(
         trigger: LogicalKeyboardKey.keyC,
-        meta: true,
-        control: false,
+        meta: !usesControl,
+        control: usesControl,
         shift: false,
         alt: true,
       );
-      expect(isReservedChord(cmdShiftC), isFalse);
-      expect(isReservedChord(cmdAltC), isFalse);
+      expect(isReservedChord(withShift), isFalse);
+      expect(isReservedChord(withAlt), isFalse);
     });
 
-    test('⌘ 以外の予約対象外キーは予約コンビではない', () {
-      expect(isReservedChord(cmd(LogicalKeyboardKey.keyB)), isFalse);
-      final ctrlC = buildChord(
-        trigger: LogicalKeyboardKey.keyC,
-        meta: false,
-        control: true,
-        shift: false,
-        alt: false,
-      );
-      expect(isReservedChord(ctrlC), isFalse);
+    test('予約対象外のキー / 修飾キーは予約コンビではない', () {
+      // 予約修飾キーでも、トリガキーが C/V/X/A/Z 以外なら予約されない。
+      expect(isReservedChord(primary(LogicalKeyboardKey.keyB)), isFalse);
+      // トリガキーが C でも、修飾キーが予約対象外なら予約されない。
+      expect(isReservedChord(secondary(LogicalKeyboardKey.keyC)), isFalse);
     });
   });
 }
