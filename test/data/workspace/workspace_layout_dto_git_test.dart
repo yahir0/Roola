@@ -36,7 +36,7 @@ void main() {
         tabs: [WorkspaceTab.git(id: 'g1', repoRoot: repo.path)],
       ),
       topRight: PaneSlot.empty,
-      bottom: PaneSlot.empty,
+      bottomLeft: PaneSlot.empty,
     );
 
     final restored = roundtrip(layout);
@@ -55,7 +55,7 @@ void main() {
         ],
       ),
       topRight: PaneSlot.empty,
-      bottom: PaneSlot.empty,
+      bottomLeft: PaneSlot.empty,
     );
 
     final restored = roundtrip(layout);
@@ -72,14 +72,15 @@ void main() {
         tabs: [WorkspaceTab.git(id: 'g', repoRoot: notRepo.path)],
       ),
       topRight: PaneSlot.empty,
-      bottom: PaneSlot.empty,
+      bottomLeft: PaneSlot.empty,
     );
 
     expect(roundtrip(layout).topLeft.tabs, isEmpty);
   });
 
   test('git 種別を含まない旧スキーマ JSON は従来どおり読める', () {
-    // 旧バージョンが書いた workspace.json 相当（git タブなし）。
+    // 旧バージョンが書いた workspace.json 相当（git タブなし・スロット名は
+    // ADR-0068 以前の `bottom`・`bottomRight` / `bottomLeftRatio` は無い）。
     final oldJson = {
       'topLeft': {
         'tabs': [
@@ -88,7 +89,12 @@ void main() {
         'activeIndex': 0,
       },
       'topRight': {'tabs': <dynamic>[], 'activeIndex': 0},
-      'bottom': {'tabs': <dynamic>[], 'activeIndex': 0},
+      'bottom': {
+        'tabs': [
+          {'kind': 'explorer', 'id': 'e2', 'currentPath': '/var'},
+        ],
+        'activeIndex': 0,
+      },
       'topRatio': 0.62,
       'leftRatio': 0.5,
     };
@@ -96,5 +102,13 @@ void main() {
     final restored = WorkspaceLayoutDto.fromJson(oldJson).toEntity();
     expect(restored.topLeft.tabs.single, isA<ExplorerTab>());
     expect((restored.topLeft.tabs.single as ExplorerTab).currentPath, '/tmp');
+    // 旧 `bottom` キーは `bottomLeft` として読まれる（ADR-0068）。
+    expect(
+      (restored.bottomLeft.tabs.single as ExplorerTab).currentPath,
+      '/var',
+    );
+    // 旧スキーマに無いフィールドは既定値になる。
+    expect(restored.bottomRight.isEmpty, isTrue);
+    expect(restored.bottomLeftRatio, 0.5);
   });
 }

@@ -44,7 +44,7 @@ ProviderContainer _emptyBottomContainer() {
             tabs: [WorkspaceTab.explorer(id: 'e', currentPath: '/')],
           ),
           topRight: PaneSlot.empty,
-          bottom: PaneSlot.empty,
+          bottomLeft: PaneSlot.empty,
         ),
       ),
     ],
@@ -79,7 +79,7 @@ void main() {
     await tester.tap(find.byType(ElevatedButton));
     await tester.pump();
 
-    final bottom = container.read(workspaceProvider).bottom;
+    final bottom = container.read(workspaceProvider).bottomLeft;
     expect(bottom.tabs.length, 1);
     final tab = bottom.tabs.single;
     expect(tab, isA<TerminalTab>());
@@ -120,7 +120,7 @@ void main() {
       await tester.tap(find.widgetWithText(FilledButton, '実行'));
       await tester.pumpAndSettle();
 
-      final bottom = container.read(workspaceProvider).bottom;
+      final bottom = container.read(workspaceProvider).bottomLeft;
       expect(bottom.tabs.length, 1);
       final tab = bottom.tabs.single as TerminalTab;
       expect(tab.args.skillArgument, input);
@@ -139,7 +139,7 @@ void main() {
       await tester.tap(find.widgetWithText(OutlinedButton, 'キャンセル'));
       await tester.pumpAndSettle();
 
-      expect(container.read(workspaceProvider).bottom.tabs, isEmpty);
+      expect(container.read(workspaceProvider).bottomLeft.tabs, isEmpty);
     });
   });
 }

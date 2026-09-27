@@ -20,7 +20,8 @@ import 'package:roola/ui/workspace/workspace_split.dart';
 
 /// Roola のメイン画面（`/explorer` ルートの中身）。
 ///
-/// ウィンドウ AppBar + サイドバー + 3 ペインタブ式ワークスペース（ADR-0026）。
+/// ウィンドウ AppBar + サイドバー + タブ式ワークスペース（ADR-0026 / ADR-0068。
+/// 既定 3 ペイン・ユーザー操作で最大 4 ペイン）。
 /// 戻る / 進むはエクスプローラタブのペインヘッダへ移設したため、ここの
 /// AppBar には置かない。
 ///
@@ -58,7 +59,7 @@ class WorkspacePage extends ConsumerWidget {
               tooltip: l10n.notepadButtonTooltip,
               onPressed: () => ref
                   .read(workspaceProvider.notifier)
-                  .addNotepadTab(PaneSlotId.bottom),
+                  .addNotepadTab(PaneSlotId.bottomLeft),
             ),
           ),
           ExcludeFocus(
@@ -94,7 +95,11 @@ class WorkspacePage extends ConsumerWidget {
   }
 }
 
-/// 崩し再フロー結果に応じて 3 / 2 / 単一ペインを描画する領域。
+/// 崩し再フロー結果に応じて 4 / 3 / 2 / 単一ペインを描画する領域。
+///
+/// 上段 row・下段 row を独立に組み立てる（ADR-0068）。row 内が 2 つなら左右
+/// スプリッタ、1 つならそのまま全幅、両 row にコンテンツがあれば上下
+/// スプリッタで束ねる。単一ペインになればスプリッタは 1 本も現れない。
 class _WorkspaceArea extends ConsumerWidget {
   const _WorkspaceArea();
 
@@ -107,39 +112,51 @@ class _WorkspaceArea extends ConsumerWidget {
     Widget pane(PaneSlotId slotId) =>
         PaneWidget(key: ValueKey(slotId), slotId: slotId);
 
-    switch (resolved.mode) {
-      case WorkspaceLayoutMode.single:
-        return pane(resolved.visibleSlots.first);
-      case WorkspaceLayoutMode.twoHorizontal:
-        return WorkspaceSplit(
-          axis: Axis.horizontal,
-          ratio: layout.leftRatio,
-          onRatioChanged: notifier.setLeftRatio,
-          first: pane(resolved.visibleSlots[0]),
-          second: pane(resolved.visibleSlots[1]),
-        );
-      case WorkspaceLayoutMode.twoVertical:
-        return WorkspaceSplit(
-          axis: Axis.vertical,
-          ratio: layout.topRatio,
-          onRatioChanged: notifier.setTopRatio,
-          first: pane(resolved.visibleSlots[0]),
-          second: pane(resolved.visibleSlots[1]),
-        );
-      case WorkspaceLayoutMode.three:
-        return WorkspaceSplit(
-          axis: Axis.vertical,
-          ratio: layout.topRatio,
-          onRatioChanged: notifier.setTopRatio,
-          first: WorkspaceSplit(
-            axis: Axis.horizontal,
+    /// row 内のスロットを横に並べる。2 つなら左右スプリッタ、1 つならそのまま。
+    Widget row(
+      List<PaneSlotId> slots, {
+      required double ratio,
+      required ValueChanged<double> onRatioChanged,
+    }) {
+      if (slots.length == 1) {
+        return pane(slots.first);
+      }
+      return WorkspaceSplit(
+        axis: Axis.horizontal,
+        ratio: ratio,
+        onRatioChanged: onRatioChanged,
+        first: pane(slots[0]),
+        second: pane(slots[1]),
+      );
+    }
+
+    final top = resolved.topSlots.isEmpty
+        ? null
+        : row(
+            resolved.topSlots,
             ratio: layout.leftRatio,
             onRatioChanged: notifier.setLeftRatio,
-            first: pane(PaneSlotId.topLeft),
-            second: pane(PaneSlotId.topRight),
-          ),
-          second: pane(PaneSlotId.bottom),
-        );
+          );
+    final bottom = resolved.bottomSlots.isEmpty
+        ? null
+        : row(
+            resolved.bottomSlots,
+            ratio: layout.bottomLeftRatio,
+            onRatioChanged: notifier.setBottomLeftRatio,
+          );
+
+    if (top == null) {
+      return bottom!;
     }
+    if (bottom == null) {
+      return top;
+    }
+    return WorkspaceSplit(
+      axis: Axis.vertical,
+      ratio: layout.topRatio,
+      onRatioChanged: notifier.setTopRatio,
+      first: top,
+      second: bottom,
+    );
   }
 }

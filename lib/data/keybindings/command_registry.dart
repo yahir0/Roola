@@ -199,12 +199,20 @@ abstract final class CommandRegistry {
       windows: _wchord(LogicalKeyboardKey.digit2, control: true, alt: true),
       contextDependent: true,
     ),
-    CommandId.moveTabBottom: _meta(
-      CommandId.moveTabBottom,
+    CommandId.moveTabBottomLeft: _meta(
+      CommandId.moveTabBottomLeft,
       CommandCategory.tab,
-      Icons.south,
+      Icons.south_west,
       _chord(LogicalKeyboardKey.digit3, meta: true, control: true),
       windows: _wchord(LogicalKeyboardKey.digit3, control: true, alt: true),
+      contextDependent: true,
+    ),
+    CommandId.moveTabBottomRight: _meta(
+      CommandId.moveTabBottomRight,
+      CommandCategory.tab,
+      Icons.south_east,
+      _chord(LogicalKeyboardKey.digit4, meta: true, control: true),
+      windows: _wchord(LogicalKeyboardKey.digit4, control: true, alt: true),
       contextDependent: true,
     ),
 

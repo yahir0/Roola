@@ -24,7 +24,7 @@ void main() {
           ],
           activeIndex: 1,
         ),
-        bottom: PaneSlot(
+        bottomLeft: PaneSlot(
           tabs: [
             WorkspaceTab.terminal(
               id: 't1',
@@ -37,8 +37,12 @@ void main() {
             ),
           ],
         ),
+        bottomRight: PaneSlot(
+          tabs: [WorkspaceTab.explorer(id: 'e4', currentPath: '/etc')],
+        ),
         topRatio: 0.7,
         leftRatio: 0.4,
+        bottomLeftRatio: 0.35,
       );
 
       final json = jsonEncode(WorkspaceLayoutDto.fromEntity(layout).toJson());
@@ -46,9 +50,14 @@ void main() {
         jsonDecode(json) as Map<String, dynamic>,
       ).toEntity();
 
-      // スプリッタ比率。
+      // スプリッタ比率（上段 / 下段の左右は独立 / ADR-0068）。
       expect(restored.topRatio, 0.7);
       expect(restored.leftRatio, 0.4);
+      expect(restored.bottomLeftRatio, 0.35);
+
+      // 右下スロットも往復する（ADR-0068）。
+      final e4 = restored.bottomRight.tabs.single as ExplorerTab;
+      expect(e4.currentPath, '/etc');
 
       // エクスプローラタブはパスを復元する。
       final e1 = restored.topLeft.tabs.single as ExplorerTab;
@@ -58,7 +67,7 @@ void main() {
       expect((restored.topRight.tabs[1] as ExplorerTab).currentPath, '/var');
 
       // ターミナルタブは作業ディレクトリ / 表示名 / action を復元する。
-      final t1 = restored.bottom.tabs.single as TerminalTab;
+      final t1 = restored.bottomLeft.tabs.single as TerminalTab;
       expect(t1.id, 't1');
       expect(t1.args.workingDirectory, '/Users/me');
       expect(t1.args.displayName, 'シェル');
@@ -81,7 +90,7 @@ void main() {
           ],
         ),
         topRight: PaneSlot.empty,
-        bottom: PaneSlot.empty,
+        bottomLeft: PaneSlot.empty,
       );
 
       final restored = WorkspaceLayoutDto.fromJson(
@@ -111,7 +120,7 @@ void main() {
           ],
         ),
         topRight: PaneSlot.empty,
-        bottom: PaneSlot.empty,
+        bottomLeft: PaneSlot.empty,
       );
 
       final restored = WorkspaceLayoutDto.fromJson(

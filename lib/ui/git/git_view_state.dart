@@ -3,6 +3,7 @@ import 'package:roola/data/git/git_branch.dart';
 import 'package:roola/data/git/git_graph_row.dart';
 import 'package:roola/data/git/git_stash_entry.dart';
 import 'package:roola/data/git/git_status.dart';
+import 'package:roola/data/git/git_worktree.dart';
 
 part 'git_view_state.freezed.dart';
 
@@ -21,6 +22,22 @@ enum GitOperation {
   branch,
   stash,
   loadMore,
+  worktree,
+}
+
+/// worktree 一覧の表示用エントリ（ADR-0067）。
+@freezed
+abstract class GitWorktreeEntry with _$GitWorktreeEntry {
+  const factory GitWorktreeEntry({
+    /// worktree 本体。
+    required GitWorktree worktree,
+
+    /// 軽量な作業状態。孤児（prunable）では取得できず `null`。
+    WorktreeStatusSummary? summary,
+
+    /// ブランチが既定ブランチへマージ済みか（ワンクリック掃除の対象）。
+    @Default(false) bool isMerged,
+  }) = _GitWorktreeEntry;
 }
 
 /// 通知バーに出すメッセージの種別。
@@ -62,6 +79,12 @@ abstract class GitViewState with _$GitViewState {
 
     /// stash 一覧。
     @Default(<GitStashEntry>[]) List<GitStashEntry> stashes,
+
+    /// worktree 一覧（先頭は本体 / ADR-0067）。
+    @Default(<GitWorktreeEntry>[]) List<GitWorktreeEntry> worktrees,
+
+    /// リポジトリの既定ブランチ short 名（マージ済み判定の基準）。
+    String? defaultBranchName,
 
     /// 履歴で選択中のコミット SHA。
     String? selectedSha,

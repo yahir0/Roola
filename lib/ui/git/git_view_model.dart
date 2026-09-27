@@ -6,6 +6,7 @@ import 'package:roola/data/fs_watcher/directory_watcher.dart';
 import 'package:roola/data/git/git_diff.dart';
 import 'package:roola/data/git/git_graph_layout.dart';
 import 'package:roola/data/git/git_status.dart';
+import 'package:roola/data/git/git_worktree.dart';
 import 'package:roola/data/git/process_git_repository.dart';
 import 'package:roola/data/workspace/workspace_tab.dart';
 import 'package:roola/ui/git/git_view_state.dart';
@@ -103,13 +104,15 @@ class GitViewModel extends _$GitViewModel {
         relativePath.startsWith('.git/lfs/');
   }
 
-  /// status / branches / log / stash をまとめて取得して [GitViewState] を組む。
+  /// status / branches / log / stash / worktree をまとめて取得して
+  /// [GitViewState] を組む。
   Future<GitViewState> _load(String repoRoot) async {
     final repo = ref.read(gitRepositoryProvider);
     final status = await repo.status(repoRoot);
     final branches = await repo.branches(repoRoot);
     final commits = await repo.log(repoRoot, limit: _historyPageSize);
     final stashes = await repo.stashes(repoRoot);
+    final (worktrees, defaultBranchName) = await _loadWorktrees(repoRoot);
     return GitViewState(
       repoRoot: repoRoot,
       status: status,
@@ -117,7 +120,46 @@ class GitViewModel extends _$GitViewModel {
       graph: buildGitGraph(commits),
       hasMoreHistory: commits.length >= _historyPageSize,
       stashes: stashes,
+      worktrees: worktrees,
+      defaultBranchName: defaultBranchName,
     );
+  }
+
+  /// worktree 一覧 + 各 worktree の軽量 status + マージ済み判定を取得する
+  /// （ADR-0067）。取得失敗は一覧なしに degrade させ、ビュー全体は壊さない。
+  Future<(List<GitWorktreeEntry>, String?)> _loadWorktrees(
+    String repoRoot,
+  ) async {
+    final repo = ref.read(gitRepositoryProvider);
+    try {
+      final worktrees = await repo.listWorktrees(repoRoot);
+      final defaultBranchName = await repo.defaultBranch(repoRoot);
+      final merged = defaultBranchName == null
+          ? const <String>{}
+          : (await repo.mergedBranches(repoRoot, defaultBranchName)).toSet();
+      final entries = <GitWorktreeEntry>[];
+      for (final wt in worktrees) {
+        WorktreeStatusSummary? summary;
+        if (!wt.isPrunable) {
+          try {
+            summary = await repo.worktreeStatusSummary(wt.path);
+          } on AppException {
+            // 取得できない worktree（壊れたリンク等）は状態なしで表示する。
+          }
+        }
+        entries.add(
+          GitWorktreeEntry(
+            worktree: wt,
+            summary: summary,
+            isMerged:
+                !wt.isMain && wt.branch != null && merged.contains(wt.branch),
+          ),
+        );
+      }
+      return (entries, defaultBranchName);
+    } on AppException {
+      return (const <GitWorktreeEntry>[], null);
+    }
   }
 
   GitViewState? get _current => state.value;
@@ -257,6 +299,40 @@ class GitViewModel extends _$GitViewModel {
   Future<void> deleteBranch(String name) => _perform(
     GitOperation.branch,
     (repoRoot) => ref.read(gitRepositoryProvider).deleteBranch(repoRoot, name),
+  );
+
+  // ---- worktree（ADR-0067） ----------------------------------------------
+
+  /// worktree を削除する。[deleteBranch] が `true` なら、worktree が
+  /// チェックアウトしていたブランチも併せて削除する（マージ済みなら `-d`、
+  /// 未マージは `-D` 相当の強制削除）。
+  Future<void> removeWorktree(
+    GitWorktreeEntry entry, {
+    required bool force,
+    required bool deleteBranch,
+  }) => _perform(GitOperation.worktree, (repoRoot) async {
+    final repo = ref.read(gitRepositoryProvider);
+    await repo.removeWorktree(repoRoot, entry.worktree.path, force: force);
+    final branch = entry.worktree.branch;
+    if (deleteBranch && branch != null) {
+      await repo.deleteBranch(repoRoot, branch, force: !entry.isMerged);
+    }
+  });
+
+  /// マージ済み worktree のワンクリック掃除（worktree + ブランチを削除）。
+  Future<void> cleanupWorktree(GitWorktreeEntry entry) =>
+      removeWorktree(entry, force: false, deleteBranch: true);
+
+  /// 管理情報だけ残った worktree（孤児）を整理する。
+  Future<void> pruneWorktrees() => _perform(
+    GitOperation.worktree,
+    (repoRoot) => ref.read(gitRepositoryProvider).pruneWorktrees(repoRoot),
+  );
+
+  /// リポジトリ移動等でリンク切れした worktree を修復する。
+  Future<void> repairWorktrees() => _perform(
+    GitOperation.worktree,
+    (repoRoot) => ref.read(gitRepositoryProvider).repairWorktrees(repoRoot),
   );
 
   // ---- 履歴 --------------------------------------------------------------

@@ -13,6 +13,11 @@ part 'workspace_layout_dto.g.dart';
 
 const _uuid = Uuid();
 
+/// `bottomLeft` を読む。ADR-0068 でスロット名を `bottom` → `bottomLeft` に
+/// 変えたため、旧スキーマの json では `bottom` キーを見に行く。
+Object? _readBottomLeft(Map<dynamic, dynamic> json, String key) =>
+    json[key] ?? json['bottom'];
+
 /// `WorkspaceLayout` の JSON 永続化 DTO（ADR-0028）。
 ///
 /// ターミナルタブの `AdhocRunArgs.adhocId` は永続化しない。PTY はプロセス
@@ -22,9 +27,11 @@ class WorkspaceLayoutDto {
   WorkspaceLayoutDto({
     required this.topLeft,
     required this.topRight,
-    required this.bottom,
+    required this.bottomLeft,
+    this.bottomRight,
     this.topRatio = 0.62,
     this.leftRatio = 0.5,
+    this.bottomLeftRatio = 0.5,
   });
 
   factory WorkspaceLayoutDto.fromJson(Map<String, dynamic> json) =>
@@ -34,25 +41,38 @@ class WorkspaceLayoutDto {
       WorkspaceLayoutDto(
         topLeft: PaneSlotDto.fromEntity(entity.topLeft),
         topRight: PaneSlotDto.fromEntity(entity.topRight),
-        bottom: PaneSlotDto.fromEntity(entity.bottom),
+        bottomLeft: PaneSlotDto.fromEntity(entity.bottomLeft),
+        bottomRight: PaneSlotDto.fromEntity(entity.bottomRight),
         topRatio: entity.topRatio,
         leftRatio: entity.leftRatio,
+        bottomLeftRatio: entity.bottomLeftRatio,
       );
 
   final PaneSlotDto topLeft;
   final PaneSlotDto topRight;
-  final PaneSlotDto bottom;
+
+  /// 左下スロット。ADR-0068 以前は `bottom` というキーだったため、旧
+  /// スキーマの json も読めるよう [_readBottomLeft] でフォールバックする。
+  @JsonKey(readValue: _readBottomLeft)
+  final PaneSlotDto bottomLeft;
+
+  /// 右下スロット（ADR-0068 で追加）。旧スキーマの json には存在しないため
+  /// nullable。読み込み時は空スロットとして扱う。
+  final PaneSlotDto? bottomRight;
   final double topRatio;
   final double leftRatio;
+  final double bottomLeftRatio;
 
   Map<String, dynamic> toJson() => _$WorkspaceLayoutDtoToJson(this);
 
   WorkspaceLayout toEntity() => WorkspaceLayout(
     topLeft: topLeft.toEntity(),
     topRight: topRight.toEntity(),
-    bottom: bottom.toEntity(),
+    bottomLeft: bottomLeft.toEntity(),
+    bottomRight: bottomRight?.toEntity() ?? PaneSlot.empty,
     topRatio: topRatio,
     leftRatio: leftRatio,
+    bottomLeftRatio: bottomLeftRatio,
   );
 }
 

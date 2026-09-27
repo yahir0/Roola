@@ -129,7 +129,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get commandMoveTabTopRight => 'Move tab to top-right pane';
 
   @override
-  String get commandMoveTabBottom => 'Move tab to bottom pane';
+  String get commandMoveTabBottomLeft => 'Move tab to bottom-left pane';
+
+  @override
+  String get commandMoveTabBottomRight => 'Move tab to bottom-right pane';
 
   @override
   String get commandOpenLauncherManagement => 'Open launcher management';
@@ -1273,6 +1276,134 @@ class AppLocalizationsEn extends AppLocalizations {
   String gitTerminalDisplayName(String name) {
     return '$name (git)';
   }
+
+  @override
+  String get worktreeMenuCreate => 'New worktree…';
+
+  @override
+  String get worktreeCreateTitle => 'New worktree';
+
+  @override
+  String get worktreeModeNewBranch => 'New branch';
+
+  @override
+  String get worktreeModeExistingBranch => 'Existing branch';
+
+  @override
+  String get worktreeBranchNameLabel => 'Branch name';
+
+  @override
+  String get worktreeBranchNameTaken =>
+      'A branch with this name already exists.';
+
+  @override
+  String get worktreeBaseLabel => 'Base';
+
+  @override
+  String get worktreeBaseHead => 'Current HEAD';
+
+  @override
+  String get worktreeBranchPickerLabel => 'Branch';
+
+  @override
+  String worktreeBranchCheckedOut(String branch) {
+    return '$branch (checked out)';
+  }
+
+  @override
+  String get worktreePostActionLabel => 'After creating';
+
+  @override
+  String get worktreePostActionNone => 'Nothing';
+
+  @override
+  String get worktreePostActionShell => 'Shell';
+
+  @override
+  String get worktreeCreateButton => 'Create';
+
+  @override
+  String worktreeCreatedSnack(String name) {
+    return 'Created worktree $name';
+  }
+
+  @override
+  String get worktreeSectionTitle => 'Worktrees';
+
+  @override
+  String get worktreeCreateTooltip => 'New worktree';
+
+  @override
+  String get worktreeMenuPrune => 'Clean up stale entries (prune)';
+
+  @override
+  String get worktreeMenuRepair => 'Repair links (repair)';
+
+  @override
+  String get worktreePrunableHint =>
+      'Some worktree folders no longer exist. Use \"Clean up stale entries\" to remove them.';
+
+  @override
+  String get worktreeChipMain => 'MAIN';
+
+  @override
+  String get worktreeChipPrunable => 'missing';
+
+  @override
+  String get worktreeChipDirty => 'dirty';
+
+  @override
+  String get worktreeChipMerged => 'merged';
+
+  @override
+  String get worktreeMenuOpenTerminal => 'Open terminal here';
+
+  @override
+  String get worktreeMenuOpenClaude => 'Open Claude here';
+
+  @override
+  String get worktreeMenuCleanup => 'Clean up (remove worktree & branch)';
+
+  @override
+  String get worktreeMenuRemove => 'Remove…';
+
+  @override
+  String get worktreeCleanupTitle => 'Clean up worktree';
+
+  @override
+  String worktreeCleanupMessage(String branch, String into) {
+    return 'Branch $branch is merged into $into. The worktree and the branch will be removed.';
+  }
+
+  @override
+  String get worktreeCleanupButton => 'Clean up';
+
+  @override
+  String get worktreeRemoveTitle => 'Remove worktree';
+
+  @override
+  String worktreeRemoveMessage(String name) {
+    return 'Worktree $name will be removed.';
+  }
+
+  @override
+  String get worktreeRemoveDirtyWarning =>
+      'This worktree has uncommitted changes. They will be lost.';
+
+  @override
+  String worktreeRemoveBranchToo(String branch) {
+    return 'Also delete branch $branch';
+  }
+
+  @override
+  String get worktreeRemoveUnmergedBranchWarning =>
+      'This branch is not merged into the default branch. Its commits may be lost.';
+
+  @override
+  String get worktreeRemoveButton => 'Remove';
+
+  @override
+  String get worktreeRemoveForceButton => 'Remove with changes';
 
   @override
   String get sessionStateIdle => 'Idle';

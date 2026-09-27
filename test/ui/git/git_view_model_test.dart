@@ -4,6 +4,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:roola/core/exceptions/app_exception.dart';
 import 'package:roola/data/git/git_repository.dart';
 import 'package:roola/data/git/git_status.dart';
+import 'package:roola/data/git/git_worktree.dart';
 import 'package:roola/data/git/process_git_repository.dart';
 import 'package:roola/data/workspace/pane_slot.dart';
 import 'package:roola/data/workspace/workspace_layout.dart';
@@ -34,6 +35,19 @@ void main() {
       ),
     ).thenAnswer((_) async => const []);
     when(() => mock.stashes(any())).thenAnswer((_) async => const []);
+    // worktree 一覧（ADR-0067）。既定は本体のみ・既定ブランチ main。
+    when(() => mock.listWorktrees(any())).thenAnswer(
+      (_) async => const [
+        GitWorktree(path: '/repo', branch: 'main', head: 'abc', isMain: true),
+      ],
+    );
+    when(() => mock.defaultBranch(any())).thenAnswer((_) async => 'main');
+    when(
+      () => mock.mergedBranches(any(), any()),
+    ).thenAnswer((_) async => const []);
+    when(() => mock.worktreeStatusSummary(any())).thenAnswer(
+      (_) async => const WorktreeStatusSummary(isDirty: false),
+    );
   }
 
   ProviderContainer makeContainer(_MockGitRepository mock) {
@@ -42,7 +56,7 @@ void main() {
         tabs: [WorkspaceTab.git(id: 'g1', repoRoot: '/repo')],
       ),
       topRight: PaneSlot.empty,
-      bottom: PaneSlot.empty,
+      bottomLeft: PaneSlot.empty,
     );
     final container = ProviderContainer(
       overrides: [

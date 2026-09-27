@@ -338,11 +338,17 @@ abstract class AppLocalizations {
   /// **'タブを右上ペインへ移動'**
   String get commandMoveTabTopRight;
 
-  /// No description provided for @commandMoveTabBottom.
+  /// No description provided for @commandMoveTabBottomLeft.
   ///
   /// In ja, this message translates to:
-  /// **'タブを下ペインへ移動'**
-  String get commandMoveTabBottom;
+  /// **'タブを左下ペインへ移動'**
+  String get commandMoveTabBottomLeft;
+
+  /// No description provided for @commandMoveTabBottomRight.
+  ///
+  /// In ja, this message translates to:
+  /// **'タブを右下ペインへ移動'**
+  String get commandMoveTabBottomRight;
 
   /// No description provided for @commandOpenLauncherManagement.
   ///
@@ -2305,6 +2311,234 @@ abstract class AppLocalizations {
   /// In ja, this message translates to:
   /// **'{name} (git)'**
   String gitTerminalDisplayName(String name);
+
+  /// No description provided for @worktreeMenuCreate.
+  ///
+  /// In ja, this message translates to:
+  /// **'Worktree を切って開く…'**
+  String get worktreeMenuCreate;
+
+  /// No description provided for @worktreeCreateTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'Worktree を切る'**
+  String get worktreeCreateTitle;
+
+  /// No description provided for @worktreeModeNewBranch.
+  ///
+  /// In ja, this message translates to:
+  /// **'新規ブランチ'**
+  String get worktreeModeNewBranch;
+
+  /// No description provided for @worktreeModeExistingBranch.
+  ///
+  /// In ja, this message translates to:
+  /// **'既存ブランチ'**
+  String get worktreeModeExistingBranch;
+
+  /// No description provided for @worktreeBranchNameLabel.
+  ///
+  /// In ja, this message translates to:
+  /// **'ブランチ名'**
+  String get worktreeBranchNameLabel;
+
+  /// No description provided for @worktreeBranchNameTaken.
+  ///
+  /// In ja, this message translates to:
+  /// **'同名のブランチが既に存在します。'**
+  String get worktreeBranchNameTaken;
+
+  /// No description provided for @worktreeBaseLabel.
+  ///
+  /// In ja, this message translates to:
+  /// **'分岐元'**
+  String get worktreeBaseLabel;
+
+  /// No description provided for @worktreeBaseHead.
+  ///
+  /// In ja, this message translates to:
+  /// **'現在の HEAD'**
+  String get worktreeBaseHead;
+
+  /// No description provided for @worktreeBranchPickerLabel.
+  ///
+  /// In ja, this message translates to:
+  /// **'ブランチ'**
+  String get worktreeBranchPickerLabel;
+
+  /// No description provided for @worktreeBranchCheckedOut.
+  ///
+  /// In ja, this message translates to:
+  /// **'{branch}（チェックアウト中）'**
+  String worktreeBranchCheckedOut(String branch);
+
+  /// No description provided for @worktreePostActionLabel.
+  ///
+  /// In ja, this message translates to:
+  /// **'作成後に開く'**
+  String get worktreePostActionLabel;
+
+  /// No description provided for @worktreePostActionNone.
+  ///
+  /// In ja, this message translates to:
+  /// **'開かない'**
+  String get worktreePostActionNone;
+
+  /// No description provided for @worktreePostActionShell.
+  ///
+  /// In ja, this message translates to:
+  /// **'シェル'**
+  String get worktreePostActionShell;
+
+  /// No description provided for @worktreeCreateButton.
+  ///
+  /// In ja, this message translates to:
+  /// **'作成'**
+  String get worktreeCreateButton;
+
+  /// No description provided for @worktreeCreatedSnack.
+  ///
+  /// In ja, this message translates to:
+  /// **'worktree {name} を作成しました'**
+  String worktreeCreatedSnack(String name);
+
+  /// No description provided for @worktreeSectionTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'Worktrees'**
+  String get worktreeSectionTitle;
+
+  /// No description provided for @worktreeCreateTooltip.
+  ///
+  /// In ja, this message translates to:
+  /// **'Worktree を切る'**
+  String get worktreeCreateTooltip;
+
+  /// No description provided for @worktreeMenuPrune.
+  ///
+  /// In ja, this message translates to:
+  /// **'管理情報を整理（prune）'**
+  String get worktreeMenuPrune;
+
+  /// No description provided for @worktreeMenuRepair.
+  ///
+  /// In ja, this message translates to:
+  /// **'リンクを修復（repair）'**
+  String get worktreeMenuRepair;
+
+  /// No description provided for @worktreePrunableHint.
+  ///
+  /// In ja, this message translates to:
+  /// **'フォルダが存在しない worktree があります。「管理情報を整理」で片付けられます。'**
+  String get worktreePrunableHint;
+
+  /// No description provided for @worktreeChipMain.
+  ///
+  /// In ja, this message translates to:
+  /// **'MAIN'**
+  String get worktreeChipMain;
+
+  /// No description provided for @worktreeChipPrunable.
+  ///
+  /// In ja, this message translates to:
+  /// **'missing'**
+  String get worktreeChipPrunable;
+
+  /// No description provided for @worktreeChipDirty.
+  ///
+  /// In ja, this message translates to:
+  /// **'dirty'**
+  String get worktreeChipDirty;
+
+  /// No description provided for @worktreeChipMerged.
+  ///
+  /// In ja, this message translates to:
+  /// **'merged'**
+  String get worktreeChipMerged;
+
+  /// No description provided for @worktreeMenuOpenTerminal.
+  ///
+  /// In ja, this message translates to:
+  /// **'ここでターミナルを開く'**
+  String get worktreeMenuOpenTerminal;
+
+  /// No description provided for @worktreeMenuOpenClaude.
+  ///
+  /// In ja, this message translates to:
+  /// **'ここで Claude を開く'**
+  String get worktreeMenuOpenClaude;
+
+  /// No description provided for @worktreeMenuCleanup.
+  ///
+  /// In ja, this message translates to:
+  /// **'掃除（worktree とブランチを削除）'**
+  String get worktreeMenuCleanup;
+
+  /// No description provided for @worktreeMenuRemove.
+  ///
+  /// In ja, this message translates to:
+  /// **'削除…'**
+  String get worktreeMenuRemove;
+
+  /// No description provided for @worktreeCleanupTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'worktree を掃除'**
+  String get worktreeCleanupTitle;
+
+  /// No description provided for @worktreeCleanupMessage.
+  ///
+  /// In ja, this message translates to:
+  /// **'ブランチ {branch} は {into} へマージ済みです。worktree とブランチを削除します。'**
+  String worktreeCleanupMessage(String branch, String into);
+
+  /// No description provided for @worktreeCleanupButton.
+  ///
+  /// In ja, this message translates to:
+  /// **'掃除'**
+  String get worktreeCleanupButton;
+
+  /// No description provided for @worktreeRemoveTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'worktree を削除'**
+  String get worktreeRemoveTitle;
+
+  /// No description provided for @worktreeRemoveMessage.
+  ///
+  /// In ja, this message translates to:
+  /// **'worktree {name} を削除します。'**
+  String worktreeRemoveMessage(String name);
+
+  /// No description provided for @worktreeRemoveDirtyWarning.
+  ///
+  /// In ja, this message translates to:
+  /// **'未コミットの変更があります。削除すると失われます。'**
+  String get worktreeRemoveDirtyWarning;
+
+  /// No description provided for @worktreeRemoveBranchToo.
+  ///
+  /// In ja, this message translates to:
+  /// **'ブランチ {branch} も削除する'**
+  String worktreeRemoveBranchToo(String branch);
+
+  /// No description provided for @worktreeRemoveUnmergedBranchWarning.
+  ///
+  /// In ja, this message translates to:
+  /// **'このブランチは既定ブランチへ未マージです。コミットが失われる可能性があります。'**
+  String get worktreeRemoveUnmergedBranchWarning;
+
+  /// No description provided for @worktreeRemoveButton.
+  ///
+  /// In ja, this message translates to:
+  /// **'削除'**
+  String get worktreeRemoveButton;
+
+  /// No description provided for @worktreeRemoveForceButton.
+  ///
+  /// In ja, this message translates to:
+  /// **'変更ごと削除'**
+  String get worktreeRemoveForceButton;
 
   /// No description provided for @sessionStateIdle.
   ///

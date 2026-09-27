@@ -1,69 +1,56 @@
 import 'package:roola/data/workspace/workspace_layout.dart';
 
-/// 崩し再フロー後の描画モード（ADR-0026）。
+/// 崩し再フローの結果（ADR-0026 / ADR-0068）。
 ///
-/// - [single]: コンテンツを持つスロットが 1 つ。単一ペイン全画面。
-/// - [twoHorizontal]: 上段の左右 2 スロット。`bottom` が空のとき。
-/// - [twoVertical]: 上段の片方 + `bottom`。上下 2 分割。
-/// - [three]: 3 スロットすべてにコンテンツ。上 2 + 下 1。
-enum WorkspaceLayoutMode { single, twoHorizontal, twoVertical, three }
-
-/// 崩し再フローの結果。描画モードと、描画対象スロットの並び順を持つ。
+/// 上段・下段それぞれの描画対象スロットを、左→右の順で持つ。描画側は
+/// この 2 つのリストから直接レイアウトを組み立てられる。
+///
+/// - 両 row が非空 → 上下 2 分割（`topRatio`）
+/// - 片方の row だけ非空 → その row を画面全高に広げる
+/// - row 内が 2 つ → 左右 2 分割（上段は `leftRatio` / 下段は `bottomLeftRatio`）
+/// - row 内が 1 つ → そのまま全幅
 class ResolvedWorkspaceLayout {
   const ResolvedWorkspaceLayout({
-    required this.mode,
-    required this.visibleSlots,
+    required this.topSlots,
+    required this.bottomSlots,
   });
 
-  final WorkspaceLayoutMode mode;
+  /// 上段の描画対象スロット（左→右）。0〜2 個。
+  final List<PaneSlotId> topSlots;
 
-  /// 描画対象スロット。`twoHorizontal` は左→右、`twoVertical` は上→下の順。
-  final List<PaneSlotId> visibleSlots;
+  /// 下段の描画対象スロット（左→右）。0〜2 個。
+  final List<PaneSlotId> bottomSlots;
+
+  /// 描画対象スロットの総数。1 なら単一ペイン全画面。
+  int get visibleCount => topSlots.length + bottomSlots.length;
+
+  /// 上下スプリッタが要るか（両 row にコンテンツがある）。
+  bool get hasRowSplit => topSlots.isNotEmpty && bottomSlots.isNotEmpty;
 }
 
-/// レイアウトの非空スロット数から描画モードを決める純粋関数（ADR-0026）。
+/// レイアウトの非空スロットから描画構成を決める純粋関数（ADR-0068）。
 ///
-/// - 0 / 1 スロット → [WorkspaceLayoutMode.single]（0 個は理論上発生しない
-///   が、フォールバックで `topLeft` を返す）
-/// - 2 スロット → 上段 2 つなら [WorkspaceLayoutMode.twoHorizontal]、
-///   そうでなければ（上段片方 + `bottom`）[WorkspaceLayoutMode.twoVertical]
-/// - 3 スロット → [WorkspaceLayoutMode.three]
+/// 上段・下段を独立に解決するため、単一ペインから 4 分割までが 1 つの規則で
+/// 表現できる。空スロットは描画対象から外れる（崩し再フロー）。
+///
+/// 全スロットが空のときは `topLeft` 単体にフォールバックする（`_ensureNotEmpty`
+/// が先に seed するため、実際には理論上のみ）。
 ResolvedWorkspaceLayout resolveWorkspaceLayout(WorkspaceLayout layout) {
   final slots = layout.nonEmptySlots;
-  switch (slots.length) {
-    case 0:
-      return const ResolvedWorkspaceLayout(
-        mode: WorkspaceLayoutMode.single,
-        visibleSlots: [PaneSlotId.topLeft],
-      );
-    case 1:
-      return ResolvedWorkspaceLayout(
-        mode: WorkspaceLayoutMode.single,
-        visibleSlots: slots,
-      );
-    case 2:
-      final hasTopLeft = slots.contains(PaneSlotId.topLeft);
-      final hasTopRight = slots.contains(PaneSlotId.topRight);
-      if (hasTopLeft && hasTopRight) {
-        return const ResolvedWorkspaceLayout(
-          mode: WorkspaceLayoutMode.twoHorizontal,
-          visibleSlots: [PaneSlotId.topLeft, PaneSlotId.topRight],
-        );
-      }
-      // 上段の片方 + bottom。`slots` は PaneSlotId.values 順なので
-      // 既に [上段スロット, bottom] に並んでいる。
-      return ResolvedWorkspaceLayout(
-        mode: WorkspaceLayoutMode.twoVertical,
-        visibleSlots: slots,
-      );
-    default:
-      return const ResolvedWorkspaceLayout(
-        mode: WorkspaceLayoutMode.three,
-        visibleSlots: [
-          PaneSlotId.topLeft,
-          PaneSlotId.topRight,
-          PaneSlotId.bottom,
-        ],
-      );
+  if (slots.isEmpty) {
+    return const ResolvedWorkspaceLayout(
+      topSlots: [PaneSlotId.topLeft],
+      bottomSlots: [],
+    );
   }
+  return ResolvedWorkspaceLayout(
+    topSlots: [
+      for (final id in slots)
+        if (id.isTopRow) id,
+    ],
+    bottomSlots: [
+      for (final id in slots)
+        if (id.isBottomRow) id,
+    ],
+  );
 }

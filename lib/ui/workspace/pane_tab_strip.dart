@@ -68,7 +68,13 @@ class PaneTabStrip extends ConsumerWidget {
 }
 
 /// タブメニュー / DnD で扱う移動操作。
-enum _TabMenuAction { moveTopLeft, moveTopRight, moveBottom, close }
+enum _TabMenuAction {
+  moveTopLeft,
+  moveTopRight,
+  moveBottomLeft,
+  moveBottomRight,
+  close,
+}
 
 /// タブ 1 件分の chip。
 ///
@@ -254,8 +260,12 @@ class _TabChip extends ConsumerWidget {
           item(_TabMenuAction.moveTopLeft, CommandId.moveTabTopLeft),
         if (slotId != PaneSlotId.topRight)
           item(_TabMenuAction.moveTopRight, CommandId.moveTabTopRight),
-        if (slotId != PaneSlotId.bottom)
-          item(_TabMenuAction.moveBottom, CommandId.moveTabBottom),
+        if (slotId != PaneSlotId.bottomLeft)
+          item(_TabMenuAction.moveBottomLeft, CommandId.moveTabBottomLeft),
+        // 右下ペインは既定 seed では空で描画されない。この項目が 4 分割への
+        // 唯一の入口になる（ADR-0068）。
+        if (slotId != PaneSlotId.bottomRight)
+          item(_TabMenuAction.moveBottomRight, CommandId.moveTabBottomRight),
         const PopupMenuDivider(),
         item(_TabMenuAction.close, CommandId.closeTab),
       ],
@@ -276,8 +286,10 @@ class _TabChip extends ConsumerWidget {
         moveTo(PaneSlotId.topLeft);
       case _TabMenuAction.moveTopRight:
         moveTo(PaneSlotId.topRight);
-      case _TabMenuAction.moveBottom:
-        moveTo(PaneSlotId.bottom);
+      case _TabMenuAction.moveBottomLeft:
+        moveTo(PaneSlotId.bottomLeft);
+      case _TabMenuAction.moveBottomRight:
+        moveTo(PaneSlotId.bottomRight);
       case _TabMenuAction.close:
         notifier.closeTab(tab.id);
     }

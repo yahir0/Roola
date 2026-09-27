@@ -151,10 +151,10 @@ return file(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( String path,  String name,  List<String> skillNames)?  directory,TResult Function( String path,  String name)?  file,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( String path,  String name,  List<String> skillNames,  String? worktreeBranch)?  directory,TResult Function( String path,  String name)?  file,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case ExplorerDirectoryNode() when directory != null:
-return directory(_that.path,_that.name,_that.skillNames);case ExplorerFileNode() when file != null:
+return directory(_that.path,_that.name,_that.skillNames,_that.worktreeBranch);case ExplorerFileNode() when file != null:
 return file(_that.path,_that.name);case _:
   return orElse();
 
@@ -173,10 +173,10 @@ return file(_that.path,_that.name);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( String path,  String name,  List<String> skillNames)  directory,required TResult Function( String path,  String name)  file,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( String path,  String name,  List<String> skillNames,  String? worktreeBranch)  directory,required TResult Function( String path,  String name)  file,}) {final _that = this;
 switch (_that) {
 case ExplorerDirectoryNode():
-return directory(_that.path,_that.name,_that.skillNames);case ExplorerFileNode():
+return directory(_that.path,_that.name,_that.skillNames,_that.worktreeBranch);case ExplorerFileNode():
 return file(_that.path,_that.name);}
 }
 /// A variant of `when` that fallback to returning `null`
@@ -191,10 +191,10 @@ return file(_that.path,_that.name);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( String path,  String name,  List<String> skillNames)?  directory,TResult? Function( String path,  String name)?  file,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( String path,  String name,  List<String> skillNames,  String? worktreeBranch)?  directory,TResult? Function( String path,  String name)?  file,}) {final _that = this;
 switch (_that) {
 case ExplorerDirectoryNode() when directory != null:
-return directory(_that.path,_that.name,_that.skillNames);case ExplorerFileNode() when file != null:
+return directory(_that.path,_that.name,_that.skillNames,_that.worktreeBranch);case ExplorerFileNode() when file != null:
 return file(_that.path,_that.name);case _:
   return null;
 
@@ -207,7 +207,7 @@ return file(_that.path,_that.name);case _:
 
 
 class ExplorerDirectoryNode implements ExplorerNode {
-  const ExplorerDirectoryNode({required this.path, required this.name, final  List<String> skillNames = const <String>[]}): _skillNames = skillNames;
+  const ExplorerDirectoryNode({required this.path, required this.name, final  List<String> skillNames = const <String>[], this.worktreeBranch}): _skillNames = skillNames;
   
 
 @override final  String path;
@@ -219,6 +219,7 @@ class ExplorerDirectoryNode implements ExplorerNode {
   return EqualUnmodifiableListView(_skillNames);
 }
 
+ final  String? worktreeBranch;
 
 /// Create a copy of ExplorerNode
 /// with the given fields replaced by the non-null parameter values.
@@ -230,16 +231,16 @@ $ExplorerDirectoryNodeCopyWith<ExplorerDirectoryNode> get copyWith => _$Explorer
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ExplorerDirectoryNode&&(identical(other.path, path) || other.path == path)&&(identical(other.name, name) || other.name == name)&&const DeepCollectionEquality().equals(other._skillNames, _skillNames));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ExplorerDirectoryNode&&(identical(other.path, path) || other.path == path)&&(identical(other.name, name) || other.name == name)&&const DeepCollectionEquality().equals(other._skillNames, _skillNames)&&(identical(other.worktreeBranch, worktreeBranch) || other.worktreeBranch == worktreeBranch));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,path,name,const DeepCollectionEquality().hash(_skillNames));
+int get hashCode => Object.hash(runtimeType,path,name,const DeepCollectionEquality().hash(_skillNames),worktreeBranch);
 
 @override
 String toString() {
-  return 'ExplorerNode.directory(path: $path, name: $name, skillNames: $skillNames)';
+  return 'ExplorerNode.directory(path: $path, name: $name, skillNames: $skillNames, worktreeBranch: $worktreeBranch)';
 }
 
 
@@ -250,7 +251,7 @@ abstract mixin class $ExplorerDirectoryNodeCopyWith<$Res> implements $ExplorerNo
   factory $ExplorerDirectoryNodeCopyWith(ExplorerDirectoryNode value, $Res Function(ExplorerDirectoryNode) _then) = _$ExplorerDirectoryNodeCopyWithImpl;
 @override @useResult
 $Res call({
- String path, String name, List<String> skillNames
+ String path, String name, List<String> skillNames, String? worktreeBranch
 });
 
 
@@ -267,12 +268,13 @@ class _$ExplorerDirectoryNodeCopyWithImpl<$Res>
 
 /// Create a copy of ExplorerNode
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? path = null,Object? name = null,Object? skillNames = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? path = null,Object? name = null,Object? skillNames = null,Object? worktreeBranch = freezed,}) {
   return _then(ExplorerDirectoryNode(
 path: null == path ? _self.path : path // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,skillNames: null == skillNames ? _self._skillNames : skillNames // ignore: cast_nullable_to_non_nullable
-as List<String>,
+as List<String>,worktreeBranch: freezed == worktreeBranch ? _self.worktreeBranch : worktreeBranch // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 

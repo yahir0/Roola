@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:roola/core/git/worktree_scanner.dart';
 import 'package:roola/core/skill/skill_scanner.dart';
 import 'package:roola/data/repo_explorer/explorer_node.dart';
 
@@ -11,9 +12,13 @@ import 'package:roola/data/repo_explorer/explorer_node.dart';
 /// すべて列挙する。
 /// ディレクトリ → ファイルの順、各ブロック内は名前昇順（大文字小文字無視）。
 class ExplorerDirectoryLoader {
-  const ExplorerDirectoryLoader({this.scanner = const SkillScanner()});
+  const ExplorerDirectoryLoader({
+    this.scanner = const SkillScanner(),
+    this.worktreeScanner = const WorktreeScanner(),
+  });
 
   final SkillScanner scanner;
+  final WorktreeScanner worktreeScanner;
 
   /// [parentPath] 直下を読み、ノード一覧を返す。
   /// パスが存在しない、ディレクトリでない、読めない場合は空リスト。
@@ -34,6 +39,7 @@ class ExplorerDirectoryLoader {
               path: entity.path,
               name: name,
               skillNames: scanner.scan(entity.path),
+              worktreeBranch: worktreeScanner.scan(entity.path),
             ),
           );
         } else if (entity is File) {

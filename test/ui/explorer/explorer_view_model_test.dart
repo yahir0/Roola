@@ -43,7 +43,7 @@ void main() {
                 WorkspaceTab.explorer(id: 'tab-b', currentPath: dirB.path),
               ],
             ),
-            bottom: PaneSlot.empty,
+            bottomLeft: PaneSlot.empty,
           ),
         ),
       ],
