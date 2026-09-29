@@ -36,6 +36,7 @@ extension CommandL10n on AppLocalizations {
     CommandId.openLauncherManagement => commandOpenLauncherManagement,
     CommandId.openSettings => commandOpenSettings,
     CommandId.openKeybindings => commandOpenKeybindings,
+    CommandId.openActivityTab => commandOpenActivityTab,
     CommandId.gitRefresh => commandGitRefresh,
     CommandId.gitFetch => commandGitFetch,
     CommandId.gitPull => commandGitPull,

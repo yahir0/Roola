@@ -25,6 +25,11 @@ class AppPaths {
   /// 外観設定の永続化先。
   File get appearanceSettingsFile => File('${root.path}/appearance.json');
 
+  /// アクティビティタブの表示設定（モード・TACHO スタイル・全コア表示）の
+  /// 永続化先（ADR-0067）。
+  File get activityDashboardSettingsFile =>
+      File('${root.path}/activity_dashboard.json');
+
   /// エクスプローラ画面の状態（最後に開いていたルートパス等）の永続化先。
   File get repoExplorerSettingsFile =>
       File('${root.path}/repo_explorer_settings.json');

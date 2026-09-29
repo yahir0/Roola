@@ -48,6 +48,7 @@
   "commandOpenLauncherManagement": "ランチャー管理を開く",
   "commandOpenSettings": "設定を開く",
   "commandOpenKeybindings": "キーボードショートカットを開く",
+  "commandOpenActivityTab": "アクティビティモニタを開く",
   "commandGitRefresh": "Git ビューを更新",
   "commandGitFetch": "フェッチ",
   "commandGitPull": "プル",
@@ -528,6 +529,7 @@
   "activityMonitorColumnCpu": "CPU",
   "activityMonitorColumnMemory": "メモリ",
   "activityMonitorEmpty": "プロセス情報を取得できません",
+  "activityMonitorOpenInTab": "タブで開く",
   "ccUsageTooltip": "本日の Claude Code 使用量（推定）: {tokens} トークン / {cost}",
   "@ccUsageTooltip": {
     "placeholders": {

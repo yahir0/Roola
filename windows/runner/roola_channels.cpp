@@ -1,3 +1,9 @@
+// iphlpapi（GetIfTable2）は winsock2 を windows.h より先に読む必要がある。
+// roola_channels.h 経由で windows.h が入る前にここで読み込む。
+#include <winsock2.h>
+#include <ws2ipdef.h>
+#include <iphlpapi.h>
+
 #include "roola_channels.h"
 
 #include <flutter/method_channel.h>
@@ -7,9 +13,12 @@
 #include <shellapi.h>
 #include <tlhelp32.h>
 #include <windows.h>
+#include <pdh.h>
+#include <winternl.h>
 
 #include <memory>
 #include <string>
+#include <vector>
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -115,6 +124,145 @@ static double CalculateCpuPercent() {
   return static_cast<double>(busy) * 100.0 / static_cast<double>(total);
 }
 
+// ---------------------------------------------------------------------------
+// roola/system/metrics getSystemSnapshot — アクティビティタブ（ADR-0067）
+//
+// 状態を持たず累積値だけを返す。差分・レート計算は Dart 側が行う。取得できない
+// 項目はキーを含めない（Windows ではロードアベレージを返さない）。
+// ---------------------------------------------------------------------------
+
+// NtQuerySystemInformation は ntdll.lib を静的リンクせず GetProcAddress で引く。
+using NtQuerySystemInformationFn = NTSTATUS(WINAPI*)(
+    SYSTEM_INFORMATION_CLASS, PVOID, ULONG, PULONG);
+
+// コアごとの累積時間（100ns 単位）を [user, system, idle, nice] で返す。
+// KernelTime は idle を含むため system = kernel - idle。nice は Windows に無く 0。
+static bool AppendPerCoreTicks(flutter::EncodableMap& map) {
+  static auto query = reinterpret_cast<NtQuerySystemInformationFn>(
+      GetProcAddress(GetModuleHandleW(L"ntdll.dll"), "NtQuerySystemInformation"));
+  if (!query) return false;
+  SYSTEM_INFO sys_info;
+  GetSystemInfo(&sys_info);
+  std::vector<SYSTEM_PROCESSOR_PERFORMANCE_INFORMATION> cores(
+      sys_info.dwNumberOfProcessors);
+  ULONG returned = 0;
+  if (query(SystemProcessorPerformanceInformation, cores.data(),
+            static_cast<ULONG>(cores.size() *
+                               sizeof(SYSTEM_PROCESSOR_PERFORMANCE_INFORMATION)),
+            &returned) != 0) {
+    return false;
+  }
+  cores.resize(returned / sizeof(SYSTEM_PROCESSOR_PERFORMANCE_INFORMATION));
+  flutter::EncodableList list;
+  for (const auto& core : cores) {
+    const int64_t idle = core.IdleTime.QuadPart;
+    const int64_t system = core.KernelTime.QuadPart - idle;
+    list.push_back(flutter::EncodableValue(flutter::EncodableList{
+        flutter::EncodableValue(static_cast<int64_t>(core.UserTime.QuadPart)),
+        flutter::EncodableValue(system),
+        flutter::EncodableValue(idle),
+        flutter::EncodableValue(static_cast<int64_t>(0)),
+    }));
+  }
+  map[flutter::EncodableValue("cpuTicks")] = flutter::EncodableValue(list);
+  return true;
+}
+
+// ディスク読み書きの累積バイト。PDH の BULK_COUNT カウンタは生値
+// （PdhGetRawCounterValue の FirstValue）が累積バイト数になる。
+static bool AppendDiskTotals(flutter::EncodableMap& map) {
+  static PDH_HQUERY query = nullptr;
+  static PDH_HCOUNTER read_counter = nullptr;
+  static PDH_HCOUNTER write_counter = nullptr;
+  if (!query) {
+    if (PdhOpenQueryW(nullptr, 0, &query) != ERROR_SUCCESS) {
+      query = nullptr;
+      return false;
+    }
+    if (PdhAddEnglishCounterW(query, L"\\PhysicalDisk(_Total)\\Disk Read Bytes/sec",
+                              0, &read_counter) != ERROR_SUCCESS ||
+        PdhAddEnglishCounterW(query, L"\\PhysicalDisk(_Total)\\Disk Write Bytes/sec",
+                              0, &write_counter) != ERROR_SUCCESS) {
+      PdhCloseQuery(query);
+      query = nullptr;
+      return false;
+    }
+  }
+  if (PdhCollectQueryData(query) != ERROR_SUCCESS) return false;
+  PDH_RAW_COUNTER read_raw{};
+  PDH_RAW_COUNTER write_raw{};
+  if (PdhGetRawCounterValue(read_counter, nullptr, &read_raw) != ERROR_SUCCESS ||
+      PdhGetRawCounterValue(write_counter, nullptr, &write_raw) != ERROR_SUCCESS) {
+    return false;
+  }
+  map[flutter::EncodableValue("diskReadBytes")] =
+      flutter::EncodableValue(static_cast<int64_t>(read_raw.FirstValue));
+  map[flutter::EncodableValue("diskWriteBytes")] =
+      flutter::EncodableValue(static_cast<int64_t>(write_raw.FirstValue));
+  return true;
+}
+
+// 物理ネットワークアダプタ（有線 / 無線のハードウェア IF）ごとの累積バイト。
+// 仮想アダプタ（VPN・Hyper-V 等）は物理 IF と二重計上になるため除外する。
+static flutter::EncodableList NetworkInterfaces() {
+  flutter::EncodableList list;
+  PMIB_IF_TABLE2 table = nullptr;
+  if (GetIfTable2(&table) != NO_ERROR || !table) return list;
+  for (ULONG i = 0; i < table->NumEntries; ++i) {
+    const MIB_IF_ROW2& row = table->Table[i];
+    const bool physical_type =
+        row.Type == IF_TYPE_ETHERNET_CSMACD || row.Type == IF_TYPE_IEEE80211;
+    if (!physical_type || !row.InterfaceAndOperStatusFlags.HardwareInterface ||
+        row.InterfaceAndOperStatusFlags.FilterInterface) {
+      continue;
+    }
+    list.push_back(flutter::EncodableValue(flutter::EncodableMap{
+        {flutter::EncodableValue("name"),
+         flutter::EncodableValue(std::to_string(row.InterfaceLuid.Value))},
+        {flutter::EncodableValue("rx"),
+         flutter::EncodableValue(static_cast<int64_t>(row.InOctets))},
+        {flutter::EncodableValue("tx"),
+         flutter::EncodableValue(static_cast<int64_t>(row.OutOctets))},
+    }));
+  }
+  FreeMibTable(table);
+  return list;
+}
+
+static flutter::EncodableValue SystemSnapshot() {
+  flutter::EncodableMap map;
+  AppendPerCoreTicks(map);
+
+  MEMORYSTATUSEX mem = {};
+  mem.dwLength = sizeof(mem);
+  if (GlobalMemoryStatusEx(&mem)) {
+    const int64_t phys_total = static_cast<int64_t>(mem.ullTotalPhys);
+    const int64_t phys_used = phys_total - static_cast<int64_t>(mem.ullAvailPhys);
+    map[flutter::EncodableValue("memoryTotal")] = flutter::EncodableValue(phys_total);
+    map[flutter::EncodableValue("memoryUsed")] = flutter::EncodableValue(phys_used);
+    // コミット上限 − 物理 = ページファイル容量。コミット使用量 − 物理使用量を
+    // ページファイル使用量の近似とする。
+    const int64_t swap_total =
+        static_cast<int64_t>(mem.ullTotalPageFile) - phys_total;
+    const int64_t commit_used = static_cast<int64_t>(mem.ullTotalPageFile) -
+                                static_cast<int64_t>(mem.ullAvailPageFile);
+    if (swap_total > 0) {
+      int64_t swap_used = commit_used - phys_used;
+      if (swap_used < 0) swap_used = 0;
+      if (swap_used > swap_total) swap_used = swap_total;
+      map[flutter::EncodableValue("swapTotal")] = flutter::EncodableValue(swap_total);
+      map[flutter::EncodableValue("swapUsed")] = flutter::EncodableValue(swap_used);
+    }
+  }
+
+  AppendDiskTotals(map);
+  map[flutter::EncodableValue("netInterfaces")] =
+      flutter::EncodableValue(NetworkInterfaces());
+  map[flutter::EncodableValue("uptimeSeconds")] =
+      flutter::EncodableValue(static_cast<int64_t>(GetTickCount64() / 1000));
+  return flutter::EncodableValue(map);
+}
+
 static void SetupSystemMetricsChannel(flutter::FlutterEngine* engine) {
   auto channel = std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
       engine->messenger(), "roola/system/metrics",
@@ -145,6 +293,9 @@ static void SetupSystemMetricsChannel(flutter::FlutterEngine* engine) {
                flutter::EncodableValue(total)},
           };
           result->Success(flutter::EncodableValue(map));
+
+        } else if (call.method_name() == "getSystemSnapshot") {
+          result->Success(SystemSnapshot());
 
         } else if (call.method_name() == "getTopProcesses") {
           flutter::EncodableList list;

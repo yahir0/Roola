@@ -2,6 +2,7 @@ import 'package:flutter/services.dart';
 import 'package:roola/data/activity_metrics/process_metrics.dart';
 import 'package:roola/data/activity_metrics/system_metrics.dart';
 import 'package:roola/data/activity_metrics/system_metrics_repository.dart';
+import 'package:roola/data/activity_metrics/system_snapshot.dart';
 
 /// macOS 実装: `roola/system/metrics` MethodChannel 経由でネイティブから取得。
 class SystemMetricsRepositoryMacos implements SystemMetricsRepository {
@@ -41,5 +42,17 @@ class SystemMetricsRepositoryMacos implements SystemMetricsRepository {
           ),
         )
         .toList();
+  }
+
+  @override
+  Future<SystemSnapshot?> fetchSnapshot() async {
+    try {
+      final raw = await _channel.invokeMapMethod<Object?, Object?>(
+        'getSystemSnapshot',
+      );
+      return raw == null ? null : SystemSnapshot.fromChannelMap(raw);
+    } on PlatformException {
+      return null;
+    }
   }
 }

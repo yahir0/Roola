@@ -230,6 +230,15 @@ abstract final class CommandRegistry {
       _chord(LogicalKeyboardKey.comma, meta: true, alt: true),
       windows: _wchord(LogicalKeyboardKey.comma, control: true, shift: true),
     ),
+    // アクティビティタブ（ADR-0067）。⌘A は ADR-0035 でテキスト編集用に予約
+    // されているため Shift を足す。
+    CommandId.openActivityTab: _meta(
+      CommandId.openActivityTab,
+      CommandCategory.app,
+      Icons.speed,
+      _chord(LogicalKeyboardKey.keyA, meta: true, shift: true),
+      windows: _wchord(LogicalKeyboardKey.keyA, control: true, shift: true),
+    ),
 
     // Git
     CommandId.gitRefresh: _meta(

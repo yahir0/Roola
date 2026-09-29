@@ -29,6 +29,8 @@ void dispatchCommand(CommandId id, WidgetRef ref) {
       unawaited(ref.read(routerProvider).push(const SettingsRoute().location));
     case CommandId.openKeybindings:
       unawaited(ref.read(routerProvider).push('/keybindings'));
+    case CommandId.openActivityTab:
+      ref.read(workspaceProvider.notifier).openActivityTab();
     case CommandId.openLauncherManagement:
       unawaited(
         ref.read(routerProvider).push(const LauncherManagementRoute().location),

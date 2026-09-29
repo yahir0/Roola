@@ -37,6 +37,8 @@ target_link_libraries(${BINARY_NAME} PRIVATE flutter flutter_wrapper_app)
 target_link_libraries(${BINARY_NAME} PRIVATE "dwmapi.lib")
 # Roola custom channels: shell file ops, memory, process snapshot
 target_link_libraries(${BINARY_NAME} PRIVATE "shell32.lib" "psapi.lib")
+# アクティビティタブ（ADR-0067）: ネットワーク IF 統計・ディスク I/O カウンタ
+target_link_libraries(${BINARY_NAME} PRIVATE "iphlpapi.lib" "pdh.lib")
 target_include_directories(${BINARY_NAME} PRIVATE "${CMAKE_SOURCE_DIR}")
 
 # WinSparkle 自動アップデート（ADR-0059）。

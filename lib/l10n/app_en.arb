@@ -48,6 +48,7 @@
   "commandOpenLauncherManagement": "Open launcher management",
   "commandOpenSettings": "Open settings",
   "commandOpenKeybindings": "Open keyboard shortcuts",
+  "commandOpenActivityTab": "Open activity monitor",
   "commandGitRefresh": "Refresh Git view",
   "commandGitFetch": "Fetch",
   "commandGitPull": "Pull",
@@ -501,6 +502,7 @@
   "activityMonitorColumnCpu": "CPU",
   "activityMonitorColumnMemory": "MEM",
   "activityMonitorEmpty": "No process data available",
+  "activityMonitorOpenInTab": "Open in tab",
   "ccUsageTooltip": "Claude Code usage today (estimated): {tokens} tokens / {cost}",
   "@ccUsageTooltip": {
     "placeholders": {

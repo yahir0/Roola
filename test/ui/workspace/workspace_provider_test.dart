@@ -224,4 +224,53 @@ void main() {
       expect(container.read(workspaceProvider).leftRatio, 0.15);
     });
   });
+
+  group('Workspace.openActivityTab（ADR-0067）', () {
+    WorkspaceLayout layout() => WorkspaceLayout(
+      topLeft: _explorerSlot(['a']),
+      topRight: _explorerSlot(['b']),
+      bottom: PaneSlot.empty,
+    );
+
+    test('既定では右上ペインに追加してアクティブにする', () {
+      final container = _container(layout());
+      container.read(workspaceProvider.notifier).openActivityTab();
+
+      final topRight = container.read(workspaceProvider).topRight;
+      expect(topRight.tabs.last, isA<ActivityTab>());
+      expect(topRight.activeIndex, topRight.tabs.length - 1);
+      expect(
+        container.read(focusedTabProvider).focusedTabId,
+        topRight.tabs.last.id,
+      );
+    });
+
+    test('指定スロットに追加できる', () {
+      final container = _container(layout());
+      container
+          .read(workspaceProvider.notifier)
+          .openActivityTab(slotId: PaneSlotId.topLeft);
+
+      expect(
+        container.read(workspaceProvider).topLeft.tabs.last,
+        isA<ActivityTab>(),
+      );
+    });
+
+    test('2 回開いても 1 つだけで、既存タブがアクティブになる', () {
+      final container = _container(layout());
+      container.read(workspaceProvider.notifier)
+        ..openActivityTab(slotId: PaneSlotId.topLeft)
+        ..activateTab('a')
+        ..openActivityTab();
+
+      final state = container.read(workspaceProvider);
+      final all = [
+        for (final id in PaneSlotId.values) ...state.slot(id).tabs,
+      ].whereType<ActivityTab>();
+      expect(all, hasLength(1));
+      expect(state.topRight.tabs, hasLength(1));
+      expect(state.topLeft.tabs[state.topLeft.activeIndex], isA<ActivityTab>());
+    });
+  });
 }

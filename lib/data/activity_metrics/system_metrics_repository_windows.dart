@@ -2,6 +2,7 @@ import 'package:flutter/services.dart';
 import 'package:roola/data/activity_metrics/process_metrics.dart';
 import 'package:roola/data/activity_metrics/system_metrics.dart';
 import 'package:roola/data/activity_metrics/system_metrics_repository.dart';
+import 'package:roola/data/activity_metrics/system_snapshot.dart';
 
 /// Windows 実装: `roola/system/metrics` MethodChannel 経由で C++ ハンドラを呼ぶ。
 ///
@@ -47,6 +48,18 @@ class SystemMetricsRepositoryWindows implements SystemMetricsRepository {
           .toList();
     } on PlatformException {
       return const <ProcessMetrics>[];
+    }
+  }
+
+  @override
+  Future<SystemSnapshot?> fetchSnapshot() async {
+    try {
+      final raw = await _channel.invokeMapMethod<Object?, Object?>(
+        'getSystemSnapshot',
+      );
+      return raw == null ? null : SystemSnapshot.fromChannelMap(raw);
+    } on PlatformException {
+      return null;
     }
   }
 }

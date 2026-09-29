@@ -134,6 +134,21 @@ flutter:
         - asset: assets/fonts/SarasaTermJ-Regular.ttf
         - asset: assets/fonts/SarasaTermJ-Bold.ttf
           weight: 700
+    # アクティビティタブの計器書体（ADR-0067 D6 / SIL OFL 1.1）。数値は
+    # Barlow Condensed、ラベルは Chakra Petch。使用はメーター描画に限る。
+    - family: BarlowCondensed
+      fonts:
+        - asset: assets/fonts/BarlowCondensed-Regular.ttf
+        - asset: assets/fonts/BarlowCondensed-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/BarlowCondensed-SemiBold.ttf
+          weight: 600
+    - family: ChakraPetch
+      fonts:
+        - asset: assets/fonts/ChakraPetch-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/ChakraPetch-Bold.ttf
+          weight: 700
 
   # ネイティブ依存（CocoaPods 経由の Sparkle、Swift Package Manager 経由の
   # SwiftTerm）のライセンス全文。`LicenseRegistry` には pub のパッケージしか

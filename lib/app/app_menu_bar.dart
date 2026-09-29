@@ -116,7 +116,10 @@ class AppMenuBar extends ConsumerWidget {
             members: [item(CommandId.newFolder), item(CommandId.newFile)],
           ),
           PlatformMenuItemGroup(
-            members: [item(CommandId.openLauncherManagement)],
+            members: [
+              item(CommandId.openLauncherManagement),
+              item(CommandId.openActivityTab),
+            ],
           ),
           PlatformMenuItemGroup(members: [item(CommandId.closeTab)]),
         ],

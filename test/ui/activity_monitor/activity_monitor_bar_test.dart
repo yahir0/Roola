@@ -7,6 +7,7 @@ import 'package:roola/core/health/claude_health_check.dart';
 import 'package:roola/data/activity_metrics/process_metrics.dart';
 import 'package:roola/data/activity_metrics/system_metrics.dart';
 import 'package:roola/data/activity_metrics/system_metrics_repository.dart';
+import 'package:roola/data/activity_metrics/system_snapshot.dart';
 import 'package:roola/data/cc_usage/cc_usage.dart';
 import 'package:roola/data/cc_usage/cc_usage_repository.dart';
 import 'package:roola/l10n/app_localizations.dart';
@@ -29,6 +30,9 @@ class _FakeRepository implements SystemMetricsRepository {
     ProcessMetrics(pid: 1, name: 'Roola', cpuPercent: 12, memoryBytes: 200),
     ProcessMetrics(pid: 2, name: 'kernel_task', cpuPercent: 3, memoryBytes: 50),
   ];
+
+  @override
+  Future<SystemSnapshot?> fetchSnapshot() async => null;
 }
 
 /// 実ファイル監視を張らない（projectsDirectory が null）使用量リポジトリ。

@@ -1,6 +1,7 @@
 import Cocoa
 import Darwin
 import FlutterMacOS
+import IOKit
 import UserNotifications
 
 /// Claude Code タスク完了通知（ADR-0057）の macOS ローカル通知を扱う。
@@ -208,6 +209,142 @@ final class SystemMetricsProvider {
   }
 }
 
+/// アクティビティタブ（ADR-0067）向けの累積値スナップショット。
+///
+/// トップバー用の `cpuUsage()` と違い **状態を持たない**。累積カウンタを
+/// そのまま返し、差分・レート計算は Dart 側の ViewModel が呼び出し元ごとに
+/// 行う（250ms のタブと 1 秒のトップバーが差分区間を奪い合わないため）。
+/// 取得できない項目はキーを含めない。
+extension SystemMetricsProvider {
+  func snapshot() -> [String: Any] {
+    var result: [String: Any] = [:]
+    if let ticks = perCoreTicks() {
+      result["cpuTicks"] = ticks
+    }
+    let memory = memoryInfo()
+    result["memoryUsed"] = Int(memory.used)
+    result["memoryTotal"] = Int(memory.total)
+    if let swap = swapUsage() {
+      result["swapUsed"] = Int(swap.used)
+      result["swapTotal"] = Int(swap.total)
+    }
+    if let disk = diskTotals() {
+      result["diskReadBytes"] = Int(truncatingIfNeeded: disk.read)
+      result["diskWriteBytes"] = Int(truncatingIfNeeded: disk.write)
+    }
+    result["netInterfaces"] = networkInterfaces()
+    var loads = [Double](repeating: 0, count: 3)
+    if getloadavg(&loads, 3) == 3 {
+      result["loadAverage"] = loads
+    }
+    if let uptime = uptimeSeconds() {
+      result["uptimeSeconds"] = uptime
+    }
+    return result
+  }
+
+  /// コアごとの累積 tick `[user, system, idle, nice]`（`host_processor_info`）。
+  /// 各値は 32bit で一周しうるため、Dart 側は 2^32 剰余で差分を取る。
+  private func perCoreTicks() -> [[Int]]? {
+    var cpuCount: natural_t = 0
+    var info: processor_info_array_t?
+    var infoCount: mach_msg_type_number_t = 0
+    guard
+      host_processor_info(
+        mach_host_self(), PROCESSOR_CPU_LOAD_INFO, &cpuCount, &info, &infoCount
+      ) == KERN_SUCCESS,
+      let info
+    else { return nil }
+    defer {
+      vm_deallocate(
+        mach_task_self_,
+        vm_address_t(bitPattern: info),
+        vm_size_t(Int(infoCount) * MemoryLayout<integer_t>.stride)
+      )
+    }
+    var cores: [[Int]] = []
+    for core in 0..<Int(cpuCount) {
+      let base = Int(CPU_STATE_MAX) * core
+      let tick = { (state: Int32) in Int(UInt32(bitPattern: info[base + Int(state)])) }
+      cores.append([
+        tick(CPU_STATE_USER), tick(CPU_STATE_SYSTEM), tick(CPU_STATE_IDLE),
+        tick(CPU_STATE_NICE),
+      ])
+    }
+    return cores
+  }
+
+  private func swapUsage() -> (used: UInt64, total: UInt64)? {
+    var usage = xsw_usage()
+    var size = MemoryLayout<xsw_usage>.size
+    guard sysctlbyname("vm.swapusage", &usage, &size, nil, 0) == 0 else { return nil }
+    return (usage.xsu_used, usage.xsu_total)
+  }
+
+  /// 全ブロックストレージの読み書き累積バイト（IOKit `IOBlockStorageDriver`）。
+  private func diskTotals() -> (read: UInt64, write: UInt64)? {
+    var iterator: io_iterator_t = 0
+    guard
+      IOServiceGetMatchingServices(
+        kIOMainPortDefault, IOServiceMatching("IOBlockStorageDriver"), &iterator
+      ) == KERN_SUCCESS
+    else { return nil }
+    defer { IOObjectRelease(iterator) }
+    var read: UInt64 = 0
+    var write: UInt64 = 0
+    while case let service = IOIteratorNext(iterator), service != 0 {
+      defer { IOObjectRelease(service) }
+      var properties: Unmanaged<CFMutableDictionary>?
+      guard
+        IORegistryEntryCreateCFProperties(service, &properties, kCFAllocatorDefault, 0)
+          == KERN_SUCCESS,
+        let dict = properties?.takeRetainedValue() as? [String: Any],
+        let stats = dict["Statistics"] as? [String: Any]
+      else { continue }
+      read &+= (stats["Bytes (Read)"] as? NSNumber)?.uint64Value ?? 0
+      write &+= (stats["Bytes (Write)"] as? NSNumber)?.uint64Value ?? 0
+    }
+    return (read, write)
+  }
+
+  /// 物理ネットワーク IF（`en*`）ごとの受信 / 送信累積バイト。
+  ///
+  /// macOS は一般プロセスにこのカウンタを 32bit で一周させ、1 KiB 単位に
+  /// 丸めて渡す（`NET_RT_IFLIST2` の 64bit 版でも同じ）。合計してから差分を
+  /// 取ると一周で壊れるため IF ごとに返し、Dart 側が IF ごとに 2^32 剰余の
+  /// 差分を取る。VPN のトンネル（`utun*`）は `en*` と二重計上になるので除外する
+  /// （design D8 の検証結果）。
+  private func networkInterfaces() -> [[String: Any]] {
+    var head: UnsafeMutablePointer<ifaddrs>?
+    guard getifaddrs(&head) == 0 else { return [] }
+    defer { freeifaddrs(head) }
+    var result: [[String: Any]] = []
+    var cursor = head
+    while let entry = cursor {
+      cursor = entry.pointee.ifa_next
+      guard entry.pointee.ifa_addr?.pointee.sa_family == UInt8(AF_LINK),
+        let data = entry.pointee.ifa_data
+      else { continue }
+      let name = String(cString: entry.pointee.ifa_name)
+      guard name.hasPrefix("en") else { continue }
+      let stats = data.assumingMemoryBound(to: if_data.self).pointee
+      result.append([
+        "name": name,
+        "rx": Int(stats.ifi_ibytes),
+        "tx": Int(stats.ifi_obytes),
+      ])
+    }
+    return result
+  }
+
+  private func uptimeSeconds() -> Int? {
+    var bootTime = timeval()
+    var size = MemoryLayout<timeval>.size
+    guard sysctlbyname("kern.boottime", &bootTime, &size, nil, 0) == 0 else { return nil }
+    return max(0, Int(Date().timeIntervalSince1970) - bootTime.tv_sec)
+  }
+}
+
 class MainFlutterWindow: NSWindow {
   /// ウィンドウ再アクティブ化（key 化）を Dart へ通知するチャネル（ADR-0055）。
   /// `awakeFromNib` でエンジンの binaryMessenger に紐付けて生成する。
@@ -374,6 +511,8 @@ class MainFlutterWindow: NSWindow {
         ])
       case "getTopProcesses":
         result(metricsProvider.processes())
+      case "getSystemSnapshot":
+        result(metricsProvider.snapshot())
       default:
         result(FlutterMethodNotImplemented)
       }

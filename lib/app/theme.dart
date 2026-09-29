@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:roola/app/activity_meter_palette.dart';
 import 'package:roola/data/appearance/polaris_accent.dart';
 
 /// Polaris デザインシステムのテーマ実装（ADR-0038）。
@@ -307,7 +308,7 @@ class AppTheme {
         textColor: t.text,
         selectedColor: t.accent,
       ),
-      extensions: [t],
+      extensions: [t, ActivityMeterPalette.standard],
     );
   }
 

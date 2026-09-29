@@ -22,6 +22,15 @@ Future<void> registerNativeLicenses() async {
       packageName: 'SwiftTerm',
       assetPath: 'assets/licenses/swiftterm.txt',
     );
+    // アクティビティタブの計器書体（ADR-0067 D6）。SIL OFL 1.1。
+    yield await _loadLicense(
+      packageName: 'Barlow Condensed (font)',
+      assetPath: 'assets/licenses/BarlowCondensed-OFL.txt',
+    );
+    yield await _loadLicense(
+      packageName: 'Chakra Petch (font)',
+      assetPath: 'assets/licenses/ChakraPetch-OFL.txt',
+    );
   });
 }
 

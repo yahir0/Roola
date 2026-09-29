@@ -141,6 +141,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get commandOpenKeybindings => 'Open keyboard shortcuts';
 
   @override
+  String get commandOpenActivityTab => 'Open activity monitor';
+
+  @override
   String get commandGitRefresh => 'Refresh Git view';
 
   @override
@@ -1160,6 +1163,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get activityMonitorEmpty => 'No process data available';
+
+  @override
+  String get activityMonitorOpenInTab => 'Open in tab';
 
   @override
   String ccUsageTooltip(String tokens, String cost) {

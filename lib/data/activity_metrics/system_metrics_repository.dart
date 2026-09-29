@@ -5,6 +5,7 @@ import 'package:roola/data/activity_metrics/process_metrics.dart';
 import 'package:roola/data/activity_metrics/system_metrics.dart';
 import 'package:roola/data/activity_metrics/system_metrics_repository_macos.dart';
 import 'package:roola/data/activity_metrics/system_metrics_repository_windows.dart';
+import 'package:roola/data/activity_metrics/system_snapshot.dart';
 
 /// プロセス一覧の並び替えキー。クリックされたモニタに対応する。
 enum ProcessSortKey { cpu, memory }
@@ -13,6 +14,10 @@ enum ProcessSortKey { cpu, memory }
 abstract interface class SystemMetricsRepository {
   Future<SystemMetrics> fetchSystemMetrics();
   Future<List<ProcessMetrics>> fetchProcesses();
+
+  /// アクティビティタブ用の累積値スナップショット（ADR-0067）。
+  /// 取得できない場合は null。
+  Future<SystemSnapshot?> fetchSnapshot();
 }
 
 final systemMetricsRepositoryProvider = Provider<SystemMetricsRepository>(

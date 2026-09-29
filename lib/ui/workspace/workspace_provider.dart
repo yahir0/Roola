@@ -68,7 +68,11 @@ class Workspace extends _$Workspace {
   /// 新しいノートパッドタブを指定スロットに追加し、アクティブにする。
   /// [noteId] が指定された場合は保存済みメモを開く。追加したタブの id を返す。
   String addNotepadTab(PaneSlotId slotId, {String? noteId, String? title}) {
-    final tab = WorkspaceTab.notepad(id: newTabId(), noteId: noteId, title: title);
+    final tab = WorkspaceTab.notepad(
+      id: newTabId(),
+      noteId: noteId,
+      title: title,
+    );
     _appendTab(slotId, tab);
     return tab.id;
   }
@@ -104,6 +108,22 @@ class Workspace extends _$Workspace {
       PaneSlotId.topRight,
       WorkspaceTab.git(id: newTabId(), repoRoot: repoRoot),
     );
+  }
+
+  /// アクティビティタブを開く（ADR-0067）。
+  ///
+  /// ワークスペースに 1 つだけ置く。既に存在すれば新規生成せずそのタブを
+  /// アクティブにする。無ければ [slotId]（既定は右上ペイン）に追加する。
+  void openActivityTab({PaneSlotId slotId = PaneSlotId.topRight}) {
+    for (final slotId in PaneSlotId.values) {
+      for (final tab in state.slot(slotId).tabs) {
+        if (tab is ActivityTab) {
+          activateTab(tab.id);
+          return;
+        }
+      }
+    }
+    _appendTab(slotId, WorkspaceTab.activity(id: newTabId()));
   }
 
   void _appendTab(PaneSlotId slotId, WorkspaceTab tab) {
@@ -151,6 +171,8 @@ class Workspace extends _$Workspace {
         focus.focusGit(tab.id);
       case NotepadTab():
         focus.focusNotepad(tab.id);
+      case ActivityTab():
+        focus.focusActivity(tab.id);
     }
   }
 
@@ -298,7 +320,9 @@ class Workspace extends _$Workspace {
           ref.invalidate(adhocRunViewModelProvider(args));
         });
       case NotepadTab():
-        // ノートパッドタブは per-tab state を持たないため破棄不要。
+      case ActivityTab():
+        // ノートパッド / アクティビティタブは per-tab state を持たないため
+        // 破棄不要（アクティビティの ViewModel は autoDispose）。
         break;
     }
   }

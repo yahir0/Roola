@@ -98,6 +98,7 @@ class WindowsTopMenuBar extends ConsumerWidget {
             cmd(CommandId.newFile),
             div,
             cmd(CommandId.openLauncherManagement),
+            cmd(CommandId.openActivityTab),
             div,
             cmd(CommandId.closeTab),
           ]),

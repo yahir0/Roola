@@ -130,6 +130,8 @@ class WorkspaceTabDto {
       id: id,
       currentPath: noteId,
     ),
+    // アクティビティタブも永続化対象外（ADR-0042）。toEntity で除外される。
+    ActivityTab(:final id) => WorkspaceTabDto(kind: 'activity', id: id),
   };
 
   final String kind;
@@ -166,7 +168,7 @@ class WorkspaceTabDto {
       }
       return WorkspaceTab.git(id: id, repoRoot: root);
     }
-    if (kind == 'notepad') {
+    if (kind == 'notepad' || kind == 'activity') {
       // ワークスペース永続化は ADR-0042 で廃止済み。このパスは旧 json からの
       // 読み込みのみ。復元は行わず null を返して除外する。
       return null;

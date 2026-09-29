@@ -5,6 +5,7 @@ import 'package:roola/data/activity_metrics/process_metrics.dart';
 import 'package:roola/data/activity_metrics/system_metrics_repository.dart';
 import 'package:roola/l10n/app_localizations.dart';
 import 'package:roola/ui/activity_monitor/activity_monitor_view_model.dart';
+import 'package:roola/ui/workspace/workspace_provider.dart';
 
 /// アクティビティモニタのクリックで開く、上位プロセス一覧パネル
 /// （ADR-0039 D6）。
@@ -58,6 +59,45 @@ class ActivityMonitorPopover extends ConsumerWidget {
               loading: () => const SizedBox(height: PolarisTokens.space6),
               error: (_, _) =>
                   _EmptyMessage(message: l10n.activityMonitorEmpty),
+            ),
+            Divider(height: 1, thickness: 1, color: tokens.line),
+            const _OpenInTabFooter(),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// パネル下端の「タブで開く」（ADR-0067）。押すとポップオーバーを閉じて
+/// アクティビティタブを開く（既にあればそれをアクティブにする）。
+class _OpenInTabFooter extends ConsumerWidget {
+  const _OpenInTabFooter();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final tokens = PolarisTokens.of(context);
+    return InkWell(
+      onTap: () {
+        ref.read(activityPopoverProvider.notifier).close();
+        ref.read(workspaceProvider.notifier).openActivityTab();
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: PolarisTokens.space3,
+          vertical: PolarisTokens.space2,
+        ),
+        child: Row(
+          children: [
+            Icon(
+              Icons.open_in_new,
+              size: PolarisIconSize.small,
+              color: tokens.accent,
+            ),
+            const SizedBox(width: PolarisTokens.space2),
+            Text(
+              AppLocalizations.of(context).activityMonitorOpenInTab,
+              style: tokens.body.copyWith(color: tokens.accent),
             ),
           ],
         ),

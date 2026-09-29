@@ -141,6 +141,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get commandOpenKeybindings => 'キーボードショートカットを開く';
 
   @override
+  String get commandOpenActivityTab => 'アクティビティモニタを開く';
+
+  @override
   String get commandGitRefresh => 'Git ビューを更新';
 
   @override
@@ -1131,6 +1134,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get activityMonitorEmpty => 'プロセス情報を取得できません';
+
+  @override
+  String get activityMonitorOpenInTab => 'タブで開く';
 
   @override
   String ccUsageTooltip(String tokens, String cost) {

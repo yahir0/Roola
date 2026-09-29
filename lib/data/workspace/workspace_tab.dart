@@ -6,7 +6,8 @@ part 'workspace_tab.freezed.dart';
 /// ワークスペースのペインに置かれるタブ 1 件。
 ///
 /// タブは種別固定で、エクスプローラ（[ExplorerTab]）・ターミナル
-/// （[TerminalTab]）・Git ビュー（[GitTab]）のいずれか。生成後に種別は
+/// （[TerminalTab]）・Git ビュー（[GitTab]）・ノートパッド（[NotepadTab]）・
+/// アクティビティモニタ（[ActivityTab]）のいずれか。生成後に種別は
 /// 変化しない（ADR-0026 / ADR-0030）。
 ///
 /// `id` はワークスペース内で一意。`ExplorerViewModel` / `AdhocRunViewModel`
@@ -45,4 +46,9 @@ sealed class WorkspaceTab with _$WorkspaceTab {
     String? noteId,
     String? title,
   }) = NotepadTab;
+
+  /// アクティビティモニタタブ（ADR-0067）。システム全体の値を表示するため
+  /// ワークスペースに 1 つだけ置く（`Workspace.openActivityTab`）。per-tab 状態は
+  /// 持たず、表示設定はグローバルに永続化される。
+  const factory WorkspaceTab.activity({required String id}) = ActivityTab;
 }

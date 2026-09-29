@@ -46,6 +46,15 @@ class FocusedTab extends _$FocusedTab {
     );
   }
 
+  /// アクティビティタブにフォーカスが入ったことを記録する（ADR-0067）。
+  /// `lastExplorerTabId` は据え置く。
+  void focusActivity(String tabId) {
+    state = FocusedTabState(
+      focusedTabId: tabId,
+      lastExplorerTabId: state.lastExplorerTabId,
+    );
+  }
+
   /// ノートパッドタブにフォーカスが入ったことを記録する。
   /// `lastExplorerTabId` は据え置く。
   void focusNotepad(String tabId) {

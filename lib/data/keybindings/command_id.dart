@@ -38,6 +38,7 @@ enum CommandId {
   openLauncherManagement,
   openSettings,
   openKeybindings,
+  openActivityTab,
 
   // Git（フォーカス中 Git タブ対象）
   gitRefresh,

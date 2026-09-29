@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:roola/data/workspace/workspace_layout.dart';
 import 'package:roola/data/workspace/workspace_tab.dart';
+import 'package:roola/ui/activity_dashboard/activity_tab_body.dart';
 import 'package:roola/ui/explorer/explorer_tab_body.dart';
 import 'package:roola/ui/explorer/session_view.dart';
 import 'package:roola/ui/git/git_tab.dart';
@@ -95,6 +96,8 @@ class _TabContent extends ConsumerWidget {
               focus.focusGit(tab.id);
             case NotepadTab():
               focus.focusNotepad(tab.id);
+            case ActivityTab():
+              focus.focusActivity(tab.id);
           }
         },
         child: switch (tab) {
@@ -102,6 +105,7 @@ class _TabContent extends ConsumerWidget {
           TerminalTab(:final args) => SessionView(args),
           GitTab() => const GitTabBody(),
           NotepadTab(:final noteId) => NotepadTabBody(noteId: noteId),
+          ActivityTab() => ActivityTabBody(tabId: tab.id),
         },
       ),
     );

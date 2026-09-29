@@ -184,6 +184,11 @@ class _TabChip extends ConsumerWidget {
                   size: PolarisIconSize.small,
                   color: isActive ? tokens.accent : tokens.textFaint,
                 ),
+                ActivityTab() => Icon(
+                  Icons.speed,
+                  size: PolarisIconSize.small,
+                  color: isActive ? tokens.accent : tokens.textFaint,
+                ),
               },
               const SizedBox(width: PolarisTokens.space2),
               Flexible(
@@ -288,6 +293,7 @@ class _TabChip extends ConsumerWidget {
     TerminalTab(:final args) => args.displayName,
     GitTab(:final repoRoot) => 'Git: ${_basename(repoRoot)}',
     NotepadTab(:final title) => title ?? '(無題)',
+    ActivityTab() => 'アクティビティモニタ',
   };
 
   static String _basename(String path) {
@@ -350,6 +356,8 @@ class _AddTabButton extends ConsumerWidget {
             notifier.addTerminalTab(slotId);
           case _AddTabKind.notepad:
             notifier.addNotepadTab(slotId);
+          case _AddTabKind.activity:
+            notifier.openActivityTab(slotId: slotId);
         }
       },
       itemBuilder: (context) => const [
@@ -377,9 +385,17 @@ class _AddTabButton extends ConsumerWidget {
             dense: true,
           ),
         ),
+        PopupMenuItem(
+          value: _AddTabKind.activity,
+          child: ListTile(
+            leading: Icon(Icons.speed),
+            title: Text('アクティビティモニタ'),
+            dense: true,
+          ),
+        ),
       ],
     );
   }
 }
 
-enum _AddTabKind { explorer, terminal, notepad }
+enum _AddTabKind { explorer, terminal, notepad, activity }

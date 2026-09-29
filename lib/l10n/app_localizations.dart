@@ -362,6 +362,12 @@ abstract class AppLocalizations {
   /// **'キーボードショートカットを開く'**
   String get commandOpenKeybindings;
 
+  /// No description provided for @commandOpenActivityTab.
+  ///
+  /// In ja, this message translates to:
+  /// **'アクティビティモニタを開く'**
+  String get commandOpenActivityTab;
+
   /// No description provided for @commandGitRefresh.
   ///
   /// In ja, this message translates to:
@@ -2107,6 +2113,12 @@ abstract class AppLocalizations {
   /// In ja, this message translates to:
   /// **'プロセス情報を取得できません'**
   String get activityMonitorEmpty;
+
+  /// No description provided for @activityMonitorOpenInTab.
+  ///
+  /// In ja, this message translates to:
+  /// **'タブで開く'**
+  String get activityMonitorOpenInTab;
 
   /// No description provided for @ccUsageTooltip.
   ///
