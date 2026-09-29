@@ -1,0 +1,689 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Roola 計器盤モック</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600&family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans+JP:wght@400;600&display=swap">
+<style>
+:root{
+  color-scheme: dark;
+  --page:#0c0d10;
+  --bg:#1b1d22;
+  --well:#111317;
+  --line:#2b2e35;
+  --text:#dde0e6;
+  --dim:#8d929c;
+  --faint:#5b606a;
+  --gold:#d0a341;
+  --led-g:#35e06a;
+  --led-a:#ffc21a;
+  --led-r:#ff3b30;
+  --f-label:"Chakra Petch","Arial Narrow",system-ui,sans-serif;
+  --f-num:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  --f-body:"IBM Plex Sans JP","Hiragino Sans",system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--page);color:var(--text);font-family:var(--f-body);font-size:14px;line-height:1.6;padding-inline:16px;padding-block:28px 48px}
+.wrap{max-width:1180px;margin-inline:auto;display:flex;flex-direction:column;gap:24px}
+header h1{font-family:var(--f-label);font-weight:700;font-size:26px;letter-spacing:.04em;margin:0;text-wrap:balance}
+header p{margin:6px 0 0;color:var(--dim);max-width:68ch}
+
+/* app window */
+.win{background:var(--bg);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.tabs{display:flex;gap:2px;padding:6px 8px 0;border-bottom:1px solid var(--line);overflow-x:auto}
+.tab{font-family:var(--f-body);font-size:12px;color:var(--dim);padding:6px 12px;border-radius:4px 4px 0 0;white-space:nowrap;display:flex;align-items:center;gap:6px}
+.tab.on{background:var(--well);color:var(--text);box-shadow:inset 0 2px 0 var(--gold)}
+.tab .dot{width:6px;height:6px;border-radius:50%;background:var(--led-g);box-shadow:0 0 6px var(--led-g)}
+.bar{display:flex;flex-wrap:wrap;align-items:center;gap:12px;padding:10px 12px;background:var(--well);border-bottom:1px solid var(--line)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:4px;overflow:hidden}
+.seg button,.tog{font-family:var(--f-label);font-weight:600;font-size:12px;letter-spacing:.12em;background:transparent;color:var(--dim);border:0;padding:6px 14px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--gold);color:#17130a}
+.tog{border:1px solid var(--line);border-radius:4px;display:inline-flex;align-items:center;gap:8px}
+.tog .lamp{width:8px;height:8px;border-radius:50%;background:#333}
+.tog[aria-pressed="true"]{color:var(--text)}
+.tog[aria-pressed="true"] .lamp{background:var(--led-a);box-shadow:0 0 8px var(--led-a)}
+button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.bar .meta{margin-left:auto;font-family:var(--f-mono);font-size:11px;color:var(--faint)}
+.stage{background:#08090b;padding:20px 16px 24px;min-height:420px}
+
+/* level mode */
+.bridge{display:flex;flex-wrap:wrap;gap:18px 26px;justify-content:center}
+.grp{display:flex;flex-direction:column;gap:8px;align-items:center}
+.grp h3{margin:0;font-family:var(--f-label);font-weight:600;font-size:12px;letter-spacing:.2em;color:var(--dim)}
+.grp h3 small{font-family:var(--f-mono);letter-spacing:0;color:var(--faint);font-size:10px;margin-left:6px}
+.grp canvas{height:300px;max-width:100%;display:block;background:linear-gradient(#0f1013,#07080a);border:1px solid #1e2026;border-radius:4px}
+
+/* tacho mode */
+.tacho{display:flex;flex-direction:column;gap:22px}
+.shift{display:flex;justify-content:center;gap:6px;padding:4px 0}
+.shift i{width:18px;height:10px;border-radius:2px;background:#1a1b1f;border:1px solid #26282e}
+.shift i.g.on{background:var(--led-g);box-shadow:0 0 10px var(--led-g)}
+.shift i.a.on{background:var(--led-a);box-shadow:0 0 10px var(--led-a)}
+.shift i.r.on{background:var(--led-r);box-shadow:0 0 12px var(--led-r)}
+.main{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;max-width:860px;margin-inline:auto;width:100%}
+.sub{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.cores{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px}
+.race-wrap{overflow-x:auto}
+#race{width:100%;min-width:720px;aspect-ratio:21/9;display:block;border-radius:6px}
+#race-cores{width:100%;min-width:720px;display:block;margin-top:12px}
+.dial{width:100%;aspect-ratio:1/1;display:block}
+.sec-h{font-family:var(--f-label);font-weight:600;font-size:12px;letter-spacing:.2em;color:var(--dim);margin:0;text-align:center}
+
+/* notes */
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
+.note{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:16px 18px}
+.note h2{font-family:var(--f-label);font-size:14px;letter-spacing:.14em;margin:0 0 8px;color:var(--gold)}
+.note ul{margin:0;padding-left:18px;color:var(--text)}
+.note li{margin:2px 0}
+.note li b{font-weight:600}
+.warn{border-color:#5a3b12}
+.warn h2{color:var(--led-a)}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Roola 計器盤 — メーターデザイン案</h1>
+    <p>アクティビティモニタタブの 2 つの表示モードの見た目と動きのモックです。数値は模擬データ（タブ表示中 250ms ポーリングを想定）。上部のボタンでモードと全コア表示を切り替えられます。</p>
+  </header>
+
+  <div class="win">
+    <div class="tabs" aria-hidden="true">
+      <span class="tab">Explorer · ~/Roola</span>
+      <span class="tab">Terminal · zsh</span>
+      <span class="tab on"><span class="dot"></span>Activity</span>
+    </div>
+    <div class="bar">
+      <div class="seg" role="group" aria-label="表示モード">
+        <button id="m-level" aria-pressed="true">LEVEL</button>
+        <button id="m-tacho" aria-pressed="false">TACHO</button>
+      </div>
+      <div class="seg" role="group" aria-label="タコメータの案" id="variants" hidden>
+        <button id="v-classic" aria-pressed="true">A · CLASSIC</button>
+        <button id="v-digital" aria-pressed="false">B · DIGITAL</button>
+        <button id="v-race" aria-pressed="false">C · RACE</button>
+      </div>
+      <button class="tog" id="t-cores" aria-pressed="false"><span class="lamp"></span>全コア表示</button>
+      <span class="meta">SIM · 250ms poll · 60fps</span>
+    </div>
+    <div class="stage">
+      <div id="level" class="bridge"></div>
+      <div id="tacho" class="tacho" hidden>
+        <div class="shift" id="shift" aria-hidden="true"></div>
+        <div class="race-wrap" id="race-wrap" hidden>
+          <canvas id="race" aria-label="RACE クラスタ"></canvas>
+          <canvas id="race-cores" hidden aria-label="コア別"></canvas>
+        </div>
+        <div class="main" id="dial-main">
+          <canvas class="dial" id="d-cpu" aria-label="CPU タコメータ"></canvas>
+          <canvas class="dial" id="d-mem" aria-label="メモリ タコメータ"></canvas>
+        </div>
+        <div class="sub" id="dial-sub">
+          <canvas class="dial" id="d-rx"></canvas>
+          <canvas class="dial" id="d-tx"></canvas>
+          <canvas class="dial" id="d-rd"></canvas>
+          <canvas class="dial" id="d-wr"></canvas>
+          <canvas class="dial" id="d-load"></canvas>
+        </div>
+        <div id="core-sec" hidden>
+          <p class="sec-h">CPU CORES</p>
+          <div class="cores" id="cores"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <section class="notes">
+    <div class="note">
+      <h2>LEVEL（放送用レベルゲージ）</h2>
+      <ul>
+        <li>40 セグメントの縦 LED。<b>0–70% 緑 / 70–90% 琥珀 / 90%+ 赤</b></li>
+        <li>上昇は約 50ms で即応、下降は毎秒 60% ぶんずつ落ちる（PPM 風）</li>
+        <li>ピークホールド: 最大値を 1.5 秒保持してから落下</li>
+        <li>受信/送信・読み/書きはステレオの L/R のように 2 本で対に</li>
+        <li>I/O は対数目盛り 1K〜1G B/s、LOAD はコア数を満点</li>
+      </ul>
+    </div>
+    <div class="note">
+      <h2>TACHO（3 案から選択）</h2>
+      <ul>
+        <li><b>A · CLASSIC</b> 黒い文字盤に白い目盛り、細い赤橙の針、赤いレッドゾーン。数値は針の通らない下部に大きく</li>
+        <li><b>B · DIGITAL</b> 80–90 年代国産車のオレンジ蛍光表示管風。細かいセグメントの円弧が伸び、消灯部分もうっすら見える。通過した目盛りと数字だけ点灯</li>
+        <li><b>C · RACE</b> GR86 / BRZ の Track Mode 風。中央に右肩上がりの CPU バーグラフ（0–4 を詰めた非線形目盛り、7 から橙・8.5 から赤）、左にメモリ / スワップの横バー、右にロードアベレージ・時刻と I/O のブロックゲージ、下に大きな数値と赤いバッジ。上部にシフトライト</li>
+        <li>目盛りは実際の値（I/O は B/s）。CPU・メモリはタコメータらしく 0–10（×10 %）目盛り。メモリの数値表示は GB</li>
+        <li>文字盤は装飾なしのフラットな黒。細い外周リングだけで計測器らしさを出す</li>
+        <li>タコ表示を開いた瞬間に全メーターが一度フルスケールまで振り切って戻る（オープニングセレモニー）</li>
+        <li>どの案も 270° スイープ、ばね＋ダンパ追従（減衰比 0.7）で少しだけ行き過ぎて戻る</li>
+      </ul>
+    </div>
+    <div class="note">
+      <h2>共通</h2>
+      <ul>
+        <li>既定は CPU 全体 1 本。「全コア表示」で LEVEL はコア数ぶんのバー、TACHO はコア別の小メーターを追加</li>
+        <li>タブ表示中だけ 250ms でポーリングし、描画は毎フレーム補間（トップバーは従来どおり 1 秒）</li>
+        <li>このタブに限り Polaris の単一アクセント / 0ms 規定を適用しない</li>
+      </ul>
+    </div>
+    <div class="note warn">
+      <h2>要検証: ネットワーク</h2>
+      <ul>
+        <li>以前の実装で値が正しく取れず見送った経緯あり（ADR-0048）</li>
+        <li>モックには載せていますが、実装では先に取得方法を検証し、駄目なら外す前提</li>
+      </ul>
+    </div>
+  </section>
+</div>
+
+<script>
+(() => {
+  const CORES = 10;
+  const DPR = Math.min(window.devicePixelRatio || 1, 2);
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
+  const rnd = (a, b) => a + Math.random() * (b - a);
+
+  // ---------- simulated metrics (250ms poll) ----------
+  const sim = {
+    cores: Array.from({length: CORES}, () => rnd(.05, .3)),
+    cpu: .2, mem: .58, swap: .07,
+    rx: 2e5, tx: 3e4, rd: 8e5, wr: 2e5,
+    load: [2.2, 2.5, 2.7],
+  };
+  let burst = 0, burstSet = [], dl = 0;
+  function poll() {
+    if (burst <= 0 && Math.random() < .035) { burst = rnd(1.2, 3); burstSet = sim.cores.map(() => Math.random() < .6); }
+    if (dl <= 0 && Math.random() < .03) dl = rnd(1, 3);
+    burst -= .25; dl -= .25;
+    sim.cores = sim.cores.map((c, i) => {
+      const base = burst > 0 && burstSet[i] ? rnd(.82, 1) : rnd(.04, .38);
+      return clamp(c + (base - c) * .55 + rnd(-.04, .04));
+    });
+    sim.cpu = sim.cores.reduce((a, b) => a + b, 0) / CORES;
+    sim.mem = clamp(sim.mem + rnd(-.006, .007) + (burst > 0 ? .004 : -.002), .45, .93);
+    sim.swap = clamp(sim.swap + rnd(-.003, .003), .02, .3);
+    const walk = (v, hi) => { let l = Math.log10(Math.max(v, 1)); l += rnd(-.35, .35) + (hi - l) * .25; return 10 ** clamp(l, 2.3, 9); };
+    sim.rx = walk(sim.rx, dl > 0 ? 7.6 : 5.2);
+    sim.tx = walk(sim.tx, dl > 0 ? 5.5 : 4.4);
+    sim.rd = walk(sim.rd, burst > 0 ? 7.9 : 5.8);
+    sim.wr = walk(sim.wr, burst > 0 ? 7.2 : 5.3);
+    const inst = sim.cpu * CORES;
+    sim.load = [sim.load[0] + (inst - sim.load[0]) * .06, sim.load[1] + (inst - sim.load[1]) * .015, sim.load[2] + (inst - sim.load[2]) * .005];
+  }
+  for (let i = 0; i < 8; i++) poll();
+  setInterval(poll, 250);
+
+  const logN = b => clamp((Math.log10(Math.max(b, 1)) - 3) / 6);
+  const fmtB = b => b >= 1e9 ? (b / 1e9).toFixed(2) + 'G' : b >= 1e6 ? (b / 1e6).toFixed(1) + 'M' : b >= 1e3 ? (b / 1e3).toFixed(0) + 'K' : b.toFixed(0);
+  const fmtP = b => b >= 1e9 ? [(b / 1e9).toFixed(2), 'GB/s'] : b >= 1e6 ? [(b / 1e6).toFixed(1), 'MB/s'] : b >= 1e3 ? [(b / 1e3).toFixed(0), 'KB/s'] : [b.toFixed(0), 'B/s'];
+  const pct = v => (v * 100).toFixed(0) + '%';
+
+  function fit(c) {
+    const w = c.clientWidth, h = c.clientHeight;
+    if (c._w !== w || c._h !== h) { c.width = Math.round(w * DPR); c.height = Math.round(h * DPR); c._w = w; c._h = h; }
+    const ctx = c.getContext('2d');
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    return [ctx, w, h];
+  }
+
+  // ---------- state ----------
+  let mode = 'level', allCores = false, variant = 'classic';
+  try { variant = localStorage.getItem('roola-variant') || 'classic'; mode = localStorage.getItem('roola-mode') || 'level'; allCores = localStorage.getItem('roola-cores') === '1'; } catch (e) {}
+
+  // ---------- LEVEL ----------
+  const SEG = 40, CH_W = 20, CH_GAP = 8, SCALE_W = 34;
+  const levelEl = document.getElementById('level');
+  const chState = {};
+  const groups = () => [
+    { id: 'cpu', label: 'CPU', note: allCores ? CORES + ' cores' : 'total', scale: 'pct',
+      ch: allCores ? sim.cores.map((_, i) => ({ n: 'C' + (i + 1), v: () => sim.cores[i], t: () => pct(sim.cores[i]) }))
+                   : [{ n: 'ALL', v: () => sim.cpu, t: () => pct(sim.cpu) }] },
+    { id: 'mem', label: 'MEMORY', note: '32 GB', scale: 'pct',
+      ch: [{ n: 'USED', v: () => sim.mem, t: () => pct(sim.mem) }, { n: 'SWAP', v: () => sim.swap, t: () => pct(sim.swap) }] },
+    { id: 'net', label: 'NETWORK', note: 'B/s', scale: 'log',
+      ch: [{ n: 'RX', v: () => logN(sim.rx), t: () => fmtB(sim.rx) }, { n: 'TX', v: () => logN(sim.tx), t: () => fmtB(sim.tx) }] },
+    { id: 'disk', label: 'DISK', note: 'B/s', scale: 'log',
+      ch: [{ n: 'READ', v: () => logN(sim.rd), t: () => fmtB(sim.rd) }, { n: 'WRITE', v: () => logN(sim.wr), t: () => fmtB(sim.wr) }] },
+    { id: 'load', label: 'LOAD', note: 'max ' + CORES, scale: 'load',
+      ch: ['1m', '5m', '15m'].map((n, i) => ({ n, v: () => clamp(sim.load[i] / CORES), t: () => sim.load[i].toFixed(2) })) },
+  ];
+  let levelGroups = [];
+  function buildLevel() {
+    levelEl.innerHTML = '';
+    levelGroups = groups().map(g => {
+      const d = document.createElement('div'); d.className = 'grp';
+      d.innerHTML = `<h3>${g.label}<small>${g.note}</small></h3>`;
+      const c = document.createElement('canvas');
+      c.style.width = (SCALE_W + g.ch.length * (CH_W + CH_GAP) + 6) + 'px';
+      c.setAttribute('aria-label', g.label + ' レベルゲージ');
+      d.appendChild(c); levelEl.appendChild(d);
+      return { g, c };
+    });
+  }
+  const zoneColor = f => f < .7 ? [53, 224, 106] : f < .9 ? [255, 194, 26] : [255, 59, 48];
+  const scaleLabels = { pct: ['100', '80', '60', '40', '20', '0'], log: ['1G', '100M', '10M', '1M', '100K', '10K', '1K'], load: [String(CORES), '', String(CORES / 2), '', '0'] };
+
+  function drawLevel(dt) {
+    for (const { g, c } of levelGroups) {
+      const [ctx, w, h] = fit(c);
+      ctx.clearRect(0, 0, w, h);
+      const top = 12, bot = h - 46, mh = bot - top, sh = (mh - (SEG - 1) * 2) / SEG;
+      // scale
+      const labs = scaleLabels[g.scale];
+      ctx.font = '500 9px ' + getComputedStyle(document.body).getPropertyValue('--f-mono');
+      ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+      labs.forEach((l, i) => {
+        const y = top + mh * i / (labs.length - 1);
+        ctx.fillStyle = '#2a2d33'; ctx.fillRect(SCALE_W - 5, y - .5, 4, 1);
+        if (l) { ctx.fillStyle = '#6b707a'; ctx.fillText(l, SCALE_W - 8, y); }
+      });
+      g.ch.forEach((ch, i) => {
+        const key = g.id + ch.n;
+        const s = chState[key] || (chState[key] = { v: 0, pk: 0, pt: 0 });
+        const t = ch.v();
+        if (reduce) s.v = t;
+        else if (t > s.v) s.v += (t - s.v) * (1 - Math.exp(-dt / .05));
+        else s.v = Math.max(t, s.v - .6 * dt);
+        if (s.v >= s.pk) { s.pk = s.v; s.pt = 1.5; } else if ((s.pt -= dt) <= 0) s.pk = Math.max(s.v, s.pk - .35 * dt);
+        const x = SCALE_W + 4 + i * (CH_W + CH_GAP);
+        const pkSeg = Math.min(SEG - 1, Math.floor(s.pk * SEG - 1e-6));
+        for (let k = 0; k < SEG; k++) {
+          const f = (k + .5) / SEG, y = bot - (k + 1) * sh - k * 2;
+          const [r, gg, b] = zoneColor(f);
+          const lit = f <= s.v, peak = k === pkSeg && s.pk > .02;
+          if (lit || peak) {
+            ctx.shadowColor = `rgba(${r},${gg},${b},.8)`; ctx.shadowBlur = peak ? 10 : 6;
+            ctx.fillStyle = peak && !lit ? `rgb(${Math.min(255, r + 40)},${Math.min(255, gg + 40)},${Math.min(255, b + 40)})` : `rgb(${r},${gg},${b})`;
+          } else { ctx.shadowBlur = 0; ctx.fillStyle = `rgba(${r},${gg},${b},.09)`; }
+          ctx.fillRect(x, y, CH_W, sh);
+        }
+        ctx.shadowBlur = 0;
+        ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+        ctx.fillStyle = '#ffb000'; ctx.font = '600 10px ' + getComputedStyle(document.body).getPropertyValue('--f-mono');
+        ctx.fillText(ch.t(), x + CH_W / 2, bot + 18);
+        ctx.fillStyle = '#8d929c'; ctx.font = '600 9px ' + getComputedStyle(document.body).getPropertyValue('--f-label');
+        ctx.fillText(ch.n, x + CH_W / 2, bot + 34);
+      });
+    }
+  }
+
+  // ---------- TACHO ----------
+  const A0 = Math.PI * .75, SW = Math.PI * 1.5;
+  const dials = [];
+  function mkDial(el, o) { const d = { el, o, x: 0, v: 0, pk: 0, pt: 0 }; dials.push(d); return d; }
+  const logMajors = ['1K', '10K', '100K', '1M', '10M', '100M', '1G'];
+  const loadMajors = Array.from({ length: 6 }, (_, i) => String(i * CORES / 5));
+  mkDial(document.getElementById('d-cpu'), { label: 'CPU', sub: '×10 %', majors: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'], minor: 5, red: .85, v: () => sim.cpu, n: () => [(sim.cpu * 100).toFixed(0), '%'], big: true });
+  mkDial(document.getElementById('d-mem'), { label: 'MEMORY', sub: '×10 %', majors: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'], minor: 5, red: .85, v: () => sim.mem, n: () => [(sim.mem * 32).toFixed(1), 'GB'], big: true });
+  mkDial(document.getElementById('d-rx'), { label: 'NET RX', sub: 'B/s', majors: logMajors, red: .84, v: () => logN(sim.rx), n: () => fmtP(sim.rx) });
+  mkDial(document.getElementById('d-tx'), { label: 'NET TX', sub: 'B/s', majors: logMajors, red: .84, v: () => logN(sim.tx), n: () => fmtP(sim.tx) });
+  mkDial(document.getElementById('d-rd'), { label: 'DISK R', sub: 'B/s', majors: logMajors, red: .84, v: () => logN(sim.rd), n: () => fmtP(sim.rd) });
+  mkDial(document.getElementById('d-wr'), { label: 'DISK W', sub: 'B/s', majors: logMajors, red: .84, v: () => logN(sim.wr), n: () => fmtP(sim.wr) });
+  mkDial(document.getElementById('d-load'), { label: 'LOAD', sub: '1 min', majors: loadMajors, red: .8, v: () => clamp(sim.load[0] / CORES), n: () => [sim.load[0].toFixed(2), ''] });
+  const coresEl = document.getElementById('cores');
+  for (let i = 0; i < CORES; i++) {
+    const c = document.createElement('canvas'); c.className = 'dial'; c.setAttribute('aria-label', 'Core ' + (i + 1));
+    coresEl.appendChild(c);
+    mkDial(c, { label: 'C' + (i + 1), sub: '%', majors: ['0', '50', '100'], minor: 5, red: .85, v: () => sim.cores[i], n: () => [(sim.cores[i] * 100).toFixed(0), '%'], core: true });
+  }
+
+  function numUnit(ctx, cx, y, parts, size, color, fN, fU, uColor, glow) {
+    const [num, unit] = parts;
+    ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'left';
+    ctx.font = `600 ${size}px ${fN}`; const nw = ctx.measureText(num).width;
+    ctx.font = `600 ${size * .3}px ${fU}`; const uw = unit ? ctx.measureText(unit).width + size * .1 : 0;
+    const x0 = cx - (nw + uw) / 2;
+    if (glow) { ctx.shadowColor = glow; ctx.shadowBlur = size * .25; }
+    ctx.font = `600 ${size}px ${fN}`; ctx.fillStyle = color; ctx.fillText(num, x0, y);
+    ctx.shadowBlur = 0;
+    if (unit) { ctx.font = `600 ${size * .3}px ${fU}`; ctx.fillStyle = uColor; ctx.fillText(unit, x0 + nw + size * .1, y); }
+  }
+  function spaced(ctx, s, px) { try { ctx.letterSpacing = px + 'px'; } catch (e) {} }
+
+  // 文字盤: フラットな黒 + 細い外周リング + 目盛り基準のヘアライン（計測器の文字盤）
+  function drawFace(ctx, cx, cy, r) {
+    ctx.beginPath(); ctx.arc(cx, cy, r * .98, 0, Math.PI * 2);
+    ctx.fillStyle = '#0a0b0d'; ctx.fill();
+    ctx.strokeStyle = '#3a3e45'; ctx.lineWidth = 1; ctx.stroke();
+    ctx.beginPath(); ctx.arc(cx, cy, r * .955, 0, Math.PI * 2);
+    ctx.strokeStyle = '#1a1c20'; ctx.lineWidth = 1; ctx.stroke();
+  }
+
+  // A. CLASSIC — ドイツ車系の針メーター
+  function dClassic(ctx, cx, cy, r, o, x, fl, fm, fn) {
+    const ang = v => A0 + v * SW;
+    drawFace(ctx, cx, cy, r);
+    ctx.beginPath(); ctx.arc(cx, cy, r * .935, ang(o.red), ang(1));
+    ctx.strokeStyle = '#e0261c'; ctx.lineWidth = Math.max(2, r * .025); ctx.stroke();
+    const n = o.majors.length - 1, minors = o.minor || (o.core ? 2 : 5);
+    for (let i = 0; i <= n * minors; i++) {
+      const f = i / (n * minors), a = ang(f), maj = i % minors === 0, red = f >= o.red - 1e-6;
+      const r1 = r * .9, r2 = r1 - (maj ? r * .11 : r * .05);
+      ctx.beginPath(); ctx.moveTo(cx + Math.cos(a) * r1, cy + Math.sin(a) * r1); ctx.lineTo(cx + Math.cos(a) * r2, cy + Math.sin(a) * r2);
+      ctx.strokeStyle = red ? '#ff3b2a' : maj ? '#f4f5f7' : '#9aa0aa';
+      ctx.lineWidth = maj ? Math.max(2, r * .022) : 1; ctx.stroke();
+    }
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.font = `500 ${Math.max(9, r * (o.majors.length > 8 ? .16 : .14))}px ${fn}`;
+    o.majors.forEach((m, i) => {
+      const f = i / n, a = ang(f), rr = r * .68;
+      ctx.fillStyle = f >= o.red - 1e-6 ? '#ff4a38' : '#f4f5f7';
+      ctx.fillText(m, cx + Math.cos(a) * rr, cy + Math.sin(a) * rr);
+    });
+    spaced(ctx, 0, r * .02);
+    ctx.fillStyle = '#c9ccd2'; ctx.font = `600 ${r * .085}px ${fl}`; ctx.fillText(o.label, cx, cy - r * .3);
+    if (o.big) { ctx.fillStyle = '#6b707a'; ctx.font = `500 ${r * .06}px ${fl}`; ctx.fillText(o.sub, cx, cy - r * .19); }
+    spaced(ctx, 0, 0);
+    if (!o.core || r > 50) numUnit(ctx, cx, cy + r * .66, o.n(), r * .24, '#f4f5f7', fn, fl, '#7d828c');
+    const a = ang(x);
+    ctx.save(); ctx.translate(cx, cy); ctx.rotate(a);
+    ctx.shadowColor = 'rgba(255,60,20,.5)'; ctx.shadowBlur = r * .04;
+    ctx.beginPath(); ctx.moveTo(-r * .14, -r * .02); ctx.lineTo(r * .9, -r * .005); ctx.lineTo(r * .9, r * .005); ctx.lineTo(-r * .14, r * .02); ctx.closePath();
+    ctx.fillStyle = '#ff3d17'; ctx.fill(); ctx.restore(); ctx.shadowBlur = 0;
+    ctx.beginPath(); ctx.arc(cx, cy, r * .065, 0, Math.PI * 2); ctx.fillStyle = '#0d0e10'; ctx.fill();
+    ctx.strokeStyle = '#2f3238'; ctx.lineWidth = 2; ctx.stroke();
+  }
+
+  // B. DIGITAL — 80–90 年代国産車のデジタルメーター（オレンジ蛍光表示管）風
+  // 細かいセグメントが連なる円弧。消灯セグメントもうっすら見える（蛍光表示管の特徴）。
+  function dDigital(ctx, cx, cy, r, o, x, fl, fm, fn) {
+    const ang = v => A0 + v * SW;
+    drawFace(ctx, cx, cy, r);
+    const VFD = [255, 138, 31], RED = [255, 58, 26];
+    const xv = clamp(x), N = o.big ? 72 : o.core ? 30 : 44, step = SW / N, g = step * .22;
+    for (let k = 0; k < N; k++) {
+      const f = (k + .5) / N, lit = f <= xv, red = f >= o.red;
+      const [R, G, B] = red ? RED : VFD;
+      const a1 = A0 + k * step + g / 2, a2 = A0 + (k + 1) * step - g / 2;
+      ctx.beginPath(); ctx.arc(cx, cy, r * .9, a1, a2); ctx.arc(cx, cy, r * .76, a2, a1, true); ctx.closePath();
+      if (lit) { ctx.shadowColor = `rgba(${R},${G},${B},.75)`; ctx.shadowBlur = r * .07; ctx.fillStyle = `rgb(${R},${G},${B})`; }
+      else { ctx.shadowBlur = 0; ctx.fillStyle = `rgba(${R},${G},${B},.07)`; }
+      ctx.fill();
+    }
+    ctx.shadowBlur = 0;
+    // 目盛り: 通過したものだけ点灯
+    const n = o.majors.length - 1;
+    for (let i = 0; i <= n; i++) {
+      const f = i / n, a = ang(f), lit = f <= xv + 1e-6, red = f >= o.red - 1e-6;
+      const [R, G, B] = red ? RED : VFD;
+      ctx.beginPath(); ctx.moveTo(cx + Math.cos(a) * r * .94, cy + Math.sin(a) * r * .94); ctx.lineTo(cx + Math.cos(a) * r * .97, cy + Math.sin(a) * r * .97);
+      ctx.strokeStyle = lit ? `rgb(${R},${G},${B})` : `rgba(${R},${G},${B},.18)`; ctx.lineWidth = 2; ctx.stroke();
+    }
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.font = `600 ${Math.max(8, r * .11)}px ${fn}`;
+    o.majors.forEach((m, i) => {
+      const f = i / n, a = ang(f), rr = r * .63, lit = f <= xv + 1e-6, red = f >= o.red - 1e-6;
+      const [R, G, B] = red ? RED : VFD;
+      if (lit) { ctx.shadowColor = `rgba(${R},${G},${B},.6)`; ctx.shadowBlur = r * .04; }
+      ctx.fillStyle = lit ? `rgb(${R},${G},${B})` : `rgba(${R},${G},${B},.16)`;
+      ctx.fillText(m, cx + Math.cos(a) * rr, cy + Math.sin(a) * rr);
+      ctx.shadowBlur = 0;
+    });
+    spaced(ctx, 0, r * .025);
+    ctx.fillStyle = 'rgba(255,138,31,.55)'; ctx.font = `600 ${r * .08}px ${fl}`; ctx.fillText(o.label, cx, cy - r * .3);
+    spaced(ctx, 0, 0);
+    const [R, G, B] = xv > o.red ? RED : VFD;
+    numUnit(ctx, cx, cy + r * .2, o.n(), r * (o.core ? .36 : .4), `rgb(${R},${G},${B})`, fn, fl, `rgba(${R},${G},${B},.6)`, `rgba(${R},${G},${B},.6)`);
+  }
+
+  // C. RACE — レース用の LED セグメント円弧
+  function dRace(ctx, cx, cy, r, o, x, fl, fm, fn, d) {
+    const ang = v => A0 + v * SW;
+    drawFace(ctx, cx, cy, r);
+    const N = o.big ? 44 : o.core ? 20 : 28, step = SW / N, g = step * .26, xv = clamp(x);
+    const pkSeg = Math.min(N - 1, Math.floor(d.pk * N - 1e-6));
+    for (let k = 0; k < N; k++) {
+      const f = (k + .5) / N, [R, G, B] = zoneColor(f), lit = f <= xv, peak = k === pkSeg && d.pk > .02;
+      const a1 = A0 + k * step + g / 2, a2 = A0 + (k + 1) * step - g / 2;
+      ctx.beginPath(); ctx.arc(cx, cy, r * .95, a1, a2); ctx.arc(cx, cy, r * .8, a2, a1, true); ctx.closePath();
+      if (lit || peak) { ctx.shadowColor = `rgba(${R},${G},${B},.8)`; ctx.shadowBlur = r * (peak ? .1 : .06); ctx.fillStyle = `rgb(${R},${G},${B})`; }
+      else { ctx.shadowBlur = 0; ctx.fillStyle = `rgba(${R},${G},${B},.09)`; }
+      ctx.fill();
+    }
+    ctx.shadowBlur = 0;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.font = `600 ${Math.max(8, r * .095)}px ${fl}`; ctx.fillStyle = '#5b606a';
+    const n = o.majors.length - 1;
+    o.majors.forEach((m, i) => { const a = ang(i / n), rr = r * .68; ctx.fillText(m, cx + Math.cos(a) * rr, cy + Math.sin(a) * rr); });
+    spaced(ctx, 0, r * .025);
+    ctx.fillStyle = '#8d929c'; ctx.font = `600 ${r * .08}px ${fl}`; ctx.fillText(o.label, cx, cy - r * .3);
+    spaced(ctx, 0, 0);
+    const [R, G, B] = zoneColor(xv);
+    numUnit(ctx, cx, cy + r * .2, o.n(), r * (o.core ? .34 : .38), `rgb(${R},${G},${B})`, fl, fl, '#7d828c', `rgba(${R},${G},${B},.55)`);
+  }
+
+  function drawDial(d, dt) {
+    const c = d.el;
+    if (!c.offsetParent) return;
+    const o = d.o, st = (performance.now() - sweepAt) / 1000;
+    // オープニングセレモニー: タコ表示を開いた直後に一度フルスケールまで振って戻る
+    const tgt = st < .55 ? 1 : o.v();
+    if (reduce) { d.x = tgt; d.v = 0; }
+    else {
+      const k = 90, cdamp = 2 * Math.sqrt(k) * .7;
+      let rem = Math.min(dt, .05);
+      while (rem > 0) { const s = Math.min(rem, 1 / 240); const a = k * (tgt - d.x) - cdamp * d.v; d.v += a * s; d.x += d.v * s; rem -= s; }
+    }
+    if (d.x >= d.pk) { d.pk = d.x; d.pt = 1.5; } else if ((d.pt -= dt) <= 0) d.pk = Math.max(d.x, d.pk - .35 * dt);
+    const x = clamp(d.x, -.01, 1.01);
+    const [ctx, w, h] = fit(c);
+    ctx.clearRect(0, 0, w, h);
+    const r = Math.min(w, h) / 2 * .97, cx = w / 2, cy = h / 2;
+    const F = getComputedStyle(document.body);
+    const fl = F.getPropertyValue('--f-label'), fm = F.getPropertyValue('--f-mono'), fn = F.getPropertyValue('--f-num');
+    if (variant === 'classic') dClassic(ctx, cx, cy, r, o, x, fl, fm, fn);
+    else if (variant === 'digital') dDigital(ctx, cx, cy, r, o, x, fl, fm, fn);
+    else dRace(ctx, cx, cy, r, o, x, fl, fm, fn, d);
+  }
+
+  // ---------- RACE（GR86 / BRZ の Track Mode 風クラスタ） ----------
+  const raceEl = document.getElementById('race'), raceCoresEl = document.getElementById('race-cores');
+  const springs = {};
+  function spring(key, t, dt) {
+    const s = springs[key] || (springs[key] = { x: 0, v: 0 });
+    if (reduce) { s.x = t; return t; }
+    const k = 90, c = 2 * Math.sqrt(k) * .7;
+    let rem = Math.min(dt, .05);
+    while (rem > 0) { const h = Math.min(rem, 1 / 240); s.v += (k * (t - s.x) - c * s.v) * h; s.x += s.v * h; rem -= h; }
+    return s.x;
+  }
+  // 低い値を詰め、高い値を広げる非線形目盛り（タコメータの 0–4 が詰まっているのと同じ）
+  const P = v => v <= .4 ? v / .4 * .18 : .18 + (v - .4) / .6 * .82;
+  const invP = p => p <= .18 ? p / .18 * .4 : .4 + (p - .18) / .82 * .6;
+  const zoneOf = v => v >= .85 ? 2 : v >= .7 ? 1 : 0;
+  const LIT = ['#d6d9de', '#f28a22', '#ff3b1f'], DARK = ['#1d1f23', '#2c1c10', '#341511'], EDGE = ['#e8eaee', '#f28a22', '#ff3b1f'];
+  const CPU_LABELS = [[0, '0'], [.2, '2'], [.4, '4'], [.5, '5'], [.6, '6'], [.7, '7'], [.8, '8'], [.9, '9'], [1, '10']];
+
+  function wedge(ctx, x0, x1, yb, hMin, hMax, v, N, labels, fs, F) {
+    const pv = P(clamp(v)), bw = (x1 - x0) / N, g = hMax * .05;
+    const hAt = p => hMin + (hMax - hMin) * p;
+    for (let i = 0; i < N; i++) {
+      const p = (i + .5) / N, z = zoneOf(invP(p)), lit = p <= pv, hh = hAt(p);
+      if (lit && z) { ctx.shadowColor = LIT[z]; ctx.shadowBlur = 6; } else ctx.shadowBlur = 0;
+      ctx.fillStyle = lit ? LIT[z] : DARK[z];
+      ctx.fillRect(x0 + i * bw, yb - hh, bw * .56, hh);
+    }
+    ctx.shadowBlur = 0;
+    // 上縁と基線（ゾーンごとに色が変わる）
+    const cuts = [0, P(.7), P(.85), 1];
+    for (let z = 0; z < 3; z++) {
+      const pa = cuts[z], pb = cuts[z + 1], xa = x0 + pa * (x1 - x0), xb = x0 + pb * (x1 - x0);
+      ctx.beginPath(); ctx.moveTo(xa, yb - hAt(pa) - g); ctx.lineTo(xb, yb - hAt(pb) - g);
+      ctx.strokeStyle = EDGE[z]; ctx.lineWidth = Math.max(2, hMax * .025); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(xa, yb + 3); ctx.lineTo(xb, yb + 3);
+      ctx.strokeStyle = z ? EDGE[z] : '#5d626b'; ctx.lineWidth = 1.5; ctx.stroke();
+    }
+    if (labels) {
+      ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+      ctx.font = `600 ${fs}px ${F.fn}`;
+      for (const [lv, t] of labels) {
+        const p = P(lv), z = zoneOf(lv);
+        ctx.fillStyle = z ? EDGE[z] : '#eceef1';
+        ctx.fillText(t, x0 + p * (x1 - x0), yb - hAt(p) - g - fs * .35);
+      }
+    }
+  }
+
+  function hbar(ctx, x, y, w, h, v, label, readout, ticks, F) {
+    const fs = h * .62;
+    ctx.textBaseline = 'alphabetic';
+    ctx.font = `600 ${fs}px ${F.fl}`; ctx.fillStyle = '#9ba0a9'; ctx.textAlign = 'left'; ctx.fillText(label, x, y - h * .3);
+    ctx.font = `600 ${fs * 1.15}px ${F.fn}`; ctx.fillStyle = '#eceef1'; ctx.textAlign = 'right'; ctx.fillText(readout, x + w, y - h * .3);
+    ctx.fillStyle = '#2a2c31'; ctx.fillRect(x, y, w, h);
+    const z = zoneOf(v);
+    ctx.fillStyle = z === 2 ? LIT[2] : '#d6d9de'; ctx.fillRect(x, y, w * clamp(v), h);
+    ctx.strokeStyle = '#9ba0a9'; ctx.lineWidth = 1; ctx.strokeRect(x + .5, y + .5, w - 1, h - 1);
+    ctx.textAlign = 'center'; ctx.font = `500 ${fs * .85}px ${F.fn}`; ctx.fillStyle = '#9ba0a9';
+    ticks.forEach((t, i) => {
+      const tx = x + w * i / (ticks.length - 1);
+      ctx.fillStyle = '#0b0c0e'; if (i && i < ticks.length - 1) ctx.fillRect(tx - .5, y, 1, h);
+      ctx.fillStyle = '#9ba0a9'; ctx.fillText(t, Math.min(Math.max(tx, x + fs * .4), x + w - fs * .6), y + h + fs * 1.05);
+    });
+  }
+
+  function blocks(ctx, x, y, w, h, v, label, readout, F) {
+    const fs = h * .7, lw = fs * 3.9, rw = fs * 3.4, bx = x + lw, bwid = w - lw - rw, n = 10, gap = bwid * .015;
+    ctx.textBaseline = 'middle';
+    ctx.font = `600 ${fs}px ${F.fl}`; ctx.fillStyle = '#9ba0a9'; ctx.textAlign = 'left'; ctx.fillText(label, x, y + h / 2);
+    ctx.font = `600 ${fs * 1.1}px ${F.fn}`; ctx.fillStyle = '#eceef1'; ctx.textAlign = 'right'; ctx.fillText(readout, x + w, y + h / 2);
+    ctx.strokeStyle = '#9ba0a9'; ctx.lineWidth = 1; ctx.strokeRect(bx + .5, y + .5, bwid - 1, h - 1);
+    const cw = (bwid - gap * (n + 1)) / n;
+    for (let i = 0; i < n; i++) {
+      const lit = (i + .5) / n <= v;
+      ctx.fillStyle = lit ? (i >= 9 ? LIT[2] : '#d6d9de') : '#24262b';
+      ctx.fillRect(bx + gap + i * (cw + gap), y + gap + 1, cw, h - gap * 2 - 2);
+    }
+  }
+
+  function drawRace(dt) {
+    const st = (performance.now() - sweepAt) / 1000, sw = st < .55;
+    const T = v => sw ? 1 : v;
+    const cpu = spring('cpu', T(sim.cpu), dt), mem = spring('mem', T(sim.mem), dt), swp = spring('swap', T(sim.swap), dt);
+    const rx = spring('rx', T(logN(sim.rx)), dt), tx = spring('tx', T(logN(sim.tx)), dt), rd = spring('rd', T(logN(sim.rd)), dt), wr = spring('wr', T(logN(sim.wr)), dt);
+    const Fs = getComputedStyle(document.body), F = { fl: Fs.getPropertyValue('--f-label'), fn: Fs.getPropertyValue('--f-num') };
+    const [ctx, w, H] = fit(raceEl);
+    ctx.clearRect(0, 0, w, H);
+    ctx.fillStyle = '#050607'; ctx.fillRect(0, 0, w, H);
+    const cx = w / 2, cy = H * .5, R = H * .47, y1 = H * .2, y2 = H * .76;
+    // 表示面と中央の円の縁取り（左右へ伸びる水平線）
+    ctx.fillStyle = '#0c0d10'; ctx.fillRect(w * .02, y1, w * .96, y2 - y1);
+    ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2); ctx.fill();
+    const trim = (y, top) => {
+      const dx = Math.sqrt(R * R - (cy - y) ** 2), a = Math.atan2(y - cy, -dx), b = Math.atan2(y - cy, dx);
+      ctx.beginPath(); ctx.moveTo(w * .02, y); ctx.lineTo(cx - dx, y);
+      ctx.arc(cx, cy, R, a, b, !top ? true : false);
+      ctx.lineTo(w * .98, y);
+      ctx.strokeStyle = '#8a8f98'; ctx.lineWidth = 2; ctx.stroke();
+      ctx.fillStyle = '#b8bcc3'; [w * .02, w * .98].forEach(px => { ctx.beginPath(); ctx.arc(px, y, 2.5, 0, Math.PI * 2); ctx.fill(); });
+    };
+    trim(y1, true); trim(y2, false);
+    // 中央: CPU の右肩上がりバーグラフ
+    const x0 = cx - w * .2, x1 = cx + w * .2, yb = y2 - H * .07;
+    wedge(ctx, x0, x1, yb, H * .05, H * .36, cpu, 72, CPU_LABELS, H * .075, F);
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic'; ctx.font = `600 ${H * .036}px ${F.fl}`; ctx.fillStyle = '#9ba0a9';
+    ctx.fillText('CPU  ×10 %', x0, yb + H * .05);
+    // 下部: 大きな数値 + 赤いバッジ
+    const num = (sim.cpu * 100).toFixed(0);
+    ctx.textAlign = 'center'; ctx.font = `600 ${H * .12}px ${F.fn}`; ctx.fillStyle = '#f4f5f7';
+    const nw = ctx.measureText(num).width;
+    ctx.fillText(num, cx, H * .885);
+    ctx.textAlign = 'left'; ctx.font = `600 ${H * .045}px ${F.fl}`; ctx.fillStyle = '#c9ccd2'; ctx.fillText('%', cx + nw / 2 + H * .02, H * .885);
+    const bw = w * .12, bh = H * .05;
+    ctx.fillStyle = '#d8231a'; ctx.beginPath(); ctx.roundRect(cx - bw / 2, H * .905, bw, bh, bh / 2); ctx.fill();
+    ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.font = `700 ${bh * .62}px ${F.fl}`;
+    spaced(ctx, 0, bh * .08); ctx.fillText('RACE', cx, H * .905 + bh / 2 + 1); spaced(ctx, 0, 0);
+    // 左パネル: メモリ / スワップ
+    const lx = w * .045, lw = w * .2, bh2 = H * .065;
+    hbar(ctx, lx, H * .33, lw, bh2, mem, 'MEMORY', (sim.mem * 32).toFixed(1) + ' GB', ['0', '25', '50', '75', '100%'], F);
+    hbar(ctx, lx, H * .56, lw, bh2, swp, 'SWAP', pct(sim.swap), ['0', '25', '50', '75', '100%'], F);
+    // 右パネル: ロードアベレージと時刻 / I/O ブロックゲージ
+    const rx0 = w * .74, rw = w * .215, now = new Date();
+    ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'left'; ctx.font = `600 ${H * .036}px ${F.fl}`; ctx.fillStyle = '#9ba0a9';
+    ctx.fillText('LOAD 1m', rx0, H * .275);
+    ctx.textAlign = 'right'; ctx.fillText(now.getHours() < 12 ? 'AM' : 'PM', rx0 + rw, H * .275);
+    ctx.font = `600 ${H * .06}px ${F.fn}`; ctx.fillStyle = '#eceef1'; ctx.textAlign = 'left';
+    ctx.fillText(sim.load[0].toFixed(2), rx0, H * .345);
+    ctx.textAlign = 'right';
+    ctx.fillText(((now.getHours() + 11) % 12 + 1) + ':' + String(now.getMinutes()).padStart(2, '0'), rx0 + rw, H * .345);
+    const rh = H * .052;
+    blocks(ctx, rx0, H * .39, rw, rh, rx, 'RX', fmtB(sim.rx), F);
+    blocks(ctx, rx0, H * .46, rw, rh, tx, 'TX', fmtB(sim.tx), F);
+    blocks(ctx, rx0, H * .53, rw, rh, rd, 'READ', fmtB(sim.rd), F);
+    blocks(ctx, rx0, H * .6, rw, rh, wr, 'WRITE', fmtB(sim.wr), F);
+    // 下段の小さな表示（オドメータ位置）
+    ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'left'; ctx.font = `600 ${H * .038}px ${F.fn}`; ctx.fillStyle = '#c9ccd2';
+    ctx.fillText('UPTIME  3d 04:12', w * .045, y2 + H * .07);
+    drawShift(performance.now(), cpu);
+    // コア別: 小さな右肩上がりバーを並べる
+    if (allCores) {
+      const cols = Math.max(2, Math.floor(w / 180)), rows = Math.ceil(CORES / cols), ch = 92;
+      raceCoresEl.style.height = rows * ch + 'px';
+      const [c2, w2] = fit(raceCoresEl);
+      c2.clearRect(0, 0, w2, rows * ch);
+      const cw = w2 / cols;
+      sim.cores.forEach((cv, i) => {
+        const v = spring('c' + i, T(cv), dt), col = i % cols, row = Math.floor(i / cols);
+        const bx = col * cw + 14, by = row * ch;
+        c2.fillStyle = '#0c0d10'; c2.fillRect(col * cw + 4, by + 4, cw - 8, ch - 8);
+        wedge(c2, bx, bx + cw - 28, by + ch - 18, 4, ch * .5, v, 30, null, 0, F);
+        c2.textBaseline = 'alphabetic'; c2.font = `600 11px ${F.fl}`; c2.fillStyle = '#9ba0a9'; c2.textAlign = 'left';
+        c2.fillText('C' + (i + 1), bx, by + 22);
+        c2.font = `600 16px ${F.fn}`; c2.fillStyle = '#eceef1'; c2.textAlign = 'right';
+        c2.fillText(pct(cv), bx + cw - 28, by + 24);
+      });
+    }
+  }
+
+  // shift lights
+  const shiftEl = document.getElementById('shift');
+  const SL = 12;
+  const shiftLeds = Array.from({ length: SL }, (_, i) => {
+    const e = document.createElement('i'); e.className = i < 5 ? 'g' : i < 9 ? 'a' : 'r'; shiftEl.appendChild(e); return e;
+  });
+  function drawShift(t, v) {
+    const blink = v > .95 && Math.floor(t / 70) % 2 === 0;
+    shiftLeds.forEach((e, i) => {
+      const th = .5 + i * (.45 / (SL - 1));
+      e.classList.toggle('on', v > .95 ? blink : v >= th);
+    });
+  }
+
+  // ---------- controls ----------
+  const bL = document.getElementById('m-level'), bT = document.getElementById('m-tacho'), bC = document.getElementById('t-cores');
+  function apply() {
+    bL.setAttribute('aria-pressed', mode === 'level'); bT.setAttribute('aria-pressed', mode === 'tacho');
+    bC.setAttribute('aria-pressed', allCores);
+    document.getElementById('level').hidden = mode !== 'level';
+    document.getElementById('tacho').hidden = mode !== 'tacho';
+    const race = variant === 'race';
+    document.getElementById('core-sec').hidden = !allCores || race;
+    document.getElementById('race-wrap').hidden = !race;
+    document.getElementById('race-cores').hidden = !allCores;
+    document.getElementById('dial-main').hidden = race;
+    document.getElementById('dial-sub').hidden = race;
+    document.getElementById('variants').hidden = mode !== 'tacho';
+    ['classic', 'digital', 'race'].forEach(v => document.getElementById('v-' + v).setAttribute('aria-pressed', variant === v));
+    shiftEl.hidden = variant !== 'race';
+    buildLevel();
+    try { localStorage.setItem('roola-mode', mode); localStorage.setItem('roola-cores', allCores ? '1' : '0'); localStorage.setItem('roola-variant', variant); } catch (e) {}
+  }
+  bL.onclick = () => { mode = 'level'; apply(); };
+  let sweepAt = performance.now();
+  bT.onclick = () => { mode = 'tacho'; sweepAt = performance.now(); apply(); };
+  bC.onclick = () => { allCores = !allCores; apply(); };
+  ['classic', 'digital', 'race'].forEach(v => { document.getElementById('v-' + v).onclick = () => { variant = v; sweepAt = performance.now(); apply(); }; });
+  apply();
+
+  let last = performance.now();
+  function frame(t) {
+    const dt = Math.min(.1, (t - last) / 1000); last = t;
+    if (mode === 'level') drawLevel(dt);
+    else if (variant === 'race') drawRace(dt);
+    else dials.forEach(d => drawDial(d, dt));
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+})();
+</script>
+
+</html>
