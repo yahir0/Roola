@@ -27,8 +27,8 @@ lib/
 │                                        # WidgetsFlutterBinding + window_manager 初期化 + runApp
 ├── app/                                 # アプリ最上位の合成 / DI / ルーティング / テーマ
 │   ├── app.dart                         # MaterialApp.router / ProviderScope
-│   ├── router.dart                      # go_router_builder で定義したルート
-│   └── theme.dart                       # Polaris テーマ（PolarisTokens + ダーク専用 ThemeData）
+│   └── router.dart                      # go_router_builder で定義したルート
+│                                        # Polaris テーマは packages/polaris（下記）
 │
 ├── ui/                                  # View + ViewModel
 │   ├── home/
@@ -122,7 +122,24 @@ lib/
     │   └── key_chord_recorder.dart      # 生 KeyEvent → KeyChord 組み立て
     └── utils/
         └── ...
+
+packages/                                # 同一リポジトリ内の共通パッケージ（ADR-0069）
+├── polaris/                             # Polaris デザインシステム（テーマ・トークン・トグル・
+│                                        # ディスプレイパネル）。package:polaris/polaris.dart で公開
+├── roola_activity/                      # アクティビティモニタ（Flutter プラグイン・macOS）
+│   ├── lib/data/activity_metrics/       # 計測（roola/system/metrics チャネル）
+│   ├── lib/data/activity_dashboard/     # 計器盤の表示設定と永続化（保存先はアプリが override）
+│   ├── lib/ui/activity_dashboard/       # 計器盤（ActivityDashboardView）とメーター描画
+│   └── macos/Classes/                   # 計測のネイティブ実装（Swift）
+└── flutter_pty/                         # flutter_pty のローカル fork（Windows 用の修正）
+
+apps/
+└── roola_monitor/                       # 単体アプリ Roola Monitor（macOS のみ / ADR-0069）
 ```
+
+- 共通パッケージはアプリ（Roola / Roola Monitor）に依存しない。依存の向きは
+  `アプリ → roola_activity → polaris`、`アプリ → polaris`
+- 各アプリは共通パッケージを path 依存で参照し、自分の `pubspec.lock` を持つ
 
 ## 各層の責務と禁止事項
 
@@ -135,7 +152,7 @@ lib/
 - go_router 定義
 
 **テーマ（Polaris デザインシステム / ADR-0038）**:
-- `theme.dart` は Polaris のデザイントークン `PolarisTokens`（`ThemeExtension`）と、
+- `packages/polaris` は Polaris のデザイントークン `PolarisTokens`（`ThemeExtension`）と、
   それを束ねるダーク専用の `ThemeData` ビルダーを提供する。ライトテーマは持たない
 - UI コンポーネントは色・角丸・余白・テキストスタイルを `PolarisTokens`
   （`Theme.of(context).extension<PolarisTokens>()`）経由で参照する。リテラルの

@@ -1,0 +1,2 @@
+# ルートの規約（docs/coding-standards.md）をそのまま適用する。
+include: ../../analysis_options.yaml

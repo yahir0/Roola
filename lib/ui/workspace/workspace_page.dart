@@ -2,8 +2,8 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:polaris/polaris.dart';
 import 'package:roola/app/router.dart';
-import 'package:roola/app/theme.dart';
 import 'package:roola/data/workspace/workspace_layout.dart';
 import 'package:roola/data/workspace/workspace_layout_mode.dart';
 import 'package:roola/l10n/app_localizations.dart';

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:roola/app/theme.dart';
+import 'package:polaris/polaris.dart';
 
 /// ノートパッド左端の行番号ルーラ（ADR-0036）。
 ///

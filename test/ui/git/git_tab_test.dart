@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:roola/app/theme.dart';
+import 'package:polaris/polaris.dart';
 import 'package:roola/data/git/git_repository.dart';
 import 'package:roola/data/git/git_status.dart';
 import 'package:roola/data/git/process_git_repository.dart';

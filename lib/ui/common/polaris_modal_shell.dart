@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:roola/app/theme.dart';
+import 'package:polaris/polaris.dart';
 import 'package:roola/l10n/app_localizations.dart';
 import 'package:roola/ui/common/polaris_glyphs.dart';
 import 'package:roola/ui/common/polaris_settings_panel.dart';

@@ -1,0 +1,2 @@
+# パッケージは参照側アプリの pubspec.lock で依存を固定する（ADR-0069 D3）。
+pubspec.lock

@@ -1,23 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:roola/app/theme.dart';
-import 'package:roola/data/activity_dashboard/activity_dashboard_settings.dart';
-import 'package:roola/data/activity_dashboard/activity_dashboard_settings_repository.dart';
-import 'package:roola/data/activity_dashboard/activity_dashboard_settings_repository_impl.dart';
-import 'package:roola/data/activity_metrics/process_metrics.dart';
-import 'package:roola/data/activity_metrics/system_metrics.dart';
-import 'package:roola/data/activity_metrics/system_metrics_repository.dart';
-import 'package:roola/data/activity_metrics/system_snapshot.dart';
+import 'package:polaris/polaris.dart';
 import 'package:roola/data/workspace/pane_slot.dart';
 import 'package:roola/data/workspace/workspace_layout.dart';
 import 'package:roola/data/workspace/workspace_tab.dart';
 import 'package:roola/l10n/app_localizations.dart';
 import 'package:roola/ui/activity_dashboard/activity_tab_body.dart';
-import 'package:roola/ui/activity_dashboard/dial_meter.dart';
-import 'package:roola/ui/activity_dashboard/level_meter.dart';
-import 'package:roola/ui/activity_dashboard/race_cluster.dart';
 import 'package:roola/ui/workspace/workspace_seed.dart';
+import 'package:roola_activity/data/activity_dashboard/activity_dashboard_settings.dart';
+import 'package:roola_activity/data/activity_dashboard/activity_dashboard_settings_repository.dart';
+import 'package:roola_activity/data/activity_dashboard/activity_dashboard_settings_repository_impl.dart';
+import 'package:roola_activity/data/activity_metrics/process_metrics.dart';
+import 'package:roola_activity/data/activity_metrics/system_metrics.dart';
+import 'package:roola_activity/data/activity_metrics/system_metrics_repository.dart';
+import 'package:roola_activity/data/activity_metrics/system_snapshot.dart';
+import 'package:roola_activity/ui/activity_dashboard/dial_meter.dart';
+import 'package:roola_activity/ui/activity_dashboard/level_meter.dart';
+import 'package:roola_activity/ui/activity_dashboard/race_cluster.dart';
 
 class _FakeMetrics implements SystemMetricsRepository {
   _FakeMetrics({this.full = true});

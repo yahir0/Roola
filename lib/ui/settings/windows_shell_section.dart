@@ -2,10 +2,10 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:polaris/polaris.dart';
 import 'package:roola/data/terminal_runner/windows_shell.dart';
 import 'package:roola/data/terminal_settings/terminal_settings_repository_impl.dart';
 import 'package:roola/ui/common/polaris_settings_panel.dart';
-import 'package:roola/ui/common/polaris_toggle.dart';
 
 /// Windows のデフォルトシェル選択セクション（Task 5.7）。
 ///

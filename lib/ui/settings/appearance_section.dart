@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:roola/app/theme.dart';
+import 'package:polaris/polaris.dart';
 import 'package:roola/data/appearance/appearance_settings.dart';
 import 'package:roola/data/appearance/appearance_settings_repository_impl.dart';
-import 'package:roola/data/appearance/polaris_accent.dart';
 import 'package:roola/l10n/app_localizations.dart';
 import 'package:roola/ui/common/polaris_settings_panel.dart';
-import 'package:roola/ui/common/polaris_toggle.dart';
 
 /// 設定画面に組み込む「外観」セクション。
 ///

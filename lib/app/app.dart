@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:polaris/polaris.dart';
 import 'package:roola/app/app_menu_bar.dart';
 import 'package:roola/app/router.dart';
 import 'package:roola/app/terms_consent_gate.dart';
-import 'package:roola/app/theme.dart';
 import 'package:roola/app/window_close_guard.dart';
 import 'package:roola/app/windows_keyboard_shortcut_bridge.dart';
 import 'package:roola/data/appearance/appearance_settings.dart';

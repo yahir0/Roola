@@ -1,6 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
+import 'package:polaris/polaris.dart';
 import 'package:roola/data/appearance/appearance_settings.dart';
-import 'package:roola/data/appearance/polaris_accent.dart';
 
 part 'appearance_settings_dto.g.dart';
 

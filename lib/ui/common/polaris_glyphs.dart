@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:roola/app/theme.dart';
+import 'package:polaris/polaris.dart';
 
 /// フォルダ／ファイルの型アイコン（Polaris / ADR-0038 D10）。
 ///

@@ -4,7 +4,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:roola/app/theme.dart';
+import 'package:polaris/polaris.dart';
 import 'package:roola/data/notepad/notepad_note.dart';
 import 'package:roola/data/notepad/notepad_notes_provider.dart';
 import 'package:roola/l10n/app_localizations.dart';

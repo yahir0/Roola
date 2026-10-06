@@ -21,7 +21,9 @@ Roola の独自デザインシステム **Polaris** の現行規約を定義す�
 - ADR-0054: コンテンツ面はベゼル付きディスプレイに統一し、内側はフラットにする — D1/D3/D6 の一般化
 - ADR-0068: アクティビティタブのメーター描画領域では本規約（単一アクセント・0ms・発光禁止）を適用しない — 範囲限定の適用除外
 
-実装の単一ソースは `lib/app/theme.dart` の `PolarisTokens`（`ThemeExtension`）。
+実装の単一ソースは共通パッケージ `packages/polaris`（`lib/src/theme.dart`）の
+`PolarisTokens`（`ThemeExtension`）。Roola と Roola Monitor が `package:polaris/polaris.dart`
+から参照する（ADR-0069）。
 本ドキュメントの値とコードが食い違ったら**コードが正**。
 
 ## デザイントークン（一元管理）
@@ -34,7 +36,7 @@ Polaris の全デザイン値は `PolarisTokens` という単一の `ThemeExtens
 - 余白は `PolarisTokens` の `static const`（`space1`=4px 〜）を使い、`const`
   構築の中でもリテラルを書かない。
 
-主なトークン（`lib/app/theme.dart`）:
+主なトークン（`packages/polaris/lib/src/theme.dart`）:
 
 | トークン | 役割 |
 |---|---|
@@ -75,7 +77,8 @@ Polaris の全デザイン値は `PolarisTokens` という単一の `ThemeExtens
 
 アクティビティタブ（ADR-0067）の **メーター描画領域に限り**、本規約の単一アクセント・
 アニメーション 0ms・発光禁止を適用しない。多色の計器色は `ActivityMeterPalette`
-（`lib/app/activity_meter_palette.dart`）に集約し、アクティビティタブ外から参照しない
+（`packages/roola_activity/lib/ui/activity_dashboard/activity_meter_palette.dart`）に集約し、
+アクティビティの計器盤（Roola のアクティビティタブと Roola Monitor）の外から参照しない
 （MUST NOT）。タブの外枠・ツールバー・ディスプレイパネルと、他の全画面は本規約に従う。
 除外を他の画面へ広げる場合は個別に ADR を要する。
 
@@ -193,7 +196,7 @@ UI のフィードバックは即時（0ms）でなければならない（MUST�
 
 ### 切替 UI・スライダー
 
-- 切替は M3 `SegmentedButton` を使わず `PolarisToggle`（`lib/ui/common/polaris_toggle.dart`）
+- 切替は M3 `SegmentedButton` を使わず `PolarisToggle`（`packages/polaris/lib/src/polaris_toggle.dart`）
   を使う。外枠 1px のみ・仕切り線なし・R=4px、選択は低透過（16%）の淡いアクセント面
   ＋アクセント色の文字で静かに示す。
 - スライダーのツマミは Material 既定の丸ツマミでなく、機械加工 R の矩形フェーダ

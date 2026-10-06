@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:polaris/polaris.dart';
 import 'package:roola/app/router.dart';
-import 'package:roola/app/theme.dart';
 import 'package:roola/data/launcher_entry/launcher_action.dart';
 import 'package:roola/data/launcher_entry/launcher_entries_provider.dart';
 import 'package:roola/data/launcher_entry/launcher_entry.dart';

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:polaris/polaris.dart';
 import 'package:roola/app/about.dart';
 import 'package:roola/app/router.dart';
-import 'package:roola/app/theme.dart';
 import 'package:roola/core/health/claude_health_check.dart';
 import 'package:roola/data/locale/app_locale.dart';
 import 'package:roola/data/locale/locale_settings_repository_impl.dart';
@@ -13,7 +13,6 @@ import 'package:roola/l10n/app_localizations.dart';
 import 'package:roola/ui/common/polaris_glyphs.dart';
 import 'package:roola/ui/common/polaris_modal_shell.dart';
 import 'package:roola/ui/common/polaris_settings_panel.dart';
-import 'package:roola/ui/common/polaris_toggle.dart';
 import 'package:roola/ui/settings/appearance_section.dart';
 import 'package:roola/ui/settings/notification_section.dart';
 import 'package:roola/ui/settings/privacy_section.dart';

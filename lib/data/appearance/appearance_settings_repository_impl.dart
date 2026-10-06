@@ -2,12 +2,12 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:polaris/polaris.dart';
 import 'package:roola/core/exceptions/app_exception.dart';
 import 'package:roola/core/storage/app_paths.dart';
 import 'package:roola/data/appearance/appearance_settings.dart';
 import 'package:roola/data/appearance/appearance_settings_dto.dart';
 import 'package:roola/data/appearance/appearance_settings_repository.dart';
-import 'package:roola/data/appearance/polaris_accent.dart';
 import 'package:roola/data/launcher_entry/launcher_entry_repository_impl.dart';
 
 /// `<appSupport>/appearance.json` を保存先とする実装。

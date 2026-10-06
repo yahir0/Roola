@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:roola/app/theme.dart';
+import 'package:polaris/polaris.dart';
 import 'package:roola/l10n/app_localizations.dart';
 import 'package:roola/ui/activity_monitor/cc_usage_format.dart';
 import 'package:roola/ui/activity_monitor/cc_usage_view_model.dart';

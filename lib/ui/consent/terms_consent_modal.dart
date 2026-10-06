@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:roola/app/theme.dart';
+import 'package:polaris/polaris.dart';
 import 'package:roola/core/constants/terms.dart';
 import 'package:roola/data/privacy/privacy_settings_repository_impl.dart';
 import 'package:roola/l10n/app_localizations.dart';
 import 'package:roola/ui/common/polaris_settings_panel.dart';
-import 'package:roola/ui/common/polaris_toggle.dart';
 import 'package:roola/ui/consent/terms_text_view.dart';
 
 /// 利用規約への同意モーダル（ADR-0065）。

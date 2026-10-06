@@ -8,10 +8,14 @@ PODS:
   - FlutterMacOS (1.0.0)
   - irondash_engine_context (0.0.1):
     - FlutterMacOS
+  - local_notifier (0.1.0):
+    - FlutterMacOS
   - package_info_plus (0.0.1):
     - FlutterMacOS
   - pdfium_flutter (0.1.5):
     - Flutter
+    - FlutterMacOS
+  - roola_activity (1.0.0):
     - FlutterMacOS
   - screen_retriever_macos (0.0.1):
     - FlutterMacOS
@@ -29,8 +33,10 @@ DEPENDENCIES:
   - flutter_pty (from `Flutter/ephemeral/.symlinks/plugins/flutter_pty/macos`)
   - FlutterMacOS (from `Flutter/ephemeral`)
   - irondash_engine_context (from `Flutter/ephemeral/.symlinks/plugins/irondash_engine_context/macos`)
+  - local_notifier (from `Flutter/ephemeral/.symlinks/plugins/local_notifier/macos`)
   - package_info_plus (from `Flutter/ephemeral/.symlinks/plugins/package_info_plus/macos`)
   - pdfium_flutter (from `Flutter/ephemeral/.symlinks/plugins/pdfium_flutter/darwin`)
+  - roola_activity (from `Flutter/ephemeral/.symlinks/plugins/roola_activity/macos`)
   - screen_retriever_macos (from `Flutter/ephemeral/.symlinks/plugins/screen_retriever_macos/macos`)
   - Sparkle (~> 2.6)
   - super_native_extensions (from `Flutter/ephemeral/.symlinks/plugins/super_native_extensions/macos`)
@@ -52,10 +58,14 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral
   irondash_engine_context:
     :path: Flutter/ephemeral/.symlinks/plugins/irondash_engine_context/macos
+  local_notifier:
+    :path: Flutter/ephemeral/.symlinks/plugins/local_notifier/macos
   package_info_plus:
     :path: Flutter/ephemeral/.symlinks/plugins/package_info_plus/macos
   pdfium_flutter:
     :path: Flutter/ephemeral/.symlinks/plugins/pdfium_flutter/darwin
+  roola_activity:
+    :path: Flutter/ephemeral/.symlinks/plugins/roola_activity/macos
   screen_retriever_macos:
     :path: Flutter/ephemeral/.symlinks/plugins/screen_retriever_macos/macos
   super_native_extensions:
@@ -71,8 +81,10 @@ SPEC CHECKSUMS:
   flutter_pty: 41b6f848ade294be726a6b94cdd4a67c3bc52f59
   FlutterMacOS: d0db08ddef1a9af05a5ec4b724367152bb0500b1
   irondash_engine_context: da62996ee25616d2f01bbeb85dc115d813359478
+  local_notifier: e9506bc66fc70311e8bc7291fb70f743c081e4ff
   package_info_plus: 12f1c5c2cfe8727ca46cbd0b26677728972d9a5b
   pdfium_flutter: 814416ae1e24618fc80353aacbf17c7229373559
+  roola_activity: dc53ce30209a45ee9319486f2d797bd59beab2e4
   screen_retriever_macos: 776e0fa5d42c6163d2bf772d22478df4b302b161
   Sparkle: 2d0c930d42d53ee0fdf98bbb342c08eaf18ab5f0
   super_native_extensions: 85efee3a7495b46b04befcfc86ed12069264ebf3
