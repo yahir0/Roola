@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:highlight/highlight.dart' show highlight, Node;
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:pdfrx/pdfrx.dart';
-import 'package:roola/app/theme.dart';
+import 'package:polaris/polaris.dart';
 import 'package:roola/data/file_preview/file_preview_content.dart';
 import 'package:roola/l10n/app_localizations.dart';
 import 'package:roola/ui/explorer/file_preview/file_preview_view_model.dart';

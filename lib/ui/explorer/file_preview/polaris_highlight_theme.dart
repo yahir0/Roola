@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:roola/app/theme.dart';
+import 'package:polaris/polaris.dart';
 
 /// `flutter_highlight` 用のシンタックスハイライトテーマを [PolarisTokens]
 /// から組み立てる（ADR-0046 / Decision 6）。

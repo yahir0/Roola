@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:roola/app/theme.dart';
-import 'package:roola/data/activity_metrics/process_metrics.dart';
-import 'package:roola/data/activity_metrics/system_metrics_repository.dart';
+import 'package:polaris/polaris.dart';
 import 'package:roola/l10n/app_localizations.dart';
 import 'package:roola/ui/activity_monitor/activity_monitor_view_model.dart';
 import 'package:roola/ui/workspace/workspace_provider.dart';
+import 'package:roola_activity/data/activity_metrics/process_metrics.dart';
+import 'package:roola_activity/data/activity_metrics/system_metrics_repository.dart';
 
 /// アクティビティモニタのクリックで開く、上位プロセス一覧パネル
 /// （ADR-0039 D6）。

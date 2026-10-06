@@ -12,6 +12,8 @@ import 'package:roola/data/locale/locale_settings_repository_impl.dart';
 import 'package:roola/data/notepad/notepad_catalog_store.dart';
 import 'package:roola/data/notepad/notepad_note.dart';
 import 'package:roola/data/notepad/notepad_repository_impl.dart';
+import 'package:roola_activity/activity_licenses.dart';
+import 'package:roola_activity/data/activity_dashboard/activity_dashboard_settings_repository_impl.dart';
 import 'package:uuid/uuid.dart';
 import 'package:window_manager/window_manager.dart';
 
@@ -31,6 +33,8 @@ Future<void> main() async {
   // 追加する（ADR-0040）。`showLicensePage` までに登録されていればよいので
   // 同期的な await は不要（callback は遅延評価される）。
   await registerNativeLicenses();
+  // 計器書体（共通パッケージ roola_activity が同梱 / ADR-0069）のライセンス。
+  registerActivityLicenses();
 
   const windowOptions = WindowOptions(
     size: Size(1024, 720),
@@ -86,6 +90,11 @@ Future<void> main() async {
     ProviderScope(
       overrides: [
         appPathsProvider.overrideWithValue(paths),
+        // 計器盤の表示設定は従来どおり `<appSupport>/activity_dashboard.json`
+        // に保存する（ADR-0069 D6）。
+        activityDashboardSettingsFileProvider.overrideWithValue(
+          paths.activityDashboardSettingsFile,
+        ),
         localeSettingsInitialProvider.overrideWithValue(initialLocale),
         notepadInitialContentProvider.overrideWithValue(initialNotepad),
       ],

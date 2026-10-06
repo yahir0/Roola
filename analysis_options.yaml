@@ -13,6 +13,8 @@ analyzer:
     - "**/*.g.dart"
     - build/**
     - packages/**
+    # 各パッケージ・アプリは自分のディレクトリで analyze する（ADR-0069）
+    - apps/**
 
 linter:
   rules:

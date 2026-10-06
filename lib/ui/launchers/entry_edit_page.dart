@@ -2,7 +2,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:roola/app/theme.dart';
+import 'package:polaris/polaris.dart';
 import 'package:roola/core/health/claude_health_check.dart';
 import 'package:roola/data/launcher_entry/launcher_action.dart';
 import 'package:roola/data/launcher_entry/launcher_folders_provider.dart';
@@ -10,7 +10,6 @@ import 'package:roola/l10n/app_localizations.dart';
 import 'package:roola/ui/common/polaris_glyphs.dart';
 import 'package:roola/ui/common/polaris_modal_shell.dart';
 import 'package:roola/ui/common/polaris_settings_panel.dart';
-import 'package:roola/ui/common/polaris_toggle.dart';
 import 'package:roola/ui/launchers/entry_edit_view_model.dart';
 
 /// エントリ追加・編集画面。

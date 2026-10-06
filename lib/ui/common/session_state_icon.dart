@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:roola/app/theme.dart';
+import 'package:polaris/polaris.dart';
 import 'package:roola/data/terminal_runner/terminal_run_state.dart';
 import 'package:roola/ui/common/pulsing_icon.dart';
 

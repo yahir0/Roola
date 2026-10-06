@@ -15,16 +15,27 @@
     再生成（サイズ振り直しのみ）は既存マスターをそのまま縮小する。
 
 使い方:
-    python3 branding/generate_app_icon.py
+    python3 branding/generate_app_icon.py            # Roola
+    python3 branding/generate_app_icon.py monitor    # Roola Monitor（ADR-0069）
 """
 
+import sys
 from pathlib import Path
 
 from PIL import Image, ImageDraw
 
 _ROOT = Path(__file__).resolve().parent.parent
-_OUT_DIR = _ROOT / "macos/Runner/Assets.xcassets/AppIcon.appiconset"
-_MASTER = _ROOT / "branding/roola_icon_master.png"
+# アプリ名 → (マスター画像, 出力先の AppIcon.appiconset)
+_TARGETS = {
+    "roola": (
+        _ROOT / "branding/roola_icon_master.png",
+        _ROOT / "macos/Runner/Assets.xcassets/AppIcon.appiconset",
+    ),
+    "monitor": (
+        _ROOT / "branding/roola_meter_icon_master.png",
+        _ROOT / "apps/roola_monitor/macos/Runner/Assets.xcassets/AppIcon.appiconset",
+    ),
+}
 _SIZES = [16, 32, 64, 128, 256, 512, 1024]
 
 # macOS アイコングリッド（1024 基準）。本体 824（余白 100）/ 角丸 184。
@@ -56,14 +67,18 @@ def _build_master(src_path: Path) -> Image.Image:
 
 
 def main() -> None:
-    if not _MASTER.exists():
+    target = sys.argv[1] if len(sys.argv) > 1 else "roola"
+    if target not in _TARGETS:
+        raise SystemExit(f"unknown target: {target}（{' / '.join(_TARGETS)}）")
+    master_path, out_dir = _TARGETS[target]
+    if not master_path.exists():
         raise SystemExit(
-            f"master not found: {_MASTER}\n"
+            f"master not found: {master_path}\n"
             "元アートからマスターを作る場合は _build_master(src) を使う。"
         )
-    master = Image.open(_MASTER).convert("RGBA")
+    master = Image.open(master_path).convert("RGBA")
     for size in _SIZES:
-        master.resize((size, size), Image.LANCZOS).save(_OUT_DIR / f"app_icon_{size}.png")
+        master.resize((size, size), Image.LANCZOS).save(out_dir / f"app_icon_{size}.png")
         print(f"wrote app_icon_{size}.png")
 
 

@@ -1,9 +1,9 @@
 import 'dart:async';
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:roola/data/activity_metrics/process_metrics.dart';
-import 'package:roola/data/activity_metrics/system_metrics.dart';
-import 'package:roola/data/activity_metrics/system_metrics_repository.dart';
+import 'package:roola_activity/data/activity_metrics/process_metrics.dart';
+import 'package:roola_activity/data/activity_metrics/system_metrics.dart';
+import 'package:roola_activity/data/activity_metrics/system_metrics_repository.dart';
 
 /// ポップオーバーに出す上位プロセスの件数。
 const int activityTopProcessLimit = 8;

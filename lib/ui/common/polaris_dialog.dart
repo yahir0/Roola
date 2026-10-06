@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:roola/app/theme.dart';
+import 'package:polaris/polaris.dart';
 
 /// Polaris の計器パネル調ダイアログシェル（ADR-0038）。
 ///

@@ -1,10 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:roola/data/activity_metrics/process_metrics.dart';
-import 'package:roola/data/activity_metrics/system_metrics.dart';
-import 'package:roola/data/activity_metrics/system_metrics_repository.dart';
-import 'package:roola/data/activity_metrics/system_snapshot.dart';
 import 'package:roola/ui/activity_monitor/activity_monitor_view_model.dart';
+import 'package:roola_activity/data/activity_metrics/process_metrics.dart';
+import 'package:roola_activity/data/activity_metrics/system_metrics.dart';
+import 'package:roola_activity/data/activity_metrics/system_metrics_repository.dart';
+import 'package:roola_activity/data/activity_metrics/system_snapshot.dart';
 
 /// ネイティブ呼び出しを伴わない fake。`fetchSystemMetrics` の挙動は
 /// テストごとに [onFetch] で差し替える。

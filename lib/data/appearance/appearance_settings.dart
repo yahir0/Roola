@@ -1,5 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:roola/data/appearance/polaris_accent.dart';
+import 'package:polaris/polaris.dart';
 
 part 'appearance_settings.freezed.dart';
 

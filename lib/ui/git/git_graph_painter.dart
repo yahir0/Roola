@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:roola/app/theme.dart';
+import 'package:polaris/polaris.dart';
 import 'package:roola/data/git/git_graph_row.dart';
 
 /// 履歴グラフ 1 行分のレーン・線分を描く [CustomPainter]（ADR-0030 / design

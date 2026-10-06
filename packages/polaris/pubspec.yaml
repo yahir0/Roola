@@ -1,0 +1,17 @@
+name: polaris
+description: "Polaris — Roola 系アプリ共通のデザインシステム（テーマ・トークン・共通部品 / ADR-0038・ADR-0069）。"
+publish_to: 'none'
+version: 1.0.0
+
+environment:
+  sdk: ^3.11.0
+  flutter: '>=3.41.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0

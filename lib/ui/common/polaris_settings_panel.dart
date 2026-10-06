@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:roola/app/theme.dart';
+import 'package:polaris/polaris.dart';
 
 /// 設定画面の 1 セクション（Polaris / ADR-0038）。
 ///

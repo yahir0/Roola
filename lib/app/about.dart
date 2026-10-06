@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:polaris/polaris.dart';
 import 'package:roola/app/router.dart';
-import 'package:roola/app/theme.dart';
 import 'package:roola/l10n/app_localizations.dart';
 
 /// About ダイアログを開く（ADR-0040）。

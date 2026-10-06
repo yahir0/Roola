@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:roola/app/theme.dart';
+import 'package:polaris/polaris.dart';
 import 'package:window_manager/window_manager.dart';
 
 /// macOS の信号灯ボタン（close / minimize / maximize）と AppBar の

@@ -140,6 +140,7 @@
 - ADR-0066: タスク通知を通知エスケープシーケンス（OSC）方式へ移行する（ADR-0057 Supersede）— ユーザー設定ゼロの in-band 通知（許可待ち即時 + 入力待ち 60 秒）へ。フック経路は撤去済み（2026-06-12）。管理対象は Roola 内起動セッションのみ
 - ADR-0067: アクティビティモニタをワークスペースタブとして追加する（LEVEL / TACHO〔CLASSIC・DIGITAL・RACE〕・表示中のみ 250ms ポーリング・ネイティブは累積値スナップショット・ネットワークは en* の IF 別 2³² 剰余差分で採用）
 - ADR-0068: アクティビティタブのメーター描画領域では Polaris の規定（単一アクセント・0ms・発光禁止）を適用しない ※Proposed
+- ADR-0069: アクティビティモニタを共通パッケージ（`packages/polaris` / `packages/roola_activity`）に切り出し、単体アプリ Roola Monitor（`apps/roola_monitor`・macOS のみ）を同一リポジトリで提供する（二重保守にしない・path 依存）
 
 ## ディレクトリ構成
 

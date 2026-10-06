@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:roola/app/theme.dart';
+import 'package:polaris/polaris.dart';
 import 'package:roola/data/launcher_entry/launcher_action.dart';
 import 'package:roola/data/skill_session/adhoc_run_args.dart';
 import 'package:roola/data/workspace/workspace_layout.dart';
 import 'package:roola/l10n/app_localizations.dart';
-import 'package:roola/ui/common/polaris_display_panel.dart';
 import 'package:roola/ui/git/git_changes_section.dart';
 import 'package:roola/ui/git/git_history_section.dart';
 import 'package:roola/ui/git/git_toolbar.dart';
