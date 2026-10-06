@@ -3,13 +3,15 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:roola/app/activity_meter_palette.dart';
 import 'package:roola/ui/activity_dashboard/meter_animator.dart';
+import 'package:roola/ui/activity_dashboard/meter_layout.dart';
 import 'package:roola/ui/activity_dashboard/meter_specs.dart';
 import 'package:roola/ui/activity_dashboard/meter_text.dart';
 
 /// LEVEL モード: 放送用レベルゲージ風の縦 LED バー（ADR-0067 D2 / design D6）。
 ///
 /// グループ（CPU / MEMORY / NETWORK / DISK / LOAD）ごとに 1 枚の
-/// [CustomPaint] を横に並べ、幅が足りなければ折り返す。
+/// [CustomPaint] を横に並べる。ペインが狭ければチャンネル幅を詰め、それでも
+/// 足りなければ折り返して高さを分け合う（[fitLevel]）。
 class LevelBoard extends StatelessWidget {
   const LevelBoard({
     required this.groups,
@@ -22,32 +24,50 @@ class LevelBoard extends StatelessWidget {
   final MeterAnimator animator;
   final MeterTextCache textCache;
 
+  static const EdgeInsets _padding = EdgeInsets.symmetric(
+    vertical: 16,
+    horizontal: 16,
+  );
+
   @override
   Widget build(BuildContext context) {
     final palette = ActivityMeterPalette.of(context);
     return LayoutBuilder(
       builder: (context, constraints) {
-        // グループ見出しとパディングを除いた高さをメーターに充てる。
-        final height = (constraints.maxHeight - 64).clamp(220.0, 420.0);
-        return SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
-          child: Center(
-            child: Wrap(
-              spacing: 26,
-              runSpacing: 18,
-              alignment: WrapAlignment.center,
-              children: [
-                for (final g in groups)
-                  _LevelGroup(
-                    group: g,
-                    height: height,
-                    animator: animator,
-                    textCache: textCache,
-                    palette: palette,
-                  ),
-              ],
+        final width = constraints.maxWidth - _padding.horizontal;
+        // ペインに全グループが収まるよう、チャンネル幅と高さを決める。
+        final fit = fitLevel(
+          width: width,
+          height: constraints.maxHeight - _padding.vertical,
+          channelCounts: [for (final g in groups) g.channels.length],
+        );
+        final wrap = Wrap(
+          spacing: levelGroupSpacing,
+          runSpacing: levelRunSpacing,
+          alignment: WrapAlignment.center,
+          children: [
+            for (final g in groups)
+              _LevelGroup(
+                group: g,
+                height: fit.meterHeight,
+                scale: fit.channelScale,
+                animator: animator,
+                textCache: textCache,
+                palette: palette,
+              ),
+          ],
+        );
+        if (fit.fits) {
+          return Padding(
+            padding: _padding,
+            child: Center(
+              child: SizedBox(width: width, child: wrap),
             ),
-          ),
+          );
+        }
+        return SingleChildScrollView(
+          padding: _padding,
+          child: Center(child: wrap),
         );
       },
     );
@@ -58,6 +78,7 @@ class _LevelGroup extends StatelessWidget {
   const _LevelGroup({
     required this.group,
     required this.height,
+    required this.scale,
     required this.animator,
     required this.textCache,
     required this.palette,
@@ -65,6 +86,7 @@ class _LevelGroup extends StatelessWidget {
 
   final MeterGroup group;
   final double height;
+  final double scale;
   final MeterAnimator animator;
   final MeterTextCache textCache;
   final ActivityMeterPalette palette;
@@ -100,9 +122,10 @@ class _LevelGroup extends StatelessWidget {
         const SizedBox(height: 8),
         RepaintBoundary(
           child: CustomPaint(
-            size: Size(LevelGroupPainter.widthFor(group), height),
+            size: Size(levelGroupWidth(group.channels.length, scale), height),
             painter: LevelGroupPainter(
               group: group,
+              scale: scale,
               animator: animator,
               palette: palette,
               textCache: textCache,
@@ -118,26 +141,28 @@ class _LevelGroup extends StatelessWidget {
 class LevelGroupPainter extends CustomPainter {
   LevelGroupPainter({
     required this.group,
+    required this.scale,
     required this.animator,
     required this.palette,
     required this.textCache,
   }) : super(repaint: animator);
 
   final MeterGroup group;
+
+  /// チャンネル幅・間隔の倍率（狭いペインで詰める）。
+  final double scale;
   final MeterAnimator animator;
   final ActivityMeterPalette palette;
   final MeterTextCache textCache;
 
   static const int segments = 40;
-  static const double _scaleWidth = 34;
-  static const double _channelWidth = 20;
-  static const double _channelGap = 8;
+  static const double _scaleWidth = levelScaleWidth;
   static const double _segmentGap = 2;
   static const double _top = 12;
   static const double _bottomArea = 46;
 
-  static double widthFor(MeterGroup group) =>
-      _scaleWidth + group.channels.length * (_channelWidth + _channelGap) + 6;
+  double get _channelWidth => levelChannelWidth * scale;
+  double get _channelGap => levelChannelGap * scale;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -170,7 +195,7 @@ class LevelGroupPainter extends CustomPainter {
         textCache.get(
           ch.short,
           font: meterNumberFont,
-          size: 11,
+          size: math.max(8, 11 * scale),
           color: palette.readout,
         ),
         Offset(x + _channelWidth / 2, bottom + 14),
@@ -274,5 +299,5 @@ class LevelGroupPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(LevelGroupPainter old) =>
-      old.group != group || old.palette != palette;
+      old.group != group || old.scale != scale || old.palette != palette;
 }

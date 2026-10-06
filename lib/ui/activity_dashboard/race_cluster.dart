@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:roola/app/activity_meter_palette.dart';
 import 'package:roola/ui/activity_dashboard/meter_animator.dart';
+import 'package:roola/ui/activity_dashboard/meter_layout.dart';
 import 'package:roola/ui/activity_dashboard/meter_text.dart';
 
 /// RACE クラスタに載せる表示内容（数値の文字列と、項目の有無）。
@@ -69,8 +70,10 @@ class RaceReadouts {
 
 /// TACHO モードの RACE: GR86 / BRZ の Track Mode 風クラスタ（design D6）。
 ///
-/// 上部にシフトライト、中央に 1 枚のクラスタ（幅 720px 未満は横スクロール）、
-/// 全コア表示時は下にコア別の小さな右肩上がりバーグラフを並べる。
+/// 上部にシフトライト、中央に 1 枚のクラスタ、全コア表示時は下にコア別の小さな
+/// 右肩上がりバーグラフを並べる。クラスタはペインの幅と高さに収まる大きさを選び
+/// （[fitRace]）、狭いペインでは縦長レイアウトに切り替える。極端に小さいペインで
+/// だけスクロールする。
 class RaceBoard extends StatelessWidget {
   const RaceBoard({
     required this.readouts,
@@ -87,60 +90,89 @@ class RaceBoard extends StatelessWidget {
   final MeterAnimator animator;
   final MeterTextCache textCache;
 
-  static const double _minWidth = 720;
+  static const double _padding = 16;
+  static const double _gap = 12;
+  static const double _coreCellWidth = 160;
+  static const double _coreRowHeight = 72;
 
   @override
   Widget build(BuildContext context) {
     final palette = ActivityMeterPalette.of(context);
     return LayoutBuilder(
       builder: (context, constraints) {
-        final width = math.max(_minWidth, constraints.maxWidth - 32);
-        final cols = math.max(2, (width / 180).floor());
-        final rows = (coreCount / cols).ceil();
+        final width = constraints.maxWidth - _padding * 2;
+        final cols = math.max(2, (width / _coreCellWidth).floor());
+        final coresHeight = coreCount == 0
+            ? 0.0
+            : (coreCount / cols).ceil() * _coreRowHeight + _gap;
+        final clusterHeight =
+            constraints.maxHeight -
+            _padding * 2 -
+            ShiftLightsPainter.height -
+            _gap -
+            coresHeight;
+        final fit = fitRace(width: width, height: clusterHeight);
+        final contentWidth = math.max(fit.width, width);
+        final column = Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            RepaintBoundary(
+              child: CustomPaint(
+                size: const Size(
+                  ShiftLightsPainter.width,
+                  ShiftLightsPainter.height,
+                ),
+                painter: ShiftLightsPainter(
+                  animator: animator,
+                  palette: palette,
+                ),
+              ),
+            ),
+            const SizedBox(height: _gap),
+            RepaintBoundary(
+              child: CustomPaint(
+                size: Size(fit.width, fit.height),
+                painter: RaceClusterPainter(
+                  layout: fit.layout,
+                  readouts: readouts,
+                  animator: animator,
+                  palette: palette,
+                  textCache: textCache,
+                ),
+              ),
+            ),
+            if (coreCount > 0) ...[
+              const SizedBox(height: _gap),
+              RepaintBoundary(
+                child: CustomPaint(
+                  size: Size(
+                    contentWidth,
+                    (coreCount / cols).ceil() * _coreRowHeight,
+                  ),
+                  painter: RaceCoresPainter(
+                    coreCount: coreCount,
+                    columns: cols,
+                    rowHeight: _coreRowHeight,
+                    animator: animator,
+                    palette: palette,
+                    textCache: textCache,
+                  ),
+                ),
+              ),
+            ],
+          ],
+        );
+        if (fit.fits) {
+          return Padding(
+            padding: const EdgeInsets.all(_padding),
+            child: Center(child: column),
+          );
+        }
         return SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+          padding: const EdgeInsets.all(_padding),
           child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
-            child: Column(
-              children: [
-                RepaintBoundary(
-                  child: CustomPaint(
-                    size: const Size(ShiftLightsPainter.width, 16),
-                    painter: ShiftLightsPainter(
-                      animator: animator,
-                      palette: palette,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                RepaintBoundary(
-                  child: CustomPaint(
-                    size: Size(width, width * 9 / 21),
-                    painter: RaceClusterPainter(
-                      readouts: readouts,
-                      animator: animator,
-                      palette: palette,
-                      textCache: textCache,
-                    ),
-                  ),
-                ),
-                if (coreCount > 0) ...[
-                  const SizedBox(height: 12),
-                  RepaintBoundary(
-                    child: CustomPaint(
-                      size: Size(width, rows * 92.0),
-                      painter: RaceCoresPainter(
-                        coreCount: coreCount,
-                        columns: cols,
-                        animator: animator,
-                        palette: palette,
-                        textCache: textCache,
-                      ),
-                    ),
-                  ),
-                ],
-              ],
-            ),
+            child: column,
           ),
         );
       },
@@ -267,14 +299,21 @@ void _paintWedge(
 }
 
 /// RACE クラスタ本体。
+///
+/// 横長（[RaceLayout.wide]）は実車どおり中央にバーグラフ・左右にパネル。
+/// 縦長（[RaceLayout.compact]）は上にバーグラフ、下に左右パネルを並べる。
+/// 文字や線の太さは各ブロックの基準寸法 `u` に比例させ、縮めても崩れないように
+/// する。
 class RaceClusterPainter extends CustomPainter {
   RaceClusterPainter({
+    required this.layout,
     required this.readouts,
     required this.animator,
     required this.palette,
     required this.textCache,
   }) : super(repaint: animator);
 
+  final RaceLayout layout;
   final RaceReadouts readouts;
   final MeterAnimator animator;
   final ActivityMeterPalette palette;
@@ -284,29 +323,56 @@ class RaceClusterPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final w = size.width;
     final h = size.height;
-    final cx = w / 2;
-    final cy = h * 0.5;
-    final radius = h * 0.47;
-    final y1 = h * 0.2;
-    final y2 = h * 0.76;
-
     canvas.drawRRect(
       RRect.fromRectAndRadius(Offset.zero & size, const Radius.circular(6)),
       Paint()..color = palette.stage,
     );
 
-    // 表示面と中央の円（左右へ伸びる水平線の縁取り）。
+    switch (layout) {
+      case RaceLayout.wide:
+        final u = h;
+        _paintCenterBlock(canvas, w, 0, u);
+        _paintLeftPanel(
+          canvas,
+          Rect.fromLTWH(w * 0.045, h * 0.26, w * 0.2, 0),
+          u,
+        );
+        _paintRightPanel(
+          canvas,
+          Rect.fromLTWH(w * 0.74, h * 0.26, w * 0.215, 0),
+          u,
+        );
+        _paintUptime(canvas, Offset(w * 0.045, h * 0.83), u);
+      case RaceLayout.compact:
+        // 上段（バーグラフ）の高さを基準寸法にする。
+        final u = w * 0.5;
+        _paintCenterBlock(canvas, w, 0, u);
+        final top = u * 1.06;
+        _paintLeftPanel(canvas, Rect.fromLTWH(w * 0.05, top, w * 0.42, 0), u);
+        _paintRightPanel(canvas, Rect.fromLTWH(w * 0.53, top, w * 0.42, 0), u);
+        _paintUptime(canvas, Offset(w * 0.05, h - u * 0.04), u);
+    }
+  }
+
+  /// 中央ブロック: 円の縁取り・左右へ伸びる水平線・CPU バーグラフ・数値・バッジ。
+  /// [height] がこのブロックの基準寸法。
+  void _paintCenterBlock(Canvas canvas, double w, double top, double height) {
+    final cx = w / 2;
+    final cy = top + height * 0.5;
+    final radius = height * 0.47;
+    final y1 = top + height * 0.2;
+    final y2 = top + height * 0.76;
+
     final well = Paint()..color = palette.meterWell;
     canvas
-      ..drawRect(Rect.fromLTWH(w * 0.02, y1, w * 0.96, y2 - y1), well)
+      ..drawRect(Rect.fromLTRB(w * 0.02, y1, w * 0.98, y2), well)
       ..drawCircle(Offset(cx, cy), radius, well);
     _paintTrim(canvas, w, cx, cy, radius, y1);
     _paintTrim(canvas, w, cx, cy, radius, y2);
 
-    // 中央: CPU の右肩上がりバーグラフ。
-    final x0 = cx - w * 0.2;
-    final x1 = cx + w * 0.2;
-    final baseline = y2 - h * 0.07;
+    final x0 = cx - radius;
+    final x1 = cx + radius;
+    final baseline = y2 - height * 0.07;
     _paintWedge(
       canvas,
       palette,
@@ -314,62 +380,72 @@ class RaceClusterPainter extends CustomPainter {
       x0: x0,
       x1: x1,
       baseline: baseline,
-      minHeight: h * 0.05,
-      maxHeight: h * 0.36,
+      minHeight: height * 0.05,
+      maxHeight: height * 0.36,
       value: animator.needle('cpu'),
       bars: 72,
-      labelSize: h * 0.075,
+      labelSize: height * 0.075,
     );
     paintMeterText(
       canvas,
       textCache.get(
         'CPU  ×10 %',
         font: meterLabelFont,
-        size: h * 0.036,
+        size: height * 0.036,
         color: palette.labelText,
       ),
-      Offset(x0, baseline + h * 0.05),
+      Offset(x0, baseline + height * 0.05),
       anchor: MeterTextAnchor.baselineLeft,
     );
 
-    _paintCenterReadout(canvas, w, h, cx);
-
-    // 左パネル: メモリ / スワップ。
-    const ticks = ['0', '25', '50', '75', '100%'];
-    _paintHBar(
-      canvas,
-      Rect.fromLTWH(w * 0.045, h * 0.33, w * 0.2, h * 0.065),
-      animator.needle('mem'),
-      'MEMORY',
-      readouts.memoryText,
-      ticks,
+    final number = textCache.get(
+      readouts.cpuNumber,
+      font: meterNumberFont,
+      size: height * 0.12,
+      color: palette.tickMajor,
     );
-    if (readouts.swapText != null) {
-      _paintHBar(
-        canvas,
-        Rect.fromLTWH(w * 0.045, h * 0.56, w * 0.2, h * 0.065),
-        animator.needle('swap'),
-        'SWAP',
-        readouts.swapText!,
-        ticks,
-      );
-    }
-
-    _paintRightPanel(canvas, w, h);
-
-    if (readouts.uptimeText != null) {
-      paintMeterText(
-        canvas,
-        textCache.get(
-          'UPTIME  ${readouts.uptimeText}',
-          font: meterNumberFont,
-          size: h * 0.038,
-          color: palette.tickMajor.withValues(alpha: 0.8),
-        ),
-        Offset(w * 0.045, y2 + h * 0.07),
-        anchor: MeterTextAnchor.baselineLeft,
-      );
-    }
+    final numberBaseline = top + height * 0.885;
+    paintMeterText(
+      canvas,
+      number,
+      Offset(cx - number.width / 2, numberBaseline),
+      anchor: MeterTextAnchor.baselineLeft,
+    );
+    paintMeterText(
+      canvas,
+      textCache.get(
+        '%',
+        font: meterLabelFont,
+        size: height * 0.045,
+        color: palette.tickMajor.withValues(alpha: 0.8),
+      ),
+      Offset(cx + number.width / 2 + height * 0.02, numberBaseline),
+      anchor: MeterTextAnchor.baselineLeft,
+    );
+    final badgeWidth = height * 0.28;
+    final badgeHeight = height * 0.05;
+    final badge = RRect.fromRectAndRadius(
+      Rect.fromLTWH(
+        cx - badgeWidth / 2,
+        top + height * 0.905,
+        badgeWidth,
+        badgeHeight,
+      ),
+      Radius.circular(badgeHeight / 2),
+    );
+    canvas.drawRRect(badge, Paint()..color = palette.raceBadge);
+    paintMeterText(
+      canvas,
+      textCache.get(
+        'RACE',
+        font: meterLabelFont,
+        size: badgeHeight * 0.62,
+        weight: FontWeight.w700,
+        color: Colors.white,
+        letterSpacing: badgeHeight * 0.08,
+      ),
+      badge.center,
+    );
   }
 
   void _paintTrim(
@@ -406,48 +482,43 @@ class RaceClusterPainter extends CustomPainter {
       ..drawCircle(Offset(w * 0.98, y), 2.5, cap);
   }
 
-  void _paintCenterReadout(Canvas canvas, double w, double h, double cx) {
-    final number = textCache.get(
-      readouts.cpuNumber,
-      font: meterNumberFont,
-      size: h * 0.12,
-      color: palette.tickMajor,
-    );
-    paintMeterText(
+  /// 左パネル: メモリ / スワップの横バー。[panel] は左上と幅だけを使う。
+  void _paintLeftPanel(Canvas canvas, Rect panel, double u) {
+    const ticks = ['0', '25', '50', '75', '100%'];
+    _paintHBar(
       canvas,
-      number,
-      Offset(cx - number.width / 2, h * 0.885),
-      anchor: MeterTextAnchor.baselineLeft,
+      Rect.fromLTWH(panel.left, panel.top + u * 0.07, panel.width, u * 0.065),
+      animator.needle('mem'),
+      'MEMORY',
+      readouts.memoryText,
+      ticks,
     );
+    if (readouts.swapText != null) {
+      _paintHBar(
+        canvas,
+        Rect.fromLTWH(panel.left, panel.top + u * 0.3, panel.width, u * 0.065),
+        animator.needle('swap'),
+        'SWAP',
+        readouts.swapText!,
+        ticks,
+      );
+    }
+  }
+
+  void _paintUptime(Canvas canvas, Offset baselineLeft, double u) {
+    if (readouts.uptimeText == null) {
+      return;
+    }
     paintMeterText(
       canvas,
       textCache.get(
-        '%',
-        font: meterLabelFont,
-        size: h * 0.045,
+        'UPTIME  ${readouts.uptimeText}',
+        font: meterNumberFont,
+        size: u * 0.038,
         color: palette.tickMajor.withValues(alpha: 0.8),
       ),
-      Offset(cx + number.width / 2 + h * 0.02, h * 0.885),
+      baselineLeft,
       anchor: MeterTextAnchor.baselineLeft,
-    );
-    final badgeWidth = w * 0.12;
-    final badgeHeight = h * 0.05;
-    final badge = RRect.fromRectAndRadius(
-      Rect.fromLTWH(cx - badgeWidth / 2, h * 0.905, badgeWidth, badgeHeight),
-      Radius.circular(badgeHeight / 2),
-    );
-    canvas.drawRRect(badge, Paint()..color = palette.raceBadge);
-    paintMeterText(
-      canvas,
-      textCache.get(
-        'RACE',
-        font: meterLabelFont,
-        size: badgeHeight * 0.62,
-        weight: FontWeight.w700,
-        color: Colors.white,
-        letterSpacing: badgeHeight * 0.08,
-      ),
-      badge.center,
     );
   }
 
@@ -526,11 +597,15 @@ class RaceClusterPainter extends CustomPainter {
     );
   }
 
-  void _paintRightPanel(Canvas canvas, double w, double h) {
-    final x = w * 0.74;
-    final width = w * 0.215;
-    final small = h * 0.036;
-    final big = h * 0.06;
+  /// 右パネル: ロードアベレージ・時刻と I/O のブロックゲージ。[panel] は左上と
+  /// 幅だけを使う。
+  void _paintRightPanel(Canvas canvas, Rect panel, double u) {
+    final x = panel.left;
+    final width = panel.width;
+    final small = u * 0.036;
+    final big = u * 0.06;
+    final headerBaseline = panel.top + u * 0.015;
+    final valueBaseline = panel.top + u * 0.085;
     if (readouts.loadText != null) {
       paintMeterText(
         canvas,
@@ -540,7 +615,7 @@ class RaceClusterPainter extends CustomPainter {
           size: small,
           color: palette.tickMinor,
         ),
-        Offset(x, h * 0.275),
+        Offset(x, headerBaseline),
         anchor: MeterTextAnchor.baselineLeft,
       );
       paintMeterText(
@@ -551,7 +626,7 @@ class RaceClusterPainter extends CustomPainter {
           size: big,
           color: palette.tickMajor,
         ),
-        Offset(x, h * 0.345),
+        Offset(x, valueBaseline),
         anchor: MeterTextAnchor.baselineLeft,
       );
     }
@@ -564,7 +639,7 @@ class RaceClusterPainter extends CustomPainter {
     paintMeterText(
       canvas,
       meridiem,
-      Offset(x + width - meridiem.width, h * 0.275),
+      Offset(x + width - meridiem.width, headerBaseline),
       anchor: MeterTextAnchor.baselineLeft,
     );
     final clock = textCache.get(
@@ -576,7 +651,7 @@ class RaceClusterPainter extends CustomPainter {
     paintMeterText(
       canvas,
       clock,
-      Offset(x + width - clock.width, h * 0.345),
+      Offset(x + width - clock.width, valueBaseline),
       anchor: MeterTextAnchor.baselineLeft,
     );
 
@@ -590,7 +665,7 @@ class RaceClusterPainter extends CustomPainter {
       final (label, key, text) = rows[i];
       _paintBlocks(
         canvas,
-        Rect.fromLTWH(x, h * (0.39 + i * 0.07), width, h * 0.052),
+        Rect.fromLTWH(x, panel.top + u * (0.13 + i * 0.07), width, u * 0.052),
         animator.needle(key),
         label,
         text,
@@ -666,7 +741,9 @@ class RaceClusterPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(RaceClusterPainter old) =>
-      old.readouts != readouts || old.palette != palette;
+      old.layout != layout ||
+      old.readouts != readouts ||
+      old.palette != palette;
 }
 
 /// コア別の小さな右肩上がりバーグラフのグリッド。
@@ -674,6 +751,7 @@ class RaceCoresPainter extends CustomPainter {
   RaceCoresPainter({
     required this.coreCount,
     required this.columns,
+    required this.rowHeight,
     required this.animator,
     required this.palette,
     required this.textCache,
@@ -681,11 +759,10 @@ class RaceCoresPainter extends CustomPainter {
 
   final int coreCount;
   final int columns;
+  final double rowHeight;
   final MeterAnimator animator;
   final ActivityMeterPalette palette;
   final MeterTextCache textCache;
-
-  static const double _rowHeight = 92;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -695,9 +772,9 @@ class RaceCoresPainter extends CustomPainter {
       final col = i % columns;
       final row = i ~/ columns;
       final left = col * cellWidth;
-      final top = row * _rowHeight;
+      final top = row * rowHeight;
       canvas.drawRect(
-        Rect.fromLTWH(left + 4, top + 4, cellWidth - 8, _rowHeight - 8),
+        Rect.fromLTWH(left + 4, top + 4, cellWidth - 8, rowHeight - 8),
         well,
       );
       final v = animator.needle('core$i');
@@ -709,9 +786,9 @@ class RaceCoresPainter extends CustomPainter {
         textCache,
         x0: x0,
         x1: x1,
-        baseline: top + _rowHeight - 18,
+        baseline: top + rowHeight - 12,
         minHeight: 4,
-        maxHeight: _rowHeight * 0.5,
+        maxHeight: rowHeight * 0.45,
         value: v,
         bars: 30,
       );
@@ -723,7 +800,7 @@ class RaceCoresPainter extends CustomPainter {
           size: 11,
           color: palette.tickMinor,
         ),
-        Offset(x0, top + 22),
+        Offset(x0, top + 20),
         anchor: MeterTextAnchor.baselineLeft,
       );
       final pct = textCache.get(
@@ -735,7 +812,7 @@ class RaceCoresPainter extends CustomPainter {
       paintMeterText(
         canvas,
         pct,
-        Offset(x1 - pct.width, top + 24),
+        Offset(x1 - pct.width, top + 22),
         anchor: MeterTextAnchor.baselineLeft,
       );
     }
@@ -745,6 +822,7 @@ class RaceCoresPainter extends CustomPainter {
   bool shouldRepaint(RaceCoresPainter old) =>
       old.coreCount != coreCount ||
       old.columns != columns ||
+      old.rowHeight != rowHeight ||
       old.palette != palette;
 }
 
@@ -760,6 +838,7 @@ class ShiftLightsPainter extends CustomPainter {
   static const double _led = 18;
   static const double _gap = 6;
   static const double width = count * _led + (count - 1) * _gap;
+  static const double height = 16;
 
   @override
   void paint(Canvas canvas, Size size) {
