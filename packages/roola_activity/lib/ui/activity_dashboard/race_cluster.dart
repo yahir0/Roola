@@ -5,8 +5,9 @@ import 'package:roola_activity/ui/activity_dashboard/activity_meter_palette.dart
 import 'package:roola_activity/ui/activity_dashboard/meter_animator.dart';
 import 'package:roola_activity/ui/activity_dashboard/meter_layout.dart';
 import 'package:roola_activity/ui/activity_dashboard/meter_text.dart';
+import 'package:roola_activity/ui/activity_dashboard/race_round_tach.dart';
 
-/// RACE クラスタに載せる表示内容（数値の文字列と、項目の有無）。
+/// RACE 1 / RACE 2 クラスタに載せる表示内容（数値の文字列と、項目の有無）。
 ///
 /// メーターの位置は [MeterAnimator] から読む。ここにあるのは 250ms ごとに
 /// 変わる数値表示と、取得できない項目を出さないための有無の情報。
@@ -68,7 +69,14 @@ class RaceReadouts {
   );
 }
 
-/// TACHO モードの RACE: GR86 / BRZ の Track Mode 風クラスタ（design D6）。
+/// RACE クラスタ中央の CPU 表示。左右のパネル・シフトライト・コア別表示は共通。
+///
+/// - `trackBar`: RACE 2。GR86 / BRZ の Track Mode 風の右肩上がりバーグラフ
+/// - `roundTach`: RACE 1。通常モード風の丸型タコ（[paintRaceRoundTach]）
+enum RaceCenter { trackBar, roundTach }
+
+/// TACHO モードの RACE 1 / RACE 2: GR86 / BRZ 風クラスタ（design D6）。
+/// 両者の違いは中央の CPU 表示（[RaceCenter]）だけ。
 ///
 /// 上部にシフトライト、中央に 1 枚のクラスタ、全コア表示時は下にコア別の小さな
 /// 右肩上がりバーグラフを並べる。クラスタはペインの幅と高さに収まる大きさを選び
@@ -80,10 +88,14 @@ class RaceBoard extends StatelessWidget {
     required this.coreCount,
     required this.animator,
     required this.textCache,
+    this.center = RaceCenter.trackBar,
     super.key,
   });
 
   final RaceReadouts readouts;
+
+  /// 中央の CPU 表示（RACE 1 / RACE 2）。
+  final RaceCenter center;
 
   /// コア別表示の数。0 ならコア別を出さない。
   final int coreCount;
@@ -134,6 +146,7 @@ class RaceBoard extends StatelessWidget {
                 size: Size(fit.width, fit.height),
                 painter: RaceClusterPainter(
                   layout: fit.layout,
+                  center: center,
                   readouts: readouts,
                   animator: animator,
                   palette: palette,
@@ -298,6 +311,46 @@ void _paintWedge(
   }
 }
 
+/// RACE クラスタの外枠: 左右に伸びる帯（上下の縁取り線）と、中央で円形に
+/// 膨らむ縁取り。RACE 1 / RACE 2 で共通（実車も通常・Track Mode で同じフード）。
+/// 帯は [top]〜[bottom]、円は [center] と [radius]。
+void paintRaceHousing(
+  Canvas canvas,
+  ActivityMeterPalette palette, {
+  required double width,
+  required Offset center,
+  required double radius,
+  required double top,
+  required double bottom,
+}) {
+  final well = Paint()..color = palette.meterWell;
+  canvas
+    ..drawRect(Rect.fromLTRB(width * 0.02, top, width * 0.98, bottom), well)
+    ..drawCircle(center, radius, well);
+  for (final y in [top, bottom]) {
+    final dy = center.dy - y;
+    final dx = math.sqrt(radius * radius - dy * dy);
+    final a = math.atan2(y - center.dy, -dx);
+    final b = math.atan2(y - center.dy, dx);
+    final path = Path()
+      ..moveTo(width * 0.02, y)
+      ..lineTo(center.dx - dx, y)
+      ..arcTo(Rect.fromCircle(center: center, radius: radius), a, b - a, false)
+      ..lineTo(width * 0.98, y);
+    canvas.drawPath(
+      path,
+      Paint()
+        ..color = palette.raceTrim
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2,
+    );
+    final cap = Paint()..color = palette.raceTrimCap;
+    canvas
+      ..drawCircle(Offset(width * 0.02, y), 2.5, cap)
+      ..drawCircle(Offset(width * 0.98, y), 2.5, cap);
+  }
+}
+
 /// RACE クラスタ本体。
 ///
 /// 横長（[RaceLayout.wide]）は実車どおり中央にバーグラフ・左右にパネル。
@@ -307,6 +360,7 @@ void _paintWedge(
 class RaceClusterPainter extends CustomPainter {
   RaceClusterPainter({
     required this.layout,
+    this.center = RaceCenter.trackBar,
     required this.readouts,
     required this.animator,
     required this.palette,
@@ -314,6 +368,7 @@ class RaceClusterPainter extends CustomPainter {
   }) : super(repaint: animator);
 
   final RaceLayout layout;
+  final RaceCenter center;
   final RaceReadouts readouts;
   final MeterAnimator animator;
   final ActivityMeterPalette palette;
@@ -363,12 +418,30 @@ class RaceClusterPainter extends CustomPainter {
     final y1 = top + height * 0.2;
     final y2 = top + height * 0.76;
 
-    final well = Paint()..color = palette.meterWell;
-    canvas
-      ..drawRect(Rect.fromLTRB(w * 0.02, y1, w * 0.98, y2), well)
-      ..drawCircle(Offset(cx, cy), radius, well);
-    _paintTrim(canvas, w, cx, cy, radius, y1);
-    _paintTrim(canvas, w, cx, cy, radius, y2);
+    paintRaceHousing(
+      canvas,
+      palette,
+      width: w,
+      center: Offset(cx, cy),
+      radius: radius,
+      top: y1,
+      bottom: y2,
+    );
+
+    if (center == RaceCenter.roundTach) {
+      // RACE 1: 外枠の円の縁取りの内側に丸型タコを収める。数値もタコの中央。
+      paintRaceRoundTach(
+        canvas,
+        Offset(cx, cy),
+        radius * 0.93,
+        cpu: animator.needle('cpu'),
+        cpuNumber: readouts.cpuNumber,
+        loadText: readouts.loadText,
+        palette: palette,
+        textCache: textCache,
+      );
+      return;
+    }
 
     final x0 = cx - radius;
     final x1 = cx + radius;
@@ -422,40 +495,6 @@ class RaceClusterPainter extends CustomPainter {
       Offset(cx + number.width / 2 + height * 0.02, numberBaseline),
       anchor: MeterTextAnchor.baselineLeft,
     );
-  }
-
-  void _paintTrim(
-    Canvas canvas,
-    double w,
-    double cx,
-    double cy,
-    double radius,
-    double y,
-  ) {
-    final dx = math.sqrt(radius * radius - (cy - y) * (cy - y));
-    final a = math.atan2(y - cy, -dx);
-    final b = math.atan2(y - cy, dx);
-    final path = Path()
-      ..moveTo(w * 0.02, y)
-      ..lineTo(cx - dx, y)
-      ..arcTo(
-        Rect.fromCircle(center: Offset(cx, cy), radius: radius),
-        a,
-        b - a,
-        false,
-      )
-      ..lineTo(w * 0.98, y);
-    canvas.drawPath(
-      path,
-      Paint()
-        ..color = palette.raceTrim
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 2,
-    );
-    final cap = Paint()..color = palette.raceTrimCap;
-    canvas
-      ..drawCircle(Offset(w * 0.02, y), 2.5, cap)
-      ..drawCircle(Offset(w * 0.98, y), 2.5, cap);
   }
 
   /// 左パネル: メモリ / スワップの横バー。[panel] は左上と幅だけを使う。
@@ -718,6 +757,7 @@ class RaceClusterPainter extends CustomPainter {
   @override
   bool shouldRepaint(RaceClusterPainter old) =>
       old.layout != layout ||
+      old.center != center ||
       old.readouts != readouts ||
       old.palette != palette;
 }

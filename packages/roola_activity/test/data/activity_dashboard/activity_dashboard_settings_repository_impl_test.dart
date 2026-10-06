@@ -29,7 +29,7 @@ void main() {
   test('保存して読み戻すと同じ設定になる', () async {
     const settings = ActivityDashboardSettings(
       mode: ActivityDisplayMode.tacho,
-      tachoStyle: TachoStyle.race,
+      tachoStyle: TachoStyle.race1,
       showAllCores: true,
     );
     await repo.save(settings);
@@ -46,6 +46,13 @@ void main() {
     expect(loaded.mode, ActivityDisplayMode.tacho);
     expect(loaded.tachoStyle, TachoStyle.classic);
     expect(loaded.showAllCores, isFalse);
+  });
+
+  test('RACE を分ける前の保存値 race は RACE 2（Track Mode 風）として読む', () async {
+    await file.parent.create(recursive: true);
+    await file.writeAsString('{"mode":"tacho","tachoStyle":"race"}');
+
+    expect((await repo.load()).tachoStyle, TachoStyle.race2);
   });
 
   test('壊れた JSON は既定値', () async {
