@@ -243,3 +243,50 @@ git tag v0.1.0 && git push origin v0.1.0
 
 コード署名証明書を取得した場合は `release-windows.yml` に `signtool.exe` による
 署名ステップを追加することで警告を解消できる（別 change で対応予定）。
+
+## Roola Monitor のリリース（macOS / ローカル）
+
+アクティビティモニタの単体アプリ Roola Monitor（`apps/roola_monitor` / ADR-0069）は、
+現時点ではメンテナの Mac で DMG を作って配布する。GitHub Actions の workflow は
+未整備（後続）。署名・公証は Roola と同じ Developer ID と公証プロファイルを使う。
+
+### 前提
+
+- Keychain に `Developer ID Application: ... (5NDCZDZ75J)` があること
+  （`security find-identity -v -p codesigning`）
+- `xcrun notarytool store-credentials` で公証プロファイルを保存済みであること
+  （Roola の CI と同じ名前 `roola-notary` を想定）
+
+### 手順
+
+1. バージョンを上げる: `apps/roola_monitor/pubspec.yaml` の `version`
+   （Roola 本体とは独立）
+2. 一気通貫で作る:
+
+   ```sh
+   make monitor-dist \
+     SIGN_IDENTITY="Developer ID Application: YAHIRO SUGIYAMA (5NDCZDZ75J)" \
+     NOTARY_PROFILE=roola-notary
+   ```
+
+   Release ビルド → 署名（Hardened Runtime・App Sandbox）→ `build/RoolaMonitor.dmg`
+   作成 → 公証 → ステープルまで行う。
+3. 検証する:
+
+   ```sh
+   xcrun stapler validate build/RoolaMonitor.dmg
+   hdiutil attach -nobrowse -readonly build/RoolaMonitor.dmg
+   spctl -a -t exec -vv "/Volumes/Roola Monitor Installer/Roola Monitor.app"
+   # → accepted / source=Notarized Developer ID
+   hdiutil detach "/Volumes/Roola Monitor Installer"
+   ```
+
+   DMG ファイル自体は Roola と同じく署名していない（`spctl -t open` は rejected
+   になる）。公証チケットはステープル済みで、起動時の検査対象は中のアプリ。
+
+### 注意
+
+- 共通パッケージ（`packages/roola_activity`）の riverpod は、生成コードとの互換の
+  ため版を固定している。上げるときは Roola と Monitor の両方で `pub get` し、
+  `packages/roola_activity` で `build_runner` をやり直す。
+- 自動更新（Sparkle）は持たない。更新はユーザーが DMG を入れ直す。

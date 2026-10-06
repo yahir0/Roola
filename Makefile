@@ -29,9 +29,9 @@ endif
 # とき macOS の App Management 保護が /Volumes/Roola/Roola.app への書き込み
 # を「起動中アプリの改変」と見なしてブロックし hdiutil create が失敗する。
 # ボリューム名を app 名と別にして回避する。
-APP_BUNDLE     := build/macos/Build/Products/Release/Roola.app
-DMG_PATH       := build/Roola.dmg
-DMG_VOLUME     := Roola Installer
+APP_BUNDLE     ?= build/macos/Build/Products/Release/Roola.app
+DMG_PATH       ?= build/Roola.dmg
+DMG_VOLUME     ?= Roola Installer
 WIN_EXE_DIR    := build/windows/x64/runner/Release
 WIN_INSTALLER_DIR := windows/installer
 WIN_ISS        := $(WIN_INSTALLER_DIR)/roola.iss
@@ -51,11 +51,20 @@ ISCC           ?= C:\Program Files (x86)\Inno Setup 6\iscc.exe
 # - ENTITLEMENTS: メインアプリ署名時に焼き付ける entitlements。
 SIGN_IDENTITY  ?=
 NOTARY_PROFILE ?=
-ENTITLEMENTS   := macos/Runner/Release.entitlements
+ENTITLEMENTS   ?= macos/Runner/Release.entitlements
+
+# Roola Monitor（ADR-0069）。署名・DMG 作成・公証は Roola と同じターゲットを、
+# 対象アプリの変数を差し替えて実行する。.app 名に空白を含むため引用符で囲む。
+MONITOR_DIR    := apps/roola_monitor
+MONITOR_APP    := $(MONITOR_DIR)/build/macos/Build/Products/Release/Roola Monitor.app
+MONITOR_DMG    := build/RoolaMonitor.dmg
+MONITOR_VARS   := APP_BUNDLE="$(MONITOR_APP)" DMG_PATH="$(MONITOR_DMG)" \
+                  DMG_VOLUME="Roola Monitor Installer" \
+                  ENTITLEMENTS="$(MONITOR_DIR)/macos/Runner/Release.entitlements"
 
 .DEFAULT_GOAL := help
 
-.PHONY: help setup get gen watch run format analyze test check build build-windows installer-windows sign dmg notarize staple dist clean reset reset-windows
+.PHONY: help setup get gen watch run format analyze test check build build-windows installer-windows sign sign-bundle dmg dmg-bundle notarize staple dist clean reset reset-windows monitor-get monitor-run monitor-analyze monitor-build monitor-dmg monitor-dist
 
 help: ## このヘルプを表示
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  %-10s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -97,6 +106,9 @@ installer-windows: build-windows ## Windows インストーラ生成（build/Roo
 	@echo Installer: build/RoolaSetup-$(VERSION).exe
 
 sign: build ## Developer ID で .app を Hardened Runtime 付きで再帰署名
+	@$(MAKE) --no-print-directory sign-bundle
+
+sign-bundle: ## ビルド済みの $(APP_BUNDLE) を署名（APP_BUNDLE / ENTITLEMENTS で対象を切替）
 	@if [ -z "$(SIGN_IDENTITY)" ]; then \
 		echo "Error: SIGN_IDENTITY が未設定です。"; \
 		echo "  例: make sign SIGN_IDENTITY=\"Developer ID Application: NAME (TEAMID)\""; \
@@ -136,11 +148,14 @@ sign: build ## Developer ID で .app を Hardened Runtime 付きで再帰署名
 	@codesign --verify --deep --strict --verbose=2 "$(APP_BUNDLE)"
 
 dmg: sign ## Release ビルド + 署名 + DMG 作成（$(DMG_PATH) に出力）
-	@rm -rf build/dmg-staging $(DMG_PATH)
+	@$(MAKE) --no-print-directory dmg-bundle
+
+dmg-bundle: ## 署名済みの $(APP_BUNDLE) から DMG を作成（DMG_PATH / DMG_VOLUME で切替）
+	@rm -rf build/dmg-staging "$(DMG_PATH)"
 	@mkdir -p build/dmg-staging
-	@cp -R $(APP_BUNDLE) build/dmg-staging/
+	@cp -R "$(APP_BUNDLE)" build/dmg-staging/
 	@ln -s /Applications build/dmg-staging/Applications
-	@hdiutil create -volname "$(DMG_VOLUME)" -srcfolder build/dmg-staging -ov -format UDZO $(DMG_PATH)
+	@hdiutil create -volname "$(DMG_VOLUME)" -srcfolder build/dmg-staging -ov -format UDZO "$(DMG_PATH)"
 	@rm -rf build/dmg-staging
 	@echo "DMG: $(DMG_PATH)"
 
@@ -161,6 +176,27 @@ staple: ## 公証チケットを DMG にステープリング（要: notarize �
 
 dist: dmg notarize staple ## 配布用 DMG をビルド・署名・公証・ステープルまで一気通貫
 	@echo "Distribution DMG ready: $(DMG_PATH)"
+
+monitor-get: ## Roola Monitor: 依存パッケージを取得
+	cd $(MONITOR_DIR) && $(FLUTTER) pub get
+
+monitor-run: ## Roola Monitor: Debug 起動（bundle ID は dev.tech.yahiro.RoolaMonitor）
+	cd $(MONITOR_DIR) && $(FLUTTER) run -d macos
+
+monitor-analyze: ## Roola Monitor と共通パッケージの静的解析
+	cd $(MONITOR_DIR) && $(FLUTTER) analyze
+	cd packages/polaris && $(FLUTTER) analyze
+	cd packages/roola_activity && $(FLUTTER) analyze && $(FLUTTER) test
+
+monitor-build: ## Roola Monitor: macOS Release ビルド
+	cd $(MONITOR_DIR) && $(FLUTTER) build macos --release
+
+monitor-dmg: monitor-build ## Roola Monitor: Release ビルド + 署名 + DMG 作成（$(MONITOR_DMG)）
+	@$(MAKE) --no-print-directory sign-bundle dmg-bundle $(MONITOR_VARS)
+
+monitor-dist: monitor-dmg ## Roola Monitor: 署名 + DMG + 公証 + ステープルまで一気通貫
+	@$(MAKE) --no-print-directory notarize staple DMG_PATH="$(MONITOR_DMG)"
+	@echo "Distribution DMG ready: $(MONITOR_DMG)"
 
 clean: ## ビルド成果物と pub キャッシュ参照をクリア
 	$(FLUTTER) clean

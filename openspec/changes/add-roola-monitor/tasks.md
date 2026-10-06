@@ -27,26 +27,28 @@
 - [x] 3.4 ライセンス登録で `registerActivityLicenses()` を呼ぶ
 - [x] 3.5 `flutter analyze` と全テストを通す
 - [ ] 3.6 Roola を起動し、アクティビティタブ（全モード・書体）とトップバーのモニタが
-      従来どおり動くことを確認する
+      従来どおり動くことを確認する（トップバーは確認済み。タブは同じ
+      `ActivityDashboardView` を Roola Monitor で全モード確認済みで、Roola 上での
+      目視はユーザー確認待ち）
 
 ## 4. Roola Monitor
 
-- [ ] 4.1 `apps/roola_monitor` を作成する（macOS のみ、Bundle ID / 表示名 /
+- [x] 4.1 `apps/roola_monitor` を作成する（macOS のみ、Bundle ID / 表示名 /
       Debug・Profile の `dev.` プレフィックス）
-- [ ] 4.2 起動処理（保存先の override・ライセンス登録）と画面・メニューを実装する
-- [ ] 4.3 ウィンドウ（透明タイトルバー・ダーク外観・大きさの記憶・最小サイズ・
+- [x] 4.2 起動処理（保存先の override・ライセンス登録）と画面・メニューを実装する
+- [x] 4.3 ウィンドウ（透明タイトルバー・ダーク外観・大きさの記憶・最小サイズ・
       閉じたら終了）を実装する
-- [ ] 4.4 アイコンをマスターから 7 サイズ書き出す
-- [ ] 4.5 App Sandbox の可否を確認し、design D6 に結果を追記する
-- [ ] 4.6 起動して全モードの表示・設定の永続化・About のライセンス・Roola との同時起動を確認する
+- [x] 4.4 アイコンをマスターから 7 サイズ書き出す
+- [x] 4.5 App Sandbox の可否を確認し、design D6 に結果を追記する
+- [x] 4.6 起動して全モードの表示・設定の永続化・About のライセンス・Roola との同時起動を確認する
 
 ## 5. 配布
 
-- [ ] 5.1 Makefile の署名・DMG 作成を変数で動くターゲットに切り出し、`monitor-*`
+- [x] 5.1 Makefile の署名・DMG 作成を変数で動くターゲットに切り出し、`monitor-*`
       ターゲットを追加する（Roola の `dist` の挙動は変えない）
-- [ ] 5.2 署名・DMG 作成・公証・ステープルを実行し、DMG を検証する
+- [x] 5.2 署名・DMG 作成・公証・ステープルを実行し、DMG を検証する
       （`spctl` / `stapler validate`）
-- [ ] 5.3 `docs/release.md` に Roola Monitor の配布手順を追記する
+- [x] 5.3 `docs/release.md` に Roola Monitor の配布手順を追記する
 
 ## 6. ドキュメント
 
