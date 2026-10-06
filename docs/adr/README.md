@@ -56,7 +56,7 @@
 | [0054](./0054-content-surface-bezel-flat-interior.md) | コンテンツ面はベゼル付きディスプレイに統一し、内側はフラットにする | Accepted |
 | [0055](./0055-restore-focus-on-window-reactivation.md) | ウィンドウ再アクティブ化時に最後のフォーカスペインへフォーカスを戻す | Accepted |
 | [0056](./0056-license-view-as-modal-shell.md) | ライセンス表示をモーダルシェル化し、ウィンドウヘッダの戻るボタンを廃止する | Accepted |
-| [0067](./0067-activity-dashboard-tab.md) | アクティビティモニタをワークスペースタブとして追加する | Proposed |
+| [0067](./0067-activity-dashboard-tab.md) | アクティビティモニタをワークスペースタブとして追加する | Accepted |
 | [0068](./0068-activity-tab-polaris-exemption.md) | アクティビティタブでは Polaris の規定を適用しない | Proposed |
 
 ## フォーマット
