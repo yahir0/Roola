@@ -58,6 +58,7 @@
 | [0056](./0056-license-view-as-modal-shell.md) | ライセンス表示をモーダルシェル化し、ウィンドウヘッダの戻るボタンを廃止する | Accepted |
 | [0067](./0067-activity-dashboard-tab.md) | アクティビティモニタをワークスペースタブとして追加する | Accepted |
 | [0068](./0068-activity-tab-polaris-exemption.md) | アクティビティタブでは Polaris の規定を適用しない | Proposed |
+| [0069](./0069-roola-monitor-standalone-app.md) | アクティビティモニタを共通パッケージに切り出し、単体アプリ Roola Monitor を同一リポジトリで提供する | Accepted |
 
 ## フォーマット
 
