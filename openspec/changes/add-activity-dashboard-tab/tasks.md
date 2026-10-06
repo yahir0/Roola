@@ -95,7 +95,7 @@
 - [x] 7.5 `DigitalDialPainter`（VFD オレンジのセグメント円弧・消灯セグメント・
       通過目盛りの点灯・中央の数値）を実装する
 - [x] 7.6 `RaceClusterPainter`（右肩上がり CPU バーグラフ・非線形目盛り・左右
-      パネル・円の縁取りと水平線・数値と RACE バッジ・UPTIME）とシフトライトを実装する
+      パネル・円の縁取りと水平線・数値・UPTIME）とシフトライトを実装する
 - [x] 7.7 全コア表示（LEVEL のチャンネル増加、CLASSIC / DIGITAL のコア別小メーター
       グリッド、RACE のコア別小バーグラフ）を実装する
 - [ ] 7.8 `RepaintBoundary` の分割と `shouldRepaint` を設定し、プロファイルで

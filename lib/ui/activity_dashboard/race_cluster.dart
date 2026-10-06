@@ -354,7 +354,7 @@ class RaceClusterPainter extends CustomPainter {
     }
   }
 
-  /// 中央ブロック: 円の縁取り・左右へ伸びる水平線・CPU バーグラフ・数値・バッジ。
+  /// 中央ブロック: 円の縁取り・左右へ伸びる水平線・CPU バーグラフ・数値。
   /// [height] がこのブロックの基準寸法。
   void _paintCenterBlock(Canvas canvas, double w, double top, double height) {
     final cx = w / 2;
@@ -421,30 +421,6 @@ class RaceClusterPainter extends CustomPainter {
       ),
       Offset(cx + number.width / 2 + height * 0.02, numberBaseline),
       anchor: MeterTextAnchor.baselineLeft,
-    );
-    final badgeWidth = height * 0.28;
-    final badgeHeight = height * 0.05;
-    final badge = RRect.fromRectAndRadius(
-      Rect.fromLTWH(
-        cx - badgeWidth / 2,
-        top + height * 0.905,
-        badgeWidth,
-        badgeHeight,
-      ),
-      Radius.circular(badgeHeight / 2),
-    );
-    canvas.drawRRect(badge, Paint()..color = palette.raceBadge);
-    paintMeterText(
-      canvas,
-      textCache.get(
-        'RACE',
-        font: meterLabelFont,
-        size: badgeHeight * 0.62,
-        weight: FontWeight.w700,
-        color: Colors.white,
-        letterSpacing: badgeHeight * 0.08,
-      ),
-      badge.center,
     );
   }
 

@@ -11,7 +11,8 @@ import 'package:roola/ui/activity_dashboard/meter_text.dart';
 /// TACHO モードの CLASSIC / DIGITAL（円形メーター）の盤面（design D6）。
 ///
 /// 上段に CPU / メモリの大メーター、中段に I/O・ロードアベレージの小メーター、
-/// 全コア表示時は下段にコア別の小メーターを並べる。ペインの幅と高さから全メーターが
+/// 全コア表示時は下段にコア別の小メーターを並べる。横長で背の低いペインでは
+/// 大・小メーターを 1 段にまとめる。ペインの幅と高さから全メーターが
 /// 収まる最大サイズを選び（[fitDials]）、極端に小さいペインでだけスクロールする。
 class DialBoard extends StatelessWidget {
   const DialBoard({
@@ -68,13 +69,25 @@ class DialBoard extends StatelessWidget {
         final board = Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Wrap(
-              spacing: dialMainGap,
-              runSpacing: dialMainGap,
-              alignment: WrapAlignment.center,
-              children: [for (final d in main) dial(d, sizes.big)],
-            ),
-            if (sub.isNotEmpty) ...[
+            if (sizes.inline)
+              // 横長で背の低いペイン: 大・小メーターを 1 段に並べる。
+              Wrap(
+                spacing: dialMainGap,
+                alignment: WrapAlignment.center,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  for (final d in main) dial(d, sizes.big),
+                  for (final d in sub) dial(d, sizes.small),
+                ],
+              )
+            else
+              Wrap(
+                spacing: dialMainGap,
+                runSpacing: dialMainGap,
+                alignment: WrapAlignment.center,
+                children: [for (final d in main) dial(d, sizes.big)],
+              ),
+            if (sub.isNotEmpty && !sizes.inline) ...[
               const SizedBox(height: dialSectionGap),
               Wrap(
                 spacing: dialSubGap,

@@ -4,18 +4,23 @@ import 'dart:math' as math;
 /// 収まる最大サイズを選び、どうしても収まらない極端に小さいペインでだけ
 /// スクロールさせる。
 
-/// CLASSIC / DIGITAL の各メーターの一辺。
+/// CLASSIC / DIGITAL の各メーターの一辺と並べ方。
 class DialSizes {
   const DialSizes({
     required this.big,
     required this.small,
     required this.core,
+    required this.inline,
     required this.fits,
   });
 
   final double big;
   final double small;
   final double core;
+
+  /// 大メーターと小メーターを 1 段に並べるか（横長で背の低いペイン向け）。
+  /// false なら大メーターの段の下に小メーターの段を置く。
+  final bool inline;
 
   /// 与えられた領域に全メーターが収まったか（false ならスクロールが必要）。
   final bool fits;
@@ -31,10 +36,10 @@ const double dialSectionGap = 16;
 const double dialCoreHeading = 24;
 
 const double _maxBig = 400;
-const double _minBig = 96;
+const double _minBig = 64;
 
-double _smallFor(double big) => (big * 0.5).clamp(72.0, 200.0);
-double _coreFor(double big) => (big * 0.36).clamp(60.0, 140.0);
+double _smallFor(double big) => (big * 0.5).clamp(48.0, 200.0);
+double _coreFor(double big) => (big * 0.36).clamp(44.0, 140.0);
 
 int _rows(int count, double size, double gap, double width) {
   if (count == 0) {
@@ -49,7 +54,25 @@ double _block(int count, double size, double gap, double width) {
   return rows == 0 ? 0 : rows * size + (rows - 1) * gap;
 }
 
-/// 盤面全体の高さ（[big] を選んだとき）。
+double _coreSection(int coreCount, double big, double width) => coreCount == 0
+    ? 0
+    : dialSectionGap +
+          dialCoreHeading +
+          _block(coreCount, _coreFor(big), dialCoreGap, width);
+
+/// 大メーターと小メーターを 1 段に並べたときの幅（[big] を選んだとき）。
+double dialInlineWidth({
+  required double big,
+  required int mainCount,
+  required int subCount,
+}) {
+  final n = mainCount + subCount;
+  return n == 0
+      ? 0
+      : mainCount * big + subCount * _smallFor(big) + (n - 1) * dialMainGap;
+}
+
+/// 盤面全体の高さ（[big] を選び、大・小メーターを別の段に置いたとき）。
 double dialBoardHeight({
   required double big,
   required double width,
@@ -61,16 +84,13 @@ double dialBoardHeight({
   if (subCount > 0) {
     h += dialSectionGap + _block(subCount, _smallFor(big), dialSubGap, width);
   }
-  if (coreCount > 0) {
-    h +=
-        dialSectionGap +
-        dialCoreHeading +
-        _block(coreCount, _coreFor(big), dialCoreGap, width);
-  }
-  return h;
+  return h + _coreSection(coreCount, big, width);
 }
 
 /// [width] × [height] に収まる最大のメーターサイズを選ぶ。
+///
+/// 横長で背の低いペインでは、大・小メーターを別の段に積むより 1 段に並べた
+/// ほうが大きく描けるので、同じサイズで両方の並べ方を試す。
 DialSizes fitDials({
   required double width,
   required double height,
@@ -78,30 +98,35 @@ DialSizes fitDials({
   required int subCount,
   required int coreCount,
 }) {
+  DialSizes sizes(double big, {required bool inline, required bool fits}) =>
+      DialSizes(
+        big: big,
+        small: _smallFor(big),
+        core: _coreFor(big),
+        inline: inline,
+        fits: fits,
+      );
   for (var big = math.min(_maxBig, width); big >= _minBig; big -= 4) {
-    final h = dialBoardHeight(
+    final stacked = dialBoardHeight(
       big: big,
       width: width,
       mainCount: mainCount,
       subCount: subCount,
       coreCount: coreCount,
     );
-    if (h <= height) {
-      return DialSizes(
-        big: big,
-        small: _smallFor(big),
-        core: _coreFor(big),
-        fits: true,
-      );
+    if (stacked <= height) {
+      return sizes(big, inline: false, fits: true);
+    }
+    final inlineFits =
+        subCount > 0 &&
+        dialInlineWidth(big: big, mainCount: mainCount, subCount: subCount) <=
+            width &&
+        big + _coreSection(coreCount, big, width) <= height;
+    if (inlineFits) {
+      return sizes(big, inline: true, fits: true);
     }
   }
-  final big = math.max(_minBig, math.min(_minBig, width));
-  return DialSizes(
-    big: big,
-    small: _smallFor(big),
-    core: _coreFor(big),
-    fits: false,
-  );
+  return sizes(_minBig, inline: false, fits: false);
 }
 
 /// RACE クラスタのレイアウト。
@@ -129,40 +154,50 @@ class RaceSize {
 const double raceWideAspect = 9 / 21;
 const double raceCompactAspect = 0.84;
 
-/// この幅未満は縦長レイアウトにする（横長だと文字が小さくなりすぎる）。
-const double raceWideMinWidth = 600;
+/// 横長レイアウトはこの幅以上なら無条件で選ぶ。これ未満でも [raceWideMinWidth]
+/// 以上で、縦長より文字が大きくなる（背が低い）ときは横長にする。
+const double raceWidePreferredWidth = 600;
+const double raceWideMinWidth = 400;
 
 /// 縦長レイアウトでもこれ未満には縮めない（それ以下はスクロール）。
-const double raceMinWidth = 320;
+const double raceMinWidth = 240;
 
 /// [width] × [height] に収まる RACE クラスタの大きさを選ぶ。
 RaceSize fitRace({required double width, required double height}) {
-  // 横長: 幅いっぱい、高さが足りなければ高さに合わせて縮める。
-  final wideWidth = math.min(width, height / raceWideAspect);
-  if (wideWidth >= raceWideMinWidth) {
-    return RaceSize(
-      layout: RaceLayout.wide,
-      width: wideWidth,
-      height: wideWidth * raceWideAspect,
-      fits: true,
-    );
-  }
-  final compactWidth = math.min(width, height / raceCompactAspect);
-  if (compactWidth >= raceMinWidth) {
-    return RaceSize(
-      layout: RaceLayout.compact,
-      width: compactWidth,
-      height: compactWidth * raceCompactAspect,
-      fits: true,
-    );
-  }
-  final w = math.max(raceMinWidth, math.min(width, raceMinWidth));
-  return RaceSize(
+  RaceSize wide(double w, {bool fits = true}) => RaceSize(
+    layout: RaceLayout.wide,
+    width: w,
+    height: w * raceWideAspect,
+    fits: fits,
+  );
+  RaceSize compact(double w, {bool fits = true}) => RaceSize(
     layout: RaceLayout.compact,
     width: w,
     height: w * raceCompactAspect,
-    fits: false,
+    fits: fits,
   );
+
+  // どちらも幅いっぱい、高さが足りなければ高さに合わせて縮める。
+  final wideWidth = math.min(width, height / raceWideAspect);
+  final compactWidth = math.min(width, height / raceCompactAspect);
+  if (wideWidth >= raceWidePreferredWidth) {
+    return wide(wideWidth);
+  }
+  final wideOk = wideWidth >= raceWideMinWidth;
+  final compactOk = compactWidth >= raceMinWidth;
+  if (wideOk && compactOk) {
+    // 文字の基準寸法（横長は高さ、縦長は幅の半分）が大きいほうを選ぶ。
+    return wideWidth * raceWideAspect > compactWidth * 0.5
+        ? wide(wideWidth)
+        : compact(compactWidth);
+  }
+  if (compactOk) {
+    return compact(compactWidth);
+  }
+  if (wideOk) {
+    return wide(wideWidth);
+  }
+  return compact(raceMinWidth, fits: false);
 }
 
 /// LEVEL の寸法。

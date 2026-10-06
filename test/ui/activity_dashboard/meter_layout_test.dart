@@ -77,7 +77,59 @@ void main() {
       );
 
       expect(sizes.fits, isFalse);
-      expect(sizes.big, 96);
+      expect(sizes.big, 64);
+    });
+
+    test('高さを縮めるとメーターも縮み、スクロールせずに収まる', () {
+      final tall = fitDials(
+        width: 560,
+        height: 640,
+        mainCount: 2,
+        subCount: 5,
+        coreCount: 0,
+      );
+      final short = fitDials(
+        width: 560,
+        height: 200,
+        mainCount: 2,
+        subCount: 5,
+        coreCount: 0,
+      );
+
+      expect(short.fits, isTrue);
+      expect(short.big, lessThan(tall.big));
+    });
+
+    test('横長で背の低いペインは大・小メーターを 1 段に並べる', () {
+      final sizes = fitDials(
+        width: 1400,
+        height: 280,
+        mainCount: 2,
+        subCount: 5,
+        coreCount: 0,
+      );
+
+      expect(sizes.fits, isTrue);
+      expect(sizes.inline, isTrue);
+      expect(sizes.big, lessThanOrEqualTo(280));
+      expect(
+        dialInlineWidth(big: sizes.big, mainCount: 2, subCount: 5),
+        lessThanOrEqualTo(1400),
+      );
+      // 段に積むより大きく描ける。
+      expect(sizes.big, greaterThan((280 - dialSectionGap) / 1.5));
+    });
+
+    test('縦長のペインは段に積む', () {
+      final sizes = fitDials(
+        width: 560,
+        height: 900,
+        mainCount: 2,
+        subCount: 5,
+        coreCount: 0,
+      );
+
+      expect(sizes.inline, isFalse);
     });
   });
 
@@ -97,6 +149,14 @@ void main() {
       expect(fit.fits, isTrue);
       expect(fit.width, lessThanOrEqualTo(560));
       expect(fit.height, lessThanOrEqualTo(640));
+    });
+
+    test('横長で背の低いペインは横長レイアウトに縮めて収める', () {
+      final fit = fitRace(width: 1200, height: 200);
+
+      expect(fit.layout, RaceLayout.wide);
+      expect(fit.fits, isTrue);
+      expect(fit.height, lessThanOrEqualTo(200));
     });
 
     test('極端に小さいと収まらずスクロールになる', () {

@@ -35,7 +35,6 @@ class ActivityMeterPalette extends ThemeExtension<ActivityMeterPalette> {
     required this.raceRedUnlit,
     required this.raceTrim,
     required this.raceTrimCap,
-    required this.raceBadge,
     required this.raceBarTrack,
   });
 
@@ -68,7 +67,6 @@ class ActivityMeterPalette extends ThemeExtension<ActivityMeterPalette> {
     raceRedUnlit: Color(0xFF341511),
     raceTrim: Color(0xFF8A8F98),
     raceTrimCap: Color(0xFFB8BCC3),
-    raceBadge: Color(0xFFD8231A),
     raceBarTrack: Color(0xFF2A2C31),
   );
 
@@ -117,10 +115,9 @@ class ActivityMeterPalette extends ThemeExtension<ActivityMeterPalette> {
   final Color raceCautionUnlit;
   final Color raceRedUnlit;
 
-  /// RACE: 円の縁取りと水平線、端の丸、バッジ、横バーの地。
+  /// RACE: 円の縁取りと水平線、端の丸、横バーの地。
   final Color raceTrim;
   final Color raceTrimCap;
-  final Color raceBadge;
   final Color raceBarTrack;
 
   /// テーマから取得する。未登録（テスト等）なら [standard]。
