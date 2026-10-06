@@ -113,7 +113,14 @@ class _Toolbar extends ConsumerWidget {
                     value: TachoStyle.digital,
                     label: 'DIGITAL',
                   ),
-                  PolarisToggleSegment(value: TachoStyle.race, label: 'RACE'),
+                  PolarisToggleSegment(
+                    value: TachoStyle.race1,
+                    label: 'RACE 1',
+                  ),
+                  PolarisToggleSegment(
+                    value: TachoStyle.race2,
+                    label: 'RACE 2',
+                  ),
                 ],
                 selected: settings.tachoStyle,
                 onChanged: notifier.setTachoStyle,
@@ -192,10 +199,15 @@ class _LiveMeters extends HookConsumerWidget {
         textCache: textCache,
       );
     }
-    if (settings.tachoStyle == TachoStyle.race) {
+    if (settings.tachoStyle == TachoStyle.race1 ||
+        settings.tachoStyle == TachoStyle.race2) {
       // シフトライトの全灯点滅は時間で変わるため、その間は毎フレーム描く。
       animator.continuous = (state.cpu ?? 0) > 0.95;
       return RaceBoard(
+        // RACE 1 / RACE 2 の違いは中央の CPU 表示だけ。
+        center: settings.tachoStyle == TachoStyle.race1
+            ? RaceCenter.roundTach
+            : RaceCenter.trackBar,
         readouts: _raceReadouts(state),
         coreCount: allCores ? state.cores.length : 0,
         animator: animator,

@@ -171,7 +171,8 @@ class DialPainter extends CustomPainter {
       case TachoStyle.digital:
         _paintDigital(canvas, c, r, x);
       case TachoStyle.classic:
-      case TachoStyle.race:
+      case TachoStyle.race1:
+      case TachoStyle.race2:
         _paintClassic(canvas, c, r, x);
     }
   }

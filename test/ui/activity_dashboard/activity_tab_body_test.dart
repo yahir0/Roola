@@ -137,12 +137,25 @@ void main() {
     expect(_painters<DialPainter>(), findsWidgets);
     expect(_painters<LevelGroupPainter>(), findsNothing);
 
-    await tester.tap(find.text('RACE'));
+    RaceCenter raceCenter() =>
+        (tester.widget<CustomPaint>(_painters<RaceClusterPainter>()).painter!
+                as RaceClusterPainter)
+            .center;
+
+    await tester.tap(find.text('RACE 1'));
     await tester.pump(const Duration(milliseconds: 100));
     expect(_painters<RaceClusterPainter>(), findsOneWidget);
     expect(_painters<ShiftLightsPainter>(), findsOneWidget);
+    expect(raceCenter(), RaceCenter.roundTach);
+    expect(settings.saved.tachoStyle, TachoStyle.race1);
+
+    await tester.tap(find.text('RACE 2'));
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(_painters<RaceClusterPainter>(), findsOneWidget);
+    expect(_painters<ShiftLightsPainter>(), findsOneWidget);
+    expect(raceCenter(), RaceCenter.trackBar);
     expect(settings.saved.mode, ActivityDisplayMode.tacho);
-    expect(settings.saved.tachoStyle, TachoStyle.race);
+    expect(settings.saved.tachoStyle, TachoStyle.race2);
     await _dispose(tester);
   });
 

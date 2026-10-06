@@ -12,8 +12,9 @@ enum ActivityDisplayMode { level, tacho }
 ///
 /// - `classic`: 針のタコメータ
 /// - `digital`: オレンジ蛍光表示管（VFD）風のセグメント円弧
-/// - `race`: Track Mode 風クラスタ（右肩上がり CPU バーグラフ＋シフトライト）
-enum TachoStyle { classic, digital, race }
+/// - `race1`: RACE 2 と同じクラスタで、中央だけ GR86 / BRZ 通常モード風の丸型タコ
+/// - `race2`: GR86 / BRZ の Track Mode 風クラスタ（右肩上がり CPU バーグラフ＋シフトライト）
+enum TachoStyle { classic, digital, race1, race2 }
 
 /// アクティビティタブの表示設定。次回以降も同じ表示で開くため永続化する。
 @freezed

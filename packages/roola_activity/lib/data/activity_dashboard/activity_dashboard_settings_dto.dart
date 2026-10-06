@@ -22,6 +22,9 @@ class ActivityDashboardSettingsDto {
     showAllCores: entity.showAllCores,
   );
 
+  /// RACE を 2 種類に分ける前の保存値。当時の RACE は今の RACE 2（Track Mode 風）。
+  static const String _legacyRace = 'race';
+
   final String? mode;
   final String? tachoStyle;
   final bool? showAllCores;
@@ -35,10 +38,12 @@ class ActivityDashboardSettingsDto {
         (m) => m.name == mode,
         orElse: () => defaults.mode,
       ),
-      tachoStyle: TachoStyle.values.firstWhere(
-        (s) => s.name == tachoStyle,
-        orElse: () => defaults.tachoStyle,
-      ),
+      tachoStyle: tachoStyle == _legacyRace
+          ? TachoStyle.race2
+          : TachoStyle.values.firstWhere(
+              (s) => s.name == tachoStyle,
+              orElse: () => defaults.tachoStyle,
+            ),
       showAllCores: showAllCores ?? defaults.showAllCores,
     );
   }
