@@ -12,11 +12,15 @@ dependencies:
     sdk: flutter
   flutter_hooks: ^0.21.3+1
   freezed_annotation: ^3.1.0
-  hooks_riverpod: ^3.3.1
+  # 生成コード（*.g.dart）はこの版の riverpod に合わせて生成している。
+  # riverpod 3.3.2 で生成コードが前提とする API が変わったため、使う側の
+  # アプリ（Roola / Roola Monitor）が同じ版に揃うよう固定する。上げるときは
+  # Roola と同時に上げ、build_runner で作り直す（ADR-0069 Trade-offs）。
+  hooks_riverpod: 3.3.1
   json_annotation: ^4.11.0
   polaris:
     path: ../polaris
-  riverpod_annotation: ^4.0.2
+  riverpod_annotation: 4.0.2
 
 dev_dependencies:
   build_runner: ^2.15.0

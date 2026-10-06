@@ -1,0 +1,15 @@
+// Application-level settings for the Runner target.
+//
+// PRODUCT_BUNDLE_IDENTIFIER は Release 構成のみここで使われる。
+// Debug / Profile は project.pbxproj 側で `dev.tech.yahiro.RoolaMonitor` に
+// 上書きされ、開発ビルドとインストール版の Application Support を分ける
+// （ADR-0013 / ADR-0069）。
+
+// The application's name. By default this is also the title of the Flutter window.
+PRODUCT_NAME = Roola Monitor
+
+// The application's bundle identifier
+PRODUCT_BUNDLE_IDENTIFIER = tech.yahiro.RoolaMonitor
+
+// The copyright displayed in application information
+PRODUCT_COPYRIGHT = Copyright © 2026 Yahiro. All rights reserved.

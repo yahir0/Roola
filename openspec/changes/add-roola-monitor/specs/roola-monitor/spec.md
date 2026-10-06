@@ -50,14 +50,19 @@ Roola Monitor SHALL 1 枚のウィンドウを持ち、大きさと位置を次�
 
 ### Requirement: メニューと About
 
-Roola Monitor SHALL macOS のメニューバーに、アプリ名のメニュー（About・サービス・
-隠す・ほかを隠す・すべてを表示・終了）とウィンドウメニュー（最小化・拡大／縮小）を
-持つ。About には名前・バージョン・アイコンを表示し、同梱する OSS（計器書体を
-含む）のライセンスを閲覧できる。
+Roola Monitor SHALL macOS のメニューバーに、アプリ名のメニュー（About・ライセンス・
+サービス・隠す・ほかを隠す・すべてを表示・終了）とウィンドウメニュー（最小化・
+拡大／縮小・フルスクリーン）を持つ。About には名前・バージョン・アイコン・著作権を
+表示する。ライセンスでは同梱する OSS（計器書体を含む）のライセンスを閲覧できる。
+
+#### Scenario: About を見る
+
+- **WHEN** ユーザーがアプリ名のメニューから About を選ぶ
+- **THEN** アイコン・「Roola Monitor」・バージョン・著作権が表示される
 
 #### Scenario: ライセンスを見る
 
-- **WHEN** ユーザーが About を開いてライセンス表示を選ぶ
+- **WHEN** ユーザーがアプリ名のメニューからライセンスを選ぶ
 - **THEN** Barlow Condensed と Chakra Petch の SIL Open Font License を含む
   ライセンス一覧が表示される
 

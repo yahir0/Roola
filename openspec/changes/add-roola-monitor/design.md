@@ -85,9 +85,12 @@ Windows はプラグインのプラットフォームに含めないため、Roo
   `activity_dashboard.json` を保存先として override し、`registerActivityLicenses()`
   を呼んで起動する。
 - 画面は `ActivityDashboardView(isActive: true)` を全面に置くだけ。
-- メニューは Flutter の `PlatformMenuBar` で組む。アプリ名メニューに About（
-  `showAboutDialog`。ライセンス表示ボタンを含む）・サービス・隠す・終了、
-  ウィンドウメニューに最小化・拡大縮小。
+- メニューは Flutter の `PlatformMenuBar` で組む。アプリ名メニューに About（macOS
+  標準の About パネル）・ライセンス一覧（Flutter 標準の `LicensePage`）・サービス・
+  隠す・終了、ウィンドウメニューに最小化・拡大縮小・フルスクリーン。Roola は
+  タイトルバーを隠しているため標準の `LicensePage` の戻るボタンが信号灯と重なり
+  自前の一覧を持つが、Monitor はタイトルバーを残すのでその問題が無い。
+- 計器盤のトグルは Material の祖先を要するため、`Scaffold` で包む。
 - ウィンドウ（`MainFlutterWindow.swift`）: タイトルバーを透明にして地の色
   （Polaris の `bg`）と一体にし、ダーク外観に固定する。大きさと位置は
   `setFrameAutosaveName` で macOS に覚えさせる。最小サイズは計器盤が崩れない
@@ -103,7 +106,10 @@ IOKit の `IOBlockStorageDriver` / `getifaddrs` / `getloadavg`）がサンドボ
 する（ファイル書き込みは自アプリのコンテナだけで足りる）。取れない項目があれば
 無効にし、理由をここに追記する。
 
-> 確認結果は実装後にここへ追記する。
+**確認結果: 有効にする**（macOS 26 / 2026-10-06）。サンドボックス有効の Debug
+ビルドで、CPU（全体・コア別）・メモリ・スワップ・ディスク読み書き・ネットワーク
+送受信・ロードアベレージ・稼働時間がすべて取れ、Roola のトップバーと同程度の値を
+示した。表示設定は `~/Library/Containers/<Bundle ID>/` 配下に保存される。
 
 ### D7. 配布手順
 
